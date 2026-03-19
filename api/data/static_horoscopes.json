@@ -1,0 +1,14 @@
+{
+  "Aries":       {"prediction": "Mars energizes your ambitions today. Focus on new beginnings and leadership opportunities. Health is favored.", "lucky_number": 9, "lucky_color": "Red"},
+  "Taurus":      {"prediction": "Venus blesses relationships and creativity. Financial stability improves. Avoid impulsive decisions.", "lucky_number": 6, "lucky_color": "Green"},
+  "Gemini":      {"prediction": "Mercury sharpens communication. Good day for negotiations, writing, and short travels. Stay adaptable.", "lucky_number": 5, "lucky_color": "Yellow"},
+  "Cancer":      {"prediction": "Moon heightens emotions and intuition. Home and family matters are favored. Trust your instincts.", "lucky_number": 2, "lucky_color": "White"},
+  "Leo":         {"prediction": "Sun illuminates your path. Confidence is high. Creative ventures and social gatherings bring joy.", "lucky_number": 1, "lucky_color": "Gold"},
+  "Virgo":       {"prediction": "Mercury supports detail-oriented work. Health routines benefit from attention. Practicality wins.", "lucky_number": 5, "lucky_color": "Blue"},
+  "Libra":       {"prediction": "Venus harmonizes relationships. Balance is key in decisions. Legal and partnership matters go smoothly.", "lucky_number": 6, "lucky_color": "Pink"},
+  "Scorpio":     {"prediction": "Mars and Ketu deepen introspection. Research, occult studies, and transformation are highlighted.", "lucky_number": 8, "lucky_color": "Maroon"},
+  "Sagittarius": {"prediction": "Jupiter expands horizons. Travel, higher learning, and philosophy are favored. Optimism prevails.", "lucky_number": 3, "lucky_color": "Purple"},
+  "Capricorn":   {"prediction": "Saturn rewards discipline and hard work. Career and authority matters are in focus. Patience pays.", "lucky_number": 8, "lucky_color": "Black"},
+  "Aquarius":    {"prediction": "Saturn and Rahu bring innovation. Humanitarian causes and technology projects are supported.", "lucky_number": 4, "lucky_color": "Blue"},
+  "Pisces":      {"prediction": "Jupiter and Ketu deepen spirituality. Dreams are vivid and meaningful. Creative and healing arts thrive.", "lucky_number": 7, "lucky_color": "Sea Green"}
+}

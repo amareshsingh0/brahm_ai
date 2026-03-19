@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANCIENT SKY — Dark Mode Only
+   Canvas  #080D1C  hsl(225 57% 7%)    3 a.m. sky
+   Surface #0E1730  hsl(224 55% 12%)   cards float on the void
+   Gold    #C8860A  hsl(38 90% 41%)    antique temple brass — divine accent
+   Saffron #E8650A  hsl(25 92% 47%)    dhoop flame — action
+   Purple  #6D28D9  hsl(263 70% 50%)   mystic — use < 10 % of UI
+   Text    #EDE0C4  hsl(41 45% 85%)    warm parchment — NOT cold white
+   Muted   #7A8BAA  hsl(219 22% 57%)   steel-blue muted
+═══════════════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    /* ── Raw palette tokens ── */
+    --void:    225 57% 7%;      /* #080D1C — canvas  */
+    --surface: 224 55% 12%;     /* #0E1730 — surface */
+    --gold:    38  90% 41%;     /* #C8860A — divine  */
+    --saffron: 25  92% 47%;     /* #E8650A — action  */
+    --purple:  263 70% 50%;     /* #6D28D9 — mystic  */
+    --parch:   41  45% 85%;     /* #EDE0C4 — text    */
+    --steel:   219 22% 57%;     /* #7A8BAA — muted   */
+
+    /* ── Shadcn / Tailwind semantic tokens ── */
+    --background: var(--void);
+    --foreground:  var(--parch);
+
+    --card:            var(--surface);
+    --card-foreground: var(--parch);
+
+    --popover:            224 55% 11%;
+    --popover-foreground: var(--parch);
+
+    /* Primary = antique gold (divine highlights, borders, key text) */
+    --primary:            var(--gold);
+    --primary-foreground: 225 57% 6%;
+
+    /* Secondary = saffron (explicit action buttons) */
+    --secondary:            var(--saffron);
+    --secondary-foreground: 225 57% 6%;
+
+    /* Muted layer — between void and surface */
+    --muted:            224 50% 9%;
+    --muted-foreground: var(--steel);
+
+    /* Accent = mystic purple — use sparingly */
+    --accent:            var(--purple);
+    --accent-foreground: 41 45% 92%;
+
+    --destructive:            0 72% 51%;
+    --destructive-foreground: 41 45% 95%;
+
+    --border: 224 38% 17%;
+    --input:  224 38% 17%;
+    --ring:   var(--gold);
+
+    --radius: 0.75rem;
+
+    /* ── Sidebar ── */
+    --sidebar-background:        225 58% 6%;
+    --sidebar-foreground:        var(--steel);
+    --sidebar-primary:           var(--gold);
+    --sidebar-primary-foreground: 225 57% 6%;
+    --sidebar-accent:            224 50% 14%;
+    --sidebar-accent-foreground: var(--parch);
+    --sidebar-border:            224 38% 14%;
+    --sidebar-ring:              var(--gold);
+
+    /* ── Legacy custom tokens (keep for backward compat) ── */
+    --cosmic-blue:      224 55% 22%;
+    --star-gold:        var(--gold);
+    --nebula-pink:      var(--purple);
+    --space-deep:       225 60% 4%;
+
+    /* ── Gradients & shadows ── */
+    --gradient-cosmic: linear-gradient(135deg, hsl(225 57% 7%), hsl(224 55% 17%));
+    --gradient-gold:   linear-gradient(135deg, hsl(38 90% 41%), hsl(30 95% 36%));
+    --gradient-saffron: linear-gradient(135deg, hsl(25 92% 47%), hsl(18 96% 42%));
+    --shadow-glow:     0 0 28px hsl(38 90% 41% / 0.18);
+    --shadow-void:     0 8px 32px hsl(225 60% 3% / 0.8);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    /* Always dark — no toggle */
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    /* canvas is the real sky — body just provides the void base color */
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+@layer utilities {
+
+  /* ── Gold glow text ── */
+  .text-glow-gold {
+    color: hsl(38 90% 50%);                           /* slightly brightened for readability */
+    text-shadow: 0 0 24px hsl(38 90% 41% / 0.55),
+                 0 0 48px hsl(38 90% 41% / 0.2);
+  }
+
+  /* ── Saffron glow (action moments) ── */
+  .text-glow-saffron {
+    color: hsl(25 92% 58%);
+    text-shadow: 0 0 20px hsl(25 92% 47% / 0.5);
+  }
+
+  /* ── Active nav highlight ── */
+  .glow-border {
+    box-shadow: inset 0 0 0 1px hsl(38 90% 41% / 0.28),
+                0 0 18px hsl(38 90% 41% / 0.12);
+  }
+
+  /* ── Glass card — header, overlays ── */
+  .glass {
+    background: hsl(224 55% 10% / 0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid hsl(224 38% 20% / 0.5);
+  }
+
+  /* ── Cosmic card — main content cards, opaque enough to sit over star sky ── */
+  .cosmic-card {
+    background: linear-gradient(148deg,
+      hsl(224 55% 12% / 0.96),
+      hsl(225 57% 8% / 0.98));
+    border: 1px solid hsl(224 38% 20% / 0.65);
+    box-shadow:
+      0 4px 28px hsl(225 60% 3% / 0.75),
+      inset 0 1px 0 hsl(38 90% 41% / 0.05);
+    /* subtle star-sky backdrop shine */
+    backdrop-filter: blur(2px);
+  }
+
+  /* ── Icon glow effects ── */
+  .zodiac-glow {
+    filter: drop-shadow(0 0 7px hsl(38 90% 41% / 0.5));
+  }
+
+  .nebula-glow {
+    filter: drop-shadow(0 0 7px hsl(263 70% 50% / 0.45));
+  }
+
+  /* ── Star field (sidebar background texture) ── */
+  .star-field {
+    background-image:
+      radial-gradient(1px 1px at 18px 28px, hsl(38 90% 41% / 0.35), transparent),
+      radial-gradient(1px 1px at 55px 65px, hsl(41 45% 85% / 0.18), transparent),
+      radial-gradient(1px 1px at 88px 38px, hsl(41 45% 85% / 0.12), transparent),
+      radial-gradient(1px 1px at 125px 75px, hsl(38 90% 41% / 0.2),  transparent),
+      radial-gradient(1px 1px at 158px 28px, hsl(41 45% 85% / 0.1),  transparent),
+      radial-gradient(1.5px 1.5px at 35px 90px, hsl(38 90% 41% / 0.15), transparent),
+      radial-gradient(1px 1px at 175px 55px, hsl(41 45% 85% / 0.08), transparent);
+    background-size: 200px 120px;
+  }
+
+  /* ── Animate pulse-glow ── */
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  /* ── Gold divider line ── */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      hsl(38 90% 41% / 0.45),
+      transparent);
+  }
+
+  /* ── Saffron action button variant ── */
+  .btn-saffron {
+    background: linear-gradient(135deg, hsl(25 92% 47%), hsl(18 96% 42%));
+    color: hsl(225 57% 6%);
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 2px 16px hsl(25 92% 47% / 0.25);
+    transition: box-shadow 0.2s, filter 0.2s;
+  }
+  .btn-saffron:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 2px 24px hsl(25 92% 47% / 0.4);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCROLLBAR — Ancient Sky
+═══════════════════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar         { width: 6px; height: 6px; }
+::-webkit-scrollbar-track   { background: hsl(225 57% 6%); border-radius: 999px; }
+::-webkit-scrollbar-thumb   {
+  background: linear-gradient(180deg,
+    hsl(38 90% 41% / 0.5),
+    hsl(25 92% 47% / 0.35));
+  border-radius: 999px;
+  border: 1px solid hsl(225 57% 6%);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg,
+    hsl(38 90% 41% / 0.8),
+    hsl(25 92% 47% / 0.6));
+}
+::-webkit-scrollbar-corner { background: hsl(225 57% 6%); }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(38 90% 41% / 0.45) hsl(225 57% 6%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════════════════════════════════════════ */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1;   }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SELECTION COLOR
+═══════════════════════════════════════════════════════════════════════════ */
+::selection {
+  background: hsl(38 90% 41% / 0.28);
+  color: hsl(41 45% 92%);
+}

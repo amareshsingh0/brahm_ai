@@ -1,0 +1,328 @@
+// ── Shared ────────────────────────────────────────────────────
+export interface BirthDetails {
+  name?: string;
+  date: string;   // YYYY-MM-DD
+  time: string;   // HH:MM
+  lat: number;
+  lon: number;
+  tz?: number;
+  place?: string;
+}
+
+// ── Cities ────────────────────────────────────────────────────
+export interface City {
+  name: string;
+  lat: number;
+  lon: number;
+  tz: number;
+}
+export interface CitiesResponse {
+  cities: City[];
+}
+
+// ── Kundali ───────────────────────────────────────────────────
+export interface GrahaData {
+  rashi: string;
+  house: number;
+  degree: number;
+  nakshatra: string;
+  pada: number;
+  retro: boolean;
+  status: string;
+}
+export interface LagnaData {
+  rashi: string;
+  nakshatra: string;
+  degree: number;
+}
+export interface HouseData {
+  house: number;
+  rashi: string;
+  lord: string;
+  degree: number;
+}
+export interface DashaData {
+  lord: string;
+  years: number;
+  start: string;
+  end: string;
+  is_current?: boolean;
+}
+export interface YogaData {
+  name: string;
+  desc: string;
+  strength: string;
+}
+export interface KundaliResponse {
+  name: string;
+  place: string;
+  birth_date: string;
+  lat: number;
+  lon: number;
+  tz: number;
+  ayanamsha: number;
+  lagna: LagnaData;
+  grahas: Record<string, GrahaData>;
+  houses: HouseData[];
+  dashas: DashaData[];
+  yogas: YogaData[];
+}
+
+// ── Panchang ──────────────────────────────────────────────────
+export interface VaraData      { name: string; hindi: string; lord: string }
+export interface TithiData     { name: string; hindi: string; paksha: string; end_time: string; tithi_type?: string }
+export interface NakshatraData { name: string; hindi: string; pada: number; lord: string; end_time?: string }
+export interface PanchangYoga  { name: string; hindi: string; is_auspicious: boolean; end_time?: string }
+export interface KaranaData    { name: string; hindi: string; is_bhadra?: boolean }
+export interface TimeSlot      { start: string; end: string }
+export interface NishitaSlot   { start: string; end: string; midpoint?: string }
+
+export interface ChoghadiyaPeriod {
+  name: string; hindi: string; quality: string; auspicious: boolean; start: string; end: string;
+}
+export interface ChoghadiyaData { day: ChoghadiyaPeriod[]; night: ChoghadiyaPeriod[] }
+
+export interface PanchangResponse {
+  vara: VaraData;
+  tithi: TithiData;
+  nakshatra: NakshatraData;
+  yoga: PanchangYoga;
+  karana: KaranaData;
+  sunrise: string;
+  sunset: string;
+  abhijit_muhurta: TimeSlot;
+  rahukaal: TimeSlot;
+  yamagandam?: TimeSlot | null;
+  gulika_kaal?: TimeSlot | null;
+  brahma_muhurta?: TimeSlot | null;
+  pradosh_kaal?: TimeSlot | null;
+  nishita_kaal?: NishitaSlot | null;
+  choghadiya?: ChoghadiyaData | null;
+  panchaka?: boolean | null;
+}
+
+// ── Chat ──────────────────────────────────────────────────────
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+export interface Source {
+  book: string;
+  source: string;
+  language: string;
+}
+
+// ── Compatibility ─────────────────────────────────────────────
+export interface GunaScore {
+  name: string;
+  score: number;
+  max: number;
+  desc: string;
+  interpretation: string;   // couple-specific dynamic text
+  alt_score?: number;       // Varna: rashi-system alternative score
+}
+export interface DoshaSummary {
+  name: string;
+  present: boolean;
+  severity: 'High' | 'Medium' | 'Low' | 'None';
+  cancellation?: string;
+  note: string;
+}
+export interface RajjuDosha {
+  present: boolean;
+  rajju_a: string;
+  rajju_b: string;
+  severity: string;
+  note: string;
+}
+export interface VedhaDosha {
+  present: boolean;
+  note: string;
+}
+export interface LifeAreaScore {
+  area: string;
+  icon: string;
+  score: number;   // 0–100
+  label: string;   // "Excellent" | "Good" | "Average" | "Needs Work"
+}
+export interface CompatibilityResponse {
+  total_score: number;
+  max_score: number;
+  percentage: number;
+  verdict: string;
+  verdict_detail: string;
+  gunas: GunaScore[];
+  mangal_dosha: { person_a: boolean; person_b: boolean };
+  nakshatra_a: string;
+  nakshatra_b: string;
+  rashi_a: string;
+  rashi_b: string;
+  gana_a: string;
+  gana_b: string;
+  nadi_a: string;
+  nadi_b: string;
+  varna_a: string;
+  varna_b: string;
+  yoni_a: string;
+  yoni_b: string;
+  rajju_dosha: RajjuDosha;
+  vedha_dosha: VedhaDosha;
+  life_areas: LifeAreaScore[];
+  strengths: string[];
+  challenges: string[];
+  dosha_summary: DoshaSummary[];
+}
+
+// ── Search ────────────────────────────────────────────────────
+export interface SearchResult {
+  text: string;
+  source: string;
+  language: string;
+  score: number;
+}
+export interface SearchResponse {
+  results: SearchResult[];
+}
+
+// ── Planets ───────────────────────────────────────────────────
+export interface PlanetPos {
+  rashi: string;
+  degree: number;       // degree within rashi (0–29.999)
+  nakshatra: string;
+  retro?: boolean;
+}
+export interface PlanetsResponse {
+  grahas: Record<string, PlanetPos>;
+  lagna?: { rashi: string; degree: number };
+  computed_at: string;
+}
+
+// ── Festivals ─────────────────────────────────────────────────
+export interface FestivalEntry {
+  name: string;
+  hindi: string;
+  date: string;                  // "2026-01-14" — observation date (udaya tithi rule)
+  date_end: string | null;       // last date for multi-day (Navratri etc.)
+  tithi_start: string;           // "HH:MM" — when the tithi begins (may be prev day if tithi_prev_day)
+  tithi_end: string;             // "HH:MM" — when the tithi ends (may be next day if < tithi_start)
+  tithi_start_date: string | null; // "YYYY-MM-DD" — exact calendar date the tithi begins
+  month: string;                 // "Pausha"
+  deity: string;
+  significance: string;
+  icon: string;
+  paksha: string;                // "Shukla" | "Krishna" | "N/A"
+  tithi_name: string;            // "Purnima", "Ashtami", "Amavasya", etc.
+  tithi_type: string;            // "normal" | "vridhi" | "ksheya"
+  tithi_prev_day: boolean;       // true if tithi started the previous calendar day
+  fast_note: string | null;      // fasting instructions for this festival
+  dosh_notes: string[];          // Bhadra dosh, vridhi/ksheya warnings, nishita notes
+}
+export interface FestivalsResponse {
+  year: number;
+  festivals: FestivalEntry[];
+}
+
+// ── Grahan ────────────────────────────────────────────────────
+export interface Eclipse {
+  date: string;
+  type: string;
+  sparsha: string;              // First contact HH:MM (IST)
+  madhya: string;               // Maximum eclipse HH:MM (IST)
+  moksha: string;               // Last contact HH:MM (IST)
+  duration_minutes: number;
+  sutak_start: string | null;   // HH:MM or null (penumbral = no sutak)
+  sutak_hours: number;
+  nakshatra: string;            // Moon nakshatra at Madhya
+  rashi: string;                // Moon rashi at Madhya
+  spiritual_effect: string;
+  festival_conflict: string[] | null;
+}
+export interface GrahanResponse {
+  year: number;
+  eclipses: Eclipse[];
+  tz: number;
+}
+
+// ── Horoscope ─────────────────────────────────────────────────
+export interface HoroscopeResponse {
+  rashi: string;
+  period: string;
+  prediction: string;
+  lucky_number: number;
+  lucky_color: string;
+}
+
+// ── Muhurta ───────────────────────────────────────────────────
+export interface MuhurtaSlot {
+  name: string;
+  start: string;
+  end: string;
+  quality: string;
+  note: string;
+}
+export interface MuhurtaResponse {
+  event: string;
+  date: string;
+  slots: MuhurtaSlot[];
+  avoid: { name: string; start: string; end: string }[];
+  panchang_summary: { tithi: string; vara: string; nakshatra: string; yoga: string };
+}
+
+// ── Monthly Panchang Calendar ─────────────────────────────────
+export interface CalendarDayData {
+  date: string;
+  day: number;
+  weekday: string;
+  vara: string;
+  sunrise: string;
+  sunset: string;
+  tithi_idx: number;
+  tithi: string;
+  tithi_num: number;
+  paksha: string;
+  paksha_short: string;
+  nakshatra: string;
+  yoga: string;
+  rahu_kaal: string;
+  lunar_month: string;
+  festivals: FestivalEntry[];
+  is_today: boolean;
+  is_purnima: boolean;
+  is_amavasya: boolean;
+  is_ekadashi: boolean;
+  is_chaturthi: boolean;
+  is_pradosh: boolean;
+  is_ashtami: boolean;
+  has_festival: boolean;
+  error?: string;
+}
+export interface MonthlyCalendarResponse {
+  year: number;
+  month: number;
+  month_name: string;
+  days_in_month: number;
+  first_weekday: number;
+  tradition: string;
+  lunar_system: string;
+  vikram_samvat: number;
+  lunar_months: string[];
+  adhik_maas_note: string | null;
+  kshaya_maas_note: string | null;
+  days: CalendarDayData[];
+  error?: string;
+}
+
+// ── User ──────────────────────────────────────────────────────
+export interface UserProfile {
+  session_id: string;
+  name?: string;
+  date?: string;
+  time?: string;
+  lat?: number;
+  lon?: number;
+  tz?: number;
+  place?: string;
+  rashi?: string;
+  nakshatra?: string;
+  language?: string;
+}

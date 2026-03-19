@@ -1,0 +1,27 @@
+{
+  "appTitle": "Brahm AI \u2014 Vedic Knowledge Platform",
+  "nav": {
+    "dashboard": "Dashboard",
+    "sky": "Night Sky",
+    "palmistry": "Palmistry",
+    "calendar": "Calendar",
+    "chat": "AI Chat",
+    "panchang": "Panchang",
+    "compatibility": "Compatibility",
+    "kundli": "Kundli",
+    "profile": "Profile"
+  },
+  "landing": {
+    "title": "Ancient Vedic Wisdom",
+    "subtitle": "Powered by Artificial Intelligence",
+    "getStarted": "Get Started",
+    "explore": "Explore Features"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete"
+  }
+}

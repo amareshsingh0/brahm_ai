@@ -1,0 +1,1391 @@
+# Brahm AI — Full Architecture Document
+# Last Updated: 2026-03-18
+
+---
+
+## 1. SYSTEM OVERVIEW
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        BRAHM AI PLATFORM v3.0                        │
+│                    (Web + iOS + Android — same codebase)             │
+│                                                                      │
+│  ┌─────────────────────┐         ┌──────────────────────────────┐   │
+│  │   REACT FRONTEND    │ ──────▶ │      FASTAPI BACKEND          │   │
+│  │  (Web + Capacitor)  │  HTTP   │   34.135.70.190:8000          │   │
+│  │  localhost:8080     │  SSE    │   (Python, GPU VM)            │   │
+│  └─────────────────────┘         └──────────────┬───────────────┘   │
+│                                                 │                    │
+│                                  ┌──────────────▼───────────────┐   │
+│                                  │        AI + CALC LAYER        │   │
+│                                  │  RAG Pipeline (FAISS 1.1M)    │   │
+│                                  │  BM25 + Qwen2.5-7B (4-bit)   │   │
+│                                  │  kundali_service.py           │   │
+│                                  │  panchang_service.py          │   │
+│                                  │  pyswisseph (Swiss Ephem)     │   │
+│                                  └──────────────┬───────────────┘   │
+│                                                 │                    │
+│                                  ┌──────────────▼───────────────┐   │
+│                                  │       DATA LAYER              │   │
+│                                  │  PostgreSQL (prod) /           │   │
+│                                  │  SQLite (dev) — users,        │   │
+│                                  │  subscriptions, sessions       │   │
+│                                  └──────────────────────────────┘   │
+│                                                                      │
+│  EXTERNAL SERVICES:                                                  │
+│  • Cashfree (payments/subscriptions)                                 │
+│  • MSG91 / Firebase (OTP SMS)                                        │
+│  • Supabase Auth (optional OAuth — Google)                           │
+│                                                                      │
+│  Gradio (port 7860) — kept as admin/fallback interface               │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**VM:** Google Cloud g2-standard-32 | 32 vCPU | 128 GB RAM | NVIDIA L4 24GB GPU
+**IP:** 34.135.70.190 | Cost: ~$0.60/hr | OS: Debian 12 | CUDA 13.2
+
+---
+
+## 2. COMPLETE FILE TREE
+
+```
+C:\desktop\Brahm AI\              (local project root)
+│
+├── BRAHM_AI_FULL_ARCHITECTURE.md  ← THIS FILE
+├── PROGRESS.md
+├── VM_SETUP.md
+├── capacitor.config.ts             ← NEW: Capacitor mobile app config
+├── package.json                    (React + Capacitor deps)
+├── vite.config.ts                  (proxy /api → port 8000)
+├── tailwind.config.ts              (dark cosmic theme)
+├── index.html                      (React entry)
+├── .env.local                      (VITE_API_URL=http://34.135.70.190:8000)
+│
+├── api/                            ← FastAPI backend (on VM: ~/books/api/)
+│   ├── main.py                     FastAPI app, CORS, lifespan
+│   ├── config.py                   ALL constants (single source of truth)
+│   ├── dependencies.py             Shared G{} state, Depends() injection
+│   ├── requirements.txt            fastapi uvicorn sse-starlette pydantic
+│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── common.py               BirthDetails, Coordinates
+│   │   ├── chat.py                 ChatRequest, Source, ChatMessage
+│   │   ├── kundali.py              KundaliRequest, KundaliResponse, GrahaData
+│   │   ├── panchang.py             PanchangRequest, PanchangResponse
+│   │   ├── compatibility.py        CompatibilityRequest, CompatibilityResponse
+│   │   ├── user.py                 UserProfile, UserSettings
+│   │   ├── auth.py                 ← NEW: OTPRequest, OTPVerify, TokenResponse, RegisterRequest
+│   │   └── subscription.py        ← NEW: Plan, SubscriptionStatus, CashfreeOrder
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── rag_service.py          load_all(), hybrid_search(), generate_stream()
+│   │   ├── kundali_service.py      calc_kundali() → KundaliResponse dict
+│   │   ├── panchang_service.py     Panchang class wrapper → PanchangResponse dict
+│   │   ├── festival_service.py     get_festival_calendar() → 53 festivals/year
+│   │   ├── calendar_service.py     monthly Panchang calendar with festival lookup
+│   │   ├── horoscope_service.py    static JSON + future LLM generation
+│   │   ├── muhurta_service.py      auspicious timing logic
+│   │   ├── auth_service.py        ← NEW: OTP send/verify, JWT create/decode
+│   │   └── cashfree_service.py    ← NEW: create order, verify webhook, manage subscription
+│   │
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── chat.py                 POST /api/chat (SSE stream)
+│   │   ├── kundali.py              POST /api/kundali
+│   │   ├── panchang.py             GET  /api/panchang
+│   │   ├── compatibility.py        POST /api/compatibility
+│   │   ├── search.py               GET  /api/search
+│   │   ├── planets.py              GET  /api/planets/now
+│   │   ├── muhurta.py              GET  /api/muhurta
+│   │   ├── grahan.py               GET  /api/grahan
+│   │   ├── horoscope.py            GET  /api/horoscope/{rashi}
+│   │   ├── calendar.py             GET  /api/calendar/month
+│   │   ├── user.py                 GET/PATCH /api/user/me
+│   │   ├── cities.py               GET  /api/cities
+│   │   ├── auth.py                ← NEW: POST /api/auth/send-otp, /api/auth/verify-otp, /api/auth/logout
+│   │   └── subscription.py        ← NEW: GET /api/subscription/plans, POST /api/subscription/checkout, POST /api/subscription/webhook
+│   │
+│   ├── middleware/
+│   │   └── auth_middleware.py     ← NEW: JWT decode → request.state.user_id
+│   │
+│   └── data/
+│       ├── cities.json             SINGLE SOURCE: 40 cities + lat/lon/tz
+│       ├── static_horoscopes.json  fallback horoscopes per rashi
+│       ├── subscription_plans.json ← NEW: plan definitions (Free, Jyotishi, Acharya)
+│       └── users.db                SQLite (dev) / PostgreSQL (prod)
+│
+├── src/                            ← React frontend
+│   ├── main.tsx                    React entry point
+│   ├── App.tsx                     Routes + QueryClientProvider + AuthGuard
+│   ├── index.css                   Global styles (dark cosmic theme)
+│   ├── i18n.ts                    ← NEW: react-i18next setup (en/hi/sa)
+│   │
+│   ├── locales/                   ← NEW: Translation files
+│   │   ├── en/
+│   │   │   └── translation.json    English UI strings
+│   │   ├── hi/
+│   │   │   └── translation.json    Hindi UI strings (हिन्दी)
+│   │   └── sa/
+│   │       └── translation.json    Sanskrit labels (for purists)
+│   │
+│   ├── types/
+│   │   └── api.ts                  ALL TypeScript interfaces (matches API exactly)
+│   │
+│   ├── lib/
+│   │   ├── utils.ts                cn() helper
+│   │   ├── api.ts                  Central API client (get/post/streamChat) + auth header
+│   │   └── cities.ts               Fetch+cache from /api/cities
+│   │
+│   ├── hooks/
+│   │   ├── use-mobile.tsx
+│   │   ├── use-toast.ts
+│   │   ├── useChat.ts              SSE streaming chat
+│   │   ├── useKundali.ts           POST /api/kundali mutation
+│   │   ├── usePanchang.ts          GET /api/panchang query
+│   │   ├── useCompatibility.ts     POST /api/compatibility mutation
+│   │   ├── useHoroscope.ts         GET /api/horoscope/{rashi} query
+│   │   ├── useSearch.ts            GET /api/search query
+│   │   ├── usePlanets.ts           GET /api/planets/now query
+│   │   ├── useGrahan.ts            GET /api/grahan query
+│   │   ├── useMuhurta.ts           GET /api/muhurta query
+│   │   ├── useUser.ts              GET/PATCH /api/user/me
+│   │   ├── useAuth.ts             ← NEW: sendOtp, verifyOtp, logout, isLoggedIn
+│   │   └── useSubscription.ts     ← NEW: plans, currentPlan, checkout, webhookStatus
+│   │
+│   ├── store/
+│   │   ├── kundliStore.ts          Zustand (kundaliData: KundaliResponse)
+│   │   └── authStore.ts           ← NEW: Zustand (token, userId, name, phone, plan)
+│   │
+│   ├── components/
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── NavLink.tsx
+│   │   ├── ProtectedRoute.tsx     ← NEW: redirects to /login if not authenticated
+│   │   ├── PlanGate.tsx           ← NEW: wraps premium features, shows upgrade CTA
+│   │   ├── LanguageSwitcher.tsx   ← NEW: EN / हिं / संस्कृत toggle (header)
+│   │   ├── layout/
+│   │   │   ├── AppLayout.tsx       (existing — no change)
+│   │   │   ├── AppSidebar.tsx      (existing — add logout + plan badge)
+│   │   │   └── MobileBottomNav.tsx (existing — no change)
+│   │   ├── cards/
+│   │   │   ├── PlanetInfoPanel.tsx
+│   │   │   └── RashiCard.tsx
+│   │   ├── charts/
+│   │   │   ├── KundliChart.tsx
+│   │   │   └── DashaTimeline.tsx
+│   │   └── ui/                     50+ shadcn components
+│   │
+│   ├── pages/
+│   │   ├── LandingPage.tsx        ← NEW: first screen for unauthenticated users
+│   │   ├── LoginPage.tsx          ← NEW: phone OTP + optional Google OAuth
+│   │   ├── SubscriptionPage.tsx   ← NEW: plan cards + Cashfree checkout
+│   │   ├── Dashboard.tsx           reads store → zero change needed
+│   │   ├── KundliPage.tsx          reads kundaliData from store
+│   │   ├── AIChatPage.tsx          SSE streaming (Jyotishi+ plan only)
+│   │   ├── PanchangPage.tsx        usePanchang hook [route: /today]
+│   │   ├── GrahanPage.tsx          useGrahan + useFestivals + useCalendar
+│   │   ├── CalendarPage.tsx        embedded inside GrahanPage tab 1
+│   │   ├── MuhurtaPage.tsx         embedded inside PanchangPage tab 2
+│   │   ├── HoroscopePage.tsx       useHoroscope hook
+│   │   ├── CompatibilityPage.tsx   useCompatibility hook
+│   │   ├── TimelinePage.tsx        reads kundaliData.dashas from store
+│   │   ├── YogasPage.tsx           reads kundaliData.yogas from store
+│   │   ├── VedicLibraryPage.tsx    useSearch hook
+│   │   ├── MantraDictionaryPage.tsx useSearch hook
+│   │   ├── KnowledgeBasePage.tsx   useSearch hook
+│   │   ├── SkyPage.tsx             usePlanets hook
+│   │   ├── ProfilePage.tsx         useUser + useSubscription hooks
+│   │   ├── OnboardingPage.tsx      useKundali mutation + city from API
+│   │   ├── RashiExplorer.tsx       STATIC
+│   │   ├── NakshatraExplorer.tsx   STATIC
+│   │   ├── PalmistryPage.tsx       STATIC
+│   │   ├── StoriesPage.tsx         STATIC
+│   │   ├── GotraFinderPage.tsx     STATIC
+│   │   └── NotFound.tsx            STATIC
+│   │
+│   └── ingestion/                  Python OCR pipeline modules
+│
+├── android/                       ← NEW: Capacitor Android project (auto-generated)
+├── ios/                           ← NEW: Capacitor iOS project (auto-generated)
+│
+└── scripts/
+    ├── 08_gradio_kundali.py        Gradio UI (kept, port 7860)
+    └── ...
+```
+
+---
+
+## 3. ALL API ENDPOINTS
+
+### Base URL: `http://34.135.70.190:8000`
+
+#### Auth Endpoints (NEW)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/send-otp` | — | Send OTP to phone (MSG91/Firebase) |
+| POST | `/api/auth/verify-otp` | — | Verify OTP → returns JWT access token |
+| POST | `/api/auth/google` | — | Google OAuth token exchange → JWT |
+| POST | `/api/auth/logout` | Bearer JWT | Invalidate token |
+| POST | `/api/auth/refresh` | Refresh token | Get new access token |
+
+#### Subscription Endpoints (NEW)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/subscription/plans` | — | List all plans (Free/Jyotishi/Acharya) |
+| GET | `/api/subscription/status` | Bearer JWT | Current user's plan + expiry |
+| POST | `/api/subscription/checkout` | Bearer JWT | Create Cashfree order → payment URL |
+| POST | `/api/subscription/webhook` | Cashfree sig | Payment confirmed → activate plan |
+| POST | `/api/subscription/cancel` | Bearer JWT | Cancel subscription |
+
+#### User Endpoints (UPDATED)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/user/me` | Bearer JWT | Full profile (name, birth, plan, settings) |
+| PATCH | `/api/user/me` | Bearer JWT | Update profile / preferences / language |
+| DELETE | `/api/user/me` | Bearer JWT | Delete account (GDPR) |
+
+#### Core Feature Endpoints (unchanged)
+| Method | Endpoint | Auth | Description | Speed |
+|--------|----------|------|-------------|-------|
+| POST | `/api/chat` | Bearer JWT (Jyotishi+) | RAG chat SSE stream | ~14s first |
+| POST | `/api/kundali` | Bearer JWT | Birth chart | <1s |
+| GET | `/api/panchang` | Bearer JWT | Today's almanac | <1s |
+| POST | `/api/compatibility` | Bearer JWT | Guna matching | <2s |
+| GET | `/api/search` | Bearer JWT | Semantic search | <0.5s |
+| GET | `/api/planets/now` | Bearer JWT | Current planets | <1s |
+| GET | `/api/muhurta` | Bearer JWT | Auspicious timing | <1s |
+| GET | `/api/grahan` | — | Eclipse calendar (public) | <0.5s |
+| GET | `/api/festivals` | — | Festival calendar (public) | <1s |
+| GET | `/api/calendar/month` | Bearer JWT | Monthly Panchang | <1s |
+| GET | `/api/horoscope/{rashi}` | — | Daily prediction (public) | <0.5s |
+| GET | `/api/cities` | — | City lookup (public) | <0.1s |
+
+#### Admin Endpoints (NEW — admin JWT only)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/admin/users` | Admin JWT | List all users with plan/usage |
+| GET | `/api/admin/users/{user_id}` | Admin JWT | Single user full profile |
+| PATCH | `/api/admin/users/{user_id}` | Admin JWT | Update user plan/status |
+| GET | `/api/admin/subscriptions` | Admin JWT | All active subscriptions |
+| GET | `/api/admin/stats` | Admin JWT | MAU, revenue, feature usage |
+
+---
+
+## 4. AUTH SYSTEM
+
+### 4.1 Auth Flow (Phone OTP — Primary)
+```
+Mobile/Web                 FastAPI                  MSG91/Firebase
+    │                         │                           │
+    │── POST /auth/send-otp ──▶│                           │
+    │   { phone: "+919876543210" }                         │
+    │                         │── Send OTP SMS ──────────▶│
+    │                         │◀─ OTP sent ───────────────│
+    │◀─ { sent: true } ───────│                           │
+    │                         │                           │
+    │   [User enters 6-digit OTP]                         │
+    │                         │                           │
+    │── POST /auth/verify-otp ▶│                           │
+    │   { phone, otp: "123456" }                          │
+    │                         │── Verify OTP ────────────▶│
+    │                         │◀─ valid/invalid ──────────│
+    │                         │                           │
+    │                         │── Upsert user in DB       │
+    │                         │── Generate JWT (7 days)   │
+    │                         │── Generate refresh (30d)  │
+    │                         │                           │
+    │◀─ { access_token,       │                           │
+    │     refresh_token,      │                           │
+    │     user: {...} }       │                           │
+    │                         │                           │
+    │── Store tokens          │                           │
+    │   Web: localStorage     │                           │
+    │   App: Capacitor        │                           │
+    │        SecureStorage    │                           │
+```
+
+### 4.2 JWT Structure
+```json
+{
+  "sub": "usr_a1b2c3d4",
+  "phone": "+919876543210",
+  "name": "Ramesh Sharma",
+  "plan": "jyotishi",
+  "role": "user",
+  "iat": 1742000000,
+  "exp": 1742604800
+}
+```
+
+### 4.3 Backend JWT Implementation
+```python
+# api/services/auth_service.py
+
+SECRET_KEY = os.getenv("JWT_SECRET")      # 64-char random string in .env
+ALGORITHM  = "HS256"
+ACCESS_TOKEN_EXPIRE  = timedelta(days=7)
+REFRESH_TOKEN_EXPIRE = timedelta(days=30)
+
+def create_access_token(user: UserDB) -> str:
+    payload = {
+        "sub":   user.id,
+        "phone": user.phone,
+        "name":  user.name,
+        "plan":  user.plan,          # "free" | "jyotishi" | "acharya"
+        "role":  user.role,          # "user" | "admin"
+        "exp":   datetime.utcnow() + ACCESS_TOKEN_EXPIRE
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+def verify_token(token: str) -> dict:
+    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+```
+
+### 4.4 Dependency Injection (Protect any route)
+```python
+# api/dependencies.py
+
+from fastapi.security import HTTPBearer
+from api.services.auth_service import verify_token
+
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    payload = verify_token(token)          # raises 401 if invalid/expired
+    return payload                         # dict: sub, phone, name, plan, role
+
+def require_plan(min_plan: str):
+    """Usage: Depends(require_plan("jyotishi"))"""
+    plan_order = {"free": 0, "jyotishi": 1, "acharya": 2}
+    def checker(user = Depends(get_current_user)):
+        if plan_order[user["plan"]] < plan_order[min_plan]:
+            raise HTTPException(403, f"Requires {min_plan} plan")
+        return user
+    return checker
+```
+
+### 4.5 Frontend Auth Store (Zustand)
+```typescript
+// src/store/authStore.ts
+
+interface AuthState {
+  token:     string | null
+  userId:    string | null
+  name:      string | null
+  phone:     string | null
+  plan:      "free" | "jyotishi" | "acharya"
+  isLoggedIn: boolean
+
+  setAuth: (token: string, user: UserInfo) => void
+  logout:  () => void
+}
+
+// Persisted to localStorage (web) or Capacitor Preferences (app)
+```
+
+---
+
+## 5. SUBSCRIPTION SYSTEM (CASHFREE)
+
+### 5.1 Plan Definitions
+```json
+[
+  {
+    "id": "free",
+    "name": "Free",
+    "name_hi": "निःशुल्क",
+    "price_monthly": 0,
+    "price_yearly": 0,
+    "features": [
+      "Daily Horoscope",
+      "Today's Panchang",
+      "Festival Calendar",
+      "Eclipse Calendar",
+      "Basic Kundali (view only)",
+      "5 AI Chat messages/day"
+    ],
+    "limits": { "ai_chat_daily": 5, "kundali_saves": 1 }
+  },
+  {
+    "id": "jyotishi",
+    "name": "Jyotishi",
+    "name_hi": "ज्योतिषी",
+    "price_monthly": 199,
+    "price_yearly": 1499,
+    "currency": "INR",
+    "features": [
+      "Everything in Free",
+      "Unlimited AI Chat",
+      "Full Kundali + Dasha Timeline",
+      "Compatibility Analysis",
+      "Muhurta Finder",
+      "Vedic Library Search",
+      "Save unlimited charts"
+    ],
+    "limits": { "ai_chat_daily": -1, "kundali_saves": -1 }
+  },
+  {
+    "id": "acharya",
+    "name": "Acharya",
+    "name_hi": "आचार्य",
+    "price_monthly": 499,
+    "price_yearly": 3999,
+    "currency": "INR",
+    "features": [
+      "Everything in Jyotishi",
+      "Sanskrit text search (1.1M chunks)",
+      "Varshaphala (Solar Return)",
+      "Prashna (Horary) — coming soon",
+      "Priority GPU inference",
+      "Export PDF reports"
+    ],
+    "limits": { "ai_chat_daily": -1, "kundali_saves": -1, "priority_queue": true }
+  }
+]
+```
+
+### 5.2 Cashfree Payment Flow
+```
+Frontend                   FastAPI                    Cashfree
+    │                         │                           │
+    │── POST /subscription    │                           │
+    │     /checkout           │                           │
+    │   { plan: "jyotishi",   │                           │
+    │     period: "monthly" } │                           │
+    │                         │── Create Order ──────────▶│
+    │                         │   (amount, customer info) │
+    │                         │◀─ { order_id,             │
+    │                         │     payment_session_id }  │
+    │◀─ { payment_session_id, │                           │
+    │     order_id }          │                           │
+    │                         │                           │
+    │── Open Cashfree         │                           │
+    │   Checkout (JS SDK)     │                           │
+    │   or redirect URL       │                           │
+    │                         │                           │
+    │   [User pays UPI/Card/  │                           │
+    │    Netbanking/Wallet]    │                           │
+    │                         │                           │
+    │                         │◀─ Webhook POST            │
+    │                         │   /subscription/webhook   │
+    │                         │   { order_id, status:     │
+    │                         │     "PAID", user_id }     │
+    │                         │── Verify signature        │
+    │                         │── Activate plan in DB     │
+    │                         │── Update user JWT scope   │
+    │                         │                           │
+    │── Poll /subscription    │                           │
+    │     /status (30s)       │                           │
+    │◀─ { plan: "jyotishi",   │                           │
+    │     expires_at: "..." } │                           │
+    │── Update authStore      │                           │
+    │── Unlock features       │                           │
+```
+
+### 5.3 Cashfree Integration Code Pattern
+```python
+# api/services/cashfree_service.py
+
+import hmac, hashlib, requests
+
+CASHFREE_APP_ID  = os.getenv("CASHFREE_APP_ID")
+CASHFREE_SECRET  = os.getenv("CASHFREE_SECRET")
+CASHFREE_ENV     = "PROD"   # or "TEST"
+BASE_URL         = "https://api.cashfree.com/pg"  # TEST: sandbox.cashfree.com
+
+def create_order(user_id: str, amount: int, plan: str, period: str) -> dict:
+    order_id = f"brahm_{user_id}_{int(time.time())}"
+    payload  = {
+        "order_id":       order_id,
+        "order_amount":   amount,
+        "order_currency": "INR",
+        "customer_details": { "customer_id": user_id, ... },
+        "order_meta": {
+            "return_url": f"https://brahmai.app/subscription/status?order_id={order_id}",
+            "notify_url": "https://34.135.70.190:8000/api/subscription/webhook"
+        }
+    }
+    resp = requests.post(f"{BASE_URL}/orders", json=payload,
+                         headers={"x-client-id": CASHFREE_APP_ID,
+                                  "x-client-secret": CASHFREE_SECRET,
+                                  "x-api-version": "2023-08-01"})
+    return resp.json()   # contains payment_session_id
+
+def verify_webhook_signature(raw_body: bytes, received_sig: str) -> bool:
+    computed = hmac.new(CASHFREE_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(computed, received_sig)
+```
+
+---
+
+## 6. MULTILINGUAL SUPPORT
+
+### 6.1 Strategy: Two Levels
+```
+Level 1: UI Language (react-i18next)
+    → All labels, navigation, buttons, descriptions
+    → Languages: English (default), Hindi (हिन्दी), Sanskrit (संस्कृत)
+    → User picks in settings → stored in user profile + localStorage
+
+Level 2: Content Language (already done — RAG)
+    → AI Chat answers in user's preferred language
+    → Search results in Sanskrit/Hindi/English mixed
+    → Horoscope, panchang terms shown in both script + English
+```
+
+### 6.2 i18n Setup
+```typescript
+// src/i18n.ts
+import i18n from "i18next"
+import { initReactI18next } from "react-i18next"
+import en from "./locales/en/translation.json"
+import hi from "./locales/hi/translation.json"
+import sa from "./locales/sa/translation.json"
+
+i18n.use(initReactI18next).init({
+  resources: { en: { translation: en }, hi: { translation: hi }, sa: { translation: sa } },
+  lng: localStorage.getItem("brahm_lang") || "en",
+  fallbackLng: "en",
+  interpolation: { escapeValue: false }
+})
+```
+
+### 6.3 Translation File Structure
+```json
+// locales/hi/translation.json  (sample)
+{
+  "nav": {
+    "dashboard":   "डैशबोर्ड",
+    "kundli":      "मेरी कुंडली",
+    "chat":        "ब्रह्म AI चैट",
+    "panchang":    "पंचांग",
+    "horoscope":   "राशिफल",
+    "compatibility":"कुंडली मिलान",
+    "library":     "वैदिक पुस्तकालय",
+    "profile":     "प्रोफाइल"
+  },
+  "panchang": {
+    "tithi":       "तिथि",
+    "nakshatra":   "नक्षत्र",
+    "yoga":        "योग",
+    "karana":      "करण",
+    "vara":        "वार",
+    "sunrise":     "सूर्योदय",
+    "sunset":      "सूर्यास्त",
+    "rahukaal":    "राहुकाल"
+  },
+  "subscription": {
+    "upgrade":     "अपग्रेड करें",
+    "your_plan":   "आपका प्लान",
+    "free":        "निःशुल्क",
+    "premium":     "प्रीमियम"
+  }
+}
+```
+
+### 6.4 AI Chat Language Routing
+```python
+# api/routers/chat.py — send language preference with every request
+# Frontend sends: { "message": "...", "language": "hi" | "en" | "sa" | "all" }
+# RAG prompt prefix changes:
+LANG_PROMPTS = {
+    "hi": "कृपया हिंदी में उत्तर दें।",
+    "sa": "संस्कृतभाषायाम् उत्तरं देहि।",
+    "en": "Please answer in English.",
+    "all": ""   # Qwen uses source language naturally
+}
+```
+
+---
+
+## 7. MOBILE APP SYSTEM (CAPACITOR)
+
+### 7.1 Why Capacitor (Not React Native)
+- **Same React codebase** — zero rewrite, just add Capacitor
+- Native iOS + Android from one build
+- Access native APIs: push notifications, biometric, secure storage, camera (palmistry?)
+- PWA-compatible: works as web app too
+- Deployment: App Store + Play Store + Web simultaneously
+
+### 7.2 Capacitor Setup
+```typescript
+// capacitor.config.ts
+import { CapacitorConfig } from "@capacitor/cli"
+
+const config: CapacitorConfig = {
+  appId:    "ai.brahm.app",
+  appName:  "Brahm AI",
+  webDir:   "dist",
+  server: {
+    androidScheme: "https",
+    url: "http://34.135.70.190:8000"   // dev only — prod: remove for offline-capable
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#0a0a1a",      // dark cosmic
+      showSpinner: false,
+      androidSpinnerStyle: "small",
+      splashFullScreen: true
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
+    }
+  }
+}
+```
+
+### 7.3 Build Commands
+```bash
+# Build web app
+npm run build
+
+# Sync to native projects (run after every web build)
+npx cap sync
+
+# Run on Android (needs Android Studio)
+npx cap run android
+
+# Run on iOS (needs Xcode + Mac)
+npx cap run ios
+
+# Open in IDE
+npx cap open android
+npx cap open ios
+```
+
+### 7.4 Capacitor Plugins Used
+```bash
+npm install @capacitor/app @capacitor/haptics @capacitor/keyboard
+npm install @capacitor/push-notifications     # daily panchang / eclipse alerts
+npm install @capacitor/splash-screen          # cosmic splash
+npm install @capacitor/preferences            # secure token storage (replaces localStorage)
+npm install @capacitor/browser                # for Cashfree payment redirect
+npm install @capacitor-community/biometric-auth  # fingerprint / Face ID login
+```
+
+### 7.5 Secure Token Storage (App vs Web)
+```typescript
+// src/lib/storage.ts — abstraction layer
+import { Capacitor } from "@capacitor/core"
+import { Preferences } from "@capacitor/preferences"
+
+export const secureStore = {
+  async set(key: string, value: string) {
+    if (Capacitor.isNativePlatform()) {
+      await Preferences.set({ key, value })
+    } else {
+      localStorage.setItem(key, value)
+    }
+  },
+  async get(key: string): Promise<string | null> {
+    if (Capacitor.isNativePlatform()) {
+      const { value } = await Preferences.get({ key })
+      return value
+    }
+    return localStorage.getItem(key)
+  }
+}
+
+// Usage in authStore.ts:
+// secureStore.set("brahm_token", accessToken)
+// secureStore.get("brahm_token")
+```
+
+### 7.6 Push Notifications (Daily Panchang)
+```
+Server (7 AM daily via cron):
+  → compute today's panchang for user's location
+  → FCM push: "Today: Ekadashi 🌙 | Shatabhisha | Avoid starting new work"
+  → Eclipse alerts: "Grahan in 2 days — Sutak begins tomorrow at 9 PM"
+
+User opt-in preferences (in profile):
+  [ ] Daily panchang notification
+  [ ] Eclipse / Grahan alerts
+  [ ] Festival reminders (3 days before)
+  [ ] Dasha change alerts (30 days before major dasha change)
+```
+
+---
+
+## 8. FIRST SCREEN & USER JOURNEY
+
+### 8.1 First Screen Decision Tree
+```
+App/Web opens
+      │
+      ▼
+Check JWT in secure storage
+      │
+      ├── Token valid + plan loaded
+      │         │
+      │         ▼
+      │   DASHBOARD (personalized)
+      │   "Namaste, Ramesh 🙏"
+      │   Today's cosmic snapshot:
+      │     • Tithi: Ekadashi (ends 14:32)
+      │     • Nakshatra: Rohini (your birth nakshatra!)
+      │     • Current Dasha: Shani (ends 2031)
+      │     • Sunrise: 6:18 AM | Rahukaal: 3-4:30 PM
+      │
+      ├── Token expired / no token
+      │         │
+      │         ▼
+      │   LANDING PAGE (unauthenticated)
+      │   (see 8.2 below)
+      │
+      └── Token valid but onboarding incomplete
+                │
+                ▼
+          ONBOARDING PAGE
+          (collect birth details → generate kundali)
+```
+
+### 8.2 Landing Page (First Screen — Unauthenticated)
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🌌  BRAHM AI                                    [Login]    │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   [ Animated starfield / Om symbol / cosmic mandala ]       │
+│                                                              │
+│   ब्रह्म AI                                                   │
+│   Your Personal Vedic Guide                                  │
+│                                                              │
+│   [ TODAY'S COSMIC SNAPSHOT — public ]                       │
+│   ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐           │
+│   │Ekadashi│  │Rohini  │  │Sukla   │  │Brahma  │           │
+│   │ Tithi  │  │Nakshtra│  │Paksha  │  │Muhurta │           │
+│   │ 11th   │  │        │  │        │  │5:42 AM │           │
+│   └────────┘  └────────┘  └────────┘  └────────┘           │
+│                                                              │
+│   [ Feature highlights ]                                     │
+│   • AI Chat with 1.1M Sanskrit/Hindi texts                  │
+│   • Complete Kundali & Dasha analysis                        │
+│   • Real-time Panchang for your city                        │
+│   • 36-Guna Kundali matching                                 │
+│                                                              │
+│   ┌──────────────────────────────────────────┐              │
+│   │   🚀  Get Started Free — Login with OTP  │              │
+│   └──────────────────────────────────────────┘              │
+│                                                              │
+│   [ Testimonials / Trust badges ]                           │
+│   "10,000+ charts generated" | "Sanskrit RAG: 792K chunks" │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 8.3 Login Page
+```
+┌─────────────────────────────────────────────────────────────┐
+│  ← Back                    ब्रह्म AI                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Sign in / Register                                         │
+│   (New users auto-registered on first OTP verify)           │
+│                                                              │
+│   ┌──────────────────────────────┐                          │
+│   │  +91  │  9876543210          │ ← phone input            │
+│   └──────────────────────────────┘                          │
+│                                                              │
+│   [ Send OTP ]                                               │
+│                                                              │
+│   ─────────────── or ───────────────                         │
+│                                                              │
+│   [ G  Continue with Google ]   ← OAuth (optional)          │
+│                                                              │
+│   By continuing you agree to our Terms & Privacy Policy     │
+│                                                              │
+│   ─── After OTP sent ───                                    │
+│   Enter 6-digit OTP sent to +91 98765 43210                 │
+│   ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐                           │
+│   │  │ │  │ │  │ │  │ │  │ │  │ ← OTP boxes                │
+│   └──┘ └──┘ └──┘ └──┘ └──┘ └──┘                           │
+│   [ Verify & Continue ]   [ Resend in 30s ]                 │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 8.4 Post-Login Flow
+```
+First login → Onboarding (name + birth details) → Kundali generated → Dashboard
+Return login → Dashboard (personalized, kundali pre-loaded from DB)
+```
+
+---
+
+## 9. USER DATA MODEL & RETRIEVAL
+
+### 9.1 Database Schema (SQLite dev / PostgreSQL prod)
+```sql
+-- Users table
+CREATE TABLE users (
+  id            TEXT PRIMARY KEY,        -- "usr_a1b2c3d4" (uuid prefix)
+  phone         TEXT UNIQUE NOT NULL,
+  email         TEXT UNIQUE,
+  name          TEXT,
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  last_login    DATETIME,
+  role          TEXT DEFAULT 'user',     -- 'user' | 'admin'
+  lang_pref     TEXT DEFAULT 'en',       -- 'en' | 'hi' | 'sa'
+  city          TEXT,
+  lat           REAL,
+  lon           REAL,
+  tz            REAL,
+  birth_date    TEXT,
+  birth_time    TEXT,
+  birth_city    TEXT,
+  birth_lat     REAL,
+  birth_lon     REAL,
+  birth_tz      REAL,
+  kundali_json  TEXT,                    -- cached KundaliResponse JSON
+  notif_panchang  BOOLEAN DEFAULT TRUE,
+  notif_grahan    BOOLEAN DEFAULT TRUE,
+  notif_festivals BOOLEAN DEFAULT FALSE,
+  fcm_token       TEXT                   -- for push notifications
+);
+
+-- Subscriptions table
+CREATE TABLE subscriptions (
+  id              TEXT PRIMARY KEY,
+  user_id         TEXT REFERENCES users(id),
+  plan            TEXT NOT NULL,         -- 'free' | 'jyotishi' | 'acharya'
+  period          TEXT,                  -- 'monthly' | 'yearly'
+  status          TEXT DEFAULT 'active', -- 'active' | 'cancelled' | 'expired'
+  cashfree_order_id TEXT,
+  started_at      DATETIME,
+  expires_at      DATETIME,
+  cancelled_at    DATETIME
+);
+
+-- Usage tracking (for free tier limits)
+CREATE TABLE usage_log (
+  user_id     TEXT,
+  feature     TEXT,                      -- 'ai_chat' | 'kundali' | 'search'
+  used_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+  metadata    TEXT                       -- JSON blob
+);
+```
+
+### 9.2 Get Particular User's Details (Admin)
+
+**Via API (admin token):**
+```bash
+# Get specific user by ID
+curl -H "Authorization: Bearer ADMIN_JWT" \
+  http://34.135.70.190:8000/api/admin/users/usr_a1b2c3d4
+
+# Search users by phone
+curl -H "Authorization: Bearer ADMIN_JWT" \
+  "http://34.135.70.190:8000/api/admin/users?phone=+919876543210"
+
+# Get user's subscription history
+curl -H "Authorization: Bearer ADMIN_JWT" \
+  http://34.135.70.190:8000/api/admin/users/usr_a1b2c3d4/subscriptions
+
+# Get user's usage stats
+curl -H "Authorization: Bearer ADMIN_JWT" \
+  http://34.135.70.190:8000/api/admin/users/usr_a1b2c3d4/usage
+```
+
+**Via SQLite (direct VM access):**
+```bash
+# On VM: ~/books/api/data/users.db
+sqlite3 ~/books/api/data/users.db
+
+# Get user by phone
+SELECT id, name, phone, plan, created_at FROM users WHERE phone = '+919876543210';
+
+# Get all premium users
+SELECT u.name, u.phone, s.plan, s.expires_at
+FROM users u JOIN subscriptions s ON u.id = s.user_id
+WHERE s.status = 'active' AND s.plan != 'free';
+
+# Get today's new signups
+SELECT name, phone, created_at FROM users
+WHERE date(created_at) = date('now');
+
+# Get MAU
+SELECT COUNT(DISTINCT user_id) as mau
+FROM usage_log
+WHERE used_at >= date('now', '-30 days');
+```
+
+### 9.3 /api/user/me Response (Full Profile)
+```json
+{
+  "id":           "usr_a1b2c3d4",
+  "name":         "Ramesh Sharma",
+  "phone":        "+919876543210",
+  "lang_pref":    "hi",
+  "location": {
+    "city": "New Delhi",
+    "lat":  28.6139,
+    "lon":  77.209,
+    "tz":   5.5
+  },
+  "birth_details": {
+    "date":  "1990-05-15",
+    "time":  "10:30",
+    "city":  "Varanasi",
+    "lat":   25.317,
+    "lon":   82.973,
+    "tz":    5.5
+  },
+  "kundali_cached": { ...KundaliResponse... },
+  "subscription": {
+    "plan":       "jyotishi",
+    "status":     "active",
+    "started_at": "2026-03-01",
+    "expires_at": "2026-04-01",
+    "period":     "monthly"
+  },
+  "usage_today": {
+    "ai_chat": 12,
+    "limit":   -1
+  },
+  "notifications": {
+    "panchang":  true,
+    "grahan":    true,
+    "festivals": false
+  },
+  "created_at":   "2026-01-15T10:30:00",
+  "last_login":   "2026-03-18T08:22:00"
+}
+```
+
+---
+
+## 10. ROUTES & SIDEBAR NAVIGATION (UPDATED)
+
+| URL | Sidebar Label | Component | Auth Required | Notes |
+|-----|--------------|-----------|---------------|-------|
+| `/` | — | LandingPage | ✗ | Shows if not logged in; redirects to /dashboard if logged in |
+| `/login` | — | LoginPage | ✗ | Phone OTP form |
+| `/dashboard` | Dashboard | Dashboard | ✓ | Personalized daily snapshot |
+| `/chat` | Brahm AI Chat | AIChatPage | ✓ Jyotishi+ | 5 msg/day on Free |
+| `/kundli` | My Kundli | KundliPage | ✓ | |
+| `/sky` | Live Sky | SkyPage | ✓ | |
+| `/timeline` | Dasha Timeline | TimelinePage | ✓ Jyotishi+ | |
+| `/horoscope` | Daily Horoscope | HoroscopePage | ✗ | Public |
+| `/rashi` | Rashi Explorer | RashiExplorer | ✗ | Public |
+| `/nakshatra` | Nakshatra Explorer | NakshatraExplorer | ✗ | Public |
+| `/yogas` | Yogas | YogasPage | ✓ | |
+| `/compatibility` | Compatibility | CompatibilityPage | ✓ Jyotishi+ | |
+| `/palmistry` | Palmistry | PalmistryPage | ✓ | |
+| **`/today`** | **Today** | PanchangPage | ✓ | Tab 1: Panchang · Tab 2: Muhurta |
+| **`/panchang`** | **Panchang** | GrahanPage | ✗ | Public — Tab 1: Calendar · Tab 2: Festivals · Tab 3: Eclipses |
+| `/library` | Vedic Library | VedicLibraryPage | ✓ Acharya | Sanskrit search |
+| `/mantras` | Mantra Dictionary | MantraDictionaryPage | ✓ | |
+| `/knowledge` | Knowledge Base | KnowledgeBasePage | ✓ | |
+| `/stories` | Stories | StoriesPage | ✗ | Public |
+| `/gotra` | Gotra Finder | GotraFinderPage | ✓ | |
+| `/profile` | Profile | ProfilePage | ✓ | Subscription mgmt |
+| `/subscription` | — | SubscriptionPage | ✓ | Plan selection + Cashfree |
+
+---
+
+## 11. PAGE → API → HOOK MAPPING
+
+| Page | API Endpoint | Hook | Auth |
+|------|-------------|------|------|
+| **LandingPage** | GET /api/panchang (public snapshot) | usePanchang | ✗ |
+| **LoginPage** | POST /api/auth/send-otp + /verify-otp | useAuth | ✗ |
+| **OnboardingPage** | POST /api/kundali | useKundali | ✓ |
+| **Dashboard** | Zustand store + /api/panchang | usePanchang | ✓ |
+| **AIChatPage** | POST /api/chat (SSE) | useChat | ✓ Jyotishi+ |
+| **KundliPage** | Zustand store | — | ✓ |
+| **TimelinePage** | Zustand store | — | ✓ |
+| **YogasPage** | Zustand store | — | ✓ |
+| **PanchangPage** | GET /api/panchang + /api/muhurta | usePanchang, useMuhurta | ✓ |
+| **GrahanPage** | GET /api/calendar/month + /api/festivals + /api/grahan | useCalendar, useFestivals, useGrahan | ✗ |
+| **HoroscopePage** | GET /api/horoscope/{rashi} | useHoroscope | ✗ |
+| **CompatibilityPage** | POST /api/compatibility | useCompatibility | ✓ Jyotishi+ |
+| **VedicLibraryPage** | GET /api/search | useSearch | ✓ Acharya |
+| **MantraDictionaryPage** | GET /api/search | useSearch | ✓ |
+| **KnowledgeBasePage** | GET /api/search | useSearch | ✓ |
+| **SkyPage** | GET /api/planets/now | usePlanets | ✓ |
+| **ProfilePage** | GET+PATCH /api/user/me + /api/subscription/status | useUser, useSubscription | ✓ |
+| **SubscriptionPage** | GET /api/subscription/plans + POST /checkout | useSubscription | ✓ |
+
+---
+
+## 12. DATA FLOW DIAGRAMS
+
+### 12.1 Auth + First Load Flow
+```
+App starts
+      │
+      ▼
+secureStore.get("brahm_token")
+      │
+      ├── token exists
+      │         │
+      │         ▼
+      │   verify JWT expiry (client-side decode)
+      │         │
+      │         ├── valid → setAuth(token, payload) → navigate("/dashboard")
+      │         │
+      │         └── expired → POST /api/auth/refresh
+      │                           → new token → setAuth → navigate("/dashboard")
+      │
+      └── no token → navigate("/") → LandingPage
+```
+
+### 12.2 Subscription + Feature Gate Flow
+```
+User clicks "Unlimited AI Chat" (Jyotishi feature)
+      │
+      ▼
+PlanGate checks authStore.plan
+      │
+      ├── plan is "jyotishi" or "acharya"
+      │         → render feature normally
+      │
+      └── plan is "free"
+                │
+                ▼
+          Show upgrade modal:
+          "Unlock unlimited chat with Jyotishi plan"
+          [ ₹199/month ]  [ ₹1499/year ]
+          [ Upgrade Now ]
+                │
+                ▼
+          navigate("/subscription")
+                │
+                ▼
+          User selects plan → POST /subscription/checkout
+                │
+                ▼
+          { payment_session_id } → Cashfree.checkout(session_id)
+                │
+                ▼
+          [Cashfree payment UI — UPI / Card]
+                │
+                ▼
+          Webhook → activate plan → user polling → authStore.plan = "jyotishi"
+```
+
+### 12.3 Chat Flow (SSE Streaming)
+```
+[same as before, but now includes:]
+├── Auth header: "Authorization: Bearer {token}"
+├── Usage check: require_plan("jyotishi") OR (plan=="free" AND daily_count < 5)
+└── Language routing: prompt prefix based on user.lang_pref
+```
+
+### 12.4 Kundali Persistence Flow
+```
+OnboardingPage → POST /api/kundali
+      │
+      ▼
+FastAPI calculates kundali
+      │
+      ├── Returns KundaliResponse
+      │
+      ├── Saves kundali_json to users table (DB cache)
+      │
+      ▼
+Frontend: setKundaliData(response) → Zustand store
+
+Return visit:
+GET /api/user/me → includes kundali_cached
+      │
+      ▼
+setKundaliData(user.kundali_cached) → instantly populated
+(no re-calculation needed)
+```
+
+---
+
+## 13. BACKEND DEPENDENCY TREE (UPDATED)
+
+```
+main.py
+  └── imports: config, dependencies, 13 routers
+
+config.py             (constants: JWT_SECRET, CASHFREE_*, MSG91_*)
+
+dependencies.py
+  └── get_current_user()      → JWT verify → user dict
+  └── require_plan()          → plan-level gate
+  └── get_admin_user()        → role=="admin" check
+  └── get_rag_state()         → GPU models
+
+routers/auth.py
+  └── services/auth_service   → OTP send/verify, JWT create
+  └── DB: users table
+
+routers/subscription.py
+  └── services/cashfree_service → create order, verify webhook
+  └── DB: subscriptions table
+
+routers/user.py
+  └── DB: users table (full profile CRUD)
+
+routers/admin.py (NEW)
+  └── DB: users + subscriptions + usage_log
+
+routers/chat.py
+  └── services/rag_service, dependencies (require_plan)
+  └── Usage: usage_log INSERT
+
+[all other routers unchanged — add Depends(get_current_user) to each]
+```
+
+---
+
+## 14. FRONTEND DEPENDENCY TREE (UPDATED)
+
+```
+src/main.tsx
+  └── i18n.ts                        ← NEW: loads before App
+  └── App.tsx
+        └── QueryClientProvider
+              └── AuthProvider (authStore init)
+                    └── router
+                          ├── / → LandingPage (public)
+                          ├── /login → LoginPage (public)
+                          ├── /horoscope → HoroscopePage (public)
+                          ├── /panchang → GrahanPage (public)
+                          ├── [ProtectedRoute]
+                          │     ├── /dashboard → Dashboard
+                          │     ├── /kundli → KundliPage
+                          │     └── ...all auth-required routes
+                          └── [PlanGate wrappers inside pages]
+
+src/store/authStore.ts
+  └── zustand + persist
+  └── uses: src/lib/storage.ts (web: localStorage | app: Capacitor Preferences)
+
+src/hooks/useAuth.ts
+  └── sendOtp(): POST /api/auth/send-otp
+  └── verifyOtp(): POST /api/auth/verify-otp → setAuth()
+  └── logout(): clear store + secure storage
+
+src/hooks/useSubscription.ts
+  └── plans(): GET /api/subscription/plans
+  └── status(): GET /api/subscription/status
+  └── checkout(): POST /api/subscription/checkout → open Cashfree
+
+src/lib/api.ts (UPDATED)
+  └── all requests: adds Authorization: Bearer {token} from authStore
+  └── on 401: attempt token refresh → retry → redirect /login
+
+src/components/ProtectedRoute.tsx
+  └── checks authStore.isLoggedIn → redirect /login if false
+
+src/components/PlanGate.tsx
+  └── checks authStore.plan against required plan → show upgrade CTA
+```
+
+---
+
+## 15. NO-DUPLICATE RULES
+
+| Data | Single Source of Truth | What Was Eliminated |
+|------|----------------------|---------------------|
+| City list + lat/lon/tz | `api/data/cities.json` via GET /api/cities | No per-file hardcoded cities |
+| API base URL | `.env.local` VITE_API_URL | No per-file hardcoded URLs |
+| Kundali calc | `api/services/kundali_service.py` | Extracted from scripts once |
+| Panchang calc | `scripts/panchang.py` Panchang class | panchang_service.py imports it |
+| TypeScript types | `src/types/api.ts` | No local re-definitions per page |
+| Auth token | `authStore.ts` + `secureStore` abstraction | Not in two places |
+| Plan definitions | `api/data/subscription_plans.json` | Not hardcoded in frontend OR backend |
+| i18n strings | `src/locales/*/translation.json` | No hardcoded UI strings in components |
+| JWT secret | `.env` on VM only | Never in frontend, never in git |
+
+---
+
+## 16. REACT QUERY CACHE STRATEGY
+
+| Endpoint | staleTime | Auth |
+|----------|-----------|------|
+| /api/kundali | Infinity | User's birth chart never changes |
+| /api/panchang | 5 min | Tithi changes every ~1.5 days |
+| /api/horoscope | 1 hour | Daily content |
+| /api/planets/now | 2 min, refetch 5 min | Planets move |
+| /api/search | 30 sec | User-driven |
+| /api/grahan | 1 day | Annual events |
+| /api/muhurta | 10 min | Date-specific |
+| /api/cities | Infinity | Never changes |
+| /api/user/me | 1 min | Profile may update |
+| /api/subscription/status | 30 sec | Payment can activate anytime |
+| /api/subscription/plans | 1 hour | Plan prices change rarely |
+
+---
+
+## 17. DEPLOYMENT ARCHITECTURE (UPDATED)
+
+```
+VM: 34.135.70.190
+│
+├── Port 7860 — Gradio (fallback)
+│   pm2: brahm-gradio
+│
+├── Port 8000 — FastAPI (production API)
+│   pm2: brahm-api
+│   cmd: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1
+│
+└── Port 3000 — React static (optional)
+    serve dist/ via nginx or python3 -m http.server
+
+GCloud Firewall:
+  brahm-api:       tcp:8000
+  brahm-gradio:    tcp:7860
+
+Environment vars on VM (.env file in ~/books/api/):
+  JWT_SECRET=<64-char random>
+  CASHFREE_APP_ID=<from Cashfree dashboard>
+  CASHFREE_SECRET=<from Cashfree dashboard>
+  MSG91_AUTH_KEY=<from MSG91>          (for OTP SMS)
+  FIREBASE_SERVER_KEY=<from Firebase>  (for push notifications)
+  ADMIN_PHONE=+91XXXXXXXXXX            (your phone — gets role='admin')
+
+Production domain (future):
+  brahmai.app → nginx reverse proxy → 8000
+  www.brahmai.app → serve React dist/
+  api.brahmai.app → FastAPI
+
+App Store:
+  Bundle ID: ai.brahm.app
+  Deployment: capacitor build → Xcode/Android Studio → App Store Connect / Play Console
+```
+
+**VRAM Budget (NVIDIA L4 24GB):**
+```
+Qwen2.5-7B 4-bit nf4:          6.3 GB
+Embedding MiniLM-L12-v2:       0.5 GB
+Cross-Encoder reranker:        0.1 GB
+─────────────────────────────────────
+Total used:                    6.9 GB
+Available buffer:             17.1 GB
+```
+
+---
+
+## 18. SECURITY (Phase 2 — Auth Enabled)
+
+- **JWT RS256 or HS256** with 64-char secret in VM env (never in code/git)
+- **OTP rate limit**: 3 OTP requests per phone per 10 minutes
+- **Token refresh**: 7-day access token, 30-day refresh (revocable in DB)
+- **Cashfree webhook**: verify HMAC-SHA256 signature before activating plan
+- **CORS**: allow `brahmai.app`, `localhost:8080`, Capacitor origins only
+- **Admin routes**: separate `role='admin'` check (not just plan level)
+- **Free tier abuse**: rate limit per user_id, not per IP
+- **No secrets on client**: Cashfree keys only on server; JWT secret only on VM
+
+---
+
+## 19. ADDING NEW FEATURES
+
+### New Plan-Gated Feature
+```
+1. api/data/subscription_plans.json → add feature to plan definition
+2. api/routers/your_router.py       → add Depends(require_plan("jyotishi"))
+3. src/components/PlanGate.tsx      → wrap frontend component with <PlanGate plan="jyotishi">
+```
+
+### New Jyotish calculation (e.g., Varshaphala)
+```
+1. api/services/varshaphala_service.py
+2. api/models/varshaphala.py
+3. api/routers/varshaphala.py  → with Depends(require_plan("acharya"))
+4. api/main.py                 → include_router (1 line)
+5. src/types/api.ts            → interface VarshaphalaResponse
+6. src/hooks/useVarshaphala.ts → useMutation hook
+7. Wire into page
+```
+
+### New language UI strings
+```
+1. src/locales/en/translation.json → add English key
+2. src/locales/hi/translation.json → add Hindi translation
+3. Use in component: const { t } = useTranslation(); t("key.subkey")
+```
+
+### New push notification type
+```
+1. api/routers/notifications.py → cron logic + FCM send
+2. users table: add notif_* column
+3. ProfilePage: add toggle
+```
+
+---
+
+## 20. TECH STACK SUMMARY (UPDATED)
+
+### Frontend
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Framework | React 18.3.1 | |
+| Language | TypeScript 5.x | |
+| Build | Vite + SWC | |
+| UI | shadcn/ui + Radix UI | |
+| Styling | TailwindCSS 3.4.17 | |
+| Animations | Framer Motion 10.18.0 | |
+| State | Zustand 4.5.7 | |
+| Server State | React Query 5.83.0 | |
+| Routing | React Router 6.30.1 | |
+| i18n | react-i18next | EN/HI/SA |
+| Mobile | Capacitor 6.x | iOS + Android |
+| Payments | Cashfree JS SDK | In-app checkout |
+| Storage | Capacitor Preferences (app) / localStorage (web) | |
+
+### Backend
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| API | FastAPI | Pydantic v2 |
+| Server | Uvicorn | workers=1 |
+| Auth | python-jose (JWT) | HS256 |
+| OTP | MSG91 / Firebase Auth | SMS OTP |
+| Payments | Cashfree Payments API | Webhooks |
+| LLM | Qwen2.5-7B-Instruct | 4-bit nf4 |
+| Embedding | paraphrase-multilingual-MiniLM-L12-v2 | 384 dim |
+| Reranker | cross-encoder/ms-marco-MiniLM-L-6-v2 | |
+| Vector DB | FAISS HNSW | 1.1M chunks |
+| Keyword | rank_bm25 | |
+| Astronomy | pyswisseph | |
+| DB | SQLite (dev) / PostgreSQL (prod) | |
+| Process | PM2 | |
+
+---
+
+## 21. VERIFICATION COMMANDS
+
+```bash
+# Health check
+curl http://34.135.70.190:8000/health
+
+# Auth test
+curl -X POST http://34.135.70.190:8000/api/auth/send-otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+919876543210"}'
+
+# Plans (public)
+curl http://34.135.70.190:8000/api/subscription/plans | python3 -m json.tool
+
+# User profile (needs JWT)
+export TOKEN="eyJ..."
+curl -H "Authorization: Bearer $TOKEN" \
+  http://34.135.70.190:8000/api/user/me | python3 -m json.tool
+
+# Admin: get all users (needs admin JWT)
+curl -H "Authorization: Bearer $ADMIN_TOKEN" \
+  "http://34.135.70.190:8000/api/admin/users?limit=10"
+
+# Kundali (needs JWT)
+curl -X POST http://34.135.70.190:8000/api/kundali \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"date":"2003-04-14","time":"20:30","lat":24.6917,"lon":83.0818,"tz":5.5}'
+
+# FastAPI docs
+open http://34.135.70.190:8000/docs
+```
+
+---
+
+*Generated: 2026-03-18 | Brahm AI v3.0 — Web + App + Auth + Subscriptions*
