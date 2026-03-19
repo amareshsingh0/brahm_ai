@@ -1,16 +1,18 @@
 import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
 import { LayoutDashboard, Star, Bot, Clock, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const mobileNavItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "AI Chat", url: "/chat", icon: Bot },
-  { title: "Kundli", url: "/kundli", icon: Star },
-  { title: "Timeline", url: "/timeline", icon: Clock },
-  { title: "Profile", url: "/profile", icon: User },
+  { id: "dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { id: "chat", url: "/chat", icon: Bot },
+  { id: "kundli", url: "/kundli", icon: Star },
+  { id: "timeline", url: "/timeline", icon: Clock },
+  { id: "profile", url: "/profile", icon: User },
 ];
 
 export function MobileBottomNav() {
   const location = useLocation();
+  const { t } = useTranslation();
 
   return (
     <nav
@@ -30,10 +32,10 @@ export function MobileBottomNav() {
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] transition-colors ${
                 isActive ? "text-primary" : "text-muted-foreground"
               }`}
-              aria-label={item.title}
+              aria-label={t(`nav.${item.id}`)}
             >
               <item.icon className={`h-5 w-5 ${isActive ? "zodiac-glow" : ""}`} />
-              <span>{item.title}</span>
+              <span>{t(`nav.${item.id}`)}</span>
             </RouterNavLink>
           );
         })}

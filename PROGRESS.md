@@ -1,5 +1,5 @@
 # Brahm AI - Progress Tracker
-# Last Updated: 2026-03-15
+# Last Updated: 2026-03-19
 
 
 ## PHASE 1: PLANNING & RESEARCH [DONE]
@@ -302,21 +302,22 @@ Output: ~/books/indexes/ (3 language indexes + metadata.db + documents.jsonl)
 ```
 
 
-## PHASE 7: RETRIEVAL + RAG PIPELINE [DONE - 2026-03-14]
+## PHASE 7: RETRIEVAL + RAG PIPELINE [DONE - 2026-03-14, UPDATED 2026-03-19]
 - [x] scripts/04_test_search.py — FAISS semantic search test across all 3 language indexes
-- [x] scripts/05_test_rag.py — End-to-end RAG pipeline test (Search + Retrieve + Qwen Generate)
+- [x] scripts/05_test_rag.py — End-to-end RAG pipeline test
 - [x] scripts/06_chat_terminal.py — Interactive ChatGPT-like terminal with chat memory
 - [x] FAISS search working: query → embed → search per-language index → retrieve docs
 - [x] documents.jsonl offset fix: sort by global faiss_id per language, map to 0-based local IDs
-- [x] Qwen2.5-7B-Instruct loaded: 4-bit quantization (nf4), 6.3 GB VRAM, 8s load (cached)
-- [x] RAG generation: 512 tokens, ~33s, 15-16 tok/s on L4 GPU
+- [x] ~~Qwen2.5-7B-Instruct~~ **DELETED 2026-03-19** — replaced by Gemini API
+- [x] **api/services/rag_service.py rewritten (2026-03-19)**:
+  - `load_all()`: Qwen loader removed, no GPU usage for LLM
+  - `generate_stream()`: Gemini API (`models/gemini-2.5-flash`) replaces Qwen generation
+  - BM25 cache: saved to disk after first build → ~30 sec load on restart (was 5-7 min rebuild)
+  - **Startup time: 20-25 min → 3-4 min** (no Qwen + BM25 cache)
 - [x] Source citations working: book names cited in answers
 - [x] Chat memory: last 5 turns passed to LLM for context continuity
-- [x] Chat commands: /lang, /search, /sources, /clear, /help, /quit
-- [ ] src/retrieval/hybrid_search.py (FAISS + BM25 + RRF fusion — not yet, using FAISS-only)
-- [ ] src/retrieval/reranker.py (cross-encoder reranking — not yet)
-- [ ] src/retrieval/context_builder.py (modular context builder — not yet)
-- [ ] Modular src/ refactor (currently scripts are standalone, not using src/ modules)
+- [ ] src/retrieval/hybrid_search.py (modular refactor — not yet)
+- [ ] src/retrieval/reranker.py (modular refactor — not yet)
 
 ### Search Quality Test Results (2026-03-14)
 ```
@@ -492,6 +493,36 @@ No hallucination ✅
 - [ ] src/special/grahan.py (eclipse timing & visibility)
 - [ ] src/special/chart_render.py (North Indian + South Indian chart styles)
 - [ ] src/special/compatibility.py (kundali milan, 36 guna matching)
+
+
+## PHASE 10.5: PALMISTRY AI [LIVE - 2026-03-19]
+- [x] VM folder structure: `~/books/data/palmistry/`, `~/books/models/palmistry/`
+- [x] 6 pipeline scripts uploaded: `palm_01_preprocess.py` to `palm_06_inference.py`
+- [x] mediapipe v0.10.14 installed (solutions API works)
+- [x] MediaPipe warp pipeline: 4/4 reference images warped to 512×512 ✅
+- [x] Vedic rules engine: `palm_05_interpret.py` — JSON + scores (love/career/health 1-10)
+- [x] **Gemini Vision API working**: `models/gemini-2.5-flash`, full Vedic palm reading in one call ✅
+- [x] **FastAPI endpoint live**: `POST /api/palmistry/analyze` — multipart → Gemini → structured JSON
+- [x] Router registered in `api/main.py`
+- [x] GEMINI_API_KEY set permanently in `~/.bashrc` on VM
+- [x] **Frontend**: `PalmistryPage.tsx` — "AI Palm Reading (Gemini Vision)" button → `ai_report` step
+- [x] End-to-end tested: `hand1.jpg` → 200 OK → full Vedic reading with 6 lines, life areas, remedies ✅
+- [ ] `ai_report` step render in PalmistryPage.tsx (show Gemini results in UI) ⬜
+- [ ] U-Net segmentation model (Phase 2 — needs 200+ annotated images)
+- [ ] Label Studio annotation setup (Phase 2)
+
+**Key Decision**: Gemini Vision replaces U-Net for MVP — reads palm image directly, no segmentation needed.
+**Reading includes**: hand_type (Vedic + element), overview, 6 lines (Heart/Head/Life/Fate/Sun/Mercury), dominant mounts, life_areas (6 scores), strengths, challenges, remedies, summary with Sanskrit shloka, auspicious_note.
+
+
+## PHASE 10.6: FRONTEND — SKY PAGE REDESIGN [DONE - 2026-03-19]
+- [x] **ZodiacWheel**: wrapped in `React.memo` — only re-renders on rashi change (not every second)
+- [x] **ZodiacWheel**: occupied rashi segments highlighted (brighter, colored border, bold symbol)
+- [x] **PlanetCards**: new 3×3 grid replacing boring table — each card has symbol glow, Hindi name, rashi badge, plain-language effect (PLANET_DOMAIN + RASHI_QUALITY maps)
+- [x] **CosmicSummary**: new card showing today's overall mood (Auspicious/Reflective/Intense/Balanced) based on Moon rashi + retro/combust status
+- [x] **Critical bug fixed**: `AnimatePresence mode="wait" key={snapshot.localTime.getSeconds()}` — was unmounting/remounting entire table every second with animation. Removed.
+- [x] `PLANET_DOMAIN` + `RASHI_QUALITY` lookup maps added for plain-language meanings
+- [x] Legend simplified
 
 
 ## PHASE 11: FINE-TUNING (Optional) [NOT STARTED]

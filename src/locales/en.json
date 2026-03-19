@@ -1,4 +1,6 @@
 {
+  "appTitle": "Brahm AI",
+  "nav_group": { "main": "Main", "explore": "Explore", "account": "Account" },
   "nav": {
     "dashboard": "Dashboard",
     "chat": "Brahm AI Chat",
@@ -219,6 +221,18 @@
     "resend": "Resend OTP",
     "resend_in": "Resend in {{sec}}s",
     "change_number": "Change number"
+  },
+  "guidance": {
+    "career": "Career", "career_text": "Saturn's aspect brings focus. Ideal for long-term planning.",
+    "relationships": "Relationships", "relationships_text": "Venus transit favors harmony. Express gratitude today.",
+    "health": "Health", "health_text": "Moon in Cancer suggests rest. Nurture your inner world.",
+    "spiritual": "Spiritual", "spiritual_text": "Jupiter's blessing enhances meditation practice."
+  },
+  "quicklinks": {
+    "chat_desc": "Ask Vedic wisdom",
+    "library_desc": "Sacred texts & scriptures",
+    "mantras_desc": "Sacred chants & meanings",
+    "compat_desc": "Kundli matching"
   },
   "landing": {
     "hero_title": "ब्रह्म AI",

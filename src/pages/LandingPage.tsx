@@ -1,3 +1,4 @@
+﻿import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, Moon, Sun, Sparkles, ChevronRight } from "lucide-react";
@@ -12,42 +13,42 @@ const cosmicFacts = [
 
 const features = [
   {
-    icon: "🤖",
-    title: "Brahm AI Chat",
+    icon: "ðŸ¤–",
+    title: "{t('appTitle')} Chat",
     desc: "Ask any Vedic question. Powered by 1.1 million Sanskrit, Hindi, and English text chunks from 100+ sacred books.",
     plan: "Jyotishi+",
     color: "from-blue-500/10 to-purple-500/10 border-blue-500/20",
   },
   {
-    icon: "⭐",
+    icon: "â­",
     title: "Kundali & Dashas",
     desc: "Precise birth chart using pyswisseph + Lahiri ayanamsha. Full Vimshottari Dasha timeline, Yogas, and Lagna analysis.",
     plan: "Free",
     color: "from-gold/10 to-amber-500/10 border-amber-500/20",
   },
   {
-    icon: "🌙",
+    icon: "ðŸŒ™",
     title: "Daily Panchang",
-    desc: "Tithi, Nakshatra, Yoga, Karana, Vara, Choghadiya, Rahukaal, Brahma Muhurta — computed live for your city.",
+    desc: "Tithi, Nakshatra, Yoga, Karana, Vara, Choghadiya, Rahukaal, Brahma Muhurta â€” computed live for your city.",
     plan: "Free",
     color: "from-purple-500/10 to-pink-500/10 border-purple-500/20",
   },
   {
-    icon: "❤️",
+    icon: "â¤ï¸",
     title: "Compatibility (Kundali Milan)",
     desc: "Full 36-Guna Ashtakoot analysis. Varna, Vashya, Tara, Yoni, Graha Maitri, Gana, Bhakoot, Nadi.",
     plan: "Jyotishi+",
     color: "from-rose-500/10 to-red-500/10 border-rose-500/20",
   },
   {
-    icon: "🌑",
+    icon: "ðŸŒ‘",
     title: "Eclipse & Festival Calendar",
-    desc: "53 festivals, all regions, 2024–2045. Grahan with Sparsha/Madhya/Moksha timings, Sutak, and conflict detection.",
+    desc: "53 festivals, all regions, 2024â€“2045. Grahan with Sparsha/Madhya/Moksha timings, Sutak, and conflict detection.",
     plan: "Free",
     color: "from-gray-500/10 to-slate-500/10 border-gray-500/20",
   },
   {
-    icon: "📚",
+    icon: "ðŸ“š",
     title: "Vedic Library Search",
     desc: "Semantic search over Bhagavad Gita, Upanishads, Puranas, and 100+ texts in 3 languages.",
     plan: "Acharya",
@@ -63,19 +64,20 @@ const planColors: Record<string, string> = {
 
 const stats = [
   { value: "1.1M+", label: "Sanskrit / Hindi / English chunks" },
-  { value: "53", label: "Festivals verified 2024–2045" },
+  { value: "53", label: "Festivals verified 2024â€“2045" },
   { value: "108", label: "Yogas & Doshas detected" },
   { value: "9", label: "Grahas, real pyswisseph data" },
 ];
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* ─── NAV ─── */}
+      {/* â”€â”€â”€ NAV â”€â”€â”€ */}
       <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 sm:px-8 py-4 glass border-b border-border/20">
         <div className="flex items-center gap-2">
           <Moon className="h-6 w-6 text-primary zodiac-glow" />
-          <span className="font-display text-lg text-primary text-glow-gold">Brahm AI</span>
+          <span className="font-display text-lg text-primary text-glow-gold">{t('appTitle')}</span>
         </div>
         <Link to="/login">
           <Button size="sm" variant="outline" className="border-primary/40 text-primary hover:bg-primary/10">
@@ -84,7 +86,7 @@ export default function LandingPage() {
         </Link>
       </nav>
 
-      {/* ─── HERO ─── */}
+      {/* â”€â”€â”€ HERO â”€â”€â”€ */}
       <section className="relative pt-28 pb-20 px-5 sm:px-8 star-field overflow-hidden">
         {/* Background glow orbs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -100,13 +102,13 @@ export default function LandingPage() {
             transition={{ duration: 0.7 }}
           >
             <p className="text-xs uppercase tracking-[0.3em] text-primary/70 mb-4">
-              ॐ सर्वे भवन्तु सुखिनः
+              à¥ à¤¸à¤°à¥à¤µà¥‡ à¤­à¤µà¤¨à¥à¤¤à¥ à¤¸à¥à¤–à¤¿à¤¨à¤ƒ
             </p>
             <h1 className="font-display text-5xl sm:text-7xl text-foreground leading-tight">
-              <span className="text-glow-gold">ब्रह्म AI</span>
+              <span className="text-glow-gold">{t('landing.title')}</span>
             </h1>
             <h2 className="font-display text-2xl sm:text-3xl text-muted-foreground mt-2">
-              Your Personal Vedic Guide
+              {t('landing.subtitle')}
             </h2>
           </motion.div>
 
@@ -116,7 +118,7 @@ export default function LandingPage() {
             transition={{ delay: 0.3 }}
             className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
           >
-            AI-powered Jyotish, Panchang, and sacred text search — grounded in 1.1 million
+            AI-powered Jyotish, Panchang, and sacred text search â€” grounded in 1.1 million
             Sanskrit, Hindi, and English verses from India's ancient wisdom tradition.
           </motion.p>
 
@@ -140,7 +142,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── TODAY'S PANCHANG SNAPSHOT ─── */}
+      {/* â”€â”€â”€ TODAY'S PANCHANG SNAPSHOT â”€â”€â”€ */}
       <section className="px-5 sm:px-8 py-12 max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -168,12 +170,12 @@ export default function LandingPage() {
             ))}
           </div>
           <p className="text-center text-xs text-muted-foreground/50 mt-3">
-            Login to get Panchang for your city — real-time pyswisseph calculations
+            Login to get Panchang for your city â€” real-time pyswisseph calculations
           </p>
         </motion.div>
       </section>
 
-      {/* ─── STATS ─── */}
+      {/* â”€â”€â”€ STATS â”€â”€â”€ */}
       <section className="px-5 sm:px-8 py-8 border-y border-border/20">
         <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
           {stats.map((s, i) => (
@@ -191,7 +193,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── FEATURES ─── */}
+      {/* â”€â”€â”€ FEATURES â”€â”€â”€ */}
       <section className="px-5 sm:px-8 py-16 max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0 }}
@@ -228,7 +230,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── HOW IT WORKS ─── */}
+      {/* â”€â”€â”€ HOW IT WORKS â”€â”€â”€ */}
       <section className="px-5 sm:px-8 py-16 star-field">
         <div className="max-w-3xl mx-auto text-center space-y-10">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
@@ -238,9 +240,9 @@ export default function LandingPage() {
 
           <div className="grid sm:grid-cols-3 gap-6 text-left">
             {[
-              { step: "01", title: "Login with OTP", desc: "Enter your phone number. Get a 6-digit OTP. No password needed.", icon: "📱" },
-              { step: "02", title: "Enter Birth Details", desc: "Name, date, time, and city of birth. Your Kundali is generated instantly.", icon: "🌟" },
-              { step: "03", title: "Explore Your Chart", desc: "Dashboard, Panchang, AI Chat, Compatibility — all personalized.", icon: "🔮" },
+              { step: "01", title: "Login with OTP", desc: "Enter your phone number. Get a 6-digit OTP. No password needed.", icon: "ðŸ“±" },
+              { step: "02", title: "Enter Birth Details", desc: "Name, date, time, and city of birth. Your Kundali is generated instantly.", icon: "ðŸŒŸ" },
+              { step: "03", title: "Explore Your Chart", desc: "Dashboard, Panchang, AI Chat, Compatibility â€” all personalized.", icon: "ðŸ”®" },
             ].map((item, i) => (
               <motion.div
                 key={item.step}
@@ -260,7 +262,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── PLANS PREVIEW ─── */}
+      {/* â”€â”€â”€ PLANS PREVIEW â”€â”€â”€ */}
       <section className="px-5 sm:px-8 py-16 max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0 }}
@@ -275,17 +277,17 @@ export default function LandingPage() {
         <div className="grid sm:grid-cols-3 gap-4">
           {[
             {
-              name: "Free", nameHi: "निःशुल्क", price: "₹0", period: "",
+              name: "Free", nameHi: "à¤¨à¤¿à¤ƒà¤¶à¥à¤²à¥à¤•", price: "â‚¹0", period: "",
               features: ["Daily Horoscope", "Today's Panchang", "Festival Calendar", "Basic Kundali", "5 AI Chats/day"],
               cta: "Start Free", highlight: false,
             },
             {
-              name: "Jyotishi", nameHi: "ज्योतिषी", price: "₹199", period: "/month",
+              name: "Jyotishi", nameHi: "à¤œà¥à¤¯à¥‹à¤¤à¤¿à¤·à¥€", price: "â‚¹199", period: "/month",
               features: ["Everything in Free", "Unlimited AI Chat", "Full Kundali + Dashas", "Compatibility Analysis", "Muhurta Finder"],
               cta: "Get Jyotishi", highlight: true,
             },
             {
-              name: "Acharya", nameHi: "आचार्य", price: "₹499", period: "/month",
+              name: "Acharya", nameHi: "à¤†à¤šà¤¾à¤°à¥à¤¯", price: "â‚¹499", period: "/month",
               features: ["Everything in Jyotishi", "Sanskrit Library Search", "Varshaphala (coming soon)", "Priority GPU inference", "PDF export (coming soon)"],
               cta: "Get Acharya", highlight: false,
             },
@@ -327,7 +329,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── FINAL CTA ─── */}
+      {/* â”€â”€â”€ FINAL CTA â”€â”€â”€ */}
       <section className="px-5 sm:px-8 py-20 star-field">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -335,7 +337,7 @@ export default function LandingPage() {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto text-center space-y-6"
         >
-          <span className="text-5xl block animate-pulse-glow">🕉️</span>
+          <span className="text-5xl block animate-pulse-glow">ðŸ•‰ï¸</span>
           <h2 className="font-display text-4xl text-foreground text-glow-gold">
             Begin Your Journey
           </h2>
@@ -350,11 +352,11 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ─── FOOTER ─── */}
+      {/* â”€â”€â”€ FOOTER â”€â”€â”€ */}
       <footer className="border-t border-border/20 px-5 sm:px-8 py-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Moon className="h-4 w-4 text-primary" />
-          <span className="font-display text-sm text-primary">Brahm AI</span>
+          <span className="font-display text-sm text-primary">{t('appTitle')}</span>
         </div>
         <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
           <Link to="/horoscope" className="hover:text-foreground transition-colors">Horoscope</Link>
@@ -363,9 +365,15 @@ export default function LandingPage() {
           <Link to="/login" className="hover:text-foreground transition-colors">Login</Link>
         </div>
         <p className="text-[10px] text-muted-foreground/40 mt-4">
-          Grounded in Vedic tradition · Powered by AI · 1.1M sacred text chunks
+          Grounded in Vedic tradition Â· Powered by AI Â· 1.1M sacred text chunks
         </p>
       </footer>
     </div>
   );
 }
+
+
+
+
+
+

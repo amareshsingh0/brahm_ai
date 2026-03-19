@@ -12,11 +12,22 @@ i18n
       hi: { translation: hi },
       sa: { translation: sa },
     },
-    lng: localStorage.getItem("brahm-language")
-      ? JSON.parse(localStorage.getItem("brahm-language")!).state?.lang?.toLowerCase() ?? "en"
-      : "en",
+    lng: (() => {
+      // 1. User ne manually set kiya ho toh wahi use karo
+      const stored = localStorage.getItem("brahm-language");
+      if (stored) {
+        const lang = JSON.parse(stored)?.state?.lang?.toLowerCase();
+        if (lang && ["en", "hi", "sa"].includes(lang)) return lang;
+      }
+      // 2. Phone/browser ki language detect karo
+      const browserLang = navigator.language.split("-")[0].toLowerCase();
+      if (browserLang === "hi") return "hi";
+      if (browserLang === "sa") return "sa";
+      return "en";
+    })(),
     fallbackLng: "en",
     interpolation: { escapeValue: false },
+    initImmediate: false,
   });
 
 export default i18n;

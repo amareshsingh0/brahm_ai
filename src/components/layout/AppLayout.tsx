@@ -4,6 +4,8 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { CosmicSky } from "@/components/CosmicSky";
 import { Moon, Languages } from "lucide-react";
 import { useLanguageStore, LANG_LABELS } from "@/store/languageStore";
+import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -11,6 +13,11 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { lang, cycleLang } = useLanguageStore();
+  const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    i18n.changeLanguage(lang.toLowerCase());
+  }, [lang, i18n]);
 
   return (
     <SidebarProvider>
@@ -26,7 +33,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="flex items-center gap-2">
                 <Moon className="h-5 w-5 text-primary md:hidden zodiac-glow" />
                 <h1 className="font-display text-sm text-muted-foreground tracking-wider uppercase">
-                  Brahm AI â€” Vedic Knowledge Platform
+                  {t('appTitle')}
                 </h1>
               </div>
             </div>
@@ -48,4 +55,5 @@ export function AppLayout({ children }: AppLayoutProps) {
     </SidebarProvider>
   );
 }
+
 

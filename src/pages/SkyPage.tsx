@@ -6,8 +6,8 @@
  * Tab 3 · Today for You — personalized transit forecast from natal chart
  */
 
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo, memo } from "react";
+import { motion } from "framer-motion";
 import { Globe, Clock, User, Eye, EyeOff, RefreshCw, TrendingDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -42,6 +42,23 @@ const RASHI_NAMES = [
 
 const ORDER = ["Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani","Rahu","Ketu"];
 
+// Plain-language meanings for normal users
+const PLANET_DOMAIN: Record<string, string> = {
+  Surya:   "Vitality & Soul",      Chandra: "Mind & Emotions",
+  Mangal:  "Energy & Action",      Budh:    "Intellect & Speech",
+  Guru:    "Wisdom & Fortune",     Shukra:  "Love & Beauty",
+  Shani:   "Discipline & Karma",   Rahu:    "Ambition & Desire",
+  Ketu:    "Spirituality",
+};
+const RASHI_QUALITY: Record<string, string> = {
+  Mesha:     "bold & driven",          Vrishabha: "stable & grounded",
+  Mithuna:   "quick & communicative",  Karka:     "nurturing & sensitive",
+  Simha:     "powerful & radiant",     Kanya:     "precise & analytical",
+  Tula:      "balanced & harmonious",  Vrischika: "intense & transformative",
+  Dhanu:     "expansive & optimistic", Makara:    "disciplined & practical",
+  Kumbha:    "innovative & free",      Meena:     "intuitive & spiritual",
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatTime(date: Date): string {
@@ -57,7 +74,7 @@ function fmtCountdown(secs: number): string {
 
 // ── Zodiac Wheel SVG ──────────────────────────────────────────────────────────
 
-function ZodiacWheel({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
+const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const cx = 200, cy = 200, R = 180;
   const planetR = 130;
@@ -78,36 +95,43 @@ function ZodiacWheel({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
           const y1 = cy + R * Math.sin(startRad);
           const x2 = cx + R * Math.cos(endRad);
           const y2 = cy + R * Math.sin(endRad);
-          // Label angle
           const midRad  = ((startDeg + 15) * Math.PI) / 180;
           const labelR  = 158;
           const lx = cx + labelR * Math.cos(midRad);
           const ly = cy + labelR * Math.sin(midRad);
 
+          // Check if any planet is in this rashi
+          const planetsHere = ORDER.filter((pName) => snapshot.grahas[pName]?.rashi === name);
+          const hasplanet = planetsHere.length > 0;
+          // Pick color from first planet in this rashi
+          const segColor = hasplanet ? (GRAHA_COLOR[planetsHere[0]] ?? "#FFB347") : null;
+
           return (
             <g key={name}>
-              {/* Segment divider line */}
               <line
                 x1={cx + 90 * Math.cos(startRad)} y1={cy + 90 * Math.sin(startRad)}
                 x2={x1} y2={y1}
-                stroke="hsl(42 90% 64% / 0.12)" strokeWidth="0.5"
+                stroke={hasplanet ? "hsl(42 90% 64% / 0.3)" : "hsl(42 90% 64% / 0.12)"} strokeWidth="0.5"
               />
-              {/* Segment arc fill (very subtle) */}
+              {/* Segment arc fill — brighter if planet present */}
               <path
                 d={`M ${cx + 90 * Math.cos(startRad)} ${cy + 90 * Math.sin(startRad)}
                     L ${x1} ${y1}
                     A ${R} ${R} 0 0 1 ${x2} ${y2}
                     L ${cx + 90 * Math.cos(endRad)} ${cy + 90 * Math.sin(endRad)}
                     A 90 90 0 0 0 ${cx + 90 * Math.cos(startRad)} ${cy + 90 * Math.sin(startRad)}`}
-                fill={`hsl(${i * 30} 40% 12% / 0.4)`}
-                stroke="none"
+                fill={hasplanet ? `${segColor}22` : `hsl(${i * 30} 40% 12% / 0.4)`}
+                stroke={hasplanet ? `${segColor}44` : "none"}
+                strokeWidth={hasplanet ? "0.5" : "0"}
               />
-              {/* Rashi symbol */}
+              {/* Rashi symbol — brighter if occupied */}
               <text
                 x={lx} y={ly}
                 textAnchor="middle" dominantBaseline="central"
-                fontSize="11" fill="hsl(42 90% 64% / 0.55)"
+                fontSize="11"
+                fill={hasplanet ? "hsl(42 90% 80% / 0.9)" : "hsl(42 90% 64% / 0.45)"}
                 fontFamily="serif"
+                fontWeight={hasplanet ? "bold" : "normal"}
               >
                 {RASHI_SHORT[i]}
               </text>
@@ -200,7 +224,14 @@ function ZodiacWheel({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
       </div>
     </div>
   );
-}
+}, (prev, next) => {
+  // Only re-render when a planet's rashi actually changes (not every second)
+  for (const name of Object.keys(prev.snapshot.grahas)) {
+    if (prev.snapshot.grahas[name]?.rashi !== next.snapshot.grahas[name]?.rashi) return false;
+    if (prev.snapshot.grahas[name]?.retro !== next.snapshot.grahas[name]?.retro) return false;
+  }
+  return true;
+});
 
 // ── Planet Table ──────────────────────────────────────────────────────────────
 
@@ -273,6 +304,142 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ── Planet Cards (replaces table) ─────────────────────────────────────────────
+
+function PlanetCards({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {ORDER.map((name) => {
+        const p     = snapshot.grahas[name];
+        if (!p) return null;
+        const color = GRAHA_COLOR[name] ?? "#fff";
+        const isRetro   = p.retro;
+        const isCombust = p.combust;
+        const isVisible = p.visible;
+
+        return (
+          <div
+            key={name}
+            className="cosmic-card rounded-xl p-2.5 flex flex-col gap-1.5 relative overflow-hidden"
+            style={{ borderColor: color + "22" }}
+          >
+            {/* Subtle glow bg */}
+            <div
+              className="absolute inset-0 opacity-5 pointer-events-none"
+              style={{ background: `radial-gradient(circle at 30% 30%, ${color}, transparent 70%)` }}
+            />
+
+            {/* Top row: symbol + badges */}
+            <div className="flex items-start justify-between">
+              <span
+                className="text-2xl leading-none"
+                style={{ color, filter: isVisible ? `drop-shadow(0 0 6px ${color})` : "none", opacity: isCombust ? 0.5 : 1 }}
+              >
+                {GRAHA_SYMBOL[name]}
+              </span>
+              <div className="flex flex-col items-end gap-0.5">
+                {isRetro && (
+                  <span className="text-[8px] px-1 py-0.5 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20 leading-none">
+                    ℞ Retro
+                  </span>
+                )}
+                {isCombust && (
+                  <span className="text-[8px] px-1 py-0.5 rounded bg-orange-400/10 text-orange-400 border border-orange-400/20 leading-none">
+                    Combust
+                  </span>
+                )}
+                {isVisible && !isCombust && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-0.5" title="Visible in sky" />
+                )}
+              </div>
+            </div>
+
+            {/* Name */}
+            <div className="leading-none">
+              <p className="text-xs font-semibold text-foreground">{name}</p>
+              <p className="text-[9px] text-muted-foreground">{GRAHA_NAME_HI[name]}</p>
+            </div>
+
+            {/* Rashi badge */}
+            <span
+              className="self-start text-[9px] px-1.5 py-0.5 rounded-full border leading-none"
+              style={{ borderColor: color + "55", color, backgroundColor: color + "11" }}
+            >
+              {p.rashi}
+            </span>
+
+            {/* Plain-language effect */}
+            <p className="text-[9px] text-muted-foreground leading-tight">
+              <span className="text-foreground/60">{PLANET_DOMAIN[name]}</span>
+              <br />
+              <span style={{ color: color + "cc" }}>{RASHI_QUALITY[p.rashi] ?? ""}</span>
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Cosmic Energy Summary ──────────────────────────────────────────────────────
+
+function CosmicSummary({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
+  const moonRashi   = snapshot.grahas["Chandra"]?.rashi ?? "Mesha";
+  const moonQuality = RASHI_QUALITY[moonRashi] ?? "dynamic";
+  const retroList   = ORDER.filter((n) => snapshot.grahas[n]?.retro);
+  const combustList = ORDER.filter((n) => snapshot.grahas[n]?.combust);
+
+  // Count benefics (Guru, Shukra, Budh) in strong positions
+  const benefics    = ["Guru", "Shukra", "Budh"];
+  const beneficCount = benefics.filter((n) => snapshot.grahas[n]?.visible).length;
+
+  let mood = "Balanced";
+  let moodColor = "text-primary";
+  if (beneficCount >= 2 && retroList.length === 0) { mood = "Auspicious"; moodColor = "text-green-400"; }
+  else if (retroList.length >= 3) { mood = "Reflective"; moodColor = "text-amber-400"; }
+  else if (combustList.length >= 2) { mood = "Intense"; moodColor = "text-orange-400"; }
+
+  return (
+    <div className="cosmic-card rounded-xl p-4 border border-primary/20 bg-primary/5 space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Today's Cosmic Energy</p>
+        <span className={`text-xs font-semibold ${moodColor}`}>{mood}</span>
+      </div>
+      <p className="text-sm text-foreground/80 leading-relaxed">
+        Moon in{" "}
+        <span className="text-primary font-medium">{moonRashi}</span> — bringing{" "}
+        <span className="text-foreground">{moonQuality}</span> energy to the mind and emotions.
+        {retroList.length > 0 && (
+          <span className="text-amber-400/80">
+            {" "}{retroList.join(", ")} {retroList.length === 1 ? "is" : "are"} retrograde — review, reflect, revisit.
+          </span>
+        )}
+        {combustList.length > 0 && (
+          <span className="text-orange-400/80">
+            {" "}{combustList.join(", ")} near the Sun — heightened energy, handle with care.
+          </span>
+        )}
+      </p>
+      {/* Quick stat pills */}
+      <div className="flex flex-wrap gap-2 pt-1">
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/20 text-muted-foreground border border-border/20">
+          {ORDER.filter(n => snapshot.grahas[n]?.visible).length} planets visible
+        </span>
+        {retroList.length > 0 && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20">
+            {retroList.length} retrograde
+          </span>
+        )}
+        {combustList.length > 0 && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-400/10 text-orange-400 border border-orange-400/20">
+            {combustList.length} combust
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -792,42 +959,39 @@ export default function SkyPage() {
         </TabsList>
 
         {/* ── Tab 1: Live Sky ── */}
-        <TabsContent value="live" className="space-y-5 mt-4">
-          <div className="lg:grid lg:grid-cols-2 lg:gap-6 space-y-5 lg:space-y-0">
-            {/* Zodiac Wheel */}
-            <div className="cosmic-card rounded-2xl p-4 flex flex-col items-center gap-3">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider self-start">
+        <TabsContent value="live" className="space-y-4 mt-4">
+
+          {/* Cosmic energy summary */}
+          <CosmicSummary snapshot={snapshot} />
+
+          {/* Zodiac wheel */}
+          <div className="cosmic-card rounded-2xl p-4 flex flex-col items-center gap-3">
+            <div className="flex items-center justify-between w-full">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Sidereal Zodiac — Live
               </p>
-              <ZodiacWheel snapshot={snapshot} />
-              <p className="text-[10px] text-muted-foreground/50 text-center">
-                Hover planets for details · L = Lagna
-              </p>
+              <p className="text-[10px] text-muted-foreground/50">Hover planets for details · L = Lagna</p>
             </div>
-
-            {/* Planet table */}
-            <div className="cosmic-card rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                  Graha Positions
-                </p>
-                <div className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-[10px] text-green-400">Live · per second</span>
-                </div>
-              </div>
-              <AnimatePresence mode="wait">
-                <PlanetTable key={snapshot.localTime.getSeconds()} snapshot={snapshot} />
-              </AnimatePresence>
-            </div>
+            <ZodiacWheel snapshot={snapshot} />
           </div>
 
-          {/* Visibility legend */}
-          <div className="flex flex-wrap gap-4 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1.5"><Eye className="h-3 w-3 text-green-400" /> Visible in sky</span>
-            <span className="flex items-center gap-1.5"><EyeOff className="h-3 w-3 text-muted-foreground/40" /> Below horizon / combust</span>
-            <span className="flex items-center gap-1.5"><span className="text-amber-400 text-xs">℞</span> Retrograde</span>
-            <span className="flex items-center gap-1.5"><span className="text-[10px] opacity-60">●</span> Combust (near Sun)</span>
+          {/* Planet cards */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Graha Positions</p>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[10px] text-green-400">Live</span>
+              </div>
+            </div>
+            <PlanetCards snapshot={snapshot} />
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Visible</span>
+            <span className="flex items-center gap-1"><span className="text-amber-400">℞</span> Retrograde</span>
+            <span className="flex items-center gap-1"><span className="text-orange-400">●</span> Combust</span>
           </div>
         </TabsContent>
 

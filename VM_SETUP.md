@@ -1,5 +1,5 @@
 # Brahm AI - VM Setup & Structure Reference
-# Last Updated: 2026-03-14
+# Last Updated: 2026-03-19
 
 ## VM Connection
 ```
@@ -7,7 +7,7 @@ Google Cloud VM: g2-standard-32
 Username: amareshsingh2005
 Hostname: brahm
 Zone: us-central1-a
-IP: 35.224.77.10
+IP: 35.223.14.127  (updated 2026-03-19 — use curl -s ifconfig.me to verify)
 OS: Debian 12 / Ubuntu 22.04
 GPU: NVIDIA L4 24GB (Driver 595.45.04, CUDA 13.2)
 RAM: 128 GB
@@ -18,6 +18,12 @@ Cost: ~$0.60/hr (~$14.40/day) - ALWAYS STOP WHEN NOT USING
 SSH: gcloud compute ssh amareshsingh2005@brahm --zone=us-central1-a
 Python venv: source ~/ai-env/bin/activate   (venv is in ~/, NOT ~/books/)
 IMPORTANT: Use python3, NOT python (Debian 12 has no python alias)
+
+Server start command (ALWAYS use this — loads GEMINI_API_KEY):
+  pkill -9 -f uvicorn; sleep 2
+  cd ~/books
+  GEMINI_API_KEY="$(grep GEMINI_API_KEY ~/.bashrc | tail -1 | cut -d'"' -f2)" \
+  uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload &
 ```
 
 ## VM Folder Structure (~/books/)
@@ -100,7 +106,7 @@ IMPORTANT: Use python3, NOT python (Debian 12 has no python alias)
 │   ├── embedding/              # Embedding models (MiniLM etc.)
 │   ├── indexing/               # FAISS, BM25, SQLite metadata
 │   ├── ingestion/              # PDF/JSON/text extractors, chunker
-│   ├── llm/                    # Qwen2.5-7B-Instruct loader [DEPRECATED — Qwen deleted, using Gemini API]
+│   ├── llm/                    # [DEPRECATED — Qwen deleted 2026-03-19. All LLM → Gemini API]
 │   ├── retrieval/              # Hybrid search, reranker
 │   └── special/                # Jyotish calculation modules
 │       ├── __init__.py         # Module init
@@ -113,7 +119,7 @@ IMPORTANT: Use python3, NOT python (Debian 12 has no python alias)
 │       ├── grahan.py           # (planned) Eclipse timing & visibility
 │       └── chart_render.py     # (planned) North/South Indian chart styles
 ├── full_pipeline_test.py       # Quick test: Gita data -> FAISS -> search
-├── smart_search.py             # Hybrid search + Qwen RAG answers
+├── smart_search.py             # Hybrid search + Gemini RAG answers (Qwen removed 2026-03-19)
 ├── ingest_pdf.py               # PDF ingestion pipeline
 ├── test_pipeline.py            # Basic pipeline test
 └── download_all_data.sh        # Master data download script
@@ -178,6 +184,29 @@ FAISS Index:      ~/books/indexes/
 Kundali Module:   ~/books/src/special/kundali.py
 Ingestion:        ~/books/src/ingestion/ (pipeline modules)
 Config Files:     ~/books/config/
+Palmistry Data:   ~/books/data/palmistry/ (raw/ processed/ annotated/ augmented/)
+Palmistry Models: ~/books/models/palmistry/ (U-Net checkpoints — Phase 2)
+Palmistry Scripts:~/books/scripts/palm_01_preprocess.py ... palm_06_inference.py
+```
+
+## Live API Endpoints (port 8000)
+```
+GET  /health                    # Server status + RAG loaded flag
+POST /api/chat                  # RAG chatbot (Gemini 2.5 Flash)
+POST /api/palmistry/analyze     # Gemini Vision palm reading (multipart image)
+GET  /api/planets/now           # Live sidereal planet positions (pyswisseph)
+POST /api/kundali               # Birth chart + Vimshottari Dasha
+POST /api/compatibility         # 36-Guna Ashtakoot matching
+GET  /api/panchang              # Today's Tithi/Nakshatra/Yoga/Vara + Rahukaal
+GET  /api/grahan                # Eclipse data (Sparsha/Madhya/Moksha + Sutak)
+GET  /api/festivals             # 53 Hindu festivals (all regions, 2024–2045)
+GET  /api/calendar/month        # Monthly Hindu calendar grid
+POST /api/muhurta               # Auspicious timing calculator
+```
+
+## Environment Variables (VM)
+```bash
+GEMINI_API_KEY  # Set in ~/.bashrc — used by RAG chat + palmistry endpoint
 ```
 
 ## Kundali.py - Current Features
