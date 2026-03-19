@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Dict, Any
 from pydantic import BaseModel
 
 
@@ -10,7 +10,11 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: List[ChatMessage] = []
-    language: str = "all"  # "all" | "sanskrit" | "hindi" | "english"
+    language: str = "hi"              # "hi" | "en" | "sa" | "all"
+    page_context: str = "general"     # "kundali" | "panchang" | "compatibility" |
+                                      # "sky" | "horoscope" | "palmistry" | "general"
+    page_data: Dict[str, Any] = {}    # current page's rendered data
+    include_user_chart: bool = False  # load user's kundali from DB
 
 
 class Source(BaseModel):

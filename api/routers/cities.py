@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from api.config import CITIES_PATH
 
 router = APIRouter()
@@ -17,3 +17,15 @@ def _load():
 @router.get("/cities")
 def get_cities():
     return {"cities": _load()}
+
+
+@router.get("/geocode")
+def geocode(q: str = Query(..., min_length=2)):
+    """
+    Resolve any city/place name worldwide → {name, lat, lon, tz}.
+    Uses geo_service: cities.json first (730 Indian cities), then
+    Nominatim/OpenStreetMap (worldwide, free), then timezonefinder.
+    """
+    from api.services.geo_service import get_coords
+    lat, lon, tz = get_coords(q)
+    return {"name": q, "lat": lat, "lon": lon, "tz": tz}

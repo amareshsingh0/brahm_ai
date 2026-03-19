@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import PageBot from '@/components/PageBot';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, MapPin, RefreshCw, Sun, Moon, ChevronDown } from "lucide-react";
 import { usePanchang } from "@/hooks/usePanchang";
-import { getCities, type City } from "@/lib/cities";
+import { getCities, searchCities, type City } from "@/lib/cities";
 import MuhurtaPage from "./MuhurtaPage";
 
 // ── Plain-language explanations ───────────────────────────────────────────────
@@ -318,7 +319,6 @@ function ChogCard({ p, expanded, onToggle }: {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function PanchangPage() {
-  const [cities, setCities] = useState<City[]>([]);
   const [cityInput, setCityInput] = useState("New Delhi");
   const [suggestions, setSuggestions] = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState<City>({ name: "New Delhi", lat: 28.6139, lon: 77.209, tz: 5.5 });
@@ -332,7 +332,7 @@ export default function PanchangPage() {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-  useEffect(() => { getCities().then(setCities).catch(() => {}); }, []);
+  useEffect(() => { getCities().catch(() => {}); }, []); // preload cache
 
   const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
@@ -345,10 +345,10 @@ export default function PanchangPage() {
     return () => clearInterval(t);
   }, [refetch]);
 
-  const handleCityInput = (v: string) => {
+  const handleCityInput = async (v: string) => {
     setCityInput(v);
-    if (v.length < 2) { setSuggestions([]); return; }
-    setSuggestions(cities.filter(c => c.name.toLowerCase().includes(v.toLowerCase())).slice(0, 6));
+    const results = await searchCities(v);
+    setSuggestions(results);
   };
 
   const todayLabel = now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -571,6 +571,7 @@ export default function PanchangPage() {
       <TabsContent value="muhurta">
         <MuhurtaPage />
       </TabsContent>
+      <PageBot pageContext="panchang" pageData={data ?? {}} />
     </Tabs>
   );
 }

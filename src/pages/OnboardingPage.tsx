@@ -7,29 +7,29 @@ import { Label } from "@/components/ui/label";
 import { Moon, Sparkles, ArrowRight, Loader2, CheckCircle2, Star } from "lucide-react";
 import cosmicBg from "@/assets/cosmic-bg.jpg";
 import { useKundali } from "@/hooks/useKundali";
-import { getCities, type City } from "@/lib/cities";
+import { getCities, searchCities, type City } from "@/lib/cities";
 import type { KundaliResponse } from "@/types/api";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const setBirthDetails = useKundliStore((s) => s.setBirthDetails);
+  const setCity = useKundliStore((s) => s.setCity);
+  const setKundaliData = useKundliStore((s) => s.setKundaliData);
   const kundaliMutation = useKundali();
   const [form, setForm] = useState({ name: "", dateOfBirth: "", timeOfBirth: "", birthPlace: "" });
   const [step, setStep] = useState(0);
-  const [cities, setCities] = useState<City[]>([]);
   const [citySuggestions, setCitySuggestions] = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [result, setResult] = useState<KundaliResponse | null>(null);
   const cityInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { getCities().then(setCities).catch(() => {}); }, []);
+  useEffect(() => { getCities().catch(() => {}); }, []);
 
-  const handleCityInput = (value: string) => {
+  const handleCityInput = async (value: string) => {
     setForm({ ...form, birthPlace: value });
     setSelectedCity(null);
-    if (value.length < 2) { setCitySuggestions([]); return; }
-    const q = value.toLowerCase();
-    setCitySuggestions(cities.filter((c) => c.name.toLowerCase().includes(q)).slice(0, 6));
+    const results = await searchCities(value);
+    setCitySuggestions(results);
   };
 
   const handleCitySelect = (city: City) => {
@@ -56,7 +56,13 @@ export default function OnboardingPage() {
       const city = selectedCity ?? { lat: 28.6139, lon: 77.209, tz: 5.5 };
       kundaliMutation.mutate(
         { name: form.name, date: form.dateOfBirth, time: form.timeOfBirth, lat: city.lat, lon: city.lon, tz: city.tz, place: form.birthPlace },
-        { onSuccess: (data) => setResult(data) }
+        { onSuccess: (data) => {
+            setResult(data);
+            setKundaliData(data);
+            const city = selectedCity ?? { lat: 28.6139, lon: 77.209, tz: 5.5 };
+            setCity(city.lat, city.lon, city.tz);
+          }
+        }
       );
     }
   };

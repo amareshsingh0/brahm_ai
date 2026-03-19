@@ -16,6 +16,7 @@ import {
   type LivePlanetData, type LivePlanetsSnapshot,
 } from "@/hooks/useLivePlanets";
 import { useKundliStore } from "@/store/kundliStore";
+import PageBot from '@/components/PageBot';
 
 // ── Planet meta ───────────────────────────────────────────────────────────────
 
@@ -1005,6 +1006,7 @@ export default function SkyPage() {
           <TodayForYou snapshot={snapshot} />
         </TabsContent>
       </Tabs>
+      <PageBot pageContext="sky" pageData={{}} />
     </div>
   );
 }

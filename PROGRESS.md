@@ -525,6 +525,63 @@ No hallucination ✅
 - [x] Legend simplified
 
 
+## PHASE 10.7: PRODUCTION DEPLOYMENT [DONE - 2026-03-19]
+
+### What was done
+- [x] Nginx installed on VM
+- [x] Frontend built on VM: `git clone https://github.com/amareshsingh0/brahm_ai.git` → `pnpm install` → `pnpm run build`
+- [x] `dist/` copied to `/var/www/brahm-ai/`
+- [x] Nginx config: serves frontend + proxies `/api/` → `localhost:8000`
+- [x] SSL certificate via Let's Encrypt certbot
+- [x] **Live at**: https://brahmasmi.bimoraai.com ✅
+- [x] `brahm-api.service` systemd service — auto-starts FastAPI on VM boot
+- [x] `GEMINI_API_KEY` added to systemd service via override.conf
+
+### Failures & Fixes
+
+| Problem | Root Cause | Fix |
+|---|---|---|
+| `ERR_INCOMPLETE_CHUNKED_ENCODING` on chatbot | Nginx buffering SSE stream | Added `proxy_buffering off`, `proxy_http_version 1.1`, `proxy_set_header Connection ""`, `chunked_transfer_encoding on` |
+| `--reload` flag in production | File watcher interferes with long streaming connections | Removed `--reload` — use plain `uvicorn` in production |
+| `503 Service Unavailable` on chat | RAG not loaded yet (BM25 + FAISS take 3-4 min on startup) | Wait for `[RAG] All components loaded!` before using chatbot |
+| Port 8000 always occupied | `brahm-api.service` systemd service auto-restarts uvicorn | Must use `sudo systemctl stop brahm-api.service` to stop, NOT pkill |
+| `GEMINI_API_KEY` not available in service | systemd doesn't inherit `~/.bashrc` env vars | Added via `sudo systemctl edit brahm-api.service` → override.conf |
+| certbot timeout on first attempt | GCP firewall ports 80/443 not open | `gcloud compute firewall-rules create allow-http/https` + add tags to VM |
+| `npm install -g pnpm` permission denied | No sudo | Use `sudo npm install -g pnpm` |
+
+### Future Deployment Workflow (after any code change)
+```bash
+# On VM:
+cd ~/brahm_ai
+git pull
+pnpm run build
+sudo cp -r dist/* /var/www/brahm-ai/
+# No server restart needed — frontend is static
+```
+
+### Service Management
+```bash
+sudo systemctl status brahm-api.service   # check status
+sudo systemctl restart brahm-api.service  # restart API
+sudo systemctl stop brahm-api.service     # stop API
+sudo journalctl -u brahm-api.service -f   # live logs
+```
+
+### Nginx Management
+```bash
+sudo nginx -t                             # test config
+sudo systemctl restart nginx              # restart nginx
+sudo nano /etc/nginx/sites-available/brahm-ai  # edit config
+```
+
+### Key Production Rules
+1. **Never use `--reload` in production** — breaks SSE streaming
+2. **Wait 3-4 min after restart** before using chatbot (RAG loading)
+3. **GEMINI_API_KEY must be in systemd override.conf** — not just ~/.bashrc
+4. **Frontend deploy = git pull + pnpm build + cp dist/*** — no server restart
+5. **SSL auto-renews** via certbot timer — no manual action needed
+
+
 ## PHASE 11: FINE-TUNING (Optional) [NOT STARTED]
 - [ ] src/finetune/dataset_builder.py (instruction/input/output pairs)
 - [ ] src/finetune/trainer.py (QLoRA/PEFT)

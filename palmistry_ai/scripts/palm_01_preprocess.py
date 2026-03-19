@@ -30,7 +30,7 @@ CANONICAL_DST = np.float32([
 ])
 
 
-def rectify_palm(image: np.ndarray, output_size: int = 512) -> tuple:
+def rectify_palm(image: np.ndarray, hands, output_size: int = 512) -> tuple:
     """
     Detect hand landmarks with MediaPipe.
     Warp palm to canonical top-down view.
@@ -42,13 +42,7 @@ def rectify_palm(image: np.ndarray, output_size: int = 512) -> tuple:
     h, w = image.shape[:2]
     rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    with mp_hands.Hands(
-        static_image_mode=True,
-        max_num_hands=1,
-        min_detection_confidence=0.4,
-        min_tracking_confidence=0.4,
-    ) as hands:
-        result = hands.process(rgb)
+    result = hands.process(rgb)
 
     if not result.multi_hand_landmarks:
         # Fallback: simple center crop
@@ -93,25 +87,35 @@ def process_folder(input_dir: str, output_dir: str, size: int = 512):
 
     success_count = 0
     fallback_count = 0
+    total = len(images)
 
-    for img_file in images:
-        img = cv2.imread(str(img_file))
-        if img is None:
-            print(f"  ✗ Cannot read: {img_file.name}")
-            continue
+    # Initialize MediaPipe ONCE for all images (not per-image)
+    with mp_hands.Hands(
+        static_image_mode=True,
+        max_num_hands=1,
+        min_detection_confidence=0.4,
+        min_tracking_confidence=0.4,
+    ) as hands:
+        for i, img_file in enumerate(images, 1):
+            img = cv2.imread(str(img_file))
+            if img is None:
+                print(f"  ✗ Cannot read: {img_file.name}")
+                continue
 
-        warped, _, ok = rectify_palm(img, size)
-        out_file = output_path / img_file.name
-        cv2.imwrite(str(out_file), warped)
+            warped, _, ok = rectify_palm(img, hands, size)
+            out_file = output_path / img_file.name
+            cv2.imwrite(str(out_file), warped)
 
-        if ok:
-            success_count += 1
-            print(f"  ✓ {img_file.name} — MediaPipe warp")
-        else:
-            fallback_count += 1
-            print(f"  ⚠ {img_file.name} — Fallback crop (no hand detected)")
+            if ok:
+                success_count += 1
+                if i % 100 == 0:
+                    print(f"  [{i}/{total}] ✓ {img_file.name} — MediaPipe warp")
+            else:
+                fallback_count += 1
+                if i % 100 == 0:
+                    print(f"  [{i}/{total}] ⚠ {img_file.name} — Fallback crop")
 
-    print(f"\nDone: {success_count} warped, {fallback_count} fallback, out of {len(images)}")
+    print(f"\nDone: {success_count} warped, {fallback_count} fallback, out of {total}")
 
 
 if __name__ == "__main__":

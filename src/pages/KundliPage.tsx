@@ -5,6 +5,7 @@ import { PlanetInfoPanel } from "@/components/cards/PlanetInfoPanel";
 import { samplePlanets, yogasData, useKundliStore, type PlanetData } from "@/store/kundliStore";
 import { Link } from "react-router-dom";
 import { Zap } from "lucide-react";
+import PageBot from '@/components/PageBot';
 
 const GRAHA_SYMBOLS: Record<string, string> = {
   Surya: "☉", Chandra: "☽", Mangal: "♂", Budh: "☿",
@@ -118,6 +119,7 @@ export default function KundliPage() {
           </div>
         </div>
       </div>
+      <PageBot pageContext="kundali" pageData={kundaliData ?? {}} />
     </div>
   );
 }

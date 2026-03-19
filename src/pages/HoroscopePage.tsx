@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { rashiData } from "@/store/kundliStore";
 import { useState } from "react";
 import { useHoroscope } from "@/hooks/useHoroscope";
+import PageBot from '@/components/PageBot';
 
 export default function HoroscopePage() {
   const [selectedRashi, setSelectedRashi] = useState("Aries");
@@ -72,6 +73,7 @@ export default function HoroscopePage() {
           </div>
         </div>
       </motion.div>
+      <PageBot pageContext="horoscope" pageData={{}} />
     </div>
   );
 }

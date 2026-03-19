@@ -6,9 +6,9 @@ export interface BirthDetails {
   dateOfBirth: string;
   timeOfBirth: string;
   birthPlace: string;
-  timezone?: string;
-  latitude?: number;
-  longitude?: number;
+  lat?: number;
+  lon?: number;
+  tz?: number;
 }
 
 export interface PlanetData {
@@ -61,6 +61,7 @@ export interface KundliState {
   setSelectedPlanet: (planet: PlanetData | null) => void;
   setHasKundli: (val: boolean) => void;
   setKundaliData: (data: KundaliResponse) => void;
+  setCity: (lat: number, lon: number, tz: number) => void;
 }
 
 export const useKundliStore = create<KundliState>((set) => ({
@@ -72,6 +73,9 @@ export const useKundliStore = create<KundliState>((set) => ({
   setSelectedPlanet: (planet) => set({ selectedPlanet: planet }),
   setHasKundli: (val) => set({ hasKundli: val }),
   setKundaliData: (data) => set({ kundaliData: data, hasKundli: true }),
+  setCity: (lat, lon, tz) => set((s) => ({
+    birthDetails: s.birthDetails ? { ...s.birthDetails, lat, lon, tz } : null,
+  })),
 }));
 
 export const samplePlanets: PlanetData[] = [

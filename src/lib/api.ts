@@ -52,7 +52,13 @@ export const api = {
    * Calls onToken for each token, onSources when sources arrive, onDone at end.
    */
   streamChat(
-    body: { message: string; history: { role: string; content: string }[]; language?: string },
+    body: {
+      message: string;
+      history: { role: string; content: string }[];
+      language?: string;
+      page_context?: string;
+      page_data?: Record<string, unknown>;
+    },
     callbacks: {
       onToken: (token: string) => void;
       onSources: (sources: { book: string; source: string; language: string }[]) => void;

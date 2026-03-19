@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import PageBot from '@/components/PageBot';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -11,7 +12,7 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip,
 } from "recharts";
 import { useCompatibility } from "@/hooks/useCompatibility";
-import { getCities, type City } from "@/lib/cities";
+import { getCities, searchCities, type City } from "@/lib/cities"; // getCities preloads cache
 import type { CompatibilityResponse, GunaScore, DoshaSummary, LifeAreaScore } from "@/types/api";
 
 // ── Varna label map ────────────────────────────────────────────────────────────
@@ -645,10 +646,9 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
 }
 
 // ── PersonForm ─────────────────────────────────────────────────────────────────
-function PersonForm({ label, person, cities, selectedCity, onChange, onCitySelect }: {
+function PersonForm({ label, person, selectedCity, onChange, onCitySelect }: {
   label: string;
   person: PersonState;
-  cities: City[];
   selectedCity: City | null;
   onChange: (p: PersonState) => void;
   onCitySelect: (city: City) => void;
@@ -662,10 +662,10 @@ function PersonForm({ label, person, cities, selectedCity, onChange, onCitySelec
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  const handleCityInput = (v: string) => {
+  const handleCityInput = async (v: string) => {
     onChange({ ...person, place: v });
-    if (v.length < 2) { setSuggestions([]); return; }
-    setSuggestions(cities.filter(c => c.name.toLowerCase().includes(v.toLowerCase())).slice(0, 6));
+    const results = await searchCities(v);
+    setSuggestions(results);
   };
 
   const handleSelect = (city: City) => { onChange({ ...person, place: city.name }); onCitySelect(city); setSuggestions([]); };
@@ -721,13 +721,12 @@ export default function CompatibilityPage() {
   const [personB, setPersonB] = useState<PersonState>({ name: "", dob: "", time: "", place: "" });
   const [cityA, setCityA] = useState<City | null>(null);
   const [cityB, setCityB] = useState<City | null>(null);
-  const [cities, setCities] = useState<City[]>([]);
   const [varnaSystem, setVarnaSystem] = useState<"both" | "nakshatra" | "rashi">("both");
   const [result, setResult] = useState<CompatibilityResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const compatibility = useCompatibility();
 
-  useEffect(() => { getCities().then(setCities).catch(() => {}); }, []);
+  useEffect(() => { getCities().catch(() => {}); }, []); // preload cache
 
   const handleGenerate = async () => {
     if (!personA.dob || !personB.dob) return;
@@ -767,9 +766,9 @@ export default function CompatibilityPage() {
       ) : (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl">
           <div className="grid md:grid-cols-2 gap-5">
-            <PersonForm label="Person A (Groom / Partner 1)" person={personA} cities={cities} selectedCity={cityA}
+            <PersonForm label="Person A (Groom / Partner 1)" person={personA} selectedCity={cityA}
               onChange={p => { setPersonA(p); if (!p.place) setCityA(null); }} onCitySelect={setCityA} />
-            <PersonForm label="Person B (Bride / Partner 2)" person={personB} cities={cities} selectedCity={cityB}
+            <PersonForm label="Person B (Bride / Partner 2)" person={personB} selectedCity={cityB}
               onChange={p => { setPersonB(p); if (!p.place) setCityB(null); }} onCitySelect={setCityB} />
           </div>
 
@@ -807,6 +806,7 @@ export default function CompatibilityPage() {
           </p>
         </motion.div>
       )}
+      <PageBot pageContext="compatibility" pageData={result ?? {}} />
     </div>
   );
 }

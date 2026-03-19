@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import PageBot from '@/components/PageBot';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -1488,6 +1489,7 @@ export default function PalmistryPage() {
         <TabsContent value="mounts" className="mt-4"><MountsTab /></TabsContent>
         <TabsContent value="hand" className="mt-4"><HandTypeTab /></TabsContent>
       </Tabs>
+      <PageBot pageContext="palmistry" pageData={{}} />
     </div>
   );
 }

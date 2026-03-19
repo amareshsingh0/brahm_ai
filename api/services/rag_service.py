@@ -164,28 +164,30 @@ def hybrid_search(query: str, lang_filter: str = "all") -> List[dict]:
     return candidates[:FINAL_K]
 
 
-def generate_stream(query: str, retrieved: List[dict], history: List[dict]) -> Generator[str, None, None]:
-    """Stream response from Gemini API. Yields JSON strings: token, sources, done."""
+def generate_stream(
+    query: str,
+    retrieved: List[dict],
+    history: List[dict],
+    decision: dict = {},
+    tool_results: dict = {},
+    kundali_summary: dict = None,
+    page_context: str = "general",
+    page_data: dict = {},
+    language: str = "hi",
+) -> Generator[str, None, None]:
+    """Pass 2: Build final prompt from all context and stream from Gemini."""
     from google import genai
+    from api.services.prompt_builder import build_pass2_prompt
 
-    def _clean(t: str) -> str:
-        return re.sub(r"Transliteration:[^\n]*\n?", "", t).strip()
-
-    ctx = "\n\n---\n\n".join(
-        f"[Source {i}: {d['source']} ({d['language']})]\n{_clean(d['text'][:1000])}"
-        for i, d in enumerate(retrieved, 1)
-    )
-
-    history_text = ""
-    for turn in history[-MAX_HISTORY:]:
-        history_text += f"{turn['role'].capitalize()}: {turn['content']}\n"
-
-    prompt = (
-        f"{SYSTEM_PROMPT}\n\n"
-        f"{history_text}"
-        f"Context:\n{ctx}\n\n---\n"
-        f"Question: {query}\n\n"
-        f"Answer strictly from the context above."
+    prompt = build_pass2_prompt(
+        query=query,
+        decision=decision,
+        tool_results=tool_results,
+        kundali_summary=kundali_summary,
+        page_context=page_context,
+        page_data=page_data,
+        rag_docs=retrieved,
+        language=language,
     )
 
     api_key = os.environ.get("GEMINI_API_KEY", "")

@@ -1,5 +1,5 @@
 # Brahm AI — Full Architecture Document
-# Last Updated: 2026-03-18
+# Last Updated: 2026-03-20 (v4.0 — AI Intelligence Engine LIVE)
 
 ---
 
@@ -17,9 +17,10 @@
 │  └─────────────────────┘         └──────────────┬───────────────┘   │
 │                                                 │                    │
 │                                  ┌──────────────▼───────────────┐   │
-│                                  │        AI + CALC LAYER        │   │
+│                                  │     AI + CALC LAYER (v4.0)    │   │
+│                                  │  Two-Pass: Gemini 2.5 Flash   │   │
 │                                  │  RAG Pipeline (FAISS 1.1M)    │   │
-│                                  │  BM25 + Qwen2.5-7B (4-bit)   │   │
+│                                  │  BM25 + Reranker              │   │
 │                                  │  kundali_service.py           │   │
 │                                  │  panchang_service.py          │   │
 │                                  │  pyswisseph (Swiss Ephem)     │   │
@@ -1389,3 +1390,411 @@ open http://34.135.70.190:8000/docs
 ---
 
 *Generated: 2026-03-18 | Brahm AI v3.0 — Web + App + Auth + Subscriptions*
+
+---
+
+## 22. AI INTELLIGENCE ENGINE — BRAHM AI v4.0
+# Last Updated: 2026-03-20 (Two-Pass Reasoning + Tool Calling architecture)
+
+> **Vision:** Aryabhata (precision) + Varahmihira (wisdom) ka living synthesis —
+> sirf books quote nahi karta, khud sochta hai, calculations run karta hai,
+> output analyze karta hai, aur real Pandit ki tarah jawab deta hai.
+
+---
+
+## 22.0 FINAL ARCHITECTURE DECISION (v4.0)
+
+### Core Principle
+```
+Better reasoning flow > more features > more APIs
+90% cases mein RAG nahi chahiye — pure reasoning + calculation better hai
+```
+
+### The Two-Pass + Tool Calling Flow
+```
+User Query + page_context + page_data + kundali_summary
+          ↓
+┌─────────────────────────────────────────┐
+│  PASS 1: THINK (hidden, ~0.5s)          │
+│  Gemini returns structured JSON:         │
+│  {                                       │
+│    "intent": "career prediction",        │
+│    "needs_calculation": true,            │
+│    "calc_services": ["dasha","gochar"],  │
+│    "needs_rag": false,                   │
+│    "kundali_focus": ["10th","Saturn"],   │
+│    "response_depth": "master",           │
+│    "response_lang": "hi"                 │
+│  }                                       │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│  TOOL EXECUTION (agar needed)           │
+│  needs_calculation=true:                │
+│    → kundali_service.calc_kundali()     │
+│    → panchang_service methods           │
+│    → muhurta_service                    │
+│    → compatibility_service              │
+│  needs_rag=true (rare):                 │
+│    → hybrid_search(query, top_k=3)      │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│  PASS 2: ANSWER (streamed)              │
+│  Gemini gets:                           │
+│    - User question                      │
+│    - Pass 1 intent analysis             │
+│    - Calculation output (if ran)        │
+│    - Kundali compressed summary         │
+│    - Page context + data               │
+│    - RAG docs (only if needs_rag=true)  │
+│    - Response structure template        │
+│  → Streams expert Pandit-level answer   │
+└─────────────────────────────────────────┘
+```
+
+### When RAG is used vs not
+```
+needs_rag = TRUE only when:
+  - User explicitly asks "shastra mein kya likha hai"
+  - User asks "Brihat Parashara ke anusar"
+  - Deep shlok meaning / scripture quote needed
+  - query_type = DEEP_VEDIC
+
+needs_rag = FALSE (90% cases):
+  - Personal predictions ("meri shadi kab")
+  - Calculation-based ("dasha kab badlega")
+  - Explanations of generated reports
+  - General astrology facts
+  - Conversational
+```
+
+---
+
+---
+
+### 22.1 Backend Files (Implemented ✅)
+
+```
+api/services/query_router.py      ← Pass 1: Gemini JSON decision + birth_data extraction
+api/services/prompt_builder.py    ← Pass 2: builds final answer prompt (MASTER_PERSONA)
+api/services/tool_executor.py     ← runs calc services based on Pass 1 decision
+api/services/geo_service.py       ← city → lat/lon/tz (cities.json → Nominatim/OSM → fallback)
+api/services/rag_service.py       ← updated: accepts decision + tool_results + kundali_summary
+api/routers/chat.py               ← updated: two-pass flow + geo_service + birth_data extraction
+api/models/chat.py                ← updated: page_context, page_data, include_user_chart
+```
+
+### 22.2 Frontend Files (New Architecture)
+
+```
+src/components/PageBot.tsx         ← floating bot on every page
+src/hooks/usePageBot.ts            ← PageBot state
+src/hooks/useChat.ts               ← updated: page_context support
+src/lib/api.ts                     ← updated: ChatRequest with new fields
+src/types/api.ts                   ← updated: ChatRequest interface
+```
+
+### 22.3 Pass 1 — Decision Engine (query_router.py) ✅ LIVE
+
+Gemini returns structured JSON — no hardcoded keyword rules.
+Also extracts birth_data from current message + conversation history:
+
+```python
+PASS1_PROMPT = """
+You are the decision engine for Brahm AI — a Vedic astrology AI.
+
+User query: "{query}"
+Conversation history (last 6 messages): {history_summary}
+Page context: {page_context}
+Kundali available: {has_kundali}
+Page data keys: {page_data_keys}
+
+Return ONLY valid JSON (no explanation):
+{{
+  "intent": "one line: what user actually wants",
+  "query_type": "CONVERSATIONAL|SIMPLE_FACT|DEEP_VEDIC|CHART_ANALYSIS|REPORT_ANALYSIS|RECOMMENDATION",
+  "needs_calculation": true or false,
+  "calc_services": [],
+  "needs_rag": true or false,
+  "kundali_focus": [],
+  "response_depth": "basic|deep|master",
+  "response_lang": "hi|en|sa",
+  "birth_data": {{
+    "date": "YYYY-MM-DD or null",   ← extracted from message OR history
+    "time": "HH:MM or null",        ← 24h format
+    "place": "city name or null",
+    "name": "person name or null"
+  }}
+}}
+"""
+
+# birth_data rules:
+# - Scan BOTH current query AND history (carries forward if seen before)
+# - date: any format → YYYY-MM-DD
+# - time: any format (8:25 PM, raat 8 baje) → HH:MM (24h)
+# - needs_calculation=true only if birth_data has at least date+time+place
+```
+
+### 22.4 Tool Executor (tool_executor.py)
+
+Runs actual Python calculation services based on Pass 1 JSON:
+
+```python
+async def execute_tools(decision: dict, user_birth_data: dict, page_data: dict) -> dict:
+    results = {}
+
+    if "dasha" in decision.get("calc_services", []):
+        results["dasha"] = kundali_service.get_dasha_timeline(user_birth_data)
+
+    if "panchang" in decision.get("calc_services", []):
+        results["panchang"] = panchang_service.get_panchang(
+            lat=user_birth_data.get("lat", 28.6),
+            lon=user_birth_data.get("lon", 77.2),
+            tz=5.5
+        )
+
+    if "muhurta" in decision.get("calc_services", []):
+        event = decision["calc_params"].get("event", "general")
+        results["muhurta"] = muhurta_service.get_muhurta(event=event, **user_birth_data)
+
+    if "compatibility" in decision.get("calc_services", []):
+        # page_data already has compatibility result — no re-calculation needed
+        results["compatibility"] = page_data
+
+    if "kundali" in decision.get("calc_services", []):
+        results["kundali"] = kundali_service.calc_kundali(user_birth_data)
+
+    return results
+```
+
+### 22.5 Kundali Compression
+
+Never send raw kundali to Gemini. Send compressed summary:
+
+```python
+def compress_kundali(kundali: dict) -> dict:
+    """Extract only what matters for reasoning."""
+    planets = kundali.get("planets", {})
+    dashas = kundali.get("dashas", [])
+    current_dasha = next((d for d in dashas if d.get("is_current")), {})
+    yogas = [y.get("name") for y in kundali.get("yogas", [])[:5]]
+
+    return {
+        "lagna": kundali.get("lagna", {}).get("rashi", "?"),
+        "moon_rashi": planets.get("Chandra", {}).get("rashi", "?"),
+        "sun_rashi": planets.get("Surya", {}).get("rashi", "?"),
+        "current_dasha": f"{current_dasha.get('planet','?')} until {current_dasha.get('end','?')}",
+        "key_planets": {
+            name: f"{p.get('rashi','?')} {p.get('house','?')}H {'(vakri)' if p.get('retro') else ''}"
+            for name, p in planets.items()
+        },
+        "yogas": yogas,
+        "asc_degree": kundali.get("lagna", {}).get("degree", "?"),
+    }
+```
+
+### 22.6 Pass 2 — Master Answer Prompt (prompt_builder.py) ✅ LIVE
+
+```python
+MASTER_PERSONA = """
+Tum Brahm AI ho — ek sampurna Vedic jyotishi aur aadhunik calculator ka sangam.
+
+Tumhare paas yeh sab available hai:
+- User ka kundali data (agar diya gaya)
+- Fresh calculation results (agar run kiye)
+- Page ka current data (jo user dekh raha hai)
+- Vedic books ka context (sirf jab relevant)
+
+Jawab dene ka structure (hamesha follow karo):
+1. Seedha point — user kya jaanna chahta hai, woh pehle bolo
+2. Astrological karan — specific graha, house, dasha ka naam lo
+3. Timing — exact period ya year agar possible ho
+4. Reality check — honest bolo, darawna nahi, hopeful bhi nahi agar sach nahi
+5. Upay — sirf agar user ne manga ho ya critical situation ho
+
+Style rules:
+- Generic mat bolo — "Shani aapke 7th house mein hai" jaise specific bolo
+- Sanskrit terms use karo lekin TURANT Hindi mein explain karo
+- Compassionate lekin honest
+- Max 350 words — jab tak user ne detail na manga ho
+- Kabhi false prediction nahi — agar data nahi toh honestly kaho
+"""
+
+def build_pass2_prompt(
+    query: str,
+    intent: str,
+    tool_results: dict,
+    kundali_summary: dict,
+    page_context: str,
+    page_data: dict,
+    rag_docs: list,
+    language: str,
+) -> str:
+    # Assemble all context
+    calc_section = format_tool_results(tool_results) if tool_results else ""
+    kundali_section = format_kundali_summary(kundali_summary) if kundali_summary else ""
+    page_section = format_page_data(page_context, page_data) if page_data else ""
+    rag_section = format_rag_docs(rag_docs) if rag_docs else ""
+    lang_prefix = {"hi": "हिंदी में जवाब दो।", "en": "Answer in English.", "sa": "संस्कृत में।"}.get(language, "हिंदी में जवाब दो।")
+
+    return f"""{MASTER_PERSONA}
+
+{lang_prefix}
+
+{kundali_section}
+{page_section}
+{calc_section}
+{rag_section}
+
+User ne poocha: {query}
+Intent: {intent}
+
+Ab is sab ke basis pe expert jawab do."""
+```
+
+### 22.7 Response Quality — Before vs After
+
+```
+❌ BEFORE (old system):
+User: "hi"
+AI: "According to Brihat Parashara Hora Shastra, greetings are..."
+
+✅ AFTER (new system):
+User: "hi"
+AI: "Pranaam! 🙏 Aaj main aapki kya seva kar sakta hoon?"
+
+---
+
+❌ BEFORE:
+User: "meri shadi kab hogi"
+AI: "According to classical texts, marriage timing depends on..."
+
+✅ AFTER (with kundali + dasha calculation):
+AI: "Aapki kundali dekhi — 7th house mein Shukra hai jo vivah ke liye bahut shubh hai.
+     Abhi Shani mahadasha chal rahi hai (2031 tak).
+
+     Sabse shubh vivah period: 2027-2028
+     Karan: Jupiter aapke 7th house ko aspect karega,
+     aur Shani antardasha mein stability aayegi.
+
+     2026 November-December bhi dekh sakte hain —
+     Shukra strong position mein hai."
+
+---
+
+❌ BEFORE:
+User: "yeh 28/36 score achha hai?"
+AI: "28/36 score means good compatibility..."
+
+✅ AFTER (with page_data — compatibility result):
+AI: "28/36 — Uttam Maitri hai, lekin Nadi Dosha hai jo serious hai.
+
+     Strong hai: Graha Maitri 5/5 — mental compatibility excellent
+     Weak hai: Nadi 0/8 — swasthya + santaan mein dhyan rakhna
+
+     Nadi Dosha ka upay:
+     1. Mahamrityunjaya mantra — 21 din, 108 baar daily
+     2. Vivah se pehle Nadi Nivarana puja — Kashi mein best
+
+     Overall: Vivah ho sakta hai, upay zaruri hain."
+```
+
+### 22.8 Frontend — PageBot Component
+
+**Har page pe floating bot — bottom-right corner:**
+
+```typescript
+// Usage on each page:
+<PageBot
+  pageContext="compatibility"
+  pageData={compatibilityResult}    // current page data auto-sent
+  includeUserChart={false}          // true for kundali/timeline/sky pages
+/>
+
+// Suggested questions shown in bot based on pageContext:
+PAGE_SUGGESTIONS = {
+  kundali:       ["Sabse strong graha kaun hai?", "Agle saal kaisa rahega?", ...],
+  panchang:      ["Aaj ki tithi ka mahatva?", "Rahukaal mein kya nahi karna?", ...],
+  compatibility: ["Yeh score achha hai?", "Nadi dosha ke upay?", ...],
+  sky:           ["Aaj ke graha mujhpe kaisa asar karenge?", ...],
+  palmistry:     ["Meri jeewan rekha kaisi hai?", ...],
+}
+```
+
+### 22.9 Auto-Analysis on Report Generation
+
+```typescript
+// CompatibilityPage.tsx — jab result aata hai, auto-analyze:
+useEffect(() => {
+  if (result && !autoAnalyzed) {
+    pageBot.sendMessage("__auto_analyze__", {
+      pageContext: "compatibility",
+      pageData: result
+    })
+    setAutoAnalyzed(true)
+  }
+}, [result])
+```
+
+Backend pe `__auto_analyze__` trigger detect hota hai aur full report analysis prompt build karta hai.
+
+### 22.9b Geo Service (geo_service.py) ✅ LIVE
+
+City name → (lat, lon, tz_offset) with worldwide coverage:
+
+```
+Priority chain:
+  1. cities.json       → 730 Indian cities, instant lookup (lowercase match + partial match)
+  2. Nominatim (OSM)   → worldwide, free, no API key, geopy>=2.4.0
+  3. timezonefinder    → gets correct UTC offset from lat/lon (offline, timezonefinder>=6.5.0)
+  4. Delhi fallback    → (28.6139, 77.2090, 5.5) if everything fails
+
+Installed on VM: pip install geopy timezonefinder
+Results cached in memory for session.
+```
+
+### 22.10 Calculation Services Available (Tool Executor)
+
+| Service | Method | Used For |
+|---------|--------|----------|
+| `kundali_service` | `calc_kundali(birth_data)` | Full chart, houses, planets |
+| `kundali_service` | `get_dasha_timeline(birth_data)` | Vimshottari dasha periods |
+| `panchang_service` | `get_panchang(lat,lon,tz,date)` | Today's tithi, nakshatra, yoga |
+| `panchang_service` | `get_choghadiya(lat,lon,tz,date)` | Auspicious time slots |
+| `muhurta_service` | `get_muhurta(event,date_range,...)` | Best dates for events |
+| `compatibility_service` | already in `page_data` | No re-calc needed |
+| `grahan_service` | `get_upcoming_grahan(year)` | Eclipse dates |
+
+### 22.11 Implementation Order — Step by Step
+
+```
+Phase 1 — Backend ✅ COMPLETE (2026-03-20):
+  [1] ✅ tool_executor.py — compress_kundali + execute_tools
+  [2] ✅ query_router.py — Pass 1 JSON + birth_data extraction from history
+  [3] ✅ prompt_builder.py — MASTER_PERSONA + build_pass2_prompt
+  [4] ✅ rag_service.py — generate_stream with decision/tool_results/kundali_summary
+  [5] ✅ chat.py — full two-pass flow + geo_service + birth_data from chat
+  [6] ✅ geo_service.py — worldwide city geocoding (cities.json → OSM → timezonefinder)
+  [7] ✅ requirements.txt — added geopy, timezonefinder
+
+Phase 2 — Frontend:
+  [8]  src/types/api.ts — update ChatRequest with page_context, page_data
+  [9]  src/lib/api.ts — update streamChat
+  [10] src/hooks/useChat.ts — add page_context support
+  [11] src/components/PageBot.tsx — floating bot component
+  [12] src/hooks/usePageBot.ts
+
+Phase 3 — Page Integration:
+  [13] KundliPage, PanchangPage, SkyPage — add PageBot
+  [14] CompatibilityPage — PageBot + auto-analysis
+  [15] PalmistryPage, HoroscopePage — add PageBot
+
+Phase 4 — Polish:
+  [16] Suggested questions per page
+  [17] Auto-analysis trigger on report generation
+```
+
+---
+
+*Section 22 Updated: 2026-03-20 | Brahm AI v4.0 — Two-Pass Reasoning + Tool Calling*
