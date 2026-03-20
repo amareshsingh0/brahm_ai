@@ -1485,14 +1485,21 @@ api/routers/chat.py               ← updated: two-pass flow + geo_service + bir
 api/models/chat.py                ← updated: page_context, page_data, include_user_chart
 ```
 
-### 22.2 Frontend Files (New Architecture)
+### 22.2 Frontend Files (Implemented ✅)
 
 ```
-src/components/PageBot.tsx         ← floating bot on every page
-src/hooks/usePageBot.ts            ← PageBot state
-src/hooks/useChat.ts               ← updated: page_context support
-src/lib/api.ts                     ← updated: ChatRequest with new fields
-src/types/api.ts                   ← updated: ChatRequest interface
+src/components/PageBot.tsx         ← floating bot on every page (bottom-right)
+src/hooks/useChat.ts               ← rewritten: pageContext + pageData + store auto-read
+src/lib/api.ts                     ← updated: streamChat accepts page_context + page_data
+src/lib/cities.ts                  ← updated: searchCities() worldwide via /api/geocode
+src/store/kundliStore.ts           ← updated: lat/lon/tz in BirthDetails, setCity action
+src/pages/KundliPage.tsx           ← PageBot added (pageContext="kundali")
+src/pages/PanchangPage.tsx         ← PageBot added (pageContext="panchang")
+src/pages/CompatibilityPage.tsx    ← PageBot added (pageContext="compatibility")
+src/pages/SkyPage.tsx              ← PageBot added (pageContext="sky")
+src/pages/PalmistryPage.tsx        ← PageBot added (pageContext="palmistry")
+src/pages/HoroscopePage.tsx        ← PageBot added (pageContext="horoscope")
+src/pages/OnboardingPage.tsx       ← saves lat/lon/tz to store on success
 ```
 
 ### 22.3 Pass 1 — Decision Engine (query_router.py) ✅ LIVE
@@ -1758,13 +1765,14 @@ Results cached in memory for session.
 
 | Service | Method | Used For |
 |---------|--------|----------|
-| `kundali_service` | `calc_kundali(birth_data)` | Full chart, houses, planets |
-| `kundali_service` | `get_dasha_timeline(birth_data)` | Vimshottari dasha periods |
-| `panchang_service` | `get_panchang(lat,lon,tz,date)` | Today's tithi, nakshatra, yoga |
-| `panchang_service` | `get_choghadiya(lat,lon,tz,date)` | Auspicious time slots |
-| `muhurta_service` | `get_muhurta(event,date_range,...)` | Best dates for events |
-| `compatibility_service` | already in `page_data` | No re-calc needed |
-| `grahan_service` | `get_upcoming_grahan(year)` | Eclipse dates |
+| `kundali_service` | `calc_kundali(birth_data)` | Full chart D-1, houses, planets ✅ |
+| `kundali_service` | `get_dasha_timeline(birth_data)` | Vimshottari dasha periods ✅ |
+| `kundali_service` | `calc_navamsha(birth_data)` | D-9 chart for marriage analysis ⬜ |
+| `panchang_service` | `get_panchang(lat,lon,tz,date)` | Today's tithi, nakshatra, yoga ✅ |
+| `panchang_service` | `get_current_transits(birth_data)` | Gochar — current planets over natal ⬜ |
+| `muhurta_service` | `get_muhurta(event,date_range,...)` | Best dates for events ✅ |
+| `compatibility_service` | already in `page_data` | No re-calc needed ✅ |
+| `grahan_service` | `get_upcoming_grahan(year)` | Eclipse dates ✅ |
 
 ### 22.11 Implementation Order — Step by Step
 
@@ -1774,27 +1782,94 @@ Phase 1 — Backend ✅ COMPLETE (2026-03-20):
   [2] ✅ query_router.py — Pass 1 JSON + birth_data extraction from history
   [3] ✅ prompt_builder.py — MASTER_PERSONA + build_pass2_prompt
   [4] ✅ rag_service.py — generate_stream with decision/tool_results/kundali_summary
-  [5] ✅ chat.py — full two-pass flow + geo_service + birth_data from chat
-  [6] ✅ geo_service.py — worldwide city geocoding (cities.json → OSM → timezonefinder)
-  [7] ✅ requirements.txt — added geopy, timezonefinder
+  [5] ✅ chat.py — full two-pass + geo_service + birth_data priority chain
+  [6] ✅ geo_service.py — worldwide geocoding (cities.json → Nominatim/OSM → timezonefinder)
+  [7] ✅ cities.py — /api/geocode endpoint added
+  [8] ✅ requirements.txt — geopy + timezonefinder installed on VM
 
-Phase 2 — Frontend:
-  [8]  src/types/api.ts — update ChatRequest with page_context, page_data
-  [9]  src/lib/api.ts — update streamChat
-  [10] src/hooks/useChat.ts — add page_context support
-  [11] src/components/PageBot.tsx — floating bot component
-  [12] src/hooks/usePageBot.ts
+Phase 2 — Frontend ✅ COMPLETE (2026-03-20):
+  [9]  ✅ api.ts — streamChat accepts page_context + page_data
+  [10] ✅ useChat.ts — rewritten: store auto-read, localStorage persist, page context
+  [11] ✅ kundliStore.ts — lat/lon/tz in BirthDetails, setCity action
+  [12] ✅ PageBot.tsx — floating bot with page suggestions + streaming
+  [13] ✅ OnboardingPage — saves city coords to store
+  [14] ✅ cities.ts — searchCities() worldwide
 
-Phase 3 — Page Integration:
-  [13] KundliPage, PanchangPage, SkyPage — add PageBot
-  [14] CompatibilityPage — PageBot + auto-analysis
-  [15] PalmistryPage, HoroscopePage — add PageBot
+Phase 3 — Page Integration ✅ COMPLETE (2026-03-20):
+  [15] ✅ KundliPage, PanchangPage, SkyPage — PageBot added
+  [16] ✅ CompatibilityPage, PalmistryPage, HoroscopePage — PageBot added
 
-Phase 4 — Polish:
-  [16] Suggested questions per page
-  [17] Auto-analysis trigger on report generation
+Phase 4 — AI Intelligence Improvements (Next):
+  [17] ⬜ Gochar service — current planetary transits over natal chart
+         → Add to tool_executor.py + panchang_service.py
+         → Always trigger for CHART_ANALYSIS / PREDICTION queries
+         → Critical for timing predictions (Jupiter/Saturn/Rahu positions)
+
+  [18] ⬜ Navamsha D-9 chart
+         → Add calc_navamsha() to kundali_service.py
+         → Include D-9 lagna + D-9 7th house in compress_kundali()
+         → Required for marriage, spouse, dharma predictions
+
+  [19] ⬜ Language style matching
+         → Pass 1 already detects user_language_style (hi/en/hinglish)
+         → Pass 2 prompt_builder must enforce it — user Hinglish → AI Hinglish
+         → Add style_instruction per detected language to build_pass2_prompt()
+
+  [20] ⬜ Fact-sheet memory
+         → Replace raw localStorage 30-msg log with compact JSON fact sheet
+         → Keys: name, dob, place, key_questions[], key_predictions[]
+         → AI can say "aapne pehle bataya tha..." across sessions
+
+  [21] ⬜ Confidence level in responses
+         → Add to MASTER_PERSONA: "Agar dasha + gochar agree karte hain → high confidence"
+         → "Agar sirf natal chart se → medium confidence"
+
+  [22] ⬜ Auto-analysis trigger on compatibility report generation
+  [23] ⬜ AIChatPage.tsx — update to new useChat with pageContext="general"
+
+VM Deploy: git push → VM: cd ~/books && git pull origin main && sudo systemctl restart brahm-api.service
+Frontend:  pnpm run build && sudo cp -r dist/* /var/www/brahm-ai/
 ```
 
 ---
 
-*Section 22 Updated: 2026-03-20 | Brahm AI v4.0 — Two-Pass Reasoning + Tool Calling*
+## 23. AI Improvement Analysis (2026-03-20)
+
+### What's Missing — Priority Order
+
+#### 🔴 Critical (implement next)
+
+**Gochar (Transits)**
+- Current state: Predictions based only on natal chart (static)
+- Missing: Where is Jupiter/Saturn/Rahu TODAY relative to natal positions?
+- Impact: "Shaadi kb hogi" → needs to know when Jupiter aspects 7th house in transit
+- Fix: `panchang_service.get_current_transits(natal_chart)` → compare current planets to natal
+
+**Navamsha D-9**
+- Current state: Only D-1 Rashi chart used
+- Missing: D-9 is compulsory for marriage, D-10 for career in Vedic
+- Fix: Add `calc_navamsha()` to kundali_service → include in compress_kundali
+
+**Language Style Matching**
+- Current state: AI always replies in formal Hindi regardless of user style
+- Missing: User writes Hinglish → AI should write Hinglish
+- Fix: Pass 1 already detects `response_lang` — enforce in Pass 2 prompt
+
+#### 🟡 Important (phase 2)
+
+**Fact-sheet Memory**
+- Replace 30 raw messages in localStorage with structured fact extraction
+- `{name, dob, city, questions_asked:[], predictions_given:[]}`
+- Cross-session continuity: "aapne 5 chats pehle bataya tha..."
+
+**Confidence Score**
+- AI overclaims — "aapki shaadi 2027 mein hogi" without caveats
+- Should say: "high confidence (dasha + gochar agree)" vs "medium (only natal)"
+
+#### ❌ Skip for now
+- Shadbala / Ashtakavarga (marginal improvement, very complex)
+- Birth-time rectification (separate large feature)
+- DB-based cross-device memory (no user auth DB yet)
+- Verifier/checker layer (overkill)
+
+*Section 22-23 Updated: 2026-03-20 | Brahm AI v4.0*

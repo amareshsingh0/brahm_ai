@@ -33,6 +33,7 @@ Return ONLY valid JSON, no explanation, no markdown:
   "kundali_focus": [],
   "response_depth": "basic|deep|master",
   "response_lang": "hi|en|sa",
+  "user_language_style": "pure_hindi|pure_english|hinglish",
   "birth_data": {{
     "date": "YYYY-MM-DD or null",
     "time": "HH:MM or null",
@@ -77,7 +78,13 @@ Rules for calc_services (only fill if needs_calculation=true):
 Rules for response_depth:
 - basic: CONVERSATIONAL, SIMPLE_FACT
 - deep: DEEP_VEDIC, REPORT_ANALYSIS
-- master: CHART_ANALYSIS, RECOMMENDATION (personal, needs full analysis)"""
+- master: CHART_ANALYSIS, RECOMMENDATION (personal, needs full analysis)
+
+Rules for user_language_style:
+- pure_hindi: user wrote in Devanagari script (हिंदी में)
+- pure_english: user wrote entirely in English with no Hindi words
+- hinglish: user mixed Hindi+English (roman Hindi, e.g. "meri shaadi kb hogi")
+  Note: most Indian users write hinglish — "kb", "kya", "meri", "btao" etc. = hinglish"""
 
 
 def get_pass1_decision(
@@ -105,6 +112,7 @@ def get_pass1_decision(
                 "kundali_focus": [],
                 "response_depth": "basic",
                 "response_lang": "hi",
+                "user_language_style": "hinglish",
                 "birth_data": {"date": None, "time": None, "place": None, "name": None},
             }
 
