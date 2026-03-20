@@ -32,6 +32,7 @@ const exploreNavItems = [
   { key: "remedies", url: "/remedies", icon: Gem },
   { key: "compatibility", url: "/compatibility", icon: Heart },
   { key: "palmistry", url: "/palmistry", icon: Hand },
+  { key: "gochar", url: "/gochar", icon: Moon },
   { key: "today", url: "/today", icon: Calendar },
   { key: "panchang", url: "/panchang", icon: Eclipse },
   { key: "library", url: "/library", icon: Library },

@@ -26,20 +26,28 @@ export interface GrahaData {
   house: number;
   degree: number;
   nakshatra: string;
+  nakshatra_lord?: string;
   pada: number;
   retro: boolean;
   status: string;
+  house_lord?: string;
+}
+export interface NavamshaGraha {
+  rashi: string;
+  house: number;
+  status: string;
+  retro: boolean;
 }
 export interface LagnaData {
   rashi: string;
   nakshatra: string;
+  pada?: number;
   degree: number;
 }
 export interface HouseData {
   house: number;
   rashi: string;
   lord: string;
-  degree: number;
 }
 export interface DashaData {
   lord: string;
@@ -64,6 +72,9 @@ export interface KundaliResponse {
   lagna: LagnaData;
   grahas: Record<string, GrahaData>;
   houses: HouseData[];
+  navamsha?: Record<string, NavamshaGraha>;
+  navamsha_lagna?: { rashi: string };
+  navamsha_houses?: HouseData[];
   dashas: DashaData[];
   yogas: YogaData[];
 }

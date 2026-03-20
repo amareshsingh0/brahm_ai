@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
 
 
@@ -7,14 +7,24 @@ class GrahaData(BaseModel):
     house: int
     degree: float
     nakshatra: str
+    nakshatra_lord: Optional[str] = None
     pada: int
     retro: bool
     status: str
+    house_lord: Optional[str] = None
+
+
+class NavamshaGraha(BaseModel):
+    rashi: str
+    house: int
+    status: str
+    retro: bool
 
 
 class LagnaData(BaseModel):
     rashi: str
     nakshatra: str
+    pada: Optional[int] = None
     degree: float
 
 
@@ -22,7 +32,6 @@ class HouseData(BaseModel):
     house: int
     rashi: str
     lord: str
-    degree: float
 
 
 class DashaData(BaseModel):
@@ -59,5 +68,8 @@ class KundaliResponse(BaseModel):
     lagna: LagnaData
     grahas: Dict[str, GrahaData]
     houses: List[HouseData]
+    navamsha: Optional[Dict[str, NavamshaGraha]] = None
+    navamsha_lagna: Optional[Dict[str, str]] = None
+    navamsha_houses: Optional[List[HouseData]] = None
     dashas: List[DashaData]
     yogas: List[YogaData]

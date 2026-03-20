@@ -36,6 +36,7 @@ const MantraDictionaryPage = lazy(() => import("./pages/MantraDictionaryPage"));
 const GotraFinderPage = lazy(() => import("./pages/GotraFinderPage"));
 const KnowledgeBasePage = lazy(() => import("./pages/KnowledgeBasePage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
+const GocharPage = lazy(() => import("./pages/GocharPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -253,6 +254,14 @@ const App = () => {
                     element={
                       <AppLayout>
                         <SubscriptionPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/gochar"
+                    element={
+                      <AppLayout>
+                        <GocharPage />
                       </AppLayout>
                     }
                   />

@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routers import (
     chat, kundali, panchang, compatibility,
     search, planets, muhurta, grahan,
-    horoscope, user, cities, festivals, calendar, palmistry,
+    horoscope, user, cities, festivals, calendar, palmistry, gochar,
 )
 from api.services.rag_service import load_all
 from api.dependencies import G
@@ -64,6 +64,7 @@ app.include_router(chat.router,          prefix=PREFIX, tags=["RAG"])
 app.include_router(search.router,        prefix=PREFIX, tags=["RAG"])
 app.include_router(user.router,          prefix=PREFIX, tags=["User"])
 app.include_router(palmistry.router,     prefix=PREFIX, tags=["Palmistry"])
+app.include_router(gochar.router,        prefix=PREFIX, tags=["Jyotish"])
 
 
 @app.get("/health")
