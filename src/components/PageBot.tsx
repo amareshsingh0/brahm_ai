@@ -158,7 +158,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKey}
-                  placeholder="Kuch poochho..."
+                  placeholder="Ask something..."
                   className="text-xs h-9 bg-muted/20 border-border/30 flex-1"
                   disabled={streaming}
                 />

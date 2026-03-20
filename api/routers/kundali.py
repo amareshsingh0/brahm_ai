@@ -1,7 +1,8 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
-from api.models.kundali import KundaliRequest, KundaliResponse
+from api.models.kundali import KundaliRequest, KundaliResponse, VargaChartData
 from api.services.kundali_service import calc_kundali
+from api.services.divisional_charts import calc_varga_chart, VARGA_NAMES
 
 router = APIRouter()
 
@@ -18,7 +19,19 @@ def calculate_kundali(req: KundaliRequest):
         hour=dt.hour, minute=dt.minute,
         lat=req.lat, lon=req.lon, tz=req.tz,
         name=req.name, place=req.place,
+        ayanamsha_mode=req.ayanamsha,
+        rahu_mode=req.rahu_mode,
+        calc_options=req.calc_options,
     )
     if err:
         raise HTTPException(status_code=500, detail=err)
     return data
+
+
+@router.get("/kundali/vargas")
+def list_vargas():
+    """List all available divisional charts."""
+    return [
+        {"division": k, "code": v[0], "name": v[1], "signification": v[2]}
+        for k, v in sorted(VARGA_NAMES.items())
+    ]

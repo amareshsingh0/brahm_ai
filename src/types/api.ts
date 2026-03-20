@@ -23,14 +23,22 @@ export interface CitiesResponse {
 // ── Kundali ───────────────────────────────────────────────────
 export interface GrahaData {
   rashi: string;
+  rashi_en?: string;
   house: number;
   degree: number;
+  longitude?: number;
   nakshatra: string;
+  nakshatra_hindi?: string;
   nakshatra_lord?: string;
   pada: number;
   retro: boolean;
   status: string;
+  relationship?: string;
   house_lord?: string;
+  graha_en?: string;
+  graha_hindi?: string;
+  karaka?: string;
+  speed?: number;
 }
 export interface NavamshaGraha {
   rashi: string;
@@ -40,14 +48,27 @@ export interface NavamshaGraha {
 }
 export interface LagnaData {
   rashi: string;
+  rashi_en?: string;
   nakshatra: string;
+  nakshatra_hindi?: string;
   pada?: number;
   degree: number;
+  full_degree?: number;
 }
 export interface HouseData {
   house: number;
   rashi: string;
+  rashi_en?: string;
   lord: string;
+  lord_en?: string;
+  signification?: string;
+  planets?: string[];
+}
+export interface AntardashaData {
+  lord: string;
+  years: number;
+  start: string;
+  end: string;
 }
 export interface DashaData {
   lord: string;
@@ -55,11 +76,28 @@ export interface DashaData {
   start: string;
   end: string;
   is_current?: boolean;
+  antardashas?: AntardashaData[];
 }
 export interface YogaData {
   name: string;
   desc: string;
   strength: string;
+  category?: string;
+}
+export interface VargaGraha {
+  rashi: string;
+  house: number;
+  status: string;
+  retro: boolean;
+}
+export interface VargaChartData {
+  division: number;
+  name: string;
+  full_name: string;
+  signification: string;
+  lagna: { rashi: string };
+  houses: { house: number; rashi: string; lord: string }[];
+  grahas: Record<string, VargaGraha>;
 }
 export interface KundaliResponse {
   name: string;
@@ -69,6 +107,9 @@ export interface KundaliResponse {
   lon: number;
   tz: number;
   ayanamsha: number;
+  ayanamsha_mode?: string;
+  ayanamsha_label?: string;
+  rahu_mode?: string;
   lagna: LagnaData;
   grahas: Record<string, GrahaData>;
   houses: HouseData[];
@@ -77,6 +118,7 @@ export interface KundaliResponse {
   navamsha_houses?: HouseData[];
   dashas: DashaData[];
   yogas: YogaData[];
+  varga_charts?: Record<string, VargaChartData>;
 }
 
 // ── Panchang ──────────────────────────────────────────────────

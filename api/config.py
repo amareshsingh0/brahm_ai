@@ -95,6 +95,75 @@ RASHI_HINDI = {
     "Simha":"सिंह","Kanya":"कन्या","Tula":"तुला","Vrischika":"वृश्चिक",
     "Dhanu":"धनु","Makara":"मकर","Kumbha":"कुम्भ","Meena":"मीन"
 }
+# ── Ayanamsha Modes ───────────────────────────────────────────
+# Maps user-facing name → pyswisseph constant id
+AYANAMSHA_MODES = {
+    "lahiri": 1,        # swe.SIDM_LAHIRI
+    "raman": 3,         # swe.SIDM_RAMAN
+    "kp": 5,            # swe.SIDM_KRISHNAMURTI
+    "true_citra": 27,   # swe.SIDM_TRUE_CITRA
+}
+
+# ── English names for rashis and grahas ───────────────────────
+RASHI_EN = {
+    "Mesha":"Aries","Vrishabha":"Taurus","Mithuna":"Gemini","Karka":"Cancer",
+    "Simha":"Leo","Kanya":"Virgo","Tula":"Libra","Vrischika":"Scorpio",
+    "Dhanu":"Sagittarius","Makara":"Capricorn","Kumbha":"Aquarius","Meena":"Pisces"
+}
+GRAHA_EN = {
+    "Surya":"Sun","Chandra":"Moon","Mangal":"Mars","Budh":"Mercury",
+    "Guru":"Jupiter","Shukra":"Venus","Shani":"Saturn","Rahu":"Rahu","Ketu":"Ketu"
+}
+
+# ── Graha natural friendship / enmity ────────────────────────
+GRAHA_FRIENDS = {
+    "Surya":  {"Chandra","Mangal","Guru"},
+    "Chandra":{"Surya","Budh"},
+    "Mangal": {"Surya","Chandra","Guru"},
+    "Budh":   {"Surya","Shukra"},
+    "Guru":   {"Surya","Chandra","Mangal"},
+    "Shukra": {"Budh","Shani"},
+    "Shani":  {"Budh","Shukra"},
+}
+GRAHA_ENEMIES = {
+    "Surya":  {"Shukra","Shani"},
+    "Chandra": set(),
+    "Mangal": {"Budh"},
+    "Budh":   {"Chandra"},
+    "Guru":   {"Budh","Shukra"},
+    "Shukra": {"Surya","Chandra"},
+    "Shani":  {"Surya","Chandra","Mangal"},
+}
+
+# ── Karaka (significator) data ────────────────────────────────
+GRAHA_KARAKA = {
+    "Surya":  "Atmakaraka (Soul, Father, Authority)",
+    "Chandra":"Manakaraka (Mind, Mother, Emotions)",
+    "Mangal": "Bhratrikaraka (Siblings, Courage, Energy)",
+    "Budh":   "Vidyakaraka (Education, Speech, Commerce)",
+    "Guru":   "Putrakaraka (Children, Wisdom, Dharma)",
+    "Shukra": "Kalatra/Darakaraka (Spouse, Luxury, Arts)",
+    "Shani":  "Ayushkaraka (Longevity, Discipline, Karma)",
+    "Rahu":   "Foreign, Obsession, Unconventional",
+    "Ketu":   "Moksha, Spirituality, Past Life",
+}
+
+# ── House significations ──────────────────────────────────────
+HOUSE_SIGNIFICATIONS = {
+    1: "Self, Body, Personality, Health",
+    2: "Wealth, Family, Speech, Food",
+    3: "Siblings, Courage, Communication, Short Travel",
+    4: "Mother, Property, Vehicles, Comfort, Education",
+    5: "Children, Intelligence, Creativity, Purva Punya",
+    6: "Enemies, Disease, Debt, Service, Competition",
+    7: "Spouse, Marriage, Partnership, Business",
+    8: "Longevity, Obstacles, Transformation, Occult",
+    9: "Father, Dharma, Fortune, Higher Learning, Long Travel",
+    10: "Career, Karma, Status, Government, Fame",
+    11: "Gains, Income, Elder Siblings, Desires, Friends",
+    12: "Losses, Expenditure, Foreign Travel, Moksha, Bed Pleasures",
+}
+
 NAKSHATRA_HINDI = {
     "Ashwini":"अश्विनी","Bharani":"भरणी","Krittika":"कृत्तिका","Rohini":"रोहिणी",
     "Mrigashira":"मृगशिरा","Ardra":"आर्द्रा","Punarvasu":"पुनर्वसु","Pushya":"पुष्य",

@@ -52,16 +52,46 @@ export interface NakshatraData {
   pada: string;
 }
 
+export type ChartStyle = "north" | "south" | "east" | "west";
+export type AyanamshaMode = "lahiri" | "raman" | "kp" | "true_citra";
+export type RahuMode = "mean" | "true";
+export type NameLang = "vedic" | "en";
+
+export interface KundaliSettings {
+  chartStyle: ChartStyle;
+  ayanamsha: AyanamshaMode;
+  rahuMode: RahuMode;
+  nameLang: NameLang;
+}
+
+const DEFAULT_SETTINGS: KundaliSettings = {
+  chartStyle: "north",
+  ayanamsha: "lahiri",
+  rahuMode: "mean",
+  nameLang: "vedic",
+};
+
+// Load persisted settings from localStorage
+function loadSettings(): KundaliSettings {
+  try {
+    const raw = localStorage.getItem("kundali_settings");
+    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch {}
+  return DEFAULT_SETTINGS;
+}
+
 export interface KundliState {
   birthDetails: BirthDetails | null;
   selectedPlanet: PlanetData | null;
   hasKundli: boolean;
   kundaliData: KundaliResponse | null;
+  kundaliSettings: KundaliSettings;
   setBirthDetails: (details: BirthDetails) => void;
   setSelectedPlanet: (planet: PlanetData | null) => void;
   setHasKundli: (val: boolean) => void;
   setKundaliData: (data: KundaliResponse) => void;
   setCity: (lat: number, lon: number, tz: number) => void;
+  setKundaliSettings: (settings: Partial<KundaliSettings>) => void;
 }
 
 export const useKundliStore = create<KundliState>((set) => ({
@@ -69,6 +99,7 @@ export const useKundliStore = create<KundliState>((set) => ({
   selectedPlanet: null,
   hasKundli: false,
   kundaliData: null,
+  kundaliSettings: loadSettings(),
   setBirthDetails: (details) => set({ birthDetails: details, hasKundli: true }),
   setSelectedPlanet: (planet) => set({ selectedPlanet: planet }),
   setHasKundli: (val) => set({ hasKundli: val }),
@@ -76,6 +107,11 @@ export const useKundliStore = create<KundliState>((set) => ({
   setCity: (lat, lon, tz) => set((s) => ({
     birthDetails: s.birthDetails ? { ...s.birthDetails, lat, lon, tz } : null,
   })),
+  setKundaliSettings: (partial) => set((s) => {
+    const next = { ...s.kundaliSettings, ...partial };
+    localStorage.setItem("kundali_settings", JSON.stringify(next));
+    return { kundaliSettings: next };
+  }),
 }));
 
 export const samplePlanets: PlanetData[] = [
