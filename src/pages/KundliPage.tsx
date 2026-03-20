@@ -1,14 +1,17 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { KundliChart } from "@/components/charts/KundliChart";
 import { samplePlanets, useKundliStore, type PlanetData } from "@/store/kundliStore";
 import { useKundali } from "@/hooks/useKundali";
 import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Zap, FileDown, ChevronDown, ChevronUp, Star, Calendar,
-  Layers, Home,
+  Layers, Home, Loader2, Edit2, User, MapPin,
 } from "lucide-react";
 import PageBot from "@/components/PageBot";
+import { searchCities, getCities, type City } from "@/lib/cities";
 import type { KundaliResponse, VargaChartData, AntardashaData } from "@/types/api";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -357,13 +360,146 @@ function AntardashaList({ antardashas }: { antardashas: AntardashaData[] }) {
   );
 }
 
+// ── Birth Form ────────────────────────────────────────────────────────────────
+interface LocalForm { name: string; date: string; time: string; place: string }
+
+function KundaliBirthForm({
+  initial, loading, error, onGenerate,
+}: {
+  initial: LocalForm;
+  loading: boolean;
+  error: string | null;
+  onGenerate: (form: LocalForm, city: City | null) => void;
+}) {
+  const [form, setForm] = useState<LocalForm>(initial);
+  const [city, setCity] = useState<City | null>(null);
+  const [suggestions, setSuggestions] = useState<City[]>([]);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { getCities().catch(() => {}); }, []);
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setSuggestions([]); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const handleCityInput = async (v: string) => {
+    setForm(f => ({ ...f, place: v }));
+    setCity(null);
+    if (v.length >= 2) { const res = await searchCities(v); setSuggestions(res); }
+    else setSuggestions([]);
+  };
+
+  const handleSelect = (c: City) => {
+    setForm(f => ({ ...f, place: c.name }));
+    setCity(c); setSuggestions([]);
+  };
+
+  const canSubmit = !!form.date && !!form.time;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      className="max-w-lg mx-auto">
+      <div className="cosmic-card rounded-2xl p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Star className="h-4 w-4 text-primary" />
+          <h2 className="font-display text-base text-foreground">Birth Details</h2>
+        </div>
+
+        {/* Name */}
+        <div>
+          <Label className="text-xs text-muted-foreground">Name <span className="opacity-50">(optional)</span></Label>
+          <div className="relative mt-1">
+            <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
+            <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              placeholder="Your name" className="pl-8 bg-muted/20 border-border/30" />
+          </div>
+        </div>
+
+        {/* Date + Time */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Date of Birth <span className="text-red-400">*</span></Label>
+            <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+              className="bg-muted/20 border-border/30 mt-1" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Time of Birth <span className="text-red-400">*</span></Label>
+            <Input type="time" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))}
+              className="bg-muted/20 border-border/30 mt-1" />
+          </div>
+        </div>
+
+        {/* Place with autocomplete */}
+        <div ref={wrapRef} className="relative">
+          <Label className="text-xs text-muted-foreground">Birth Place</Label>
+          <div className="relative mt-1">
+            <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
+            <Input value={form.place} onChange={e => handleCityInput(e.target.value)}
+              placeholder="Search city..." autoComplete="off"
+              className={`pl-8 bg-muted/20 border-border/30 ${city ? "border-primary/50" : ""}`} />
+            {city && (
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-primary/70">
+                ✓ {city.lat.toFixed(1)}°, {city.lon.toFixed(1)}°
+              </span>
+            )}
+          </div>
+          {suggestions.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 rounded-xl border border-border/30 bg-background/95 backdrop-blur shadow-xl overflow-hidden">
+              {suggestions.map(c => (
+                <button key={`${c.name}-${c.lat}`} onMouseDown={() => handleSelect(c)}
+                  className="w-full text-left px-3 py-2.5 text-xs hover:bg-muted/40 transition-colors border-b border-border/10 last:border-0">
+                  <span className="font-medium text-foreground">{c.name}</span>
+                  <span className="text-muted-foreground ml-2">{c.lat.toFixed(1)}°N, {c.lon.toFixed(1)}°E</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {!city && form.place && (
+          <p className="text-[10px] text-amber-400/80">Select a city from the dropdown for accurate coordinates.</p>
+        )}
+
+        {error && <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
+
+        <button
+          onClick={() => onGenerate(form, city)}
+          disabled={!canSubmit || loading}
+          className="w-full py-2.5 rounded-xl text-sm font-semibold bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Calculating...</> : <><Star className="h-4 w-4" /> Generate Kundali</>}
+        </button>
+      </div>
+
+      <p className="text-[10px] text-muted-foreground/40 text-center mt-3">
+        Lahiri Ayanamsha · Whole Sign Houses · pyswisseph DE431
+      </p>
+    </motion.div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function KundliPage() {
   const kundaliData = useKundliStore((s) => s.kundaliData);
   const birthDetails = useKundliStore((s) => s.birthDetails);
+  const setBirthDetails = useKundliStore((s) => s.setBirthDetails);
   const settings = useKundliStore((s) => s.kundaliSettings);
   const setSettings = useKundliStore((s) => s.setKundaliSettings);
   const nameLang = settings.nameLang;
+
+  // View: "input" = show form, "result" = show kundali
+  const [view, setView] = useState<"input" | "result">(kundaliData ? "result" : "input");
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Local form — pre-fill from store if available
+  const [localForm, setLocalForm] = useState<LocalForm>({
+    name: birthDetails?.name ?? "",
+    date: birthDetails?.dateOfBirth ?? "",
+    time: birthDetails?.timeOfBirth ?? "",
+    place: birthDetails?.birthPlace ?? "",
+  });
+
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetData | null>(null);
   const [activeTab, setActiveTab] = useState<"charts" | "dasha" | "houses">("charts");
   const [showAllYogas, setShowAllYogas] = useState(false);
@@ -374,11 +510,32 @@ export default function KundliPage() {
 
   const kundaliMutation = useKundali();
 
-  // Recalculate handler for settings changes
+  const handleGenerate = useCallback(async (form: LocalForm, city: { lat: number; lon: number; tz: number } | null) => {
+    setFormError(null);
+    const DEF = { lat: 25.5, lon: 82.5, tz: 5.5 }; // Varanasi default
+    const loc = city ?? DEF;
+    const details = {
+      name: form.name || "Unknown",
+      dateOfBirth: form.date,
+      timeOfBirth: form.time || "12:00",
+      birthPlace: form.place || "India",
+      lat: loc.lat, lon: loc.lon, tz: loc.tz,
+    };
+    setLocalForm(form);
+    setBirthDetails(details);
+    try {
+      await kundaliMutation.mutateAsync(details as any);
+      setView("result");
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : "Calculation failed. Please check birth details.");
+    }
+  }, [kundaliMutation, setBirthDetails]);
+
+  // Recalculate handler for settings changes (ayanamsha/rahu mode)
   const handleRecalculate = useCallback(() => {
     if (!birthDetails) return;
     kundaliMutation.mutate(birthDetails as any);
-  }, [birthDetails]);
+  }, [birthDetails, kundaliMutation]);
 
   // Map kundaliData → PlanetData[] for chart
   const planets: PlanetData[] = kundaliData
@@ -454,28 +611,54 @@ export default function KundliPage() {
 
   return (
     <div className="p-3 md:p-5 space-y-4 overflow-x-hidden">
-      {/* Header */}
+      {/* Header — always shown */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display text-2xl text-foreground text-glow-gold mb-0.5">
-            {kundaliData?.name ? `${kundaliData.name}'s Kundali` : "My Kundli"}
+            {view === "result" && kundaliData?.name ? `${kundaliData.name}'s Kundali` : "Janam Kundali"}
           </h1>
-          {kundaliData && (
+          {view === "result" && kundaliData ? (
             <p className="text-xs text-muted-foreground">
               {kundaliData.place} · {kundaliData.birth_date} · {kundaliData.ayanamsha_label ?? "Lahiri"} {kundaliData.ayanamsha}°
               {kundaliData.rahu_mode === "true" ? " · True Rahu" : ""}
             </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Vedic birth chart · Divisional charts · Dasha · Yogas</p>
           )}
         </div>
-        {kundaliData && (
-          <button
-            onClick={() => generateKundaliPDF(kundaliData)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 hover:bg-primary/30 text-primary transition-colors border border-primary/20"
-          >
-            <FileDown className="h-3.5 w-3.5" /> PDF
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {view === "result" && (
+            <button onClick={() => setView("input")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/20 hover:border-border/40 transition-colors">
+              <Edit2 className="h-3 w-3" /> New / Edit
+            </button>
+          )}
+          {view === "result" && kundaliData && (
+            <button onClick={() => generateKundaliPDF(kundaliData)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 hover:bg-primary/30 text-primary transition-colors border border-primary/20">
+              <FileDown className="h-3.5 w-3.5" /> PDF
+            </button>
+          )}
+        </div>
       </motion.div>
+
+      {/* INPUT VIEW — Birth Form */}
+      <AnimatePresence mode="wait">
+        {view === "input" && (
+          <motion.div key="form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            <KundaliBirthForm
+              initial={localForm}
+              loading={kundaliMutation.isPending}
+              error={formError}
+              onGenerate={handleGenerate}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* RESULT VIEW — Full Kundali */}
+      {view === "result" && (
+        <>
 
       {/* Inline Settings Strip */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
@@ -966,6 +1149,9 @@ export default function KundliPage() {
           </p>
         </div>
       </div>
+
+        </>
+      )}
 
       <PageBot pageContext="kundali" pageData={kundaliData ?? {}} />
     </div>
