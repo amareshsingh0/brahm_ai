@@ -89,6 +89,11 @@ def _get_current_positions() -> dict:
     return positions
 
 
+def get_current_planet_positions() -> dict:
+    """Public API used by the router for current graha positions."""
+    return _get_current_positions()
+
+
 def get_transits(natal_lagna_rashi: str, natal_moon_rashi: str) -> dict:
     """
     Main function — returns complete transit (gochar) analysis.
