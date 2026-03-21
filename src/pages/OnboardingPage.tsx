@@ -122,19 +122,19 @@ export default function OnboardingPage() {
             {/* Current Dasha */}
             {result.dashas[0] && (
               <div className="bg-primary/5 border border-primary/20 rounded-xl p-3">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Current Mahadasha</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Current Mahadasha</p>
                 <p className="text-sm font-display text-primary">{result.dashas[0].lord} Dasha</p>
-                <p className="text-[10px] text-muted-foreground">{result.dashas[0].start} → {result.dashas[0].end}</p>
+                <p className="text-xs text-muted-foreground">{result.dashas[0].start} → {result.dashas[0].end}</p>
               </div>
             )}
 
             {/* Yogas */}
             {result.yogas.length > 0 && (
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Active Yogas</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Active Yogas</p>
                 <div className="flex flex-wrap gap-1.5">
                   {result.yogas.slice(0, 4).map((y) => (
-                    <span key={y.name} className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span key={y.name} className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       {y.name}
                     </span>
                   ))}
@@ -152,8 +152,8 @@ export default function OnboardingPage() {
                 <span className="text-foreground font-medium">{g.rashi}</span>
                 <span className="text-muted-foreground">H{g.house}</span>
                 <span className="text-muted-foreground/70">{g.nakshatra}</span>
-                {g.retro && <span className="text-amber-400 text-[9px]">℞</span>}
-                {g.status !== "Normal" && <span className="text-emerald-400 text-[9px]">{g.status.slice(0, 4)}</span>}
+                {g.retro && <span className="text-amber-400 text-xs">℞</span>}
+                {g.status !== "Normal" && <span className="text-emerald-400 text-xs">{g.status.slice(0, 4)}</span>}
               </div>
             ))}
           </div>
@@ -246,7 +246,7 @@ export default function OnboardingPage() {
                 autoComplete="off"
               />
               {selectedCity && (
-                <p className="text-[10px] text-primary text-center mt-1">
+                <p className="text-xs text-primary text-center mt-1">
                   {selectedCity.lat.toFixed(2)}°N {selectedCity.lon.toFixed(2)}°E · TZ {selectedCity.tz}
                 </p>
               )}
@@ -284,7 +284,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleNext}
               disabled={!canProceed}
-              className="flex-1 py-3 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {step === steps.length - 1 ? <><Sparkles className="h-4 w-4" /> Generate Kundli</> : <>Continue <ArrowRight className="h-4 w-4" /></>}
             </button>
@@ -303,9 +303,9 @@ export default function OnboardingPage() {
 function StatBox({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="bg-muted/20 rounded-xl p-3 text-center">
-      <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
       <p className="text-sm font-display text-foreground">{value}</p>
-      {sub && <p className="text-[10px] text-primary/70 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-primary/70 mt-0.5">{sub}</p>}
     </div>
   );
 }

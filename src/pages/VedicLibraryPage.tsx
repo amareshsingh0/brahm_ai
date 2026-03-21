@@ -319,22 +319,22 @@ export default function VedicLibraryPage() {
                           </div>
                           <div className="flex gap-2">
                             {"verses" in text && (
-                              <Badge variant="secondary" className="text-[10px]">
+                              <Badge variant="secondary" className="text-xs">
                                 {(text as any).verses.toLocaleString()} verses
                               </Badge>
                             )}
                             {"hymns" in text && (
-                              <Badge variant="secondary" className="text-[10px]">
+                              <Badge variant="secondary" className="text-xs">
                                 {(text as any).hymns.toLocaleString()} hymns
                               </Badge>
                             )}
                             {"chapters" in text && (
-                              <Badge variant="secondary" className="text-[10px]">
+                              <Badge variant="secondary" className="text-xs">
                                 {(text as any).chapters} chapters
                               </Badge>
                             )}
                             {"books" in text && (
-                              <Badge variant="outline" className="text-[10px]">
+                              <Badge variant="outline" className="text-xs">
                                 {(text as any).books} books
                               </Badge>
                             )}
@@ -345,7 +345,7 @@ export default function VedicLibraryPage() {
                         <p className="text-sm text-muted-foreground leading-relaxed">{text.description}</p>
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {text.keyTopics.map((topic) => (
-                            <Badge key={topic} variant="outline" className="text-[10px] font-normal border-primary/30 text-primary">
+                            <Badge key={topic} variant="outline" className="text-xs font-normal border-primary/30 text-primary">
                               {topic}
                             </Badge>
                           ))}

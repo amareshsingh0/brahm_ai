@@ -87,7 +87,7 @@ export function AppSidebar() {
         {!collapsed && name && (
           <div className="mx-4 mb-2 px-3 py-2 rounded-lg bg-muted/10 border border-border/20 flex items-center justify-between">
             <p className="text-xs text-foreground truncate max-w-[110px]">{name}</p>
-            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${badge.className}`}>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${badge.className}`}>
               {badge.label}
             </span>
           </div>

@@ -1356,19 +1356,19 @@ function LinesTab() {
 
 function MountsTab() {
   const MOUNTS = [
-    { id: "jupiter", name: "Mount of Jupiter", sanskrit: "गुरु पर्वत", finger: "Below Index Finger", planet: "Jupiter (Guru)", icon: "♃", color: "#C8860A",
+    { id: "jupiter", name: "Mount of Jupiter", sanskrit: "गुरु पर्वत", finger: "Below Index Finger", planet: "Jupiter (Guru)", icon: "♃︎", color: "#C8860A",
       well: "Leader, ambitious, spiritually wise, generous, charismatic. Born to guide and teach.", flat: "Lack of confidence, avoids leadership roles.", over: "Arrogant, overbearing, domineering.", vedic: "Guru's seat of Brahma Jnana. Prominent in teachers, judges, and spiritual leaders." },
-    { id: "saturn", name: "Mount of Saturn", sanskrit: "शनि पर्वत", finger: "Below Middle Finger", planet: "Saturn (Shani)", icon: "♄", color: "#7A8BAA",
+    { id: "saturn", name: "Mount of Saturn", sanskrit: "शनि पर्वत", finger: "Below Middle Finger", planet: "Saturn (Shani)", icon: "♄︎", color: "#7A8BAA",
       well: "Wise, responsible, patient, deeply introspective. Excellent researchers and dedicated servants.", flat: "Avoids responsibility, lacks discipline.", over: "Melancholic, hermit tendencies, can't enjoy life.", vedic: "Shani's seat of karma and dharma. Those who bear great responsibility with grace." },
-    { id: "apollo", name: "Mount of Apollo", sanskrit: "सूर्य पर्वत", finger: "Below Ring Finger", planet: "Sun (Surya)", icon: "☉", color: "#E8650A",
+    { id: "apollo", name: "Mount of Apollo", sanskrit: "सूर्य पर्वत", finger: "Below Ring Finger", planet: "Sun (Surya)", icon: "☉︎", color: "#E8650A",
       well: "Creative, charismatic, drawn to beauty and art. Fame comes naturally. Joyful and warm-hearted.", flat: "Lack of aesthetic sense, avoids public life.", over: "Vanity, obsession with appearances, craving fame over substance.", vedic: "Surya's seat of Atmic brilliance. Artists, performers, and those with deep creative Shakti." },
-    { id: "mercury", name: "Mount of Mercury", sanskrit: "बुध पर्वत", finger: "Below Little Finger", planet: "Mercury (Budha)", icon: "☿", color: "#7A8BAA",
+    { id: "mercury", name: "Mount of Mercury", sanskrit: "बुध पर्वत", finger: "Below Little Finger", planet: "Mercury (Budha)", icon: "☿︎", color: "#7A8BAA",
       well: "Brilliant communicator, witty, business-minded, quick-thinking. Natural healer.", flat: "Communication difficulties, poor business instinct.", over: "Cunning, deceptive use of words.", vedic: "Budha's seat of Vak Shakti. Scholars, traders, orators, and diplomats." },
-    { id: "venus", name: "Mount of Venus", sanskrit: "शुक्र पर्वत", finger: "Base of Thumb", planet: "Venus (Shukra)", icon: "♀", color: "#E8650A",
+    { id: "venus", name: "Mount of Venus", sanskrit: "शुक्र पर्वत", finger: "Base of Thumb", planet: "Venus (Shukra)", icon: "♀︎", color: "#E8650A",
       well: "Loving, sensual, generous, artistic. Great capacity for pleasure and deep human connection.", flat: "Cold, unaffectionate, may struggle with intimacy.", over: "Excessive sensuality, overindulgence, attachment.", vedic: "Shukra's seat of Kama (desire) — one of the four Purusharthas. The quality of love is here." },
-    { id: "moon", name: "Mount of Moon", sanskrit: "चन्द्र पर्वत", finger: "Outer Base (opposite thumb)", planet: "Moon (Chandra)", icon: "☽", color: "#7A8BAA",
+    { id: "moon", name: "Mount of Moon", sanskrit: "चन्द्र पर्वत", finger: "Outer Base (opposite thumb)", planet: "Moon (Chandra)", icon: "☽︎", color: "#7A8BAA",
       well: "Deeply intuitive, imaginative, psychic sensitivity, rich inner world. Love of travel and poetry.", flat: "Lack of imagination, emotionally rigid.", over: "Overly emotional, difficulty distinguishing real from imagined.", vedic: "Chandra's seat of Manas and intuition. Astrologers, poets, healers, and psychic seers." },
-    { id: "mars", name: "Mounts of Mars", sanskrit: "मंगल पर्वत", finger: "Upper & Lower Inner Edge", planet: "Mars (Mangal)", icon: "♂", color: "#E8650A",
+    { id: "mars", name: "Mounts of Mars", sanskrit: "मंगल पर्वत", finger: "Upper & Lower Inner Edge", planet: "Mars (Mangal)", icon: "♂︎", color: "#E8650A",
       well: "Physical and moral courage. Resilience under pressure. Strength when it matters most.", flat: "Cowardice, gives up easily, avoids confrontation.", over: "Aggressive, hot-tempered, prone to confrontation.", vedic: "Mangal's Agni Shakti — the fire of righteous action. Warriors, surgeons, athletes." },
   ];
   const [active, setActive] = useState<string | null>(null);

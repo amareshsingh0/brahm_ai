@@ -130,6 +130,26 @@ def calc_ashtakavarga(grahas: dict, lagna_rashi_i: int) -> dict:
         for i in range(12):
             sav[i] += planet_bav[i]
 
+    # Reduced Ashtakavarga (Trikona Shodhana - simplified)
+    # For each planet's BAV: reduce by subtracting minimum of (rashi1, rashi5, rashi9) from each
+    reduced_bav = {}
+    for planet, points in bav.items():
+        reduced = points[:]
+        # Trikona groups: (0,4,8), (1,5,9), (2,6,10), (3,7,11)
+        for base in range(4):
+            trikona = [base, base+4, base+8]
+            min_val = min(reduced[i] for i in trikona)
+            for i in trikona:
+                reduced[i] -= min_val
+        # Ekadhipatya shodhana (planets that rule 2 rashis)
+        # Simplified: just return trikona-reduced for now
+        reduced_bav[planet] = reduced
+
+    reduced_sav = [0] * 12
+    for pts in reduced_bav.values():
+        for i in range(12):
+            reduced_sav[i] += pts[i]
+
     return {
         "bav": {
             planet: {
@@ -143,5 +163,13 @@ def calc_ashtakavarga(grahas: dict, lagna_rashi_i: int) -> dict:
             "points": sav,
             "rashi_names": RASHI_NAMES,
             "total": sum(sav),
+        },
+        "reduced_bav": {
+            planet: {"points": pts, "total": sum(pts)}
+            for planet, pts in reduced_bav.items()
+        },
+        "reduced_sav": {
+            "points": reduced_sav,
+            "total": sum(reduced_sav),
         },
     }

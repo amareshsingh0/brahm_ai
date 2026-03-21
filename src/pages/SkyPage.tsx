@@ -21,20 +21,20 @@ import PageBot from '@/components/PageBot';
 // ── Planet meta ───────────────────────────────────────────────────────────────
 
 const GRAHA_SYMBOL: Record<string, string> = {
-  Surya: "☉", Chandra: "☽", Mangal: "♂", Budh: "☿",
-  Guru: "♃",  Shukra: "♀",  Shani: "♄", Rahu: "☊", Ketu: "☋",
+  Surya: "☉︎\uFE0E", Chandra: "☽︎\uFE0E", Mangal: "♂︎\uFE0E", Budh: "☿︎\uFE0E",
+  Guru: "♃︎\uFE0E",  Shukra: "♀︎\uFE0E",  Shani: "♄︎\uFE0E", Rahu: "☊︎\uFE0E", Ketu: "☋︎\uFE0E",
 };
 const GRAHA_COLOR: Record<string, string> = {
-  Surya:   "#FFB347", Chandra: "#C0D8FF", Mangal: "#FF6B6B",
-  Budh:    "#7FD17F", Guru:    "#FFD700",  Shukra: "#D89FFF",
-  Shani:   "#778899", Rahu:    "#6A8FD0",  Ketu:   "#C87941",
+  Surya:   "#D97706", Chandra: "#4F46E5", Mangal: "#DC2626",
+  Budh:    "#16A34A", Guru:    "#B45309",  Shukra: "#9333EA",
+  Shani:   "#334155", Rahu:    "#0369A1",  Ketu:   "#C2410C",
 };
 const GRAHA_NAME_HI: Record<string, string> = {
   Surya: "सूर्य", Chandra: "चंद्र", Mangal: "मंगल", Budh: "बुध",
   Guru: "गुरु",   Shukra: "शुक्र",  Shani: "शनि",  Rahu: "राहु", Ketu: "केतु",
 };
 
-const RASHI_SHORT = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
+const RASHI_SHORT = ["Mes","Vri","Mit","Kar","Sim","Kan","Tul","Vrc","Dha","Mak","Kum","Mee"];
 const RASHI_NAMES = [
   "Mesha","Vrishabha","Mithuna","Karka",
   "Simha","Kanya","Tula","Vrischika",
@@ -83,8 +83,8 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
   return (
     <div className="relative w-full max-w-sm mx-auto aspect-square">
       <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-lg">
-        {/* Outer ring: dark bg */}
-        <circle cx={cx} cy={cy} r={R} fill="hsl(240 15% 8%)" stroke="hsl(42 90% 64% / 0.15)" strokeWidth="1" />
+        {/* Outer ring */}
+        <circle cx={cx} cy={cy} r={R} fill="hsl(220 20% 97%)" stroke="hsl(215 15% 72%)" strokeWidth="1.2" />
 
         {/* 12 Rashi segments */}
         {RASHI_NAMES.map((name, i) => {
@@ -112,7 +112,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
               <line
                 x1={cx + 90 * Math.cos(startRad)} y1={cy + 90 * Math.sin(startRad)}
                 x2={x1} y2={y1}
-                stroke={hasplanet ? "hsl(42 90% 64% / 0.3)" : "hsl(42 90% 64% / 0.12)"} strokeWidth="0.5"
+                stroke="hsl(215 15% 70%)" strokeWidth="1"
               />
               {/* Segment arc fill — brighter if planet present */}
               <path
@@ -121,18 +121,18 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
                     A ${R} ${R} 0 0 1 ${x2} ${y2}
                     L ${cx + 90 * Math.cos(endRad)} ${cy + 90 * Math.sin(endRad)}
                     A 90 90 0 0 0 ${cx + 90 * Math.cos(startRad)} ${cy + 90 * Math.sin(startRad)}`}
-                fill={hasplanet ? `${segColor}22` : `hsl(${i * 30} 40% 12% / 0.4)`}
-                stroke={hasplanet ? `${segColor}44` : "none"}
-                strokeWidth={hasplanet ? "0.5" : "0"}
+                fill={hasplanet ? `${segColor}28` : `hsl(${i * 30} 25% 93%)`}
+                stroke="hsl(215 15% 78%)"
+                strokeWidth="0.8"
               />
               {/* Rashi symbol — brighter if occupied */}
               <text
                 x={lx} y={ly}
                 textAnchor="middle" dominantBaseline="central"
-                fontSize="11"
-                fill={hasplanet ? "hsl(42 90% 80% / 0.9)" : "hsl(42 90% 64% / 0.45)"}
-                fontFamily="serif"
-                fontWeight={hasplanet ? "bold" : "normal"}
+                fontSize="13"
+                fill={hasplanet ? "hsl(38 80% 26%)" : "hsl(215 20% 40%)"}
+                fontFamily="Inter, sans-serif"
+                fontWeight={hasplanet ? "700" : "500"}
               >
                 {RASHI_SHORT[i]}
               </text>
@@ -140,9 +140,9 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
           );
         })}
 
-        {/* Inner circle (ecliptic zone) */}
-        <circle cx={cx} cy={cy} r={90}  fill="hsl(240 15% 5%)"  stroke="hsl(42 90% 64% / 0.08)" strokeWidth="0.5" />
-        <circle cx={cx} cy={cy} r={45}  fill="hsl(240 20% 4%)"  stroke="hsl(42 90% 64% / 0.05)" strokeWidth="0.5" />
+        {/* Inner circles */}
+        <circle cx={cx} cy={cy} r={90}  fill="hsl(220 15% 94%)" stroke="hsl(215 15% 75%)" strokeWidth="1" />
+        <circle cx={cx} cy={cy} r={45}  fill="hsl(220 15% 91%)" stroke="hsl(215 15% 75%)" strokeWidth="0.8" />
 
         {/* Lagna marker */}
         {snapshot.lagna && (() => {
@@ -154,10 +154,10 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
               <line
                 x1={cx + 90 * Math.cos(rad)} y1={cy + 90 * Math.sin(rad)}
                 x2={lx} y2={ly}
-                stroke="hsl(42 90% 64% / 0.7)" strokeWidth="1.5" strokeDasharray="3,2"
+                stroke="hsl(38 80% 32% / 0.7)" strokeWidth="1.5" strokeDasharray="3,2"
               />
               <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central"
-                fontSize="8" fill="hsl(42 90% 64%)" fontWeight="bold">L</text>
+                fontSize="8" fill="hsl(38 80% 28%)" fontWeight="bold">L</text>
             </g>
           );
         })()}
@@ -186,8 +186,10 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
               {/* Planet symbol */}
               <text x={px} y={py}
                 textAnchor="middle" dominantBaseline="central"
-                fontSize={isHovered ? "16" : "13"}
-                fill={p.combust ? `${glow}66` : glow}
+                fontSize={isHovered ? "18" : "15"}
+                fontWeight="600"
+                fontFamily="'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif"
+                fill={p.combust ? `${glow}99` : glow}
                 style={{ filter: p.visible ? `drop-shadow(0 0 4px ${glow})` : "none" }}
               >
                 {GRAHA_SYMBOL[name]}
@@ -200,11 +202,11 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
               {isHovered && (
                 <g>
                   <rect x={px - 28} y={py + 14} width={56} height={22} rx={4}
-                    fill="hsl(240 15% 8%)" stroke={`${glow}66`} strokeWidth="0.5" />
+                    fill="hsl(0 0% 100%)" stroke={`${glow}88`} strokeWidth="0.8" />
                   <text x={px} y={py + 22} textAnchor="middle" fontSize="7" fill={glow}>
                     {p.rashi} {p.dms}
                   </text>
-                  <text x={px} y={py + 30} textAnchor="middle" fontSize="6" fill="hsl(0 0% 60%)">
+                  <text x={px} y={py + 30} textAnchor="middle" fontSize="6" fill="hsl(215 15% 45%)">
                     {p.nakshatra}
                   </text>
                 </g>
@@ -215,13 +217,13 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
 
         {/* Center Om */}
         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central"
-          fontSize="18" fill="hsl(42 90% 64% / 0.3)" fontFamily="serif">ॐ</text>
+          fontSize="18" fill="hsl(38 80% 32% / 0.35)" fontFamily="serif">ॐ</text>
       </svg>
 
       {/* Live pulse indicator */}
       <div className="absolute top-2 right-2 flex items-center gap-1">
         <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-        <span className="text-[9px] text-green-400">LIVE</span>
+        <span className="text-xs text-green-400">LIVE</span>
       </div>
     </div>
   );
@@ -239,7 +241,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
 function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-xs">
+      <table className="w-full text-sm">
         <thead>
           <tr className="text-muted-foreground border-b border-border/20">
             <th className="text-left py-2 px-2 font-normal">Graha</th>
@@ -264,15 +266,15 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
               >
                 <td className="py-2 px-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg" style={{ color, filter: `drop-shadow(0 0 4px ${color})` }}>
+                    <span className="text-lg" style={{ color, filter: `drop-shadow(0 0 4px ${color})`, fontFamily: "'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif" }}>
                       {GRAHA_SYMBOL[name]}
                     </span>
                     <div>
                       <p className="font-medium text-foreground">{name}</p>
-                      <p className="text-[10px] text-muted-foreground">{GRAHA_NAME_HI[name]}</p>
+                      <p className="text-xs text-muted-foreground">{GRAHA_NAME_HI[name]}</p>
                     </div>
                     {p.retro && (
-                      <span className="text-[9px] text-amber-400 px-1 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">
+                      <span className="text-xs text-amber-400 px-1 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">
                         ℞ retro
                       </span>
                     )}
@@ -281,14 +283,14 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                 <td className="py-2 px-2 text-foreground">{p.rashi}</td>
                 <td className="py-2 px-2 text-foreground font-mono hidden sm:table-cell">{p.dms}</td>
                 <td className="py-2 px-2 text-muted-foreground hidden md:table-cell">
-                  {p.nakshatra} <span className="text-[10px]">Pada {p.pada}</span>
+                  {p.nakshatra} <span className="text-xs opacity-70">Pada {p.pada}</span>
                 </td>
                 <td className="py-2 px-2 text-center">
                   {name === "Rahu" || name === "Ketu" ? (
-                    <span className="text-[10px] text-muted-foreground">Shadow</span>
+                    <span className="text-xs text-muted-foreground">Shadow</span>
                   ) : p.combust ? (
                     <span title="Combust — too close to Sun">
-                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground/40 mx-auto" />
+                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground/60 mx-auto" />
                     </span>
                   ) : p.visible ? (
                     <span title="Visible in sky">
@@ -296,7 +298,7 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                     </span>
                   ) : (
                     <span title="Below horizon / daytime">
-                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground/40 mx-auto" />
+                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground/60 mx-auto" />
                     </span>
                   )}
                 </td>
@@ -338,18 +340,18 @@ function PlanetCards({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
             <div className="flex items-start justify-between">
               <span
                 className="text-2xl leading-none"
-                style={{ color, filter: isVisible ? `drop-shadow(0 0 6px ${color})` : "none", opacity: isCombust ? 0.5 : 1 }}
+                style={{ color, filter: isVisible ? `drop-shadow(0 0 6px ${color})` : "none", opacity: isCombust ? 0.5 : 1, fontFamily: "'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif" }}
               >
                 {GRAHA_SYMBOL[name]}
               </span>
               <div className="flex flex-col items-end gap-0.5">
                 {isRetro && (
-                  <span className="text-[8px] px-1 py-0.5 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20 leading-none">
+                  <span className="text-xs px-1 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/25 leading-none font-medium">
                     ℞ Retro
                   </span>
                 )}
                 {isCombust && (
-                  <span className="text-[8px] px-1 py-0.5 rounded bg-orange-400/10 text-orange-400 border border-orange-400/20 leading-none">
+                  <span className="text-xs px-1 py-0.5 rounded bg-orange-500/10 text-orange-600 border border-orange-500/25 leading-none font-medium">
                     Combust
                   </span>
                 )}
@@ -361,23 +363,23 @@ function PlanetCards({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
 
             {/* Name */}
             <div className="leading-none">
-              <p className="text-xs font-semibold text-foreground">{name}</p>
-              <p className="text-[9px] text-muted-foreground">{GRAHA_NAME_HI[name]}</p>
+              <p className="text-sm font-semibold text-foreground">{name}</p>
+              <p className="text-xs text-muted-foreground">{GRAHA_NAME_HI[name]}</p>
             </div>
 
             {/* Rashi badge */}
             <span
-              className="self-start text-[9px] px-1.5 py-0.5 rounded-full border leading-none"
-              style={{ borderColor: color + "55", color, backgroundColor: color + "11" }}
+              className="self-start text-xs px-1.5 py-0.5 rounded-full border leading-none font-medium"
+              style={{ borderColor: color + "66", color, backgroundColor: color + "18" }}
             >
               {p.rashi}
             </span>
 
             {/* Plain-language effect */}
-            <p className="text-[9px] text-muted-foreground leading-tight">
-              <span className="text-foreground/60">{PLANET_DOMAIN[name]}</span>
+            <p className="text-xs text-muted-foreground leading-tight">
+              <span className="text-foreground/70 font-medium">{PLANET_DOMAIN[name]}</span>
               <br />
-              <span style={{ color: color + "cc" }}>{RASHI_QUALITY[p.rashi] ?? ""}</span>
+              <span style={{ color }}>{RASHI_QUALITY[p.rashi] ?? ""}</span>
             </p>
           </div>
         );
@@ -407,7 +409,7 @@ function CosmicSummary({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
   return (
     <div className="cosmic-card rounded-xl p-4 border border-primary/20 bg-primary/5 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Today's Cosmic Energy</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">Today's Cosmic Energy</p>
         <span className={`text-xs font-semibold ${moodColor}`}>{mood}</span>
       </div>
       <p className="text-sm text-foreground/80 leading-relaxed">
@@ -427,16 +429,16 @@ function CosmicSummary({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
       </p>
       {/* Quick stat pills */}
       <div className="flex flex-wrap gap-2 pt-1">
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/20 text-muted-foreground border border-border/20">
+        <span className="text-xs px-2 py-0.5 rounded-full bg-muted/20 text-muted-foreground border border-border/20">
           {ORDER.filter(n => snapshot.grahas[n]?.visible).length} planets visible
         </span>
         {retroList.length > 0 && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20">
             {retroList.length} retrograde
           </span>
         )}
         {combustList.length > 0 && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-400/10 text-orange-400 border border-orange-400/20">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-400/10 text-orange-400 border border-orange-400/20">
             {combustList.length} combust
           </span>
         )}
@@ -485,7 +487,7 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
         return (
           <div className="cosmic-card rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <span className="text-xl" style={{ color: GRAHA_COLOR.Chandra }}>☽</span>
+              <span className="text-xl" style={{ color: GRAHA_COLOR.Chandra }}>☽︎</span>
               <div>
                 <p className="text-sm font-medium text-foreground">Moon Track Today</p>
                 <p className="text-xs text-muted-foreground">
@@ -508,7 +510,7 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                   className="absolute top-0 bottom-0 border-l border-border/20 flex items-end pb-1"
                   style={{ left: `${(h / 24) * 100}%` }}
                 >
-                  <span className="text-[8px] text-muted-foreground/40 pl-0.5">{String(h).padStart(2,"0")}:00</span>
+                  <span className="text-[8px] text-muted-foreground/60 pl-0.5">{String(h).padStart(2,"0")}:00</span>
                 </div>
               ))}
               {/* Moon position track */}
@@ -541,7 +543,7 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                   fontSize: "12px",
                 }}
               >
-                ☽
+                ☽︎
               </div>
             </div>
 
@@ -551,9 +553,9 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                 const pos = moonTrack[h];
                 return (
                   <div key={h} className={`text-center rounded p-1 ${h === Math.floor(now.getHours() / 4) * 4 ? "bg-primary/10" : "bg-muted/10"}`}>
-                    <p className="text-[9px] text-muted-foreground">{String(h).padStart(2,"0")}:00</p>
-                    <p className="text-[10px] text-foreground font-mono">{pos.dms.split("°")[0]}°</p>
-                    <p className="text-[9px] text-muted-foreground truncate">{pos.rashi.slice(0,4)}</p>
+                    <p className="text-xs text-muted-foreground">{String(h).padStart(2,"0")}:00</p>
+                    <p className="text-xs text-foreground font-mono">{pos.dms.split("°")[0]}°</p>
+                    <p className="text-xs text-muted-foreground truncate">{pos.rashi.slice(0,4)}</p>
                   </div>
                 );
               })}
@@ -576,13 +578,13 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
 
           return (
             <div key={name} className="flex items-center gap-3">
-              <span className="w-5 text-center text-base" style={{ color }}>
+              <span className="w-5 text-center text-base" style={{ color, fontFamily: "'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif" }}>
                 {GRAHA_SYMBOL[name]}
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-xs text-foreground">{name}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
+                  <span className="text-xs text-muted-foreground font-mono">
                     {moveToday}°/day
                     {p.retro && <span className="text-amber-400 ml-1">℞</span>}
                   </span>
@@ -599,7 +601,7 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                 </div>
               </div>
               <div className="text-right min-w-0">
-                <p className="text-[10px] font-mono text-foreground">{p.rashi.slice(0,4)} {toDMS(p.degInRashi)}</p>
+                <p className="text-xs font-mono text-foreground">{p.rashi.slice(0,4)} {toDMS(p.degInRashi)}</p>
               </div>
             </div>
           );
@@ -728,10 +730,10 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
           transition={{ delay: 0.05 }}
           className="cosmic-card rounded-xl p-4 border border-primary/20 bg-primary/5"
         >
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Current Mahadasha</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Current Mahadasha</p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-2xl" style={{ color: GRAHA_COLOR[currentDasha.lord] }}>
+              <span className="text-2xl" style={{ color: GRAHA_COLOR[currentDasha.lord], fontFamily: "'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif" }}>
                 {GRAHA_SYMBOL[currentDasha.lord] ?? "✦"}
               </span>
               <div>
@@ -756,17 +758,17 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
           className={`cosmic-card rounded-xl p-4 border ${QUALITY_STYLE[moonEffect.quality].bg}`}
         >
           <div className="flex items-start gap-3">
-            <span className="text-2xl mt-0.5" style={{ color: GRAHA_COLOR.Chandra }}>☽</span>
+            <span className="text-2xl mt-0.5" style={{ color: GRAHA_COLOR.Chandra }}>☽︎</span>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-xs font-medium text-foreground">Moon Transit — House {moonHouse}</p>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${QUALITY_STYLE[moonEffect.quality].badge} ${QUALITY_STYLE[moonEffect.quality].text}`}>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${QUALITY_STYLE[moonEffect.quality].badge} ${QUALITY_STYLE[moonEffect.quality].text}`}>
                   {moonEffect.quality === "good" ? "Favorable" : moonEffect.quality === "bad" ? "Caution" : "Mixed"}
                 </span>
               </div>
               <p className="text-xs text-foreground mb-1">{moonEffect.text}</p>
-              <p className="text-[11px] text-muted-foreground">{moonEffect.advice}</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-1">
+              <p className="text-xs text-muted-foreground">{moonEffect.advice}</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
                 Moon in {transitMoonRashi} transiting your {moonHouse}{moonHouse === 1 ? "st" : moonHouse === 2 ? "nd" : moonHouse === 3 ? "rd" : "th"} from natal Moon ({natalMoonRashi})
               </p>
             </div>
@@ -782,10 +784,10 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
         className="cosmic-card rounded-xl p-4"
       >
         <div className="flex items-start gap-3">
-          <span className="text-2xl" style={{ color: GRAHA_COLOR.Surya }}>☉</span>
+          <span className="text-2xl" style={{ color: GRAHA_COLOR.Surya }}>☉︎</span>
           <div>
             <p className="text-xs font-medium text-foreground mb-1">Sun Transit — House {sunHouse}</p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Sun is in {transitSunRashi}, transiting your {sunHouse}{sunHouse===1?"st":sunHouse===2?"nd":sunHouse===3?"rd":"th"} house.
               {[1,4,7,10].includes(sunHouse) && " Kendra — strong influence on your actions."}
               {[5,9].includes(sunHouse) && " Trikona — blessings and fortune."}
@@ -811,13 +813,13 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
               className={`cosmic-card rounded-xl p-3 border ${good ? "border-green-500/15" : "border-amber-500/15"}`}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span style={{ color: GRAHA_COLOR[name] }}>{GRAHA_SYMBOL[name]}</span>
+                <span style={{ color: GRAHA_COLOR[name], fontFamily: "'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif" }}>{GRAHA_SYMBOL[name]}</span>
                 <p className="text-xs text-foreground">{label}</p>
               </div>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 House {house} from your Moon
               </p>
-              <p className={`text-[10px] mt-0.5 ${good ? "text-green-400" : "text-amber-400"}`}>
+              <p className={`text-xs mt-0.5 ${good ? "text-green-400" : "text-amber-400"}`}>
                 {good ? "Supportive transit" : "Challenging, builds strength"}
               </p>
             </motion.div>
@@ -833,7 +835,7 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
           transition={{ delay: 0.25 }}
           className="cosmic-card rounded-xl p-4"
         >
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
             Favorable Planets Today (Upachaya from your Lagna)
           </p>
           <div className="flex flex-wrap gap-2">
@@ -841,7 +843,7 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
               <span
                 key={name}
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border"
-                style={{ borderColor: GRAHA_COLOR[name] + "44", color: GRAHA_COLOR[name] }}
+                style={{ borderColor: GRAHA_COLOR[name] + "44", color: GRAHA_COLOR[name], fontFamily: "'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif" }}
               >
                 {GRAHA_SYMBOL[name]} {name}
               </span>
@@ -858,7 +860,7 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
           transition={{ delay: 0.3 }}
           className="cosmic-card rounded-xl p-4 space-y-2"
         >
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             Your Natal Yogas (always active)
           </p>
           {kundali.yogas.slice(0, 3).map((yoga) => (
@@ -866,7 +868,7 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
               <span className="text-primary mt-0.5">✦</span>
               <div>
                 <p className="text-xs font-medium text-foreground">{yoga.name}</p>
-                <p className="text-[10px] text-muted-foreground">{yoga.desc}</p>
+                <p className="text-xs text-muted-foreground">{yoga.desc}</p>
               </div>
             </div>
           ))}
@@ -911,7 +913,7 @@ export default function SkyPage() {
           <p className="font-mono text-xl text-primary">
             {formatTime(snapshot.localTime)}
           </p>
-          <p className="text-[10px] text-muted-foreground">IST</p>
+          <p className="text-xs text-muted-foreground">IST</p>
         </div>
       </div>
 
@@ -920,28 +922,28 @@ export default function SkyPage() {
         <div className="cosmic-card rounded-xl p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Eye className="h-3.5 w-3.5 text-green-400" />
-            <span className="text-[10px] text-muted-foreground">Visible</span>
+            <span className="text-xs text-muted-foreground">Visible</span>
           </div>
           <p className="font-display text-xl text-green-400">{visibleCount}</p>
-          <p className="text-[10px] text-muted-foreground">planets in sky</p>
+          <p className="text-xs text-muted-foreground">planets in sky</p>
         </div>
         <div className="cosmic-card rounded-xl p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <TrendingDown className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-[10px] text-muted-foreground">Retrograde</span>
+            <span className="text-xs text-muted-foreground">Retrograde</span>
           </div>
           <p className="font-display text-xl text-amber-400">
             {ORDER.filter((n) => snapshot.grahas[n]?.retro).length}
           </p>
-          <p className="text-[10px] text-muted-foreground">grahas ℞</p>
+          <p className="text-xs text-muted-foreground">grahas ℞</p>
         </div>
         <div className="cosmic-card rounded-xl p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Globe className="h-3.5 w-3.5 text-primary" />
-            <span className="text-[10px] text-muted-foreground">Lagna</span>
+            <span className="text-xs text-muted-foreground">Lagna</span>
           </div>
           <p className="font-display text-sm text-primary">{snapshot.lagna?.rashi ?? "—"}</p>
-          <p className="text-[10px] text-muted-foreground font-mono">{snapshot.lagna?.dms ?? "—"}</p>
+          <p className="text-xs text-muted-foreground font-mono">{snapshot.lagna?.dms ?? "—"}</p>
         </div>
       </div>
 
@@ -971,7 +973,7 @@ export default function SkyPage() {
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Sidereal Zodiac — Live
               </p>
-              <p className="text-[10px] text-muted-foreground/50">Hover planets for details · L = Lagna</p>
+              <p className="text-xs text-muted-foreground/50">Hover planets for details · L = Lagna</p>
             </div>
             <ZodiacWheel snapshot={snapshot} />
           </div>
@@ -982,14 +984,14 @@ export default function SkyPage() {
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Graha Positions</p>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-[10px] text-green-400">Live</span>
+                <span className="text-xs text-green-400">Live</span>
               </div>
             </div>
             <PlanetCards snapshot={snapshot} />
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Visible</span>
             <span className="flex items-center gap-1"><span className="text-amber-400">℞</span> Retrograde</span>
             <span className="flex items-center gap-1"><span className="text-orange-400">●</span> Combust</span>

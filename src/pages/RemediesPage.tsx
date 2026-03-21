@@ -73,7 +73,7 @@ function RemedyCard({ icon, title, content, sub }: { icon: React.ReactNode; titl
         <span className="text-xs text-muted-foreground uppercase tracking-wider">{title}</span>
       </div>
       <p className="font-display text-sm text-foreground">{content}</p>
-      <p className="text-[10px] text-muted-foreground">{sub}</p>
+      <p className="text-xs text-muted-foreground">{sub}</p>
     </div>
   );
 }

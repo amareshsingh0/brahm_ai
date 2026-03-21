@@ -208,7 +208,7 @@ export default function MantraDictionaryPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-display text-base">{mantra.name}</h3>
-                      <Badge variant="outline" className={`text-[10px] ${categoryColors[mantra.category] || ""}`}>
+                      <Badge variant="outline" className={`text-xs ${categoryColors[mantra.category] || ""}`}>
                         {mantra.category}
                       </Badge>
                     </div>
@@ -217,7 +217,7 @@ export default function MantraDictionaryPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-xs">
                       {mantra.chantCount}x
                     </Badge>
                     {expanded === mantra.id ? (
@@ -240,7 +240,7 @@ export default function MantraDictionaryPage() {
                         {/* Sanskrit */}
                         <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-[10px] uppercase tracking-wider text-primary">Sanskrit</p>
+                            <p className="text-xs uppercase tracking-wider text-primary">Sanskrit</p>
                             <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
                           </div>
                           <p className="text-lg leading-relaxed whitespace-pre-line font-serif">{mantra.sanskrit}</p>
@@ -248,19 +248,19 @@ export default function MantraDictionaryPage() {
 
                         {/* Transliteration */}
                         <div className="bg-muted/20 rounded-lg p-4">
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Transliteration</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Transliteration</p>
                           <p className="text-sm italic whitespace-pre-line">{mantra.transliteration}</p>
                         </div>
 
                         {/* Meaning */}
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Meaning</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Meaning</p>
                           <p className="text-sm text-muted-foreground leading-relaxed">{mantra.meaning}</p>
                         </div>
 
                         {/* Benefits */}
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Benefits & Guidance</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Benefits & Guidance</p>
                           <div className="grid sm:grid-cols-2 gap-1.5">
                             {mantra.benefits.map((b) => (
                               <div key={b} className="flex items-center gap-2 text-xs">

@@ -25,7 +25,7 @@ export function useKundali() {
         tz: details.tz,
         ayanamsha: settings.ayanamsha,
         rahu_mode: settings.rahuMode,
-        calc_options: ["antardasha", "pratyantar", "upagraha", "shadbala", "ashtakavarga"],
+        calc_options: ["antardasha", "pratyantar", "sukshma", "upagraha", "shadbala", "ashtakavarga"],
       };
       return api.post<KundaliResponse>('/api/kundali', payload);
     },

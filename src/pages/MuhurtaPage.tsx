@@ -140,19 +140,19 @@ export default function MuhurtaPage() {
             <CardContent>
               <div className="grid sm:grid-cols-3 gap-3 text-sm">
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">✨ Abhijit Muhurta</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">✨ Abhijit Muhurta</p>
                   <p className="font-mono font-bold text-emerald-400">{panchang.abhijit_muhurta.start} – {panchang.abhijit_muhurta.end}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Best daily muhurta</p>
+                  <p className="text-xs text-muted-foreground mt-1">Best daily muhurta</p>
                 </div>
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">⚠️ Rahu Kaal</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">⚠️ Rahu Kaal</p>
                   <p className="font-mono font-bold text-red-400">{panchang.rahukaal.start} – {panchang.rahukaal.end}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Avoid new beginnings</p>
+                  <p className="text-xs text-muted-foreground mt-1">Avoid new beginnings</p>
                 </div>
                 <div className="bg-muted/20 border border-border/30 rounded-xl p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">📅 Tithi</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">📅 Tithi</p>
                   <p className="font-medium text-foreground">{panchang.tithi.paksha} {panchang.tithi.name}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Nakshatra: {panchang.nakshatra.name}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Nakshatra: {panchang.nakshatra.name}</p>
                 </div>
               </div>
               <div className={`mt-3 rounded-lg p-2.5 text-xs text-center ${panchang.yoga.is_auspicious ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
@@ -273,7 +273,7 @@ export default function MuhurtaPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-[10px] text-muted-foreground">Exact times depend on your location's sunrise — use Panchang page for precise timings.</p>
+              <p className="text-xs text-muted-foreground">Exact times depend on your location's sunrise — use Panchang page for precise timings.</p>
             </CardContent>
           </Card>
         </TabsContent>

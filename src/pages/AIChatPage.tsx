@@ -147,7 +147,7 @@ export default function AIChatPage() {
 
             </p>
           </div>
-          <Badge variant="secondary" className="ml-auto text-[10px]">
+          <Badge variant="secondary" className="ml-auto text-xs">
             Vedic Assistant
           </Badge>
         </div>
@@ -186,7 +186,7 @@ export default function AIChatPage() {
                   <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
                     <BookOpen className="h-3 w-3 text-muted-foreground mt-0.5" />
                     {sources.map((src, i) => (
-                      <Badge key={i} variant="outline" className="text-[10px] font-normal">
+                      <Badge key={i} variant="outline" className="text-xs font-normal">
                         {src.book}
                       </Badge>
                     ))}
@@ -257,7 +257,7 @@ export default function AIChatPage() {
             <Send className="h-4 w-4" />
           </Button>
         </form>
-        <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+        <p className="text-xs text-muted-foreground mt-1.5 text-center">
           {/* Powered by Qwen 2.5-7B + FAISS Hybrid RAG — 100k+ Sanskrit, Hindi & English texts */}
         </p>
       </div>

@@ -29,7 +29,7 @@ export function MobileBottomNav() {
             <RouterNavLink
               key={item.url}
               to={item.url}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs transition-colors ${
                 isActive ? "text-primary" : "text-muted-foreground"
               }`}
               aria-label={t(`nav.${item.id}`)}

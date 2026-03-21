@@ -30,7 +30,7 @@ export function RashiCard({ name, symbol, element, ruler, traits, index, sanskri
     >
       <div className="text-4xl mb-3 zodiac-glow">{symbol}</div>
       <h3 className="font-display text-lg text-foreground mb-0.5">{name}</h3>
-      {sanskritName && <p className="text-[10px] text-primary/60 mb-1">{sanskritName}</p>}
+      {sanskritName && <p className="text-xs text-primary/60 mb-1">{sanskritName}</p>}
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs text-primary/80 bg-primary/10 px-2 py-0.5 rounded-full">{element}</span>
         <span className="text-xs text-muted-foreground">♦ {ruler}</span>

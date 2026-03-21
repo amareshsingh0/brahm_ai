@@ -115,30 +115,30 @@ export const useKundliStore = create<KundliState>((set) => ({
 }));
 
 export const samplePlanets: PlanetData[] = [
-  { name: "Sun", symbol: "☉", rashi: "Leo", house: 5, degree: "15°23'", nakshatra: "Magha", color: "hsl(42 90% 64%)", sanskritName: "Surya" },
-  { name: "Moon", symbol: "☽", rashi: "Cancer", house: 4, degree: "22°10'", nakshatra: "Ashlesha", color: "hsl(220 20% 90%)", sanskritName: "Chandra" },
-  { name: "Mars", symbol: "♂", rashi: "Aries", house: 1, degree: "8°45'", nakshatra: "Ashwini", color: "hsl(0 70% 55%)", sanskritName: "Mangal" },
-  { name: "Mercury", symbol: "☿", rashi: "Virgo", house: 6, degree: "3°12'", nakshatra: "Uttara Phalguni", color: "hsl(140 50% 55%)", sanskritName: "Budh" },
-  { name: "Jupiter", symbol: "♃", rashi: "Sagittarius", house: 9, degree: "18°56'", nakshatra: "Purva Ashadha", color: "hsl(42 70% 60%)", sanskritName: "Guru" },
-  { name: "Venus", symbol: "♀", rashi: "Taurus", house: 2, degree: "27°34'", nakshatra: "Mrigashira", color: "hsl(292 84% 61%)", sanskritName: "Shukra" },
-  { name: "Saturn", symbol: "♄", rashi: "Capricorn", house: 10, degree: "11°08'", nakshatra: "Shravana", color: "hsl(220 30% 45%)", sanskritName: "Shani" },
-  { name: "Rahu", symbol: "☊", rashi: "Gemini", house: 3, degree: "5°20'", nakshatra: "Mrigashira", color: "hsl(225 25% 50%)", sanskritName: "Rahu" },
-  { name: "Ketu", symbol: "☋", rashi: "Sagittarius", house: 9, degree: "5°20'", nakshatra: "Mula", color: "hsl(30 60% 45%)", sanskritName: "Ketu" },
+  { name: "Sun", symbol: "☉︎", rashi: "Leo", house: 5, degree: "15°23'", nakshatra: "Magha", color: "hsl(42 90% 64%)", sanskritName: "Surya" },
+  { name: "Moon", symbol: "☽︎", rashi: "Cancer", house: 4, degree: "22°10'", nakshatra: "Ashlesha", color: "hsl(220 20% 90%)", sanskritName: "Chandra" },
+  { name: "Mars", symbol: "♂︎", rashi: "Aries", house: 1, degree: "8°45'", nakshatra: "Ashwini", color: "hsl(0 70% 55%)", sanskritName: "Mangal" },
+  { name: "Mercury", symbol: "☿︎", rashi: "Virgo", house: 6, degree: "3°12'", nakshatra: "Uttara Phalguni", color: "hsl(140 50% 55%)", sanskritName: "Budh" },
+  { name: "Jupiter", symbol: "♃︎", rashi: "Sagittarius", house: 9, degree: "18°56'", nakshatra: "Purva Ashadha", color: "hsl(42 70% 60%)", sanskritName: "Guru" },
+  { name: "Venus", symbol: "♀︎", rashi: "Taurus", house: 2, degree: "27°34'", nakshatra: "Mrigashira", color: "hsl(292 84% 61%)", sanskritName: "Shukra" },
+  { name: "Saturn", symbol: "♄︎", rashi: "Capricorn", house: 10, degree: "11°08'", nakshatra: "Shravana", color: "hsl(220 30% 45%)", sanskritName: "Shani" },
+  { name: "Rahu", symbol: "☊︎", rashi: "Gemini", house: 3, degree: "5°20'", nakshatra: "Mrigashira", color: "hsl(225 25% 50%)", sanskritName: "Rahu" },
+  { name: "Ketu", symbol: "☋︎", rashi: "Sagittarius", house: 9, degree: "5°20'", nakshatra: "Mula", color: "hsl(30 60% 45%)", sanskritName: "Ketu" },
 ];
 
 export const rashiData = [
-  { name: "Aries", symbol: "♈", element: "Fire", ruler: "Mars", traits: "Bold, Ambitious, Energetic", sanskritName: "Mesha" },
-  { name: "Taurus", symbol: "♉", element: "Earth", ruler: "Venus", traits: "Reliable, Patient, Devoted", sanskritName: "Vrishabha" },
-  { name: "Gemini", symbol: "♊", element: "Air", ruler: "Mercury", traits: "Curious, Adaptable, Communicative", sanskritName: "Mithuna" },
-  { name: "Cancer", symbol: "♋", element: "Water", ruler: "Moon", traits: "Intuitive, Emotional, Protective", sanskritName: "Karka" },
-  { name: "Leo", symbol: "♌", element: "Fire", ruler: "Sun", traits: "Creative, Passionate, Generous", sanskritName: "Simha" },
-  { name: "Virgo", symbol: "♍", element: "Earth", ruler: "Mercury", traits: "Analytical, Practical, Kind", sanskritName: "Kanya" },
-  { name: "Libra", symbol: "♎", element: "Air", ruler: "Venus", traits: "Diplomatic, Gracious, Fair", sanskritName: "Tula" },
-  { name: "Scorpio", symbol: "♏", element: "Water", ruler: "Mars", traits: "Resourceful, Powerful, Brave", sanskritName: "Vrishchika" },
-  { name: "Sagittarius", symbol: "♐", element: "Fire", ruler: "Jupiter", traits: "Optimistic, Adventurous, Free", sanskritName: "Dhanu" },
-  { name: "Capricorn", symbol: "♑", element: "Earth", ruler: "Saturn", traits: "Disciplined, Responsible, Patient", sanskritName: "Makara" },
-  { name: "Aquarius", symbol: "♒", element: "Air", ruler: "Saturn", traits: "Progressive, Original, Humanitarian", sanskritName: "Kumbha" },
-  { name: "Pisces", symbol: "♓", element: "Water", ruler: "Jupiter", traits: "Compassionate, Artistic, Wise", sanskritName: "Meena" },
+  { name: "Aries", symbol: "♈︎", element: "Fire", ruler: "Mars", traits: "Bold, Ambitious, Energetic", sanskritName: "Mesha" },
+  { name: "Taurus", symbol: "♉︎", element: "Earth", ruler: "Venus", traits: "Reliable, Patient, Devoted", sanskritName: "Vrishabha" },
+  { name: "Gemini", symbol: "♊︎", element: "Air", ruler: "Mercury", traits: "Curious, Adaptable, Communicative", sanskritName: "Mithuna" },
+  { name: "Cancer", symbol: "♋︎", element: "Water", ruler: "Moon", traits: "Intuitive, Emotional, Protective", sanskritName: "Karka" },
+  { name: "Leo", symbol: "♌︎", element: "Fire", ruler: "Sun", traits: "Creative, Passionate, Generous", sanskritName: "Simha" },
+  { name: "Virgo", symbol: "♍︎", element: "Earth", ruler: "Mercury", traits: "Analytical, Practical, Kind", sanskritName: "Kanya" },
+  { name: "Libra", symbol: "♎︎", element: "Air", ruler: "Venus", traits: "Diplomatic, Gracious, Fair", sanskritName: "Tula" },
+  { name: "Scorpio", symbol: "♏︎", element: "Water", ruler: "Mars", traits: "Resourceful, Powerful, Brave", sanskritName: "Vrishchika" },
+  { name: "Sagittarius", symbol: "♐︎", element: "Fire", ruler: "Jupiter", traits: "Optimistic, Adventurous, Free", sanskritName: "Dhanu" },
+  { name: "Capricorn", symbol: "♑︎", element: "Earth", ruler: "Saturn", traits: "Disciplined, Responsible, Patient", sanskritName: "Makara" },
+  { name: "Aquarius", symbol: "♒︎", element: "Air", ruler: "Saturn", traits: "Progressive, Original, Humanitarian", sanskritName: "Kumbha" },
+  { name: "Pisces", symbol: "♓︎", element: "Water", ruler: "Jupiter", traits: "Compassionate, Artistic, Wise", sanskritName: "Meena" },
 ];
 
 export const dashaData = [

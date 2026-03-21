@@ -14,17 +14,17 @@ import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
 
 const GRAHA_SYMBOL: Record<string, string> = {
-  Surya: "☉", Chandra: "☽", Mangal: "♂", Budh: "☿",
-  Guru: "♃",  Shukra: "♀",  Shani: "♄", Rahu: "☊", Ketu: "☋",
+  Surya: "☉︎", Chandra: "☽︎", Mangal: "♂︎", Budh: "☿︎",
+  Guru: "♃︎",  Shukra: "♀︎",  Shani: "♄︎", Rahu: "☊︎", Ketu: "☋︎",
 };
 const GRAHA_EN: Record<string, string> = {
   Surya: "Sun", Chandra: "Moon", Mangal: "Mars", Budh: "Mercury",
   Guru: "Jupiter", Shukra: "Venus", Shani: "Saturn", Rahu: "Rahu", Ketu: "Ketu",
 };
 const GRAHA_COLOR: Record<string, string> = {
-  Surya:   "#FFB347", Chandra: "#C0D8FF", Mangal: "#FF6B6B",
-  Budh:    "#7FD17F", Guru:    "#FFD700",  Shukra: "#D89FFF",
-  Shani:   "#778899", Rahu:    "#6A8FD0",  Ketu:   "#C87941",
+  Surya:   "#D97706", Chandra: "#4F46E5", Mangal: "#DC2626",
+  Budh:    "#16A34A", Guru:    "#B45309",  Shukra: "#9333EA",
+  Shani:   "#334155", Rahu:    "#0369A1",  Ketu:   "#C2410C",
 };
 const GRAHA_DESC: Record<string, string> = {
   Surya:   "Vitality & Soul",    Chandra: "Mind & Emotions",
@@ -162,8 +162,8 @@ export default function GocharPage() {
                 </span>
                 <span className="text-xs font-medium text-foreground">{GRAHA_EN[planet]}</span>
                 <span className="text-xs text-star-gold font-semibold">{pos.rashi}</span>
-                <span className="text-[10px] text-muted-foreground">{pos.degree.toFixed(1)}°</span>
-                <span className="text-[9px] text-muted-foreground/60 text-center leading-tight hidden sm:block">
+                <span className="text-xs text-muted-foreground">{pos.degree.toFixed(1)}°</span>
+                <span className="text-xs text-muted-foreground/60 text-center leading-tight hidden sm:block">
                   {GRAHA_DESC[planet]}
                 </span>
               </div>
@@ -179,7 +179,7 @@ export default function GocharPage() {
           animate={{ opacity: 1 }}
           className="cosmic-card rounded-xl p-6 flex items-center gap-4 border border-dashed border-muted"
         >
-          <User className="w-8 h-8 text-muted-foreground/40 shrink-0" />
+          <User className="w-8 h-8 text-muted-foreground/60 shrink-0" />
           <div>
             <p className="text-sm text-foreground font-medium">Personal Transit Analysis</p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -203,7 +203,7 @@ export default function GocharPage() {
               {birthDetails?.name ? `${birthDetails.name}'s Transit Analysis` : "Your Transit Analysis"}
             </h2>
             {analysis.sade_sati && (
-              <span className="text-[10px] bg-destructive/20 text-destructive px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-destructive/20 text-destructive px-2 py-0.5 rounded-full font-medium">
                 Sade Sati Active
               </span>
             )}

@@ -94,7 +94,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
               <div className="flex items-center gap-2">
                 <Bot className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-primary">Brahm AI</span>
-                <span className="text-[10px] text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded">{pageContext}</span>
+                <span className="text-xs text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded">{pageContext}</span>
               </div>
               <div className="flex items-center gap-1">
                 {hasMessages && (
@@ -142,7 +142,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
               ))}
 
               {sources.length > 0 && (
-                <div className="text-[10px] text-muted-foreground border-t border-border/20 pt-2">
+                <div className="text-xs text-muted-foreground border-t border-border/20 pt-2">
                   Sources: {sources.slice(0, 2).map(s => s.book).join(', ')}
                 </div>
               )}

@@ -12,12 +12,12 @@ import {
 } from "lucide-react";
 import PageBot from "@/components/PageBot";
 import { searchCities, getCities, type City } from "@/lib/cities";
-import type { KundaliResponse, VargaChartData, AntardashaData, UpagrahaEntry } from "@/types/api";
+import type { KundaliResponse, VargaChartData, AntardashaData, UpagrahaEntry, ShadbalaPlanet, PratyantarData } from "@/types/api";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const GRAHA_SYMBOLS: Record<string, string> = {
-  Surya:"☉", Chandra:"☽", Mangal:"♂", Budh:"☿",
-  Guru:"♃", Shukra:"♀", Shani:"♄", Rahu:"☊", Ketu:"☋",
+  Surya:"☉︎", Chandra:"☽︎", Mangal:"♂︎", Budh:"☿︎",
+  Guru:"♃︎", Shukra:"♀︎", Shani:"♄︎", Rahu:"☊︎", Ketu:"☋︎",
 };
 const GRAHA_EN: Record<string, string> = {
   Surya:"Sun", Chandra:"Moon", Mangal:"Mars", Budh:"Mercury",
@@ -29,9 +29,9 @@ const GRAHA_COLOR: Record<string, string> = {
   Shani:"hsl(220 30% 55%)", Rahu:"hsl(225 35% 60%)", Ketu:"hsl(30 60% 50%)",
 };
 const RASHI_SYMBOLS: Record<string, string> = {
-  Mesha:"♈", Vrishabha:"♉", Mithuna:"♊", Karka:"♋",
-  Simha:"♌", Kanya:"♍", Tula:"♎", Vrischika:"♏",
-  Dhanu:"♐", Makara:"♑", Kumbha:"♒", Meena:"♓",
+  Mesha:"♈︎", Vrishabha:"♉︎", Mithuna:"♊︎", Karka:"♋︎",
+  Simha:"♌︎", Kanya:"♍︎", Tula:"♎︎", Vrischika:"♏︎",
+  Dhanu:"♐︎", Makara:"♑︎", Kumbha:"♒︎", Meena:"♓︎",
 };
 const STATUS_BADGE: Record<string, { cls: string; label: string }> = {
   "Uchcha (Exalted)":       { cls:"bg-emerald-500/20 text-emerald-400 border-emerald-500/30", label:"Exalted" },
@@ -54,25 +54,50 @@ const YOGA_CATEGORY_COLORS: Record<string, string> = {
   Spiritual: "text-purple-400", Marriage: "text-pink-400", Adversity: "text-red-400",
 };
 
-// All varga charts D-1 to D-60
+// All varga charts — BC + D-1 to D-60
 const VARGA_QUICK = [
+  { div: 0,  code: "BC",   name: "Bhav Chalit",  desc: "Placidus House Positions" },
   { div: 1,  code: "D-1",  name: "Rashi",        desc: "Body, Personality" },
   { div: 2,  code: "D-2",  name: "Hora",         desc: "Wealth" },
   { div: 3,  code: "D-3",  name: "Drekkana",     desc: "Siblings" },
-  { div: 4,  code: "D-4",  name: "Chaturthamsha",desc: "Fortune" },
+  { div: 4,  code: "D-4",  name: "Chaturthamsha",desc: "Fortune & Property" },
+  { div: 5,  code: "D-5",  name: "Panchamsha",   desc: "Fame, Power" },
+  { div: 6,  code: "D-6",  name: "Shashtiamsha", desc: "Health, Enemies" },
   { div: 7,  code: "D-7",  name: "Saptamsha",    desc: "Children" },
+  { div: 8,  code: "D-8",  name: "Ashtamsha",    desc: "Sudden Events" },
   { div: 9,  code: "D-9",  name: "Navamsha",     desc: "Marriage, Soul" },
   { div: 10, code: "D-10", name: "Dashamsha",    desc: "Career" },
+  { div: 11, code: "D-11", name: "Ekadashamsha", desc: "Gains, Income" },
   { div: 12, code: "D-12", name: "Dwadashamsha", desc: "Parents" },
-  { div: 16, code: "D-16", name: "Shodashamsha", desc: "Vehicles" },
+  { div: 16, code: "D-16", name: "Shodashamsha", desc: "Vehicles, Comforts" },
   { div: 20, code: "D-20", name: "Vimsamsha",    desc: "Spirituality" },
   { div: 24, code: "D-24", name: "Chaturvimsha", desc: "Education" },
   { div: 27, code: "D-27", name: "Nakshatramsha",desc: "Strength" },
   { div: 30, code: "D-30", name: "Trimsamsha",   desc: "Evils, Karma" },
-  { div: 40, code: "D-40", name: "Khavedamsha",  desc: "Auspicious" },
+  { div: 40, code: "D-40", name: "Khavedamsha",  desc: "Auspicious Effects" },
   { div: 45, code: "D-45", name: "Akshavedamsha",desc: "Character" },
   { div: 60, code: "D-60", name: "Shashtiamsha", desc: "Past Life" },
 ];
+
+// Rashi short names & qualities
+const RASHI_SHORT: Record<string, string> = {
+  Mesha:"Mesh", Vrishabha:"Vrish", Mithuna:"Mith", Karka:"Kark",
+  Simha:"Simh", Kanya:"Kany", Tula:"Tula", Vrischika:"Vris",
+  Dhanu:"Dhan", Makara:"Maka", Kumbha:"Kumb", Meena:"Meen",
+};
+const RASHI_QUALITY: Record<string, string> = {
+  Mesha:"Mas, Movable", Vrishabha:"Fem, Fixed", Mithuna:"Mas, Common", Karka:"Fem, Movable",
+  Simha:"Mas, Fixed", Kanya:"Fem, Common", Tula:"Mas, Movable", Vrischika:"Fem, Fixed",
+  Dhanu:"Mas, Common", Makara:"Fem, Movable", Kumbha:"Mas, Fixed", Meena:"Fem, Common",
+};
+function degToDMS(degree: number, rashiName: string): string {
+  const d = Math.floor(degree);
+  const mf = (degree - d) * 60;
+  const m = Math.floor(mf);
+  const s = Math.floor((mf - m) * 60);
+  const rs = RASHI_SHORT[rashiName] ?? rashiName.slice(0, 4);
+  return `${d}° ${rs} ${String(m).padStart(2,"0")}' ${String(s).padStart(2,"0")}″`;
+}
 
 const GRAHA_ORDER = ["Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani","Rahu","Ketu"];
 
@@ -202,7 +227,7 @@ function generateKundaliPDF(data: KundaliResponse) {
 </head><body><div class="page">
 
 <div class="header-bar">
-  <h1>☽ Janam Kundali — Vedic Birth Chart</h1>
+  <h1>☽︎ Janam Kundali — Vedic Birth Chart</h1>
   <div class="sub">${ayan} Ayanamsha · Whole Sign Houses · ${data.rahu_mode === "true" ? "True" : "Mean"} Rahu/Ketu</div>
   <div style="margin-top:6px;font-size:16px;color:#fbbf24;font-weight:bold">${data.name || "—"}</div>
   <div style="font-size:10px;color:#c4b5fd;margin-top:2px">${data.place || ""} · ${data.birth_date}</div>
@@ -326,8 +351,8 @@ function PlanetRow({ gname, g, onClick, isSelected }: {
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-sm font-medium text-foreground">{GRAHA_EN[gname] ?? gname}</span>
           <span className="text-xs text-muted-foreground/60">({gname})</span>
-          {g.retro && <span className="text-[10px] text-amber-400 border border-amber-500/30 px-1 rounded">℞</span>}
-          {g.combust && <span className="text-[10px] text-orange-400 border border-orange-500/30 px-1 rounded">Combust</span>}
+          {g.retro && <span className="text-xs text-amber-400 border border-amber-500/30 px-1 rounded">℞</span>}
+          {g.combust && <span className="text-xs text-orange-400 border border-orange-500/30 px-1 rounded">Combust</span>}
         </div>
         <div className="text-xs text-muted-foreground mt-0.5">
           {g.rashi} · H{g.house} · {g.nakshatra} P{g.pada}
@@ -335,7 +360,7 @@ function PlanetRow({ gname, g, onClick, isSelected }: {
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
         <span className="text-xs text-muted-foreground">{g.degree.toFixed(1)}°</span>
-        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${sb.cls}`}>{sb.label}</span>
+        <span className={`text-xs px-1.5 py-0.5 rounded border ${sb.cls}`}>{sb.label}</span>
       </div>
     </motion.button>
   );
@@ -360,20 +385,52 @@ function AntardashaList({ antardashas }: { antardashas: AntardashaData[] }) {
               <span className="font-medium w-14">{a.lord}</span>
               <span>{formatDate(a.start)} → {formatDate(a.end)}</span>
               <span className="text-muted-foreground/60">{a.years}y</span>
-              {cur && <span className="text-[10px] text-amber-400 font-medium">★ Active</span>}
-              {hasPratyantar && <span className="ml-auto text-[10px] opacity-50">{isExp ? "▲" : "▼"}</span>}
+              {cur && <span className="text-xs text-amber-400 font-medium">★ Active</span>}
+              {hasPratyantar && <span className="ml-auto text-xs opacity-70">{isExp ? "▲" : "▼"}</span>}
             </div>
             {isExp && hasPratyantar && (
-              <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border/10 pl-2">
-                {a.pratyantardashas!.map((p, j) => {
-                  const pCur = isCurrentDasha(p.start, p.end);
+              <PratyantarList pratyantardashas={a.pratyantardashas!} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Pratyantar List (with Sukshma expand) ─────────────────────────────────────
+function PratyantarList({ pratyantardashas }: { pratyantardashas: PratyantarData[] }) {
+  const [expandedP, setExpandedP] = useState<string | null>(null);
+  return (
+    <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border/10 pl-2">
+      {pratyantardashas.map((p, j) => {
+        const pCur = isCurrentDasha(p.start, p.end);
+        const hasSukshma = p.sukshmadashas && p.sukshmadashas.length > 0;
+        const isPExp = expandedP === `${j}`;
+        return (
+          <div key={j}>
+            <div
+              onClick={() => hasSukshma && setExpandedP(isPExp ? null : `${j}`)}
+              className={`flex items-center gap-1.5 text-xs py-0.5 px-1 rounded ${pCur ? "bg-amber-500/10 text-amber-300" : "text-muted-foreground/70"} ${hasSukshma ? "cursor-pointer hover:bg-muted/10" : ""}`}
+            >
+              <div className="w-1 h-1 rounded-full shrink-0" style={{ background: DASHA_COLORS[p.lord] ?? "#888" }} />
+              <span className="font-medium w-12">{p.lord}</span>
+              <span>{formatDate(p.start)} → {formatDate(p.end)}</span>
+              <span className="opacity-60">{p.days}d</span>
+              {pCur && <span className="text-amber-400">★</span>}
+              {hasSukshma && <span className="ml-auto opacity-60">{isPExp ? "▲" : "▼"}</span>}
+            </div>
+            {isPExp && hasSukshma && (
+              <div className="ml-3 mt-0.5 space-y-0.5 border-l border-border/10 pl-2">
+                {p.sukshmadashas!.map((s, k) => {
+                  const sCur = isCurrentDasha(s.start.split(" ")[0], s.end.split(" ")[0]);
                   return (
-                    <div key={j} className={`flex items-center gap-1.5 text-[10px] py-0.5 px-1 rounded ${pCur ? "bg-amber-500/10 text-amber-300" : "text-muted-foreground/70"}`}>
-                      <div className="w-1 h-1 rounded-full shrink-0" style={{ background: DASHA_COLORS[p.lord] ?? "#888" }} />
-                      <span className="font-medium w-12">{p.lord}</span>
-                      <span>{formatDate(p.start)} → {formatDate(p.end)}</span>
-                      <span className="opacity-60">{p.days}d</span>
-                      {pCur && <span className="text-amber-400">★</span>}
+                    <div key={k} className={`flex items-center gap-1.5 text-xs py-0.5 px-1 rounded ${sCur ? "text-amber-300" : "text-muted-foreground/70"}`}>
+                      <div className="w-0.5 h-0.5 rounded-full shrink-0 opacity-60" style={{ background: DASHA_COLORS[s.lord] ?? "#888" }} />
+                      <span className="font-medium w-10">{s.lord}</span>
+                      <span>{s.start.slice(0,10)}</span>
+                      <span className="opacity-60">{s.hours}h</span>
+                      {sCur && <span className="text-amber-400">★</span>}
                     </div>
                   );
                 })}
@@ -434,9 +491,9 @@ function KundaliBirthForm({
 
         {/* Name */}
         <div>
-          <Label className="text-xs text-muted-foreground">Name <span className="opacity-50">(optional)</span></Label>
+          <Label className="text-xs text-muted-foreground">Name <span className="opacity-70">(optional)</span></Label>
           <div className="relative mt-1">
-            <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
+            <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70" />
             <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="Your name" className="pl-8 bg-muted/20 border-border/30" />
           </div>
@@ -460,12 +517,12 @@ function KundaliBirthForm({
         <div ref={wrapRef} className="relative">
           <Label className="text-xs text-muted-foreground">Birth Place</Label>
           <div className="relative mt-1">
-            <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
+            <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70" />
             <Input value={form.place} onChange={e => handleCityInput(e.target.value)}
               placeholder="Search city..." autoComplete="off"
               className={`pl-8 bg-muted/20 border-border/30 ${city ? "border-primary/50" : ""}`} />
             {city && (
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-primary/70">
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-primary/70">
                 ✓ {city.lat.toFixed(1)}°, {city.lon.toFixed(1)}°
               </span>
             )}
@@ -484,7 +541,7 @@ function KundaliBirthForm({
         </div>
 
         {!city && form.place && (
-          <p className="text-[10px] text-amber-400/80">Select a city from the dropdown for accurate coordinates.</p>
+          <p className="text-xs text-amber-400/80">Select a city from the dropdown for accurate coordinates.</p>
         )}
 
         {error && <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
@@ -492,13 +549,13 @@ function KundaliBirthForm({
         <button
           onClick={() => onGenerate(form, city)}
           disabled={!canSubmit || loading}
-          className="w-full py-2.5 rounded-xl text-sm font-semibold bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl text-sm font-semibold bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Calculating...</> : <><Star className="h-4 w-4" /> Generate Kundali</>}
         </button>
       </div>
 
-      <p className="text-[10px] text-muted-foreground/40 text-center mt-3">
+      <p className="text-xs text-muted-foreground/60 text-center mt-3">
         Lahiri Ayanamsha · Whole Sign Houses · pyswisseph DE431
       </p>
     </motion.div>
@@ -527,12 +584,17 @@ export default function KundliPage() {
   });
 
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetData | null>(null);
-  const [activeTab, setActiveTab] = useState<"charts" | "dasha" | "houses" | "chalit">("charts");
+  const [activeTab, setActiveTab] = useState<"charts" | "grahas" | "dasha" | "houses" | "chalit" | "strength" | "ashtaka">("charts");
   const [showAllYogas, setShowAllYogas] = useState(false);
   const [expandedDasha, setExpandedDasha] = useState<string | null>(null);
-  const [selectedVarga, setSelectedVarga] = useState(1); // Default D-1
-  const [loadingVarga, setLoadingVarga] = useState(false);
-  const [vargaCache, setVargaCache] = useState<Record<number, VargaChartData>>({});
+  // Dual chart state — div=0 means BC
+  const [selectedVargaL, setSelectedVargaL] = useState(1);
+  const [selectedVargaR, setSelectedVargaR] = useState(9);
+  const [chartTabL, setChartTabL] = useState<"graha" | "bhava">("graha");
+  const [chartTabR, setChartTabR] = useState<"graha" | "bhava">("graha");
+  const [loadingVargaL, setLoadingVargaL] = useState(false);
+  const [loadingVargaR, setLoadingVargaR] = useState(false);
+  const [vargaCache, setVargaCache] = useState<Record<number, VargaChartData>>();
 
   const kundaliMutation = useKundali();
 
@@ -589,11 +651,26 @@ export default function KundliPage() {
       }).filter(Boolean) as PlanetData[]
     : [];
 
+  // Get BC planets — remap D1 planets to their Bhav Chalit house
+  const getBCPlanets = (): PlanetData[] => {
+    if (!kundaliData?.bhav_chalit) return planets;
+    const rashis = ["Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya","Tula","Vrischika","Dhanu","Makara","Kumbha","Meena"];
+    const lagnaIdx = rashis.indexOf(kundaliData.lagna.rashi);
+    return planets.map(p => {
+      const sName = p.sanskritName ?? "";
+      const chHouse = kundaliData.bhav_chalit!.planets[sName];
+      if (chHouse === undefined) return p;
+      const bcRashiIdx = (lagnaIdx + chHouse - 1) % 12;
+      return { ...p, house: chHouse, rashi: rashis[bcRashiIdx] };
+    });
+  };
+
   // Varga chart planets (from varga_charts or navamsha for D-9)
   const getVargaPlanets = (div: number): PlanetData[] => {
+    if (div === 0) return getBCPlanets();  // BC
     if (div === 1) return planets;
     if (div === 9) return navPlanets;
-    const vc = kundaliData?.varga_charts?.[`D-${div}`] ?? vargaCache[div];
+    const vc = kundaliData?.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
     if (!vc) return [];
     return GRAHA_ORDER.map(gn => {
       const g = vc.grahas[gn];
@@ -603,10 +680,17 @@ export default function KundliPage() {
   };
 
   const getVargaLagna = (div: number): string => {
+    if (div === 0) return kundaliData?.lagna.rashi ?? "Tula"; // BC uses D1 lagna
     if (div === 1) return kundaliData?.lagna.rashi ?? "Tula";
     if (div === 9) return kundaliData?.navamsha_lagna?.rashi ?? kundaliData?.lagna.rashi ?? "Tula";
-    const vc = kundaliData?.varga_charts?.[`D-${div}`] ?? vargaCache[div];
+    const vc = kundaliData?.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
     return vc?.lagna?.rashi ?? kundaliData?.lagna.rashi ?? "Tula";
+  };
+  const getVargaHouses = (div: number) => {
+    if (div === 0 || div === 1) return kundaliData?.houses ?? [];
+    if (div === 9) return kundaliData?.navamsha_houses ?? [];
+    const vc = kundaliData?.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
+    return vc?.houses ?? [];
   };
 
   const lagnaRashi = kundaliData?.lagna.rashi ?? "Tula";
@@ -616,11 +700,12 @@ export default function KundliPage() {
   const currentDasha = kundaliData?.dashas.find(d => isCurrentDasha(d.start, d.end));
 
   // Load varga chart on-demand
-  const loadVarga = async (div: number) => {
-    if (div === 1 || div === 9 || vargaCache[div] || kundaliData?.varga_charts?.[`D-${div}`]) return;
-    if (!kundaliData) return; // no data yet, skip
-    if (!birthDetails) return;
-    setLoadingVarga(true);
+  const loadVarga = async (div: number, side: "L" | "R") => {
+    if (div === 0 || div === 1 || div === 9) return; // BC/D1/D9 always available
+    if (vargaCache?.[div] || kundaliData?.varga_charts?.[`D-${div}`]) return;
+    if (!kundaliData || !birthDetails) return;
+    const setLoading = side === "L" ? setLoadingVargaL : setLoadingVargaR;
+    setLoading(true);
     try {
       const { api } = await import("@/lib/api");
       const resp = await api.post<KundaliResponse>("/api/kundali", {
@@ -641,13 +726,11 @@ export default function KundliPage() {
     } catch (e) {
       console.error("Failed to load varga chart:", e);
     }
-    setLoadingVarga(false);
+    setLoading(false);
   };
 
-  const handleVargaSelect = (div: number) => {
-    setSelectedVarga(div);
-    loadVarga(div);
-  };
+  const handleVargaSelectL = (div: number) => { setSelectedVargaL(div); loadVarga(div, "L"); };
+  const handleVargaSelectR = (div: number) => { setSelectedVargaR(div); loadVarga(div, "R"); };
 
   return (
     <div className="p-3 md:p-5 space-y-4 overflow-x-hidden">
@@ -705,7 +788,7 @@ export default function KundliPage() {
         className="cosmic-card rounded-xl p-3 flex flex-wrap gap-4 items-start">
         {/* Ayanamsha */}
         <div className="flex-1 min-w-[180px]">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 font-medium">Ayanamsha</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 font-medium">Ayanamsha</p>
           <div className="flex gap-1 flex-wrap">
             {([ ["lahiri","Lahiri"], ["raman","Raman"], ["kp","KP"], ["true_citra","True Citra"] ] as const).map(([val, lbl]) => (
               <button key={val}
@@ -718,7 +801,7 @@ export default function KundliPage() {
         </div>
         {/* Rahu/Ketu */}
         <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 font-medium">Rahu/Ketu</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 font-medium">Rahu/Ketu</p>
           <div className="flex gap-1">
             {([ ["mean","Mean"], ["true","True"] ] as const).map(([val, lbl]) => (
               <button key={val}
@@ -731,7 +814,7 @@ export default function KundliPage() {
         </div>
         {/* Name Language */}
         <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 font-medium">Names</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 font-medium">Names</p>
           <div className="flex gap-1">
             {([ ["vedic","Vedic"], ["en","English"] ] as const).map(([val, lbl]) => (
               <button key={val}
@@ -750,9 +833,9 @@ export default function KundliPage() {
           className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
             { label: "Lagna", value: kundaliData.lagna.rashi, sub: `${kundaliData.lagna.nakshatra} P${kundaliData.lagna.pada ?? ""}`, color: "text-primary", icon: RASHI_SYMBOLS[kundaliData.lagna.rashi] },
-            { label: "Moon", value: kundaliData.grahas["Chandra"]?.rashi ?? "—", sub: kundaliData.grahas["Chandra"]?.nakshatra ?? "", color: "text-blue-400", icon: "☽" },
-            { label: "Sun", value: kundaliData.grahas["Surya"]?.rashi ?? "—", sub: kundaliData.grahas["Surya"]?.status?.split(" ")[0] ?? "", color: "text-amber-400", icon: "☉" },
-            { label: "Jupiter", value: kundaliData.grahas["Guru"]?.rashi ?? "—", sub: `H${kundaliData.grahas["Guru"]?.house} · ${kundaliData.grahas["Guru"]?.status?.split(" ")[0] ?? ""}`, color: "text-yellow-400", icon: "♃" },
+            { label: "Moon", value: kundaliData.grahas["Chandra"]?.rashi ?? "—", sub: kundaliData.grahas["Chandra"]?.nakshatra ?? "", color: "text-blue-400", icon: "☽︎" },
+            { label: "Sun", value: kundaliData.grahas["Surya"]?.rashi ?? "—", sub: kundaliData.grahas["Surya"]?.status?.split(" ")[0] ?? "", color: "text-amber-400", icon: "☉︎" },
+            { label: "Jupiter", value: kundaliData.grahas["Guru"]?.rashi ?? "—", sub: `H${kundaliData.grahas["Guru"]?.house} · ${kundaliData.grahas["Guru"]?.status?.split(" ")[0] ?? ""}`, color: "text-yellow-400", icon: "♃︎" },
           ].map(item => (
             <div key={item.label} className="cosmic-card rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-0.5">
@@ -782,7 +865,7 @@ export default function KundliPage() {
             if (!curAntar) return null;
             return (
               <div className="text-right">
-                <p className="text-[10px] text-muted-foreground uppercase">Antardasha</p>
+                <p className="text-xs text-muted-foreground uppercase">Antardasha</p>
                 <p className="text-xs font-medium text-foreground">{curAntar.lord} <span className="text-muted-foreground">({formatDate(curAntar.start)} → {formatDate(curAntar.end)})</span></p>
               </div>
             );
@@ -798,10 +881,13 @@ export default function KundliPage() {
           {/* Tab bar */}
           <div className="flex gap-1 mb-3 border-b border-border/30 pb-2.5">
             {[
-              { id:"charts", label:"Charts",  icon: <Layers className="h-3 w-3" /> },
-              { id:"dasha",  label:"Dashas",  icon: <Calendar className="h-3 w-3" /> },
-              { id:"houses", label:"Bhavas",  icon: <Home className="h-3 w-3" /> },
-              { id:"chalit", label:"Chalit",  icon: <Star className="h-3 w-3" /> },
+              { id:"charts",   label:"Charts",       icon: <Layers className="h-3 w-3" /> },
+              { id:"grahas",   label:"Grahas",       icon: <Star className="h-3 w-3" /> },
+              { id:"dasha",    label:"Dashas",       icon: <Calendar className="h-3 w-3" /> },
+              { id:"houses",   label:"Bhavas",       icon: <Home className="h-3 w-3" /> },
+              { id:"chalit",   label:"Chalit",       icon: <Layers className="h-3 w-3" /> },
+              { id:"strength", label:"Shadbala",     icon: <Zap className="h-3 w-3" /> },
+              { id:"ashtaka",  label:"Ashtakavarga", icon: <Star className="h-3 w-3" /> },
             ].map(tab => (
               <button key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
@@ -815,89 +901,222 @@ export default function KundliPage() {
           </div>
 
           <AnimatePresence mode="wait">
-            {/* Unified Charts Tab — D-1 to D-60 + Chart Style */}
+            {/* Dual Charts Tab */}
             {activeTab === "charts" && (
               <motion.div key="charts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-w-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {([
+                    { div: selectedVargaL, setDiv: handleVargaSelectL, tab: chartTabL, setTab: setChartTabL, loading: loadingVargaL, side: "L" as const },
+                    { div: selectedVargaR, setDiv: handleVargaSelectR, tab: chartTabR, setTab: setChartTabR, loading: loadingVargaR, side: "R" as const },
+                  ] as const).map(({ div, setDiv, tab, setTab, loading, side }) => {
+                    const meta = VARGA_QUICK.find(v => v.div === div);
+                    const isBc = div === 0;
+                    const chartPlanets = getVargaPlanets(div);
+                    const chartLagna = getVargaLagna(div);
+                    const vargaHouses = getVargaHouses(div);
+                    // Graha detail rows for this chart
+                    const grahaRows = kundaliData ? GRAHA_ORDER.map(gn => {
+                      if (isBc || div === 1) {
+                        const g = kundaliData.grahas[gn];
+                        if (!g) return null;
+                        const rashiHouse = g.house;
+                        const bcHouse = kundaliData.bhav_chalit?.planets[gn] ?? rashiHouse;
+                        return { gn, rashi: g.rashi, house: rashiHouse, bcHouse, degree: g.degree, nakshatra: g.nakshatra, nakshatra_lord: g.nakshatra_lord, pada: g.pada, retro: g.retro, combust: g.combust, status: g.status, ruler_of: g.ruler_of, isD1: true };
+                      }
+                      if (div === 9) {
+                        const g = kundaliData.navamsha?.[gn];
+                        if (!g) return null;
+                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: 0, nakshatra: "", nakshatra_lord: "", pada: 0, retro: g.retro, combust: false, status: g.status, ruler_of: undefined, isD1: false };
+                      }
+                      const vc = kundaliData.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
+                      const g = vc?.grahas?.[gn];
+                      if (!g) return null;
+                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: 0, nakshatra: "", nakshatra_lord: "", pada: 0, retro: g.retro, combust: false, status: g.status, ruler_of: undefined, isD1: false };
+                    }).filter(Boolean) : [];
 
-                {/* Varga selector grid — flex-wrap, no horizontal scroll */}
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {VARGA_QUICK.map(v => (
-                    <button key={v.div}
-                      onClick={() => handleVargaSelect(v.div)}
-                      title={`${v.name} — ${v.desc}`}
-                      className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        selectedVarga === v.div
-                          ? "bg-primary/20 text-primary border border-primary/30"
-                          : "text-muted-foreground hover:text-foreground border border-border/20 hover:border-border/40"
-                      }`}
-                    >
-                      {v.code}
-                      <span className="hidden sm:inline text-[10px] opacity-60 ml-1">{v.name.split(/[,\s]/)[0]}</span>
-                    </button>
-                  ))}
-                </div>
+                    return (
+                      <div key={side} className="rounded-xl border border-border/20 bg-card/30 backdrop-blur-sm overflow-hidden">
+                        {/* Chart header — selector + lagna */}
+                        <div className="flex items-center gap-2 p-2 border-b border-border/15 bg-muted/10">
+                          <select
+                            value={div}
+                            onChange={e => setDiv(Number(e.target.value))}
+                            className="flex-1 bg-background/60 border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary/50 cursor-pointer"
+                          >
+                            {VARGA_QUICK.map(v => (
+                              <option key={v.div} value={v.div}>{v.code} — {v.name}</option>
+                            ))}
+                          </select>
+                          <div className="text-xs text-muted-foreground shrink-0">
+                            Lagna: <span className="text-amber-400 font-medium">{chartLagna}</span>
+                          </div>
+                        </div>
 
-                {/* Selected varga info */}
-                {(() => {
-                  const sel = VARGA_QUICK.find(v => v.div === selectedVarga);
-                  return (
-                    <div className="flex items-center justify-between mb-2 px-0.5">
-                      <div>
-                        <span className="text-sm font-semibold text-foreground">{sel?.code ?? `D-${selectedVarga}`}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{sel?.name}</span>
-                        <span className="text-xs text-muted-foreground/50 ml-1">— {sel?.desc}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">Lagna: <span className="text-foreground font-medium">{getVargaLagna(selectedVarga)}</span></span>
-                    </div>
-                  );
-                })()}
+                        {/* Chart desc */}
+                        <div className="px-3 py-1 text-xs text-muted-foreground/70 border-b border-border/10">
+                          {isBc ? "Placidus house positions — planets may shift houses vs Whole Sign" : meta?.desc}
+                          {isBc && <span className="ml-2 text-amber-400/80">Bhav Chalit</span>}
+                        </div>
 
-                {loadingVarga ? (
-                  <div className="text-center py-12 text-muted-foreground text-sm animate-pulse">Loading chart...</div>
-                ) : getVargaPlanets(selectedVarga).length > 0 ? (
-                  <>
-                    {/* Chart with style toggle (N/S/E/W) built in */}
-                    <KundliChart
-                      onPlanetClick={setSelectedPlanet}
-                      selectedPlanet={selectedPlanet}
-                      planets={getVargaPlanets(selectedVarga)}
-                      lagnaRashi={getVargaLagna(selectedVarga)}
-                      showStyleToggle={true}
-                    />
-                    <p className="text-xs text-muted-foreground text-center mt-1.5">
-                      Click planet for details · {kundaliData?.ayanamsha_label ?? "Lahiri"} · Whole Sign
-                    </p>
-
-                    {/* Planet positions table — only for non-D1 or always */}
-                    {selectedVarga !== 1 && (
-                      <div className="mt-4 space-y-1">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-2">
-                          Planet Positions — {VARGA_QUICK.find(v => v.div === selectedVarga)?.code}
-                        </p>
-                        {GRAHA_ORDER.map(gn => {
-                          const vc = selectedVarga === 9
-                            ? kundaliData?.navamsha?.[gn]
-                            : (kundaliData?.varga_charts?.[`D-${selectedVarga}`] ?? vargaCache[selectedVarga])?.grahas?.[gn];
-                          if (!vc) return null;
-                          const sb = STATUS_BADGE[vc.status] ?? STATUS_BADGE["Normal"];
-                          return (
-                            <div key={gn} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/20">
-                              <span className="text-base w-6 text-center" style={{ color: GRAHA_COLOR[gn] }}>{GRAHA_SYMBOLS[gn]}</span>
-                              <span className="text-xs text-foreground flex-1">{gn} <span className="text-muted-foreground/60 text-xs">({GRAHA_EN[gn]})</span></span>
-                              <span className="text-xs text-muted-foreground">{vc.rashi} · H{vc.house}</span>
-                              {vc.retro && <span className="text-[10px] text-amber-400">℞</span>}
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${sb.cls}`}>{sb.label}</span>
+                        {/* Chart */}
+                        <div className="p-1">
+                          {loading ? (
+                            <div className="flex items-center justify-center py-16 text-muted-foreground text-xs gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" /> Loading chart…
                             </div>
-                          );
-                        })}
+                          ) : chartPlanets.length > 0 ? (
+                            <KundliChart
+                              onPlanetClick={setSelectedPlanet}
+                              selectedPlanet={selectedPlanet}
+                              planets={chartPlanets}
+                              lagnaRashi={chartLagna}
+                              showStyleToggle={true}
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center py-16 text-muted-foreground text-xs">
+                              {kundaliData ? "Varga data loading…" : "Generate Kundali first"}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Detail tabs */}
+                        {kundaliData && (
+                          <div className="border-t border-border/15">
+                            <div className="flex border-b border-border/15">
+                              {(["graha","bhava"] as const).map(t => (
+                                <button key={t} onClick={() => setTab(t)}
+                                  className={`flex-1 py-1.5 text-xs font-medium transition-colors ${tab === t ? "text-primary border-b-2 border-primary bg-primary/5" : "text-muted-foreground hover:text-foreground"}`}>
+                                  {t === "graha" ? "Graha Details" : "Bhava Details"}
+                                </button>
+                              ))}
+                            </div>
+
+                            {tab === "graha" && (
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-xs">
+                                  <thead>
+                                    <tr className="border-b border-border/15 bg-muted/10">
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium">Graha</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium">Longitude</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium hidden sm:table-cell">Nakshatra</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium hidden md:table-cell">Lord</th>
+                                      <th className="text-center px-2 py-1.5 text-muted-foreground font-medium">Ruler of</th>
+                                      <th className="text-center px-2 py-1.5 text-muted-foreground font-medium">Is In</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {/* Lagna row */}
+                                    {(isBc || div === 1) && kundaliData.lagna && (() => {
+                                      const l = kundaliData.lagna;
+                                      const isQ = true;
+                                      return (
+                                        <tr className="border-b border-border/10 bg-amber-500/5">
+                                          <td className="px-2 py-1.5 font-medium text-amber-400">
+                                            Lagna {isQ && <span className="text-xs text-muted-foreground">(Q)</span>}
+                                          </td>
+                                          <td className="px-2 py-1.5 font-mono text-foreground">{degToDMS(l.degree, l.rashi)}</td>
+                                          <td className="px-2 py-1.5 text-muted-foreground hidden sm:table-cell">{l.nakshatra} {l.pada ? `P${l.pada}` : ""}</td>
+                                          <td className="px-2 py-1.5 text-muted-foreground hidden md:table-cell">—</td>
+                                          <td className="px-2 py-1.5 text-center text-muted-foreground">—</td>
+                                          <td className="px-2 py-1.5 text-center font-medium text-foreground">H1</td>
+                                        </tr>
+                                      );
+                                    })()}
+                                    {grahaRows.map(r => {
+                                      if (!r) return null;
+                                      const isQ = [1,4,7,10].includes(r.house);
+                                      const bcDiff = r.isD1 && r.bcHouse !== r.house;
+                                      const sb = STATUS_BADGE[r.status] ?? STATUS_BADGE["Normal"];
+                                      return (
+                                        <tr key={r.gn} className="border-b border-border/10 hover:bg-muted/10 transition-colors">
+                                          <td className="px-2 py-1.5">
+                                            <span className="flex items-center gap-1">
+                                              <span style={{ color: GRAHA_COLOR[r.gn] }}>{GRAHA_SYMBOLS[r.gn]}</span>
+                                              <span className="font-medium text-foreground">{r.gn}</span>
+                                              {r.retro && <span className="text-amber-400">℞</span>}
+                                              {r.combust && <span title="Combust">🔥</span>}
+                                              {isQ && <span className="text-xs text-muted-foreground">(Q)</span>}
+                                            </span>
+                                          </td>
+                                          <td className="px-2 py-1.5 font-mono text-foreground">
+                                            {r.isD1 && r.degree > 0 ? degToDMS(r.degree, r.rashi) : `${r.rashi}`}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-muted-foreground hidden sm:table-cell">
+                                            {r.nakshatra ? `${r.nakshatra}${r.pada ? ` P${r.pada}` : ""}` : "—"}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-muted-foreground hidden md:table-cell">
+                                            {r.nakshatra_lord ?? "—"}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-center text-muted-foreground">
+                                            {r.ruler_of?.length ? r.ruler_of.map(h => `H${h}`).join(", ") : "—"}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-center">
+                                            <span className="font-medium text-foreground">H{r.house}</span>
+                                            {r.isD1 && bcDiff && (
+                                              <span className="ml-1 text-amber-400 text-xs">→H{r.bcHouse}</span>
+                                            )}
+                                            <span className={`ml-1 text-xs ${sb.cls}`}>{sb.label}</span>
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+
+                            {tab === "bhava" && (
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-xs">
+                                  <thead>
+                                    <tr className="border-b border-border/15 bg-muted/10">
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium">Bhava</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium">Residents</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium">Owner</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium">Rashi</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium hidden sm:table-cell">Qualities</th>
+                                      <th className="text-left px-2 py-1.5 text-muted-foreground font-medium hidden md:table-cell">Aspected By</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {vargaHouses.map(h => {
+                                      const isQ = [1,4,7,10].includes(h.house);
+                                      // For BC: use chalit house assignments
+                                      let residents: string[] = [];
+                                      if (isBc && kundaliData.bhav_chalit) {
+                                        residents = GRAHA_ORDER.filter(gn => kundaliData.bhav_chalit!.planets[gn] === h.house);
+                                      } else {
+                                        residents = h.planets ?? [];
+                                      }
+                                      return (
+                                        <tr key={h.house} className={`border-b border-border/10 hover:bg-muted/10 ${isQ ? "bg-primary/3" : ""}`}>
+                                          <td className="px-2 py-1.5 font-medium text-foreground">
+                                            {h.house} {isQ && <span className="text-xs text-amber-400">(Q)</span>}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-muted-foreground">
+                                            {residents.length > 0 ? residents.join(", ") : <span className="opacity-60">—</span>}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-foreground">{h.lord}</td>
+                                          <td className="px-2 py-1.5 text-muted-foreground">{RASHI_SHORT[h.rashi] ?? h.rashi}</td>
+                                          <td className="px-2 py-1.5 text-muted-foreground hidden sm:table-cell">
+                                            {RASHI_QUALITY[h.rashi] ?? "—"}
+                                          </td>
+                                          <td className="px-2 py-1.5 text-muted-foreground hidden md:table-cell">
+                                            {h.aspected_by?.join(", ") ?? "—"}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground text-sm">
-                    {kundaliData ? "Loading varga chart..." : "Generate your Kundali first"}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </motion.div>
             )}
 
@@ -927,7 +1146,7 @@ export default function KundliPage() {
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="text-sm font-medium text-foreground">{d.lord}</span>
                                   <span className="text-xs text-muted-foreground">({GRAHA_EN[d.lord] ?? d.lord})</span>
-                                  {cur && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30 font-medium">Active Now ★</span>}
+                                  {cur && <span className="text-xs bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30 font-medium">Active Now ★</span>}
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-0.5">
                                   {formatDate(d.start)} → {formatDate(d.end)} · {d.years} years
@@ -987,17 +1206,27 @@ export default function KundliPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm text-foreground font-medium">
                                 {h.rashi} {RASHI_SYMBOLS[h.rashi] ?? ""}
-                                {h.rashi_en && <span className="text-xs text-muted-foreground/50 ml-1">({h.rashi_en})</span>}
+                                {h.rashi_en && <span className="text-xs text-muted-foreground/70 ml-1">({h.rashi_en})</span>}
                               </span>
                               <span className="text-xs text-muted-foreground">Lord: {h.lord} {h.lord_en ? `(${h.lord_en})` : ""}</span>
                             </div>
                             {h.signification && (
-                              <p className="text-[10px] text-muted-foreground/60 mt-0.5">{h.signification}</p>
+                              <p className="text-xs text-muted-foreground/60 mt-0.5">{h.signification}</p>
+                            )}
+                            {(h.gender || h.modality || h.tattva) && (
+                              <p className="text-xs text-muted-foreground/70 mt-0.5">
+                                {[h.gender, h.modality, h.tattva].filter(Boolean).join(" · ")}
+                              </p>
+                            )}
+                            {h.aspected_by && h.aspected_by.length > 0 && (
+                              <p className="text-xs text-muted-foreground/70 mt-0.5">
+                                Aspected by: {h.aspected_by.join(", ")}
+                              </p>
                             )}
                             {planetsIn.length > 0 && (
                               <div className="flex items-center gap-1 mt-1 flex-wrap">
                                 {planetsIn.map(gn => (
-                                  <span key={gn} className="text-[10px] px-1.5 py-0.5 rounded" style={{ color: GRAHA_COLOR[gn], background: `${GRAHA_COLOR[gn]}22` }}>
+                                  <span key={gn} className="text-xs px-1.5 py-0.5 rounded" style={{ color: GRAHA_COLOR[gn], background: `${GRAHA_COLOR[gn]}22` }}>
                                     {GRAHA_SYMBOLS[gn]} {gn}
                                   </span>
                                 ))}
@@ -1014,6 +1243,340 @@ export default function KundliPage() {
               </motion.div>
             )}
 
+            {/* Grahas Detail Table */}
+            {activeTab === "grahas" && (
+              <motion.div key="grahas" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <p className="text-xs font-medium text-foreground mb-3 flex items-center gap-2">
+                  <Star className="h-3.5 w-3.5 text-primary" /> Graha Details — Full Planetary Data
+                </p>
+                {kundaliData ? (
+                  <div className="overflow-x-auto -mx-1">
+                    <table className="w-full text-xs min-w-[600px]">
+                      <thead>
+                        <tr className="border-b border-border/20 text-muted-foreground">
+                          <th className="text-left py-1.5 px-2">Graha</th>
+                          <th className="text-center px-1">R</th>
+                          <th className="text-center px-1">C</th>
+                          <th className="text-left px-2">Longitude (DMS)</th>
+                          <th className="text-left px-2">Nakshatra / Lord</th>
+                          <th className="text-center px-1">Pada</th>
+                          <th className="text-center px-1">Raw L</th>
+                          <th className="text-center px-1">Lat</th>
+                          <th className="text-center px-1">RA</th>
+                          <th className="text-center px-1">Dec</th>
+                          <th className="text-center px-1">Speed</th>
+                          <th className="text-left px-2">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Lagna row */}
+                        <tr className="border-b border-border/10 bg-primary/5">
+                          <td className="py-1.5 px-2 font-semibold text-primary">Lagna (Lg)</td>
+                          <td className="text-center px-1">—</td>
+                          <td className="text-center px-1">—</td>
+                          <td className="px-2 font-medium text-foreground">
+                            {(() => {
+                              const d = kundaliData.lagna.degree;
+                              const deg = Math.floor(d);
+                              const minF = (d - deg) * 60;
+                              const min = Math.floor(minF);
+                              const sec = Math.floor((minF - min) * 60);
+                              return `${deg.toString().padStart(2,"0")}° ${min.toString().padStart(2,"0")}' ${sec.toString().padStart(2,"0")}"`;
+                            })()}
+                          </td>
+                          <td className="px-2">{kundaliData.lagna.nakshatra} / {kundaliData.lagna.nakshatra?.split(" ")[0]}</td>
+                          <td className="text-center px-1">{kundaliData.lagna.pada ?? "—"}</td>
+                          <td className="text-center px-1">{kundaliData.lagna.full_degree?.toFixed(2) ?? "—"}</td>
+                          <td className="text-center px-1">0.00</td>
+                          <td className="text-center px-1">—</td>
+                          <td className="text-center px-1">—</td>
+                          <td className="text-center px-1">—</td>
+                          <td className="px-2">—</td>
+                        </tr>
+                        {GRAHA_ORDER.map(gn => {
+                          const g = kundaliData.grahas[gn];
+                          if (!g) return null;
+                          const lon = g.longitude ?? 0;
+                          const deg = Math.floor(g.degree);
+                          const minF = (g.degree - deg) * 60;
+                          const min = Math.floor(minF);
+                          const sec = Math.floor((minF - min) * 60);
+                          const dms = `${deg.toString().padStart(2,"0")}° ${min.toString().padStart(2,"0")}' ${sec.toString().padStart(2,"0")}"`;
+                          const sb = STATUS_BADGE[g.status] ?? STATUS_BADGE["Normal"];
+                          return (
+                            <tr key={gn} className="border-b border-border/10 hover:bg-muted/20">
+                              <td className="py-1.5 px-2">
+                                <span style={{ color: GRAHA_COLOR[gn] }}>{GRAHA_SYMBOLS[gn]}</span>
+                                <span className="font-medium text-foreground ml-1">{gn}</span>
+                              </td>
+                              <td className="text-center px-1 text-amber-400">{g.retro ? "℞" : ""}</td>
+                              <td className="text-center px-1 text-orange-400">{g.combust ? "C" : ""}</td>
+                              <td className="px-2 font-mono text-foreground">
+                                {g.rashi} {dms}
+                              </td>
+                              <td className="px-2 text-muted-foreground">
+                                {g.nakshatra} {g.pada}, {g.nakshatra_lord}
+                              </td>
+                              <td className="text-center px-1 text-foreground">{g.pada}</td>
+                              <td className="text-center px-1 text-muted-foreground font-mono">{lon.toFixed(2)}</td>
+                              <td className="text-center px-1 text-muted-foreground">{g.lat_ecl?.toFixed(2) ?? "0.00"}</td>
+                              <td className="text-center px-1 text-muted-foreground">{g.ra?.toFixed(2) ?? "—"}</td>
+                              <td className="text-center px-1 text-muted-foreground">{g.dec?.toFixed(2) ?? "—"}</td>
+                              <td className="text-center px-1 text-muted-foreground">{g.speed?.toFixed(2) ?? "—"}</td>
+                              <td className="px-2"><span className={`px-1.5 py-0.5 rounded border text-xs ${sb.cls}`}>{sb.label}</span></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    <p className="text-xs text-muted-foreground/70 mt-2 px-1">
+                      R = Retrograde · C = Combust · Raw L = Full longitude (0°–360°) · Lat = Ecliptic Latitude · RA = Right Ascension · Dec = Declination
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Generate Kundali to see graha details</p>
+                )}
+              </motion.div>
+            )}
+
+            {/* Shadbala + Bhavabala */}
+            {activeTab === "strength" && (
+              <motion.div key="strength" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <p className="text-xs font-medium text-foreground mb-3 flex items-center gap-2">
+                  <Zap className="h-3.5 w-3.5 text-primary" /> Shadbala — Six-fold Planetary Strength
+                </p>
+                {kundaliData?.shadbala?.planets ? (() => {
+                  const planets7 = ["Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani"];
+                  const sb = kundaliData.shadbala!.planets;
+                  return (
+                    <div className="space-y-4">
+                      {/* Summary grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {planets7.filter(gn => sb[gn]).map(gn => {
+                          const s = sb[gn];
+                          const pct = Math.min(100, Math.round(s.ratio * 100));
+                          const color = s.is_strong ? "text-emerald-400" : "text-red-400";
+                          return (
+                            <div key={gn} className="bg-muted/20 rounded-lg p-2 text-center">
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <span className="text-sm" style={{ color: GRAHA_COLOR[gn] }}>{GRAHA_SYMBOLS[gn]}</span>
+                                <span className="text-xs text-muted-foreground">{GRAHA_EN[gn]}</span>
+                              </div>
+                              <p className={`text-sm font-bold ${color}`}>{s.total_rupas}R</p>
+                              <p className="text-xs text-muted-foreground">Need {s.required_rupas}R</p>
+                              <div className="mt-1 h-1 bg-muted/30 rounded-full">
+                                <div className={`h-full rounded-full ${s.is_strong ? "bg-emerald-400" : "bg-red-400"}`} style={{ width: `${pct}%` }} />
+                              </div>
+                              <p className={`text-xs mt-0.5 font-medium ${color}`}>{s.is_strong ? "✓ Strong" : "✗ Weak"}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* Detailed table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-border/20">
+                              <th className="text-left text-muted-foreground py-1 pr-2">Component</th>
+                              {planets7.filter(gn => sb[gn]).map(gn => (
+                                <th key={gn} className="text-center text-muted-foreground py-1 px-1">
+                                  <span style={{ color: GRAHA_COLOR[gn] }}>{GRAHA_SYMBOLS[gn]}</span>
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              ["Sthana", "sthana_bala"],
+                              ["  ↳ Uccha", null, "uccha"],
+                              ["  ↳ Oja-Yugma", null, "oja_yugma"],
+                              ["  ↳ Kendradi", null, "kendradi"],
+                              ["  ↳ Drekkana", null, "drekkana"],
+                              ["Dig", "dig_bala"],
+                              ["Kala", "kaala_bala"],
+                              ["Chesta", "chesta_bala"],
+                              ["Naisargika", "naisargika_bala"],
+                              ["Drik", "drik_bala"],
+                            ].map(([label, key, subKey]) => (
+                              <tr key={`${key ?? subKey}`} className={`border-b border-border/10 ${!key ? "opacity-60" : ""}`}>
+                                <td className={`text-muted-foreground py-1 pr-2 ${key ? "font-medium" : "text-xs pl-2"}`}>{label}</td>
+                                {planets7.filter(gn => sb[gn]).map(gn => (
+                                  <td key={gn} className="text-center text-foreground py-1 px-1 text-xs">
+                                    {key
+                                      ? (sb[gn] as any)[key as string]
+                                      : (sb[gn].sthana_detail as any)?.[subKey as string] ?? "—"
+                                    }
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                            <tr className="border-t border-border/30 font-bold">
+                              <td className="text-muted-foreground py-1.5 pr-2">Total (V)</td>
+                              {planets7.filter(gn => sb[gn]).map(gn => (
+                                <td key={gn} className="text-center text-foreground py-1.5 px-1">{sb[gn].total_virupas}</td>
+                              ))}
+                            </tr>
+                            <tr>
+                              <td className="text-muted-foreground py-1 pr-2">Rupas</td>
+                              {planets7.filter(gn => sb[gn]).map(gn => (
+                                <td key={gn} className="text-center text-foreground py-1 px-1">{sb[gn].total_rupas}</td>
+                              ))}
+                            </tr>
+                            <tr>
+                              <td className="text-muted-foreground py-1 pr-2">Ratio</td>
+                              {planets7.filter(gn => sb[gn]).map(gn => (
+                                <td key={gn} className={`text-center py-1 px-1 font-medium ${sb[gn].is_strong ? "text-emerald-400" : "text-red-400"}`}>
+                                  {sb[gn].ratio}
+                                </td>
+                              ))}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* Bhavabala */}
+                      {kundaliData.bhavabala && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Bhavabala — House Strength</p>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                            {kundaliData.bhavabala.map(bh => (
+                              <div key={bh.house} className="bg-muted/20 rounded-lg p-2 text-center">
+                                <div className="flex items-center justify-between mb-0.5">
+                                  <span className="text-xs font-bold text-primary">H{bh.house}</span>
+                                  <span className="text-xs text-muted-foreground">#{bh.rank}</span>
+                                </div>
+                                <p className="text-xs text-foreground font-medium">{bh.strength}R</p>
+                                <p className="text-xs text-muted-foreground">{bh.lord}</p>
+                                <div className="mt-1 h-1 bg-muted/30 rounded-full">
+                                  <div className="h-full bg-primary/60 rounded-full" style={{ width: `${Math.min(100, (bh.strength / 12) * 100)}%` }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })() : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    {kundaliData ? "Shadbala not calculated. Regenerate with shadbala option." : "Generate Kundali to see Shadbala"}
+                  </p>
+                )}
+              </motion.div>
+            )}
+
+            {/* Ashtakavarga */}
+            {activeTab === "ashtaka" && (
+              <motion.div key="ashtaka" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <p className="text-xs font-medium text-foreground mb-3 flex items-center gap-2">
+                  <Star className="h-3.5 w-3.5 text-primary" /> Ashtakavarga — Bindu Points per Rashi
+                </p>
+                {kundaliData?.ashtakavarga ? (() => {
+                  const av = kundaliData.ashtakavarga!;
+                  const rashiNames = ["Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya","Tula","Vrischika","Dhanu","Makara","Kumbha","Meena"];
+                  const planets7 = ["Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani"];
+                  return (
+                    <div className="space-y-4">
+                      {/* SAV grid */}
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Sarvashtakavarga (SAV) — Total Bindus per Rashi</p>
+                        <div className="grid grid-cols-6 sm:grid-cols-12 gap-1">
+                          {rashiNames.map((rashi, i) => {
+                            const pts = av.sav.points[i] ?? 0;
+                            const isGood = pts >= 30;
+                            return (
+                              <div key={rashi} className={`rounded-lg p-1.5 text-center ${isGood ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-red-500/10 border border-red-500/20"}`}>
+                                <p className="text-xs text-muted-foreground">{RASHI_SYMBOLS[rashi] ?? rashi.slice(0,2)}</p>
+                                <p className={`text-sm font-bold ${isGood ? "text-emerald-400" : "text-red-400"}`}>{pts}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Total: {av.sav.total} · ≥30 = favourable</p>
+                      </div>
+                      {/* Reduced SAV */}
+                      {av.reduced_sav && (
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Reduced Sarvashtakavarga (after Trikona Shodhana)</p>
+                          <div className="grid grid-cols-6 sm:grid-cols-12 gap-1">
+                            {rashiNames.map((rashi, i) => {
+                              const pts = av.reduced_sav!.points[i] ?? 0;
+                              return (
+                                <div key={rashi} className="rounded-lg p-1.5 text-center bg-muted/20">
+                                  <p className="text-xs text-muted-foreground">{RASHI_SYMBOLS[rashi] ?? rashi.slice(0,2)}</p>
+                                  <p className="text-sm font-bold text-foreground">{pts}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Total: {av.reduced_sav.total}</p>
+                        </div>
+                      )}
+
+                      {/* BAV table */}
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Bhinnashtakavarga (BAV) — Per-planet bindus</p>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="border-b border-border/20">
+                                <th className="text-left text-muted-foreground py-1 pr-2 w-16">Planet</th>
+                                {rashiNames.map((r) => (
+                                  <th key={r} className="text-center text-muted-foreground py-1 px-0.5 w-6">
+                                    {RASHI_SYMBOLS[r] ?? r.slice(0,2)}
+                                  </th>
+                                ))}
+                                <th className="text-center text-muted-foreground py-1 px-1">Σ</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {planets7.map(gn => {
+                                const bavData = av.bav[gn];
+                                if (!bavData) return null;
+                                return (
+                                  <tr key={gn} className="border-b border-border/10">
+                                    <td className="py-1 pr-2">
+                                      <span style={{ color: GRAHA_COLOR[gn] }}>{GRAHA_SYMBOLS[gn]}</span>
+                                      <span className="text-muted-foreground ml-1">{gn.slice(0,3)}</span>
+                                    </td>
+                                    {bavData.points.map((pt, i) => (
+                                      <td key={i} className={`text-center py-1 px-0.5 ${pt >= 4 ? "text-emerald-400" : pt <= 2 ? "text-red-400/70" : "text-foreground"}`}>
+                                        {pt}
+                                      </td>
+                                    ))}
+                                    <td className="text-center py-1 px-1 font-bold text-foreground">{bavData.total}</td>
+                                  </tr>
+                                );
+                              })}
+                              <tr className="border-t border-border/30 font-bold">
+                                <td className="text-muted-foreground py-1.5 pr-2">SAV</td>
+                                {av.sav.points.map((pt, i) => (
+                                  <td key={i} className={`text-center py-1.5 px-0.5 font-bold ${pt >= 30 ? "text-emerald-400" : "text-red-400"}`}>{pt}</td>
+                                ))}
+                                <td className="text-center py-1.5 px-1 text-foreground font-bold">{av.sav.total}</td>
+                              </tr>
+                              {av.reduced_sav && (
+                                <tr className="border-t border-border/20">
+                                  <td className="text-muted-foreground py-1 pr-2 text-xs">Red.SAV</td>
+                                  {av.reduced_sav.points.map((pt, i) => (
+                                    <td key={i} className="text-center py-1 px-0.5 text-muted-foreground/70">{pt}</td>
+                                  ))}
+                                  <td className="text-center py-1 px-1 text-muted-foreground">{av.reduced_sav.total}</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    {kundaliData ? "Ashtakavarga not calculated. Regenerate." : "Generate Kundali to see Ashtakavarga"}
+                  </p>
+                )}
+              </motion.div>
+            )}
+
             {/* Bhav Chalit Chart */}
             {activeTab === "chalit" && (
               <motion.div key="chalit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1026,7 +1589,7 @@ export default function KundliPage() {
                     <div className="space-y-3">
                       {/* House cusps table */}
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">12 House Cusps</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">12 House Cusps</p>
                         <div className="grid grid-cols-2 gap-1.5">
                           {bc.cusps_sid.map((cusp, i) => {
                             const rashiIdx = Math.floor(cusp / 30);
@@ -1038,7 +1601,7 @@ export default function KundliPage() {
                                 <span className="text-primary font-bold w-5 text-center">{i + 1}</span>
                                 <span className="text-foreground">{rashi}</span>
                                 <span className="text-muted-foreground ml-auto">{deg}°</span>
-                                <span className="text-muted-foreground/50">{RASHI_SYMBOLS[rashi] ?? ""}</span>
+                                <span className="text-muted-foreground/70">{RASHI_SYMBOLS[rashi] ?? ""}</span>
                               </div>
                             );
                           })}
@@ -1046,7 +1609,7 @@ export default function KundliPage() {
                       </div>
                       {/* Planet bhav chalit placements */}
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">Planet Placements (Bhav Chalit)</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Planet Placements (Bhav Chalit)</p>
                         <div className="space-y-1">
                           {GRAHA_ORDER.map(gn => {
                             const chHouse = bc.planets[gn];
@@ -1056,10 +1619,10 @@ export default function KundliPage() {
                             return (
                               <div key={gn} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs ${shifted ? "bg-amber-500/10 border border-amber-500/20" : "bg-muted/10"}`}>
                                 <span className="text-base w-6 text-center" style={{ color: GRAHA_COLOR[gn] }}>{GRAHA_SYMBOLS[gn]}</span>
-                                <span className="text-foreground flex-1">{gn} <span className="text-muted-foreground/50">({GRAHA_EN[gn]})</span></span>
+                                <span className="text-foreground flex-1">{gn} <span className="text-muted-foreground/70">({GRAHA_EN[gn]})</span></span>
                                 <span className="text-muted-foreground">Rashi: H{rashiHouse}</span>
                                 <span className={`font-semibold ${shifted ? "text-amber-400" : "text-foreground"}`}>Chalit: H{chHouse}</span>
-                                {shifted && <span className="text-[10px] text-amber-400">shifted</span>}
+                                {shifted && <span className="text-xs text-amber-400">shifted</span>}
                               </div>
                             );
                           })}
@@ -1123,7 +1686,7 @@ export default function KundliPage() {
                     <span className="text-2xl" style={{ color: selectedPlanet.color }}>{selectedPlanet.symbol}</span>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{selectedPlanet.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{selectedPlanet.sanskritName} {kundaliData.grahas[selectedPlanet.sanskritName ?? ""]?.graha_hindi ?? ""}</p>
+                      <p className="text-xs text-muted-foreground">{selectedPlanet.sanskritName} {kundaliData.grahas[selectedPlanet.sanskritName ?? ""]?.graha_hindi ?? ""}</p>
                     </div>
                   </div>
                   <button onClick={() => setSelectedPlanet(null)} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
@@ -1148,42 +1711,42 @@ export default function KundliPage() {
                           ["Speed", g.speed ? `${g.speed.toFixed(4)}°/day` : "—"],
                         ].map(([k, v]) => (
                           <div key={k} className="bg-muted/20 rounded-lg p-2">
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{k}</p>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">{k}</p>
                             <p className="text-foreground font-medium mt-0.5">{v}</p>
                           </div>
                         ))}
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div className={`rounded-lg p-2 border ${sb.cls} text-center`}>
-                          <p className="text-[10px] uppercase tracking-wide opacity-70">Dignity</p>
+                          <p className="text-xs uppercase tracking-wide opacity-70">Dignity</p>
                           <p className="font-semibold text-xs">{g.status}</p>
                         </div>
                         <div className={`rounded-lg p-2 text-center ${rb.cls}`}>
-                          <p className="text-[10px] uppercase tracking-wide opacity-70">Relationship</p>
+                          <p className="text-xs uppercase tracking-wide opacity-70">Relationship</p>
                           <p className="font-semibold text-xs">{rb.label}</p>
                         </div>
                       </div>
                       {g.karaka && (
                         <div className="bg-primary/5 rounded-lg p-2 border border-primary/10">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Karaka (Significator)</p>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Karaka (Significator)</p>
                           <p className="text-foreground text-xs mt-0.5">{g.karaka}</p>
                         </div>
                       )}
                       {g.ruler_of && g.ruler_of.length > 0 && (
                         <div className="bg-muted/20 rounded-lg p-2">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Rules Houses</p>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Rules Houses</p>
                           <p className="text-foreground text-xs mt-0.5">{g.ruler_of.map(h => `H${h}`).join(", ")}</p>
                         </div>
                       )}
                       {g.combust && (
                         <div className="bg-orange-500/10 rounded-lg p-2 border border-orange-500/20">
-                          <p className="text-[10px] text-orange-400 uppercase tracking-wide">Combust (Asta)</p>
+                          <p className="text-xs text-orange-400 uppercase tracking-wide">Combust (Asta)</p>
                           <p className="text-orange-300 text-xs mt-0.5">Planet is too close to Sun — weakened</p>
                         </div>
                       )}
                       {g.lat_ecl !== undefined && (
                         <div className="bg-muted/20 rounded-lg p-2">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ecliptic Latitude</p>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Ecliptic Latitude</p>
                           <p className="text-foreground text-xs mt-0.5">{g.lat_ecl.toFixed(4)}°</p>
                         </div>
                       )}
@@ -1208,7 +1771,7 @@ export default function KundliPage() {
                 <div className="space-y-1.5">
                   {visibleYogas.map((y) => {
                     const isPresent = y.present !== false;
-                    const strengthCls = !isPresent ? "text-muted-foreground/40 border-border/10 bg-muted/5"
+                    const strengthCls = !isPresent ? "text-muted-foreground/60 border-border/10 bg-muted/5"
                       : y.strength === "Very Strong" ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
                       : y.strength === "Strong" ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
                       : "text-muted-foreground border-border/20 bg-muted/10";
@@ -1218,10 +1781,10 @@ export default function KundliPage() {
                         <div className="flex items-center justify-between mb-0.5">
                           <div className="flex items-center gap-2">
                             <span className={`text-xs font-bold ${isPresent ? "text-emerald-400" : "text-red-400/50"}`}>{isPresent ? "✓" : "✗"}</span>
-                            <p className={`text-xs font-medium ${isPresent ? "text-foreground" : "text-muted-foreground/50"}`}>{y.name}</p>
-                            {y.category && <span className={`text-[10px] ${catColor}`}>{y.category}</span>}
+                            <p className={`text-xs font-medium ${isPresent ? "text-foreground" : "text-muted-foreground/70"}`}>{y.name}</p>
+                            {y.category && <span className={`text-xs ${catColor}`}>{y.category}</span>}
                           </div>
-                          {isPresent && <span className={`text-[10px] px-1.5 py-0.5 rounded border ${strengthCls}`}>{y.strength}</span>}
+                          {isPresent && <span className={`text-xs px-1.5 py-0.5 rounded border ${strengthCls}`}>{y.strength}</span>}
                         </div>
                         {isPresent && <p className="text-xs text-muted-foreground">{y.desc}</p>}
                       </div>
@@ -1276,10 +1839,14 @@ export default function KundliPage() {
               </div>
               <div className="space-y-1.5 text-xs">
                 {[
-                  ["Vara (Weekday)", kundaliData.birth_panchang.vara],
+                  ["Weekday (Vara)", kundaliData.birth_panchang.vara],
                   ["Tithi", `${kundaliData.birth_panchang.tithi_num} — ${kundaliData.birth_panchang.tithi} (${kundaliData.birth_panchang.paksha})`],
                   ["27 Yoga", kundaliData.birth_panchang.yoga],
                   ["Karana", kundaliData.birth_panchang.karana],
+                  ["Moon Sign", kundaliData.birth_panchang.moonsign ?? kundaliData.grahas["Chandra"]?.rashi ?? "—"],
+                  ["Sun Sign", kundaliData.birth_panchang.sunsign ?? kundaliData.grahas["Surya"]?.rashi ?? "—"],
+                  ["Moon Nakshatra", kundaliData.birth_panchang.moon_nakshatra ?? kundaliData.grahas["Chandra"]?.nakshatra ?? "—"],
+                  ["Surya Nakshatra", kundaliData.birth_panchang.surya_nakshatra ?? kundaliData.grahas["Surya"]?.nakshatra ?? "—"],
                   ["Sunrise", kundaliData.birth_panchang.sunrise],
                   ["Sunset", kundaliData.birth_panchang.sunset],
                 ].map(([k, v]) => (
@@ -1310,9 +1877,10 @@ export default function KundliPage() {
                   ["Nak. Paya", kundaliData.personal.nakshatra_paya],
                   ["Rashi Paya", kundaliData.personal.rashi_paya],
                   ["Yunja", kundaliData.personal.yunja],
+                  ...(kundaliData.personal.tara ? [["Tara", kundaliData.personal.tara]] : []),
                 ].map(([k, v]) => (
                   <div key={k} className="bg-muted/20 rounded-lg p-2">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{k}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">{k}</p>
                     <p className="font-medium text-foreground mt-0.5">{v}</p>
                   </div>
                 ))}
@@ -1333,14 +1901,14 @@ export default function KundliPage() {
                     <span className="font-medium text-foreground w-24 shrink-0">{name}</span>
                     <span className="text-muted-foreground">{u.rashi_name}</span>
                     <span className="text-muted-foreground/60">{u.dms}</span>
-                    <span className="text-muted-foreground/50 text-[10px] ml-auto">{u.nakshatra}</span>
+                    <span className="text-muted-foreground/70 text-xs ml-auto">{u.nakshatra}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <p className="text-[10px] text-muted-foreground/40 leading-relaxed pb-2">
+          <p className="text-xs text-muted-foreground/60 leading-relaxed pb-2">
             Whole Sign Houses · {kundaliData?.ayanamsha_label ?? "Lahiri"} · {kundaliData?.rahu_mode === "true" ? "True" : "Mean"} Rahu/Ketu · pyswisseph DE431 · For guidance consult a qualified Jyotishi.
           </p>
         </div>

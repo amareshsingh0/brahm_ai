@@ -66,7 +66,7 @@ export default function ProfilePage() {
             </div>
             {sub?.expires_at && (
               <div className="text-right">
-                <p className="text-[10px] text-muted-foreground">Renews</p>
+                <p className="text-xs text-muted-foreground">Renews</p>
                 <p className="text-xs text-foreground">{new Date(sub.expires_at).toLocaleDateString("en-IN")}</p>
               </div>
             )}
@@ -163,7 +163,7 @@ function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: strin
     <div className="flex items-center gap-3 bg-muted/20 rounded-lg p-3">
       <span className="text-primary">{icon}</span>
       <div>
-        <p className="text-[10px] text-muted-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-sm text-foreground">{value}</p>
       </div>
     </div>
@@ -173,7 +173,7 @@ function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: strin
 function QuickStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-center bg-muted/20 rounded-lg p-3">
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-sm font-display text-foreground">{value}</p>
     </div>
   );

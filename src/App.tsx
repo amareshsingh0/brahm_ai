@@ -47,7 +47,7 @@ function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
       <div className="text-center space-y-3">
-        <div className="text-4xl animate-pulse-glow">☽</div>
+        <div className="text-4xl animate-pulse-glow">☽︎</div>
         <p className="text-xs text-muted-foreground">Consulting the stars...</p>
       </div>
     </div>

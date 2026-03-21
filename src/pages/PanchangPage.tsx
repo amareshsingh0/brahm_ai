@@ -157,14 +157,14 @@ function AngaCard({
           <span className="text-2xl mt-0.5">{icon}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
-              <span className="text-[9px] text-muted-foreground">({hindi})</span>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
+              <span className="text-xs text-muted-foreground">({hindi})</span>
             </div>
             <p className="font-semibold text-sm">{value}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{sub}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{sub}</p>
           </div>
           <div className="flex flex-col items-end gap-1.5 shrink-0">
-            <Badge className={`text-[9px] ${qCls}`}>{quality}</Badge>
+            <Badge className={`text-xs ${qCls}`}>{quality}</Badge>
             <ExpandIcon open={expanded} />
           </div>
         </div>
@@ -287,13 +287,13 @@ function ChogCard({ p, expanded, onToggle }: {
           <span className="font-semibold text-sm">{p.name}</span>
           <div className="flex items-center gap-1.5">
             {p.auspicious
-              ? <span className="text-[9px] text-emerald-400">✓ Good</span>
-              : <span className="text-[9px] text-red-400">✕ Avoid</span>}
+              ? <span className="text-xs text-emerald-400">✓ Good</span>
+              : <span className="text-xs text-red-400">✕ Avoid</span>}
             {exp && <ExpandIcon open={expanded} />}
           </div>
         </div>
-        <p className="text-[10px] opacity-70">{p.hindi}</p>
-        <p className="font-mono text-[10px] mt-1.5 opacity-80">{p.start} – {p.end}</p>
+        <p className="text-xs opacity-70">{p.hindi}</p>
+        <p className="font-mono text-xs mt-1.5 opacity-80">{p.start} – {p.end}</p>
       </div>
 
       <AnimatePresence initial={false}>
@@ -306,9 +306,9 @@ function ChogCard({ p, expanded, onToggle }: {
             className="overflow-hidden"
           >
             <div className="px-3 pb-3 space-y-1.5 border-t border-white/10 pt-2">
-              <p className="text-[10px] opacity-80 leading-relaxed">{exp.what}</p>
-              <p className="text-[10px] text-emerald-400/80 leading-relaxed"><span className="font-medium">✓ </span>{exp.good}</p>
-              <p className="text-[10px] text-red-400/80 leading-relaxed"><span className="font-medium">✕ </span>{exp.avoid}</p>
+              <p className="text-xs opacity-80 leading-relaxed">{exp.what}</p>
+              <p className="text-xs text-emerald-400/80 leading-relaxed"><span className="font-medium">✓ </span>{exp.good}</p>
+              <p className="text-xs text-red-400/80 leading-relaxed"><span className="font-medium">✕ </span>{exp.avoid}</p>
             </div>
           </motion.div>
         )}
@@ -397,7 +397,7 @@ export default function PanchangPage() {
         </div>
         <div className="flex items-center gap-3 mt-1">
           {data?.panchaka && (
-            <Badge className="bg-rose-500/10 text-rose-400 border border-rose-500/30 text-[10px]">⚠ Panchaka Active</Badge>
+            <Badge className="bg-rose-500/10 text-rose-400 border border-rose-500/30 text-xs">⚠ Panchaka Active</Badge>
           )}
           <button onClick={() => refetch()} disabled={isFetching}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
@@ -443,17 +443,17 @@ export default function PanchangPage() {
           <div className="text-center py-2 text-sm text-primary/70 flex items-center justify-center gap-2 flex-wrap">
             <span>{paksha} · {data.tithi.name}</span>
             {tithiBadge && (
-              <Badge className={`text-[9px] border ${tithiBadge.cls}`} title={tithiBadge.label}>
+              <Badge className={`text-xs border ${tithiBadge.cls}`} title={tithiBadge.label}>
                 {tithiType === "vridhi" ? "Vridhi" : "Ksheya"}
               </Badge>
             )}
             {tithiBadge && (
-              <span className="text-[10px] text-muted-foreground/60">{tithiBadge.label}</span>
+              <span className="text-xs text-muted-foreground/60">{tithiBadge.label}</span>
             )}
           </div>
 
           {/* Hint */}
-          <p className="text-[10px] text-muted-foreground/50 text-center">
+          <p className="text-xs text-muted-foreground/50 text-center">
             Tap any card or row to understand what it means and what to do
           </p>
 
@@ -520,7 +520,7 @@ export default function PanchangPage() {
                   </button>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground/50 mb-3">Tap a period to see what activities are good or bad in that window</p>
+              <p className="text-xs text-muted-foreground/50 mb-3">Tap a period to see what activities are good or bad in that window</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                 {(chogTab === "day" ? data.choghadiya.day : data.choghadiya.night).map((p, i) => (
                   <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}>

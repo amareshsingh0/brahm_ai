@@ -199,7 +199,7 @@ export default function LoginPage() {
                   </Button>
                 </form>
 
-                <p className="text-[10px] text-center text-muted-foreground/50 mt-4">
+                <p className="text-xs text-center text-muted-foreground/50 mt-4">
                   New users are automatically registered on first login.
                 </p>
               </motion.div>
@@ -257,7 +257,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleResend}
                     disabled={countdown > 0 || loading}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary disabled:opacity-40 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary disabled:opacity-60 transition-colors"
                   >
                     <RefreshCw className="h-3 w-3" />
                     {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
@@ -268,7 +268,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setOtpSent(false); setOtpDigits(Array(OTP_LENGTH).fill("")); }}
-                  className="block mx-auto mt-2 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                  className="block mx-auto mt-2 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                 >
                   Change number
                 </button>
@@ -277,7 +277,7 @@ export default function LoginPage() {
           </AnimatePresence>
         </div>
 
-        <p className="text-[10px] text-center text-muted-foreground/40 mt-6">
+        <p className="text-xs text-center text-muted-foreground/60 mt-6">
           By continuing you agree to our Terms of Service and Privacy Policy.
         </p>
       </motion.div>

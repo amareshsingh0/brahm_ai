@@ -40,7 +40,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         className="relative rounded-2xl overflow-hidden"
       >
-        <img src={cosmicBg} alt="Cosmic background" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+        <img src={cosmicBg} alt="Cosmic background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
         <div className="relative z-10 p-8 md:p-12">
           <h1 className="font-display text-3xl md:text-4xl text-foreground mb-2 text-glow-gold">
@@ -71,7 +71,7 @@ export default function Dashboard() {
             <stat.icon className="h-5 w-5 text-primary mb-2" />
             <p className="text-xs text-muted-foreground">{stat.label}</p>
             <p className="font-display text-lg text-foreground">{stat.value}</p>
-            <p className="text-[10px] text-muted-foreground">{stat.sub}</p>
+            <p className="text-xs text-muted-foreground">{stat.sub}</p>
           </motion.div>
         ))}
       </div>
@@ -123,7 +123,7 @@ export default function Dashboard() {
             <Link to={link.url} className="cosmic-card rounded-xl p-4 block hover:glow-border transition-shadow">
               <span className="text-2xl block mb-2">{link.icon}</span>
               <p className="text-sm font-display text-foreground">{link.label}</p>
-              <p className="text-[10px] text-muted-foreground">{link.desc}</p>
+              <p className="text-xs text-muted-foreground">{link.desc}</p>
             </Link>
           </motion.div>
         ))}

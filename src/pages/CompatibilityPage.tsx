@@ -62,11 +62,11 @@ function GunaBar({ guna, delay }: { guna: GunaScore; delay: number }) {
           <div className="flex items-center justify-between mb-0.5">
             <span className="text-sm font-medium text-foreground">{guna.name}</span>
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] ${textColor(guna.score, guna.max)}`}>{pctLabel(guna.score, guna.max)}</span>
+              <span className={`text-xs ${textColor(guna.score, guna.max)}`}>{pctLabel(guna.score, guna.max)}</span>
               <span className={`text-xs font-bold ${textColor(guna.score, guna.max)}`}>{guna.score}/{guna.max}</span>
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mb-1.5">{guna.desc}</p>
+          <p className="text-xs text-muted-foreground mb-1.5">{guna.desc}</p>
           <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
             <motion.div
               className={`h-full ${barColor(guna.score, guna.max)} rounded-full`}
@@ -75,7 +75,7 @@ function GunaBar({ guna, delay }: { guna: GunaScore; delay: number }) {
             />
           </div>
           {guna.name === "Varna" && guna.alt_score !== undefined && guna.alt_score !== guna.score && (
-            <p className="text-[9px] text-amber-400/80 mt-1">
+            <p className="text-xs text-amber-400/80 mt-1">
               Rashi-based: {guna.alt_score}/{guna.max} · Nakshatra-based: {guna.score}/{guna.max}
             </p>
           )}
@@ -91,7 +91,7 @@ function GunaBar({ guna, delay }: { guna: GunaScore; delay: number }) {
           <motion.p
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="text-[11px] text-muted-foreground leading-relaxed mt-2 pt-2 border-t border-border/20 overflow-hidden"
+            className="text-xs text-muted-foreground leading-relaxed mt-2 pt-2 border-t border-border/20 overflow-hidden"
           >
             {guna.interpretation}
           </motion.p>
@@ -121,7 +121,7 @@ function DoshaCard({ dosha, delay }: { dosha: DoshaSummary; delay: number }) {
           <span className="text-sm font-medium text-foreground">{dosha.name}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${badgeCls}`}>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeCls}`}>
             {active ? dosha.severity : "None"}
           </span>
           <button onClick={() => setOpen(!open)} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -132,8 +132,8 @@ function DoshaCard({ dosha, delay }: { dosha: DoshaSummary; delay: number }) {
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1 overflow-hidden">
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{dosha.note}</p>
-            {dosha.cancellation && <p className="text-[10px] text-emerald-400/90 leading-relaxed">✓ {dosha.cancellation}</p>}
+            <p className="text-xs text-muted-foreground leading-relaxed">{dosha.note}</p>
+            {dosha.cancellation && <p className="text-xs text-emerald-400/90 leading-relaxed">✓ {dosha.cancellation}</p>}
           </motion.div>
         )}
       </AnimatePresence>
@@ -150,14 +150,14 @@ function LifeAreaBar({ area, delay }: { area: LifeAreaScore; delay: number }) {
       <span className="text-base w-6 text-center shrink-0">{area.icon}</span>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between mb-0.5">
-          <span className="text-[11px] font-medium text-foreground">{area.area}</span>
-          <span className={`text-[10px] font-medium ${lc}`}>{area.label}</span>
+          <span className="text-xs font-medium text-foreground">{area.area}</span>
+          <span className={`text-xs font-medium ${lc}`}>{area.label}</span>
         </div>
         <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
           <motion.div className={`h-full ${bc} rounded-full`} initial={{ width: 0 }} animate={{ width: `${area.score}%` }} transition={{ delay: delay + 0.1, duration: 0.5, ease: "easeOut" }} />
         </div>
       </div>
-      <span className="text-[10px] text-muted-foreground w-7 text-right shrink-0">{area.score}%</span>
+      <span className="text-xs text-muted-foreground w-7 text-right shrink-0">{area.score}%</span>
     </motion.div>
   );
 }
@@ -166,9 +166,9 @@ function LifeAreaBar({ area, delay }: { area: LifeAreaScore; delay: number }) {
 function ProfileRow({ label, valA, valB, highlight }: { label: string; valA: string; valB: string; highlight?: boolean }) {
   return (
     <div className={`grid grid-cols-3 gap-1 py-1.5 border-b border-border/10 last:border-0 ${highlight ? "text-primary" : ""}`}>
-      <span className="text-[10px] text-muted-foreground">{label}</span>
-      <span className="text-[10px] text-foreground font-medium text-center">{valA}</span>
-      <span className="text-[10px] text-foreground font-medium text-center">{valB}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs text-foreground font-medium text-center">{valA}</span>
+      <span className="text-xs text-foreground font-medium text-center">{valB}</span>
     </div>
   );
 }
@@ -252,7 +252,7 @@ function generatePDF(result: CompatibilityResponse, nameA: string, nameB: string
 </head><body><div class="page">
 
 <div class="header-bar">
-  <h1>☽ Kundali Milan Report</h1>
+  <h1>☽︎ Kundali Milan Report</h1>
   <div class="subtitle">Ashtakoot 36-Guna Analysis · Vedic Astrology</div>
   <div style="margin-top:10px;font-size:13px;color:#e9d5ff">
     <strong style="color:#fbbf24">${nameA}</strong>
@@ -394,7 +394,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="font-display text-xl text-foreground">{nameA} <span className="text-primary">×</span> {nameB}</h2>
-          <p className="text-[11px] text-muted-foreground">Kundali Milan Report</p>
+          <p className="text-xs text-muted-foreground">Kundali Milan Report</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -434,17 +434,17 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="font-display text-3xl text-primary">{pct}%</span>
-                <span className="text-[9px] text-muted-foreground">{result.total_score}/36</span>
+                <span className="text-xs text-muted-foreground">{result.total_score}/36</span>
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
               <p className={`text-lg font-bold ${verdictColor}`}>{result.verdict}</p>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{result.verdict_detail}</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{result.verdict_detail}</p>
               <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
-                <span className={`text-[10px] px-2.5 py-1 rounded-full font-medium border ${result.mangal_dosha.person_a ? "bg-red-500/15 text-red-400 border-red-500/20" : "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"}`}>
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${result.mangal_dosha.person_a ? "bg-red-500/15 text-red-400 border-red-500/20" : "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"}`}>
                   {nameA}: Mangal {result.mangal_dosha.person_a ? "Present" : "Absent"}
                 </span>
-                <span className={`text-[10px] px-2.5 py-1 rounded-full font-medium border ${result.mangal_dosha.person_b ? "bg-red-500/15 text-red-400 border-red-500/20" : "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"}`}>
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${result.mangal_dosha.person_b ? "bg-red-500/15 text-red-400 border-red-500/20" : "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"}`}>
                   {nameB}: Mangal {result.mangal_dosha.person_b ? "Present" : "Absent"}
                 </span>
               </div>
@@ -487,7 +487,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
           {/* Guna bars */}
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Ashtakoot — 8 Kuta Analysis</h3>
-            <p className="text-[10px] text-muted-foreground mb-2">Tap ↓ on any row for couple-specific interpretation.</p>
+            <p className="text-xs text-muted-foreground mb-2">Tap ↓ on any row for couple-specific interpretation.</p>
             <div className="space-y-2">
               {result.gunas.map((g, i) => <GunaBar key={g.name} guna={g} delay={0.04 * i} />)}
             </div>
@@ -502,22 +502,22 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Birth Details</h3>
             {[{ label: nameA, p: personA }, { label: nameB, p: personB }].map(({ label, p }) => (
               <div key={label} className="mb-3 last:mb-0">
-                <p className="text-[10px] text-primary font-semibold mb-1.5">{label}</p>
+                <p className="text-xs text-primary font-semibold mb-1.5">{label}</p>
                 <div className="space-y-1">
                   {p.dob && (
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3 shrink-0" />
                       <span>{p.dob}</span>
                     </div>
                   )}
                   {p.time && (
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3 shrink-0" />
                       <span>{p.time}</span>
                     </div>
                   )}
                   {p.place && (
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" />
                       <span>{p.place}</span>
                     </div>
@@ -531,9 +531,9 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
           <div className="cosmic-card rounded-xl p-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Astrological Profiles</h3>
             <div className="grid grid-cols-3 gap-1 mb-1.5">
-              <span className="text-[9px] text-muted-foreground" />
-              <span className="text-[9px] text-primary text-center font-medium">{nameA}</span>
-              <span className="text-[9px] text-primary text-center font-medium">{nameB}</span>
+              <span className="text-xs text-muted-foreground" />
+              <span className="text-xs text-primary text-center font-medium">{nameA}</span>
+              <span className="text-xs text-primary text-center font-medium">{nameB}</span>
             </div>
             <ProfileRow label="Nakshatra" valA={result.nakshatra_a} valB={result.nakshatra_b} />
             <ProfileRow label="Rashi" valA={result.rashi_a} valB={result.rashi_b} />
@@ -543,7 +543,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
               highlight={result.nadi_a === result.nadi_b} />
             <ProfileRow label="Varna" valA={VARNA_LABEL[result.varna_a] ?? result.varna_a} valB={VARNA_LABEL[result.varna_b] ?? result.varna_b} />
             {result.yoni_a && <ProfileRow label="Yoni" valA={result.yoni_a} valB={result.yoni_b} />}
-            <p className="text-[9px] text-muted-foreground/50 pt-1 leading-relaxed">
+            <p className="text-xs text-muted-foreground/50 pt-1 leading-relaxed">
               * Varna = spiritual temperament by Moon nakshatra — not caste.
             </p>
           </div>
@@ -559,15 +559,15 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
                       {result.rajju_dosha.present ? <XCircle className="h-3 w-3 text-red-400" /> : <CheckCircle2 className="h-3 w-3 text-emerald-400" />}
                       <span className="text-xs font-medium text-foreground">Rajju Dosha</span>
                     </div>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${result.rajju_dosha.present ? "bg-red-500/20 text-red-400" : "bg-emerald-500/20 text-emerald-400"}`}>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${result.rajju_dosha.present ? "bg-red-500/20 text-red-400" : "bg-emerald-500/20 text-emerald-400"}`}>
                       {result.rajju_dosha.present ? result.rajju_dosha.severity : "None"}
                     </span>
                   </div>
-                  <div className="flex gap-3 mb-1 text-[10px] text-muted-foreground">
+                  <div className="flex gap-3 mb-1 text-xs text-muted-foreground">
                     <span>A: <span className="text-foreground">{result.rajju_dosha.rajju_a}</span></span>
                     <span>B: <span className="text-foreground">{result.rajju_dosha.rajju_b}</span></span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-3">{result.rajju_dosha.note}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{result.rajju_dosha.note}</p>
                 </div>
               )}
               {result.vedha_dosha && (
@@ -577,11 +577,11 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
                       {result.vedha_dosha.present ? <AlertTriangle className="h-3 w-3 text-amber-400" /> : <CheckCircle2 className="h-3 w-3 text-emerald-400" />}
                       <span className="text-xs font-medium text-foreground">Vedha Dosha</span>
                     </div>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${result.vedha_dosha.present ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"}`}>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${result.vedha_dosha.present ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"}`}>
                       {result.vedha_dosha.present ? "Present" : "None"}
                     </span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">{result.vedha_dosha.note}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{result.vedha_dosha.note}</p>
                 </div>
               )}
             </div>
@@ -611,7 +611,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
                     {result.strengths.map((s, i) => (
                       <motion.li key={i} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 * i }} className="flex items-start gap-2">
                         <span className="text-emerald-400 shrink-0 text-xs mt-0.5">✓</span>
-                        <span className="text-[11px] text-muted-foreground leading-relaxed">{s}</span>
+                        <span className="text-xs text-muted-foreground leading-relaxed">{s}</span>
                       </motion.li>
                     ))}
                   </ul>
@@ -627,7 +627,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
                     {result.challenges.map((c, i) => (
                       <motion.li key={i} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 * i }} className="flex items-start gap-2">
                         <span className="text-amber-400 shrink-0 text-xs mt-0.5">▲</span>
-                        <span className="text-[11px] text-muted-foreground leading-relaxed">{c}</span>
+                        <span className="text-xs text-muted-foreground leading-relaxed">{c}</span>
                       </motion.li>
                     ))}
                   </ul>
@@ -636,7 +636,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
             </div>
           )}
 
-          <p className="text-[9px] text-muted-foreground/40 leading-relaxed pb-2">
+          <p className="text-xs text-muted-foreground/60 leading-relaxed pb-2">
             Lahiri Ayanamsha · pyswisseph DE431 · Ashtakoot is one of many factors — consult a qualified Jyotishi.
           </p>
         </div>
@@ -694,7 +694,7 @@ function PersonForm({ label, person, selectedCity, onChange, onCitySelect }: {
           <Input value={person.place} onChange={e => handleCityInput(e.target.value)} placeholder="Search city..." autoComplete="off"
             className={`bg-muted/20 border-border/30 ${selectedCity ? "border-primary/50" : ""}`} />
           {selectedCity && (
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-primary/70">
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-primary/70">
               ✓ {selectedCity.lat.toFixed(1)}, {selectedCity.lon.toFixed(1)}
             </span>
           )}
@@ -773,7 +773,7 @@ export default function CompatibilityPage() {
           </div>
 
           <div className="mt-4 cosmic-card rounded-xl p-3 flex flex-col gap-2">
-            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Varna System</p>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Varna System</p>
             <div className="flex gap-2 flex-wrap">
               {(["both", "nakshatra", "rashi"] as const).map(sys => (
                 <button key={sys} onClick={() => setVarnaSystem(sys)}
@@ -782,7 +782,7 @@ export default function CompatibilityPage() {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {varnaSystem === "nakshatra" && "Parashari — Varna by birth Nakshatra"}
               {varnaSystem === "rashi" && "Modern Drik Ganita — Varna by Moon sign element"}
               {varnaSystem === "both" && "Shows Nakshatra score; Rashi alternative shown if different"}
@@ -794,14 +794,14 @@ export default function CompatibilityPage() {
           <button
             onClick={handleGenerate}
             disabled={!personA.dob || !personB.dob || compatibility.isPending}
-            className="mt-5 w-full py-3 rounded-xl font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-30"
+            className="mt-5 w-full py-3 rounded-xl font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {compatibility.isPending
               ? <><Loader2 className="h-4 w-4 animate-spin" /> Calculating Kundali Milan…</>
               : <><Heart className="h-4 w-4" /> Calculate Compatibility</>}
           </button>
 
-          <p className="mt-3 text-[10px] text-muted-foreground text-center">
+          <p className="mt-3 text-xs text-muted-foreground text-center">
             Lahiri Ayanamsha · Moon Nakshatra · pyswisseph · Rajju &amp; Vedha included · PDF export
           </p>
         </motion.div>

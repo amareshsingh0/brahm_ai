@@ -163,9 +163,9 @@ export default function LandingPage() {
                 className="cosmic-card rounded-xl p-4 text-center"
               >
                 <fact.icon className="h-5 w-5 text-primary mx-auto mb-2 zodiac-glow" />
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{fact.label}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{fact.label}</p>
                 <p className="font-display text-base text-foreground mt-0.5">{fact.value}</p>
-                <p className="text-[10px] text-muted-foreground">{fact.sub}</p>
+                <p className="text-xs text-muted-foreground">{fact.sub}</p>
               </motion.div>
             ))}
           </div>
@@ -217,7 +217,7 @@ export default function LandingPage() {
             >
               <div className="flex items-start justify-between">
                 <span className="text-3xl">{f.icon}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${planColors[f.plan]}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${planColors[f.plan]}`}>
                   {f.plan}
                 </span>
               </div>
@@ -253,7 +253,7 @@ export default function LandingPage() {
                 className="cosmic-card rounded-xl p-5 flex flex-col gap-3"
               >
                 <span className="text-3xl">{item.icon}</span>
-                <p className="text-[10px] text-primary uppercase tracking-widest font-medium">{item.step}</p>
+                <p className="text-xs text-primary uppercase tracking-widest font-medium">{item.step}</p>
                 <h3 className="font-display text-base text-foreground">{item.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
               </motion.div>
@@ -364,7 +364,7 @@ export default function LandingPage() {
           <Link to="/rashi" className="hover:text-foreground transition-colors">Rashi Explorer</Link>
           <Link to="/login" className="hover:text-foreground transition-colors">Login</Link>
         </div>
-        <p className="text-[10px] text-muted-foreground/40 mt-4">
+        <p className="text-xs text-muted-foreground/60 mt-4">
           Grounded in Vedic tradition Â· Powered by AI Â· 1.1M sacred text chunks
         </p>
       </footer>

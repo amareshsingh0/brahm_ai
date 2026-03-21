@@ -132,16 +132,16 @@ export default function KnowledgeBasePage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{book.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-muted-foreground">{book.format}</span>
-                        <span className="text-[10px] text-muted-foreground">{book.size}</span>
-                        <Badge variant="outline" className="text-[9px] h-4">{book.language}</Badge>
+                        <span className="text-xs text-muted-foreground">{book.format}</span>
+                        <span className="text-xs text-muted-foreground">{book.size}</span>
+                        <Badge variant="outline" className="text-xs h-4">{book.language}</Badge>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       {book.chunks > 0 && (
-                        <span className="text-[10px] text-muted-foreground">{book.chunks.toLocaleString()} chunks</span>
+                        <span className="text-xs text-muted-foreground">{book.chunks.toLocaleString()} chunks</span>
                       )}
-                      <Badge variant="outline" className={`text-[10px] gap-1 ${statusColors[book.status]}`}>
+                      <Badge variant="outline" className={`text-xs gap-1 ${statusColors[book.status]}`}>
                         {statusIcons[book.status]}
                         {book.status}
                       </Badge>
@@ -172,7 +172,7 @@ export default function KnowledgeBasePage() {
               </p>
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {["PDF", "TXT", "JSON", "JSONL", "CSV", "EPUB", "MD", "HTML"].map((f) => (
-                  <Badge key={f} variant="outline" className="text-[10px]">{f}</Badge>
+                  <Badge key={f} variant="outline" className="text-xs">{f}</Badge>
                 ))}
               </div>
               <Button variant="outline">
@@ -197,9 +197,9 @@ export default function KnowledgeBasePage() {
                 <div key={s.step}>
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs font-medium">{s.step}</p>
-                    <span className="text-[10px] text-muted-foreground">{s.progress}%</span>
+                    <span className="text-xs text-muted-foreground">{s.progress}%</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mb-1.5">{s.desc}</p>
+                  <p className="text-xs text-muted-foreground mb-1.5">{s.desc}</p>
                   <Progress value={s.progress} className="h-1.5" />
                 </div>
               ))}
@@ -222,7 +222,7 @@ export default function KnowledgeBasePage() {
                     <stat.icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+                    <p className="text-xs text-muted-foreground">{stat.label}</p>
                     <p className="text-lg font-display">{stat.value}</p>
                   </div>
                 </CardContent>
@@ -275,8 +275,8 @@ export default function KnowledgeBasePage() {
                   <div key={l.lang} className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
                     <p className="text-lg font-serif">{l.script}</p>
                     <p className="text-xs font-medium mt-1">{l.lang}</p>
-                    <p className="text-[10px] text-muted-foreground">{l.books} texts</p>
-                    <Badge variant="secondary" className="text-[9px] mt-1">{l.status}</Badge>
+                    <p className="text-xs text-muted-foreground">{l.books} texts</p>
+                    <Badge variant="secondary" className="text-xs mt-1">{l.status}</Badge>
                   </div>
                 ))}
               </div>

@@ -138,6 +138,36 @@ def _drik_bala(gname: str, house: int, all_houses: dict) -> float:
     return max(0, round(30 + bala, 2))
 
 
+def _sthana_bala_detail(gname: str, rashi_i: int) -> dict:
+    """Return Sthana Bala sub-components as dict."""
+    exalt_rashi = EXALTATION.get(gname)
+    debil_rashi = DEBILITATION.get(gname)
+    if exalt_rashi is not None and debil_rashi is not None:
+        dist = (rashi_i - debil_rashi) % 12
+        uccha = (dist / 6.0) * 60 if dist <= 6 else ((12 - dist) / 6.0) * 60
+    else:
+        uccha = 30.0
+
+    is_odd_sign = rashi_i % 2 == 0
+    if gname in ("Surya", "Mangal", "Guru"):
+        oja_yugma = 15.0 if is_odd_sign else 0.0
+    elif gname in ("Chandra", "Shukra"):
+        oja_yugma = 15.0 if not is_odd_sign else 0.0
+    else:
+        oja_yugma = 7.5
+
+    kendradi = 30.0  # average
+    drekkana = 15.0  # average
+
+    return {
+        "uccha": round(uccha, 2),
+        "oja_yugma": round(oja_yugma, 2),
+        "kendradi": round(kendradi, 2),
+        "drekkana": round(drekkana, 2),
+        "total": round(uccha + oja_yugma + kendradi + drekkana, 2),
+    }
+
+
 def calc_shadbala(grahas: dict) -> dict:
     """
     Calculate Shadbala for 7 planets.
@@ -170,6 +200,7 @@ def calc_shadbala(grahas: dict) -> dict:
 
         result[gname] = {
             "sthana_bala": sthana,
+            "sthana_detail": _sthana_bala_detail(gname, rashi_i),
             "dig_bala": dig,
             "kaala_bala": kaala,
             "chesta_bala": chesta,

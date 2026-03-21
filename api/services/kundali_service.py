@@ -69,6 +69,7 @@ _TITHI_NAMES   = [
 ]
 _VARA_NAMES    = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
 _COMBUST_ORB   = {"Chandra":12,"Mangal":17,"Budh":14,"Guru":11,"Shukra":10,"Shani":15}
+_TARA_NAMES    = ["Janma","Sampat","Vipat","Kshema","Pratyak","Sadhana","Naidhana","Mitra","Parama Mitra"]
 
 
 _GRAHAS_MAP_MEAN = None
@@ -107,23 +108,47 @@ def _graha_relationship(gname: str, rashi_i: int) -> str:
     return "Neutral"
 
 
-def _calc_pratyantardashas(antar_lord: str, antar_start: datetime, antar_years: float) -> list:
+def _calc_pratyantardashas(antar_lord: str, antar_start: datetime, antar_years: float,
+                            include_sukshma: bool = False) -> list:
     """Calculate Pratyantar Dashas (3rd level) within an Antardasha."""
     start_idx = DASHA_SEQ.index(antar_lord)
     pratyantars = []
     cur = antar_start
     for i in range(9):
         pl = DASHA_SEQ[(start_idx + i) % 9]
-        prat_days = (antar_years * DASHA_YEARS[pl] / 120) * 365.25
+        prat_years = antar_years * DASHA_YEARS[pl] / 120
+        prat_days = prat_years * 365.25
         end = cur + timedelta(days=prat_days)
-        pratyantars.append({
+        entry = {
             "lord": pl,
             "days": round(prat_days),
             "start": cur.strftime("%Y-%m-%d"),
             "end": end.strftime("%Y-%m-%d"),
-        })
+        }
+        if include_sukshma:
+            entry["sukshmadashas"] = _calc_sukshma_dashas(pl, cur, prat_years)
+        pratyantars.append(entry)
         cur = end
     return pratyantars
+
+
+def _calc_sukshma_dashas(pratyantar_lord: str, pratyantar_start: datetime, pratyantar_years: float) -> list:
+    """Calculate Sukshma Dashas (4th level) within a Pratyantar Dasha."""
+    start_idx = DASHA_SEQ.index(pratyantar_lord)
+    sukshmas = []
+    cur = pratyantar_start
+    for i in range(9):
+        pl = DASHA_SEQ[(start_idx + i) % 9]
+        days = (pratyantar_years * DASHA_YEARS[pl] / 120) * 365.25
+        end = cur + timedelta(days=days)
+        sukshmas.append({
+            "lord": pl,
+            "hours": round(days * 24),
+            "start": cur.strftime("%Y-%m-%d %H:%M"),
+            "end": end.strftime("%Y-%m-%d %H:%M"),
+        })
+        cur = end
+    return sukshmas
 
 
 def _is_combust(gname: str, g_lon: float, sun_lon: float, g_retro: bool) -> bool:
@@ -167,7 +192,8 @@ def _calc_bhav_chalit(jd: float, lat: float, lon: float, ayanamsha: float, graha
 
 
 def _calc_birth_panchang(jd: float, sun_lon: float, moon_lon: float,
-                          lat: float, lon_e: float, tz: float) -> dict:
+                          lat: float, lon_e: float, tz: float,
+                          moon_nak_i: int = 0, sun_nak_i: int = 0) -> dict:
     """Calculate birth-moment Panchang: Tithi, Yoga, Karana, Vara, Sunrise, Sunset."""
     diff = (moon_lon - sun_lon) % 360
 
@@ -207,10 +233,16 @@ def _calc_birth_panchang(jd: float, sun_lon: float, moon_lon: float,
     except Exception:
         pass
 
+    moon_rashi_i = int(moon_lon / 30)
+    sun_rashi_i  = int(sun_lon / 30)
     return {
         "tithi": tithi_name, "tithi_num": tithi_num, "paksha": paksha,
         "yoga": yoga_name, "karana": karana, "vara": vara,
         "sunrise": sunrise, "sunset": sunset,
+        "moonsign": RASHI_NAMES[moon_rashi_i],
+        "sunsign":  RASHI_NAMES[sun_rashi_i],
+        "moon_nakshatra": NAKSHATRAS[moon_nak_i] if moon_nak_i < 27 else "",
+        "surya_nakshatra": NAKSHATRAS[sun_nak_i]  if sun_nak_i  < 27 else "",
     }
 
 
@@ -226,6 +258,7 @@ def _personal_chars(moon_nak_i: int, moon_rashi_i: int, lagna_rashi_i: int, nak_
         "nakshatra_paya": _NAK_PAYA_BY_LORD.get(nak_lord, "Silver"),
         "rashi_paya":     _RASHI_PAYA[lagna_rashi_i],
         "yunja":          "Adya" if moon_nak_i < 9 else ("Madhya" if moon_nak_i < 18 else "Antya"),
+        "tara":           _TARA_NAMES[moon_nak_i % 9],
     }
 
 
@@ -427,7 +460,8 @@ def _detect_yogas(grahas: dict, houses: list, lagna_rashi_i: int) -> list:
 
 
 def _calc_antardashas(maha_lord: str, maha_start: datetime, maha_years: float,
-                      include_pratyantar: bool = False) -> list:
+                      include_pratyantar: bool = False,
+                      include_sukshma: bool = False) -> list:
     """Calculate Antardashas (sub-periods) within a Mahadasha."""
     total_days = maha_years * 365.25
     start_idx = DASHA_SEQ.index(maha_lord)
@@ -446,7 +480,9 @@ def _calc_antardashas(maha_lord: str, maha_start: datetime, maha_years: float,
             "end": end.strftime("%Y-%m-%d"),
         }
         if include_pratyantar:
-            entry["pratyantardashas"] = _calc_pratyantardashas(antar_lord, cur, antar_years)
+            entry["pratyantardashas"] = _calc_pratyantardashas(
+                antar_lord, cur, antar_years, include_sukshma=include_sukshma
+            )
         antardashas.append(entry)
         cur = end
 
@@ -486,6 +522,7 @@ def calc_kundali(
         calc_options = []
 
     include_pratyantar = "pratyantar" in calc_options
+    include_sukshma = "sukshma" in calc_options
 
     # Convert local time → UTC, handling date rollover
     dt_utc = datetime(year, month, day, hour, minute) - timedelta(hours=tz)
@@ -612,7 +649,8 @@ def calc_kundali(
         elapsed_years = full_maha_years - maha_years
         virtual_start = birth_dt - timedelta(days=elapsed_years * 365.25)
         all_antars = _calc_antardashas(lord, virtual_start, full_maha_years,
-                                       include_pratyantar=include_pratyantar)
+                                       include_pratyantar=include_pratyantar,
+                                       include_sukshma=include_sukshma)
         birth_date = birth_dt.date()
         post_birth = [a for a in all_antars
                       if datetime.strptime(a["end"], "%Y-%m-%d").date() >= birth_date]
@@ -633,7 +671,8 @@ def calc_kundali(
         }
         if "antardasha" in calc_options:
             dasha_entry["antardashas"] = _calc_antardashas(
-                lord, cur, maha_years_full, include_pratyantar=include_pratyantar
+                lord, cur, maha_years_full, include_pratyantar=include_pratyantar,
+                include_sukshma=include_sukshma
             )
         dashas.append(dasha_entry)
         cur = end
@@ -670,6 +709,8 @@ def calc_kundali(
             "ruler_of": [(r_i - lagna_rashi_i) % 12 + 1
                          for r_i, lord in RASHI_LORDS.items() if lord == gn],
             "lat_ecl": round(g.get("lat_ecl", 0.0), 4),
+            "ra":      round(g.get("ra", 0.0), 4),
+            "dec":     round(g.get("dec", 0.0), 4),
         }
 
     # House output with significations
@@ -734,7 +775,9 @@ def calc_kundali(
 
     # Birth Panchang
     birth_panchang = _calc_birth_panchang(
-        jd, grahas["Surya"]["longitude"], grahas["Chandra"]["longitude"], lat, lon, tz
+        jd, grahas["Surya"]["longitude"], grahas["Chandra"]["longitude"], lat, lon, tz,
+        moon_nak_i=grahas["Chandra"]["nakshatra_idx"],
+        sun_nak_i=grahas["Surya"]["nakshatra_idx"],
     )
 
     # Personal characteristics

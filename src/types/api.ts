@@ -42,6 +42,8 @@ export interface GrahaData {
   combust?: boolean;
   ruler_of?: number[];
   lat_ecl?: number;
+  ra?: number;
+  dec?: number;
 }
 export interface NavamshaGraha {
   rashi: string;
@@ -71,11 +73,18 @@ export interface HouseData {
   tattva?: string;
   aspected_by?: string[];
 }
+export interface SukshmaData {
+  lord: string;
+  hours: number;
+  start: string;
+  end: string;
+}
 export interface PratyantarData {
   lord: string;
   days: number;
   start: string;
   end: string;
+  sukshmadashas?: SukshmaData[];
 }
 export interface AntardashaData {
   lord: string;
@@ -108,6 +117,10 @@ export interface BirthPanchang {
   vara: string;
   sunrise: string;
   sunset: string;
+  moonsign?: string;
+  sunsign?: string;
+  moon_nakshatra?: string;
+  surya_nakshatra?: string;
 }
 export interface PersonalChars {
   nadi: string;
@@ -119,6 +132,7 @@ export interface PersonalChars {
   nakshatra_paya: string;
   rashi_paya: string;
   yunja: string;
+  tara?: string;
 }
 export interface UpagrahaEntry {
   longitude: number;
@@ -145,6 +159,40 @@ export interface VargaChartData {
   houses: { house: number; rashi: string; lord: string }[];
   grahas: Record<string, VargaGraha>;
 }
+// ── Shadbala ──────────────────────────────────────────────────
+export interface ShadbalaPlanet {
+  sthana_bala: number;
+  dig_bala: number;
+  kaala_bala: number;
+  chesta_bala: number;
+  naisargika_bala: number;
+  drik_bala: number;
+  total_virupas: number;
+  total_rupas: number;
+  required_rupas: number;
+  ratio: number;
+  is_strong: boolean;
+  sthana_detail?: { uccha: number; oja_yugma: number; kendradi: number; drekkana: number; total: number };
+}
+export interface ShadbalaResponse {
+  planets: Record<string, ShadbalaPlanet>;
+}
+export interface BhavabalaEntry {
+  house: number;
+  rashi: string;
+  lord: string;
+  strength: number;
+  rank: number;
+}
+
+// ── Ashtakavarga ───────────────────────────────────────────────
+export interface AshtakavargaResponse {
+  bav: Record<string, { points: number[]; total: number }>;
+  sav: { points: number[]; total: number };
+  reduced_bav?: Record<string, { points: number[]; total: number }>;
+  reduced_sav?: { points: number[]; total: number };
+}
+
 export interface KundaliResponse {
   name: string;
   place: string;
@@ -169,6 +217,9 @@ export interface KundaliResponse {
   personal?: PersonalChars;
   bhav_chalit?: { cusps_sid: number[]; planets: Record<string, number> };
   upagraha?: Record<string, UpagrahaEntry>;
+  shadbala?: ShadbalaResponse;
+  bhavabala?: BhavabalaEntry[];
+  ashtakavarga?: AshtakavargaResponse;
 }
 
 // ── Panchang ──────────────────────────────────────────────────

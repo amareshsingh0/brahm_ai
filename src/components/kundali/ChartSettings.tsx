@@ -38,7 +38,7 @@ function OptionGroup<T extends string>({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
+      <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
       <div className="space-y-1">
         {options.map((opt) => (
           <button
@@ -51,7 +51,7 @@ function OptionGroup<T extends string>({
             }`}
           >
             <span className="font-medium">{opt.label}</span>
-            {opt.desc && <span className="block text-[10px] text-muted-foreground/70 mt-0.5">{opt.desc}</span>}
+            {opt.desc && <span className="block text-xs text-muted-foreground/70 mt-0.5">{opt.desc}</span>}
           </button>
         ))}
       </div>
@@ -114,7 +114,7 @@ export function ChartSettings({ onRecalculate }: { onRecalculate?: () => void })
           />
 
           {/* Info note */}
-          <div className="text-[9px] text-muted-foreground/50 border-t border-border/20 pt-3 leading-relaxed">
+          <div className="text-xs text-muted-foreground/50 border-t border-border/20 pt-3 leading-relaxed">
             Changing Ayanamsha or Rahu mode will recalculate the chart.
             Chart style and name language are display-only preferences.
           </div>

@@ -153,9 +153,9 @@ function eclipseIcon(type: string) {
 
 function TithiTypeBadge({ type }: { type: string }) {
   if (type === "vridhi")
-    return <Badge className="text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20">Vridhi</Badge>;
+    return <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Vridhi</Badge>;
   if (type === "ksheya")
-    return <Badge className="text-[9px] bg-orange-500/10 text-orange-400 border border-orange-500/20">Ksheya</Badge>;
+    return <Badge className="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20">Ksheya</Badge>;
   return null;
 }
 
@@ -189,9 +189,9 @@ function FestivalCard({ festival, index }: { festival: FestivalEntry; index: num
             <div className="flex items-center gap-1 flex-wrap justify-end">
               <TithiTypeBadge type={festival.tithi_type} />
               {festival.fast_note && (
-                <Badge className="text-[9px] bg-orange-500/10 text-orange-300 border border-orange-500/20">🕐 Vrat</Badge>
+                <Badge className="text-xs bg-orange-500/10 text-orange-300 border border-orange-500/20">🕐 Vrat</Badge>
               )}
-              {hasGrahan && <Badge className="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20">⚠ Grahan</Badge>}
+              {hasGrahan && <Badge className="text-xs bg-red-500/10 text-red-400 border border-red-500/20">⚠ Grahan</Badge>}
               {hasNotes && !hasGrahan && <AlertTriangle className="h-3 w-3 text-amber-400" />}
             </div>
           </div>
@@ -232,7 +232,7 @@ function FestivalCard({ festival, index }: { festival: FestivalEntry; index: num
           {/* ── Grahan conflict — ALWAYS visible ───────────────────────── */}
           {hasGrahan && (
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold text-red-400 flex items-center gap-1">
+              <p className="text-xs font-semibold text-red-400 flex items-center gap-1">
                 🌑 Eclipse Conflict &amp; Shift Reason
               </p>
               {grahanNotes.map((note, i) => (
@@ -249,7 +249,7 @@ function FestivalCard({ festival, index }: { festival: FestivalEntry; index: num
           {otherNotes.length > 0 && (
             <>
               <button
-                className="flex items-center gap-1 text-[10px] text-amber-400/70 hover:text-amber-400 transition-colors"
+                className="flex items-center gap-1 text-xs text-amber-400/70 hover:text-amber-400 transition-colors"
                 onClick={() => setExpanded(v => !v)}
               >
                 <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
@@ -306,11 +306,11 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
             <span className="text-3xl">{isSolar ? "☀️" : "🌕"}</span>
             <div className="flex items-center gap-1 flex-wrap justify-end">
               {isSolar
-                ? <Badge className="text-[9px] bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">Solar Eclipse</Badge>
-                : <Badge className="text-[9px] bg-blue-500/15 text-blue-400 border border-blue-500/30">Lunar Eclipse</Badge>
+                ? <Badge className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">Solar Eclipse</Badge>
+                : <Badge className="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30">Lunar Eclipse</Badge>
               }
               {hasConflict && (
-                <Badge className="text-[9px] bg-red-500/15 text-red-400 border border-red-500/30">Festival Alert</Badge>
+                <Badge className="text-xs bg-red-500/15 text-red-400 border border-red-500/30">Festival Alert</Badge>
               )}
             </div>
           </div>
@@ -339,7 +339,7 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
             ].map(({ label, time, color }) => (
               <div key={label} className="bg-muted/20 rounded-md p-1.5">
                 <p className={`text-xs font-mono font-bold ${color}`}>{time}</p>
-                <p className="text-[9px] text-muted-foreground mt-0.5">{label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
               </div>
             ))}
           </div>
@@ -354,7 +354,7 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
               <span className="text-muted-foreground ml-1">({eclipse.sutak_hours}h before)</span>
             </div>
           ) : (
-            <p className="text-[10px] text-muted-foreground bg-muted/10 rounded-lg px-2 py-1.5">
+            <p className="text-xs text-muted-foreground bg-muted/10 rounded-lg px-2 py-1.5">
               ℹ️ No Sutak — penumbral eclipse
             </p>
           )}
@@ -362,7 +362,7 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
           {/* Festival conflicts — always visible */}
           {hasConflict && (
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold text-amber-400">🎪 Nearby Festival Impact</p>
+              <p className="text-xs font-semibold text-amber-400">🎪 Nearby Festival Impact</p>
               {eclipse.festival_conflict!.map((msg, i) => (
                 <div key={i} className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2 text-xs text-amber-300 leading-relaxed">
                   {msg}
@@ -373,7 +373,7 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
 
           {/* Spiritual significance + guidance — collapsible */}
           <button
-            className="flex items-center gap-1 text-[10px] text-primary/60 hover:text-primary transition-colors"
+            className="flex items-center gap-1 text-xs text-primary/60 hover:text-primary transition-colors"
             onClick={() => setExpanded(v => !v)}
           >
             <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
@@ -382,12 +382,12 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
           {expanded && (
             <div className="space-y-2">
               <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5">
-                <p className="text-[10px] text-primary/80 mb-1">🔮 Spiritual Significance</p>
+                <p className="text-xs text-primary/80 mb-1">🔮 Spiritual Significance</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{eclipse.spiritual_effect}</p>
               </div>
               <div className="flex flex-wrap gap-1">
                 {(ECLIPSE_GUIDANCE[eclipse.type] ?? ECLIPSE_GUIDANCE["Partial Solar"]).map(item => (
-                  <Badge key={item} variant="outline" className="text-[9px]">{item}</Badge>
+                  <Badge key={item} variant="outline" className="text-xs">{item}</Badge>
                 ))}
               </div>
             </div>
@@ -427,7 +427,7 @@ function RulesModal() {
               </ul>
             </div>
           ))}
-          <div className="text-[10px] text-muted-foreground/50 border-t border-border/20 pt-3">
+          <div className="text-xs text-muted-foreground/50 border-t border-border/20 pt-3">
             Source: Dharmasindhu, Nirnaya Sindhu, Muhurta Chintamani. Times shown in IST (UTC+5:30).
           </div>
         </div>
@@ -447,8 +447,8 @@ function TimingGrid({ eclipse }: { eclipse: Eclipse }) {
       ].map(({ label, sub, time, color }) => (
         <div key={label} className="bg-muted/20 rounded-lg p-2.5">
           <p className={`text-lg font-mono font-bold ${color}`}>{time}</p>
-          <p className="text-[10px] font-semibold text-foreground/80 mt-0.5">{label}</p>
-          <p className="text-[9px] text-muted-foreground">{sub}</p>
+          <p className="text-xs font-semibold text-foreground/80 mt-0.5">{label}</p>
+          <p className="text-xs text-muted-foreground">{sub}</p>
         </div>
       ))}
     </div>
@@ -480,10 +480,10 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
             </CardTitle>
             <div className="flex items-center gap-1.5 flex-wrap justify-end">
               {isSolar
-                ? <Badge className="text-[9px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Solar</Badge>
-                : <Badge className="text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20">Lunar</Badge>
+                ? <Badge className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Solar</Badge>
+                : <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Lunar</Badge>
               }
-              {hasConflict && <Badge className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20">Festival Alert</Badge>}
+              {hasConflict && <Badge className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">Festival Alert</Badge>}
             </div>
           </div>
         </CardHeader>
@@ -514,11 +514,11 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
                 <span className="text-muted-foreground">→</span>
                 <span className="font-mono text-yellow-300">{eclipse.sparsha}</span>
                 <span className="text-muted-foreground">(Sparsha)</span>
-                <Badge className="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 ml-auto">
+                <Badge className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 ml-auto">
                   {eclipse.sutak_hours}h before
                 </Badge>
               </div>
-              <p className="text-[10px] text-muted-foreground/60 mt-1">
+              <p className="text-xs text-muted-foreground/60 mt-1">
                 Avoid cooking, eating, major activities during Sutak. Temples remain closed.
               </p>
             </div>
@@ -550,7 +550,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
 
           {/* Do's & Don'ts — collapsible */}
           <button
-            className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground flex items-center gap-1"
+            className="text-xs text-muted-foreground/60 hover:text-muted-foreground flex items-center gap-1"
             onClick={() => setShowDetails(v => !v)}
           >
             {showDetails ? "▲ hide" : "▼ show"} Vedic Do's &amp; Don'ts
@@ -558,7 +558,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
           {showDetails && (
             <div className="flex flex-wrap gap-1.5">
               {(ECLIPSE_GUIDANCE[eclipse.type] ?? ECLIPSE_GUIDANCE["Partial Solar"]).map(item => (
-                <Badge key={item} variant="outline" className="text-[10px]">{item}</Badge>
+                <Badge key={item} variant="outline" className="text-xs">{item}</Badge>
               ))}
             </div>
           )}
@@ -603,7 +603,7 @@ export default function GrahanPage() {
           <TabsTrigger value="eclipses" className="text-xs sm:text-sm">
             🌑 Eclipses
             {conflictCount > 0 && (
-              <Badge className="ml-1.5 text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              <Badge className="ml-1.5 text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30">
                 {conflictCount}
               </Badge>
             )}

@@ -45,7 +45,7 @@ function dayIcon(day: CalendarDayData, eclipse?: Eclipse) {
   if (day.is_purnima)  return "🌕";
   if (day.is_amavasya) return "🌑";
   if (day.is_ekadashi) return "✦";
-  if (day.is_pradosh)  return "☽";
+  if (day.is_pradosh)  return "☽︎";
   return null;
 }
 
@@ -136,14 +136,14 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
           {f.hindi && <p className="text-xs text-muted-foreground">{f.hindi}</p>}
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <Badge variant="outline" className="text-[10px]">{f.tithi_name}</Badge>
+          <Badge variant="outline" className="text-xs">{f.tithi_name}</Badge>
           {hasGrahan && (
-            <Badge variant="outline" className="text-[10px] border-red-500/40 text-red-400 gap-0.5">
+            <Badge variant="outline" className="text-xs border-red-500/40 text-red-400 gap-0.5">
               🌑 Grahan
             </Badge>
           )}
           {!hasGrahan && hasDosh && (
-            <Badge variant="outline" className="text-[10px] border-orange-500/40 text-orange-400 gap-0.5">
+            <Badge variant="outline" className="text-xs border-orange-500/40 text-orange-400 gap-0.5">
               <Info className="h-2.5 w-2.5" /> Rule
             </Badge>
           )}
@@ -152,7 +152,7 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
 
       {/* Timing strip */}
       {timing && (
-        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground/80">
+        <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground/80">
           <span className="text-primary/60">⏱</span>
           <span>Tithi: <span className="text-foreground/80 font-medium">{timing}</span></span>
         </div>
@@ -161,10 +161,10 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
       {/* Grahan conflict — always visible */}
       {hasGrahan && (
         <div className="mt-2 space-y-1">
-          <p className="text-[10px] font-semibold text-red-400">🌑 Eclipse Conflict &amp; Shift Reason</p>
+          <p className="text-xs font-semibold text-red-400">🌑 Eclipse Conflict &amp; Shift Reason</p>
           {grahanNotes.map((n, i) => (
             <div key={i} className="rounded bg-red-500/8 border border-red-500/20 p-2">
-              <p className="text-[11px] text-red-300/90 leading-relaxed">{n}</p>
+              <p className="text-xs text-red-300/90 leading-relaxed">{n}</p>
             </div>
           ))}
         </div>
@@ -187,7 +187,7 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
               {/* Timing/rule note */}
               {note && (
                 <div className="rounded bg-orange-500/8 border border-orange-500/20 p-2">
-                  <p className="text-[11px] text-orange-300/90 leading-relaxed flex gap-1.5">
+                  <p className="text-xs text-orange-300/90 leading-relaxed flex gap-1.5">
                     <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
                     <span>{note}</span>
                   </p>
@@ -199,7 +199,7 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
                 <div className="space-y-1">
                   {otherNotes.map((n, i) => (
                     <div key={i} className="rounded bg-orange-500/8 border border-orange-500/15 p-2">
-                      <p className="text-[11px] text-orange-300/90 leading-relaxed">{n}</p>
+                      <p className="text-xs text-orange-300/90 leading-relaxed">{n}</p>
                     </div>
                   ))}
                 </div>
@@ -214,11 +214,11 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
 
               {/* Tags */}
               <div className="flex gap-2 flex-wrap mt-1">
-                {f.deity && <Badge variant="secondary" className="text-[10px]">⚛ {f.deity}</Badge>}
-                {f.month && <Badge variant="secondary" className="text-[10px]">🌙 {f.month}</Badge>}
-                {f.paksha && <Badge variant="secondary" className="text-[10px]">{f.paksha} paksha</Badge>}
+                {f.deity && <Badge variant="secondary" className="text-xs">⚛ {f.deity}</Badge>}
+                {f.month && <Badge variant="secondary" className="text-xs">🌙 {f.month}</Badge>}
+                {f.paksha && <Badge variant="secondary" className="text-xs">{f.paksha} paksha</Badge>}
                 {f.tithi_type && f.tithi_type !== "normal" && (
-                  <Badge variant="outline" className="text-[10px] border-yellow-500/40 text-yellow-400 capitalize">
+                  <Badge variant="outline" className="text-xs border-yellow-500/40 text-yellow-400 capitalize">
                     {f.tithi_type}
                   </Badge>
                 )}
@@ -249,8 +249,8 @@ function EclipseSection({ eclipse }: { eclipse: Eclipse }) {
           </div>
         </div>
         {isSolar
-          ? <Badge className="text-[10px] bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">Solar</Badge>
-          : <Badge className="text-[10px] bg-blue-500/15 text-blue-400 border border-blue-500/30">Lunar</Badge>
+          ? <Badge className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">Solar</Badge>
+          : <Badge className="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30">Lunar</Badge>
         }
       </div>
 
@@ -263,8 +263,8 @@ function EclipseSection({ eclipse }: { eclipse: Eclipse }) {
         ].map(({ label, sub, time, color }) => (
           <div key={label} className="bg-muted/20 rounded-lg p-2">
             <p className={`text-base font-mono font-bold ${color}`}>{time}</p>
-            <p className="text-[10px] font-semibold text-foreground/80">{label}</p>
-            <p className="text-[9px] text-muted-foreground">{sub}</p>
+            <p className="text-xs font-semibold text-foreground/80">{label}</p>
+            <p className="text-xs text-muted-foreground">{sub}</p>
           </div>
         ))}
       </div>
@@ -284,12 +284,12 @@ function EclipseSection({ eclipse }: { eclipse: Eclipse }) {
             <span className="text-muted-foreground mx-1">→</span>
             {eclipse.sparsha}
           </p>
-          <p className="text-[10px] text-muted-foreground/70 mt-1">
+          <p className="text-xs text-muted-foreground/70 mt-1">
             Avoid cooking, eating, major activities. Temples closed.
           </p>
         </div>
       ) : (
-        <p className="text-[11px] text-muted-foreground bg-muted/10 rounded-lg px-3 py-1.5">
+        <p className="text-xs text-muted-foreground bg-muted/10 rounded-lg px-3 py-1.5">
           ℹ️ No Sutak — penumbral eclipse not observed with Sutak in most traditions.
         </p>
       )}
@@ -297,10 +297,10 @@ function EclipseSection({ eclipse }: { eclipse: Eclipse }) {
       {/* Festival conflicts */}
       {eclipse.festival_conflict && eclipse.festival_conflict.length > 0 && (
         <div className="space-y-1">
-          <p className="text-[10px] font-semibold text-amber-400">🎪 Nearby Festival Impact</p>
+          <p className="text-xs font-semibold text-amber-400">🎪 Nearby Festival Impact</p>
           {eclipse.festival_conflict.map((msg, i) => (
             <div key={i} className="rounded bg-amber-500/8 border border-amber-500/20 p-2">
-              <p className="text-[11px] text-amber-300/90 leading-relaxed">{msg}</p>
+              <p className="text-xs text-amber-300/90 leading-relaxed">{msg}</p>
             </div>
           ))}
         </div>
@@ -308,7 +308,7 @@ function EclipseSection({ eclipse }: { eclipse: Eclipse }) {
 
       {/* Spiritual effect */}
       <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5">
-        <p className="text-[10px] text-primary/80 mb-0.5">🔮 Spiritual Significance</p>
+        <p className="text-xs text-primary/80 mb-0.5">🔮 Spiritual Significance</p>
         <p className="text-xs text-muted-foreground leading-relaxed">{eclipse.spiritual_effect}</p>
       </div>
     </div>
@@ -330,7 +330,7 @@ function DayDetailSheet({
     day.is_purnima   && <Badge key="p" className="bg-blue-500/20 text-blue-300 border-blue-500/30">🌕 Purnima</Badge>,
     day.is_amavasya  && <Badge key="a" className="bg-slate-500/20 text-slate-300 border-slate-500/30">🌑 Amavasya</Badge>,
     day.is_ekadashi  && <Badge key="e" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">✦ Ekadashi</Badge>,
-    day.is_pradosh   && <Badge key="pr" className="bg-purple-500/20 text-purple-300 border-purple-500/30">☽ Pradosh</Badge>,
+    day.is_pradosh   && <Badge key="pr" className="bg-purple-500/20 text-purple-300 border-purple-500/30">☽︎ Pradosh</Badge>,
     day.is_chaturthi && <Badge key="c" className="bg-orange-500/20 text-orange-300 border-orange-500/30">● Chaturthi</Badge>,
     day.is_ashtami   && <Badge key="as" className="bg-rose-500/20 text-rose-300 border-rose-500/30">◉ Ashtami</Badge>,
   ].filter(Boolean);
@@ -431,10 +431,10 @@ function DayCell({ day, onClick, eclipse }: { day: CalendarDayData; onClick: () 
         <span className={`text-sm font-bold leading-none ${day.is_today ? "text-primary" : eclipse ? "text-red-300" : ""}`}>
           {day.day}
         </span>
-        {icon && <span className="text-[11px] leading-none opacity-80">{icon}</span>}
+        {icon && <span className="text-xs leading-none opacity-80">{icon}</span>}
       </div>
 
-      <p className="text-[9px] text-muted-foreground/70 mt-0.5 leading-tight">
+      <p className="text-xs text-muted-foreground/70 mt-0.5 leading-tight">
         {day.paksha_short}{day.tithi_num} {shortTithi(day.tithi)}
       </p>
 
@@ -447,12 +447,12 @@ function DayCell({ day, onClick, eclipse }: { day: CalendarDayData; onClick: () 
 
       <div className="mt-0.5 space-y-0.5">
         {day.festivals.slice(0, eclipse ? 1 : 2).map((f, i) => (
-          <p key={i} className="text-[9px] text-amber-400 leading-tight truncate">
+          <p key={i} className="text-xs text-amber-400 leading-tight truncate">
             {f.icon} {f.name.split(" ").slice(0, 2).join(" ")}
           </p>
         ))}
         {day.festivals.length > (eclipse ? 1 : 2) && (
-          <p className="text-[9px] text-muted-foreground/50">+{day.festivals.length - (eclipse ? 1 : 2)} more</p>
+          <p className="text-xs text-muted-foreground/50">+{day.festivals.length - (eclipse ? 1 : 2)} more</p>
         )}
       </div>
     </motion.div>
@@ -475,7 +475,7 @@ function DayListRow({ day, onClick, eclipse }: { day: CalendarDayData; onClick: 
       {/* Date block */}
       <div className="w-10 text-center shrink-0">
         <p className={`text-lg font-bold leading-none ${day.is_today ? "text-primary" : eclipse ? "text-red-300" : ""}`}>{day.day}</p>
-        <p className="text-[10px] text-muted-foreground/60">{day.weekday}</p>
+        <p className="text-xs text-muted-foreground/60">{day.weekday}</p>
       </div>
 
       <Separator orientation="vertical" className="h-10 self-center" />
@@ -483,16 +483,16 @@ function DayListRow({ day, onClick, eclipse }: { day: CalendarDayData; onClick: 
       {/* Panchang summary */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-medium text-muted-foreground">
+          <span className="text-xs font-medium text-muted-foreground">
             {day.paksha_short}{day.tithi_num} · {day.tithi}
           </span>
-          {eclipse    && <span className="text-[10px] text-red-400 font-semibold">🌑 {eclipse.type} Eclipse</span>}
-          {day.is_purnima   && <span className="text-[10px] text-blue-400">🌕</span>}
-          {day.is_amavasya  && <span className="text-[10px] text-slate-400">🌑</span>}
-          {day.is_ekadashi  && <span className="text-[10px] text-emerald-400">✦ Ekadashi</span>}
-          {day.is_pradosh   && <span className="text-[10px] text-purple-400">☽ Pradosh</span>}
+          {eclipse    && <span className="text-xs text-red-400 font-semibold">🌑 {eclipse.type} Eclipse</span>}
+          {day.is_purnima   && <span className="text-xs text-blue-400">🌕</span>}
+          {day.is_amavasya  && <span className="text-xs text-slate-400">🌑</span>}
+          {day.is_ekadashi  && <span className="text-xs text-emerald-400">✦ Ekadashi</span>}
+          {day.is_pradosh   && <span className="text-xs text-purple-400">☽︎ Pradosh</span>}
         </div>
-        <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+        <p className="text-xs text-muted-foreground/60 mt-0.5">
           🌟 {day.nakshatra} · ☀ {day.sunrise}
           {day.rahu_kaal && day.rahu_kaal !== "N/A" && (
             <span className="ml-2 text-orange-400/80">☢ {day.rahu_kaal}</span>
@@ -504,12 +504,12 @@ function DayListRow({ day, onClick, eclipse }: { day: CalendarDayData; onClick: 
         {day.festivals.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {day.festivals.slice(0, 3).map((f, i) => (
-              <span key={i} className="text-[10px] text-amber-400 bg-amber-500/10 rounded px-1.5 py-0.5">
+              <span key={i} className="text-xs text-amber-400 bg-amber-500/10 rounded px-1.5 py-0.5">
                 {f.icon} {f.name}
               </span>
             ))}
             {day.festivals.length > 3 && (
-              <span className="text-[10px] text-muted-foreground/50">+{day.festivals.length - 3}</span>
+              <span className="text-xs text-muted-foreground/50">+{day.festivals.length - 3}</span>
             )}
           </div>
         )}
@@ -612,7 +612,7 @@ export default function CalendarPage() {
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-xs text-muted-foreground/70">🌙 Lunar month{lunarMonths.length > 1 ? "s" : ""}:</span>
             {lunarMonths.map(m => (
-              <Badge key={m} variant="outline" className="text-[11px] text-primary/80 border-primary/20">{m}</Badge>
+              <Badge key={m} variant="outline" className="text-xs text-primary/80 border-primary/20">{m}</Badge>
             ))}
           </div>
         )}
@@ -846,7 +846,7 @@ export default function CalendarPage() {
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded bg-purple-500/30 border border-purple-500/40 inline-block" />
-            ☽ Pradosh
+            ☽︎ Pradosh
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded ring-2 ring-primary inline-block" />

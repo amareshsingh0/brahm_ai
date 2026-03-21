@@ -178,7 +178,7 @@ export default function GotraFinderPage() {
             {rules.map((rule) => (
               <div key={rule.title} className={`rounded-lg p-3 text-sm ${rule.type === "avoid" ? "bg-destructive/5 border border-destructive/20" : "bg-green-500/5 border border-green-500/20"}`}>
                 <p className="font-medium text-xs mb-0.5">{rule.title}</p>
-                <p className="text-[11px] text-muted-foreground">{rule.desc}</p>
+                <p className="text-xs text-muted-foreground">{rule.desc}</p>
               </div>
             ))}
           </div>
@@ -202,33 +202,33 @@ export default function GotraFinderPage() {
                       Founded by {gotra.rishi} — {gotra.veda}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">{gotra.deity}</Badge>
+                  <Badge variant="secondary" className="text-xs">{gotra.deity}</Badge>
                 </div>
 
                 <p className="text-sm text-muted-foreground leading-relaxed mb-3">{gotra.description}</p>
 
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Pravara (Ancestor Sages)</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Pravara (Ancestor Sages)</p>
                     <div className="flex flex-wrap gap-1">
                       {gotra.pravara.map((p) => (
-                        <Badge key={p} variant="outline" className="text-[10px] border-primary/30 text-primary">{p}</Badge>
+                        <Badge key={p} variant="outline" className="text-xs border-primary/30 text-primary">{p}</Badge>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Notable Descendants</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Notable Descendants</p>
                     <div className="flex flex-wrap gap-1">
                       {gotra.notableDescendants.map((d) => (
-                        <Badge key={d} variant="outline" className="text-[10px]">{d}</Badge>
+                        <Badge key={d} variant="outline" className="text-xs">{d}</Badge>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Related Gotras</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Related Gotras</p>
                     <div className="flex flex-wrap gap-1">
                       {gotra.relatedGotras.map((r) => (
-                        <Badge key={r} variant="outline" className="text-[10px]">{r}</Badge>
+                        <Badge key={r} variant="outline" className="text-xs">{r}</Badge>
                       ))}
                     </div>
                   </div>

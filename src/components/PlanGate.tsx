@@ -45,7 +45,7 @@ export function PlanGate({ minPlan, featureName, mode = "block", children }: Pla
   if (mode === "overlay") {
     return (
       <div className="relative">
-        <div className="select-none pointer-events-none opacity-30 blur-sm">{children}</div>
+        <div className="select-none pointer-events-none opacity-50 blur-sm">{children}</div>
         <div className="absolute inset-0 flex items-center justify-center">
           <button
             onClick={() => setShowModal(true)}

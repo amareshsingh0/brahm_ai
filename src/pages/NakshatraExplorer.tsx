@@ -27,8 +27,8 @@ export default function NakshatraExplorer() {
           >
             <span className="text-2xl mb-2 block">{n.symbol}</span>
             <p className="font-display text-sm text-foreground">{n.name}</p>
-            <p className="text-[10px] text-primary/70">#{n.number} · {n.ruler}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">{n.nature}</p>
+            <p className="text-xs text-primary/70">#{n.number} · {n.ruler}</p>
+            <p className="text-xs text-muted-foreground mt-1">{n.nature}</p>
           </motion.button>
         ))}
       </div>

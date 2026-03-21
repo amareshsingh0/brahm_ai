@@ -131,13 +131,13 @@ export default function SubscriptionPage() {
               `}
             >
               {isHighlight && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wide shadow">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-medium uppercase tracking-wide shadow">
                   Most Popular
                 </div>
               )}
 
               {isCurrent && (
-                <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-medium border border-green-500/30">
+                <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-medium border border-green-500/30">
                   Current Plan
                 </div>
               )}
@@ -150,7 +150,7 @@ export default function SubscriptionPage() {
                   </div>
                   <div>
                     <p className="font-display text-lg text-foreground leading-tight">{plan.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{plan.name_hi}</p>
+                    <p className="text-xs text-muted-foreground">{plan.name_hi}</p>
                   </div>
                 </div>
 
@@ -164,12 +164,12 @@ export default function SubscriptionPage() {
                 </div>
 
                 {period === "yearly" && plan.price_yearly > 0 && (
-                  <p className="text-[10px] text-primary">
+                  <p className="text-xs text-primary">
                     ₹{plan.price_yearly}/year · Save {discount}%
                   </p>
                 )}
                 {period === "monthly" && plan.price_monthly > 0 && (
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     billed monthly · cancel anytime
                   </p>
                 )}

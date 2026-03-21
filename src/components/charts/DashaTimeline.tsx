@@ -62,8 +62,8 @@ export function DashaTimeline() {
               />
             </div>
             <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-muted-foreground">{duration} years</span>
-              <span className={`text-[10px] capitalize ${
+              <span className="text-xs text-muted-foreground">{duration} years</span>
+              <span className={`text-xs capitalize ${
                 dasha.nature === "positive" ? "text-emerald-400" :
                 dasha.nature === "neutral" ? "text-amber-400" : "text-red-400"
               }`}>
