@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { samplePlanets, type PlanetData, useKundliStore, type ChartStyle } from "@/store/kundliStore";
 
@@ -47,36 +46,68 @@ const LABEL_SUB = "hsl(215 20% 50%)";   // sub-labels
 const CELL = 110;
 const O = 5;
 
-// ── Planet renderer ───────────────────────────────────────────────────────────
+// ── Planet renderer ────────────────────────────────────────────────────────────
+// Symbols stay compact/close (original feel).
+// Row spacing is increased so labels never collide with the symbol on the next row.
 function renderPlanets(
   planetsHere: PlanetData[],
   cx: number, cy: number,
   onPlanetClick?: (p: PlanetData) => void,
   selectedPlanet?: PlanetData | null,
 ) {
+  const n = planetsHere.length;
+  if (n === 0) return null;
+
+  // Adaptive font sizes — reduce only for many planets
+  const symSize = n <= 4 ? 16 : n <= 6 ? 13 : 11;
+  const lblSize = n <= 4 ? 9  : n <= 6 ? 8  : 7;
+
+  // rowH must satisfy: rowH > symSize*0.3 + lblSize*1.3 + 3 + buffer
+  // so that label of row N doesn't touch symbol of row N+1.
+  // rowH = symSize + lblSize + 9 guarantees ~8px clearance (derived algebraically).
+  const rowH = symSize + lblSize + 9;
+
+  // Column layout
+  // n≤2  → single column (stack vertically, stays compact at cx)
+  // n≤6  → 2 columns at cx ± colOff
+  // n>6  → 3 columns at cx-colOff, cx, cx+colOff
+  const cols   = n <= 2 ? 1 : n <= 6 ? 2 : 3;
+  const colOff = cols === 2 ? 15 : 14;   // tight original-style spacing
+  const rows   = Math.ceil(n / cols);
+
+  const totalH = (rows - 1) * rowH;
+  const startY = cy - totalH / 2;   // vertically centered in available space
+
   return planetsHere.map((p, i) => {
-    const colOff = planetsHere.length === 1 ? 0 : (i % 2 === 0 ? -14 : 14);
-    const rowOff = Math.floor(i / 2) * 22;
-    const px = cx + (planetsHere.length <= 2 ? 0 : colOff);
-    const py = cy + rowOff;
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+
+    // Horizontal position
+    const px =
+      cols === 1 ? cx :
+      cols === 2 ? (col === 0 ? cx - colOff : cx + colOff) :
+      cx + (col - 1) * colOff;   // col 0 → cx-14, col 1 → cx, col 2 → cx+14
+
+    const py = startY + row * rowH;
     const isSelected = selectedPlanet?.name === p.name;
     const color = PLANET_COLORS[p.name] ?? "#64748b";
+
     return (
       <motion.g key={p.name} onClick={() => onPlanetClick?.(p)}
         className="cursor-pointer"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 + i * 0.04 }}>
+        transition={{ delay: 0.2 + i * 0.04 }}>
         {isSelected && (
-          <circle cx={px} cy={py - 4} r="9" fill={`${color}28`} />
+          <circle cx={px} cy={py - 4} r={symSize * 0.6} fill={`${color}28`} />
         )}
-        <text x={px} y={py} textAnchor="middle" fontSize="17"
+        <text x={px} y={py} textAnchor="middle" fontSize={symSize}
           fontWeight="600"
           fontFamily="'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif"
           fill={isSelected ? "#d97706" : color}
           style={{ filter: `drop-shadow(0 0 3px ${isSelected ? "#d9770660" : color + "55"})` }}>
           {GRAHA_SYMBOLS[p.name] ?? p.symbol ?? "?"}
         </text>
-        <text x={px} y={py + 13} textAnchor="middle" fontSize="9.5"
+        <text x={px} y={py + lblSize + 3} textAnchor="middle" fontSize={lblSize}
           fontWeight="500"
           fill={isSelected ? GOLD : LABEL_SUB}>
           {p.sanskritName?.slice(0, 3) ?? p.name.slice(0, 3)}
@@ -335,27 +366,55 @@ function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }: {
               textAnchor="middle" fontSize="7.5" fill={LABEL_SUB} fontFamily="serif">
               {RASHI_ABBR[rn]}
             </text>
-            {planetsHere.map((p, pi) => {
-              const off = (pi - (planetsHere.length - 1) / 2) * 16;
-              const ppX = C + rP * Math.cos(mid) + off * Math.cos(mid + Math.PI / 2);
-              const ppY = C - rP * Math.sin(mid) - off * Math.sin(mid + Math.PI / 2);
-              const color = PLANET_COLORS[p.name] ?? "#64748b";
-              const isSel = selectedPlanet?.name === p.name;
-              return (
-                <motion.g key={p.name} onClick={() => onPlanetClick?.(p)}
-                  className="cursor-pointer"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  transition={{ delay: 0.25 + pi * 0.04 }}>
-                  <text x={ppX} y={ppY + 4} textAnchor="middle" fontSize="15"
-                    fontWeight="600"
-                    fontFamily="'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif"
-                    fill={isSel ? "#d97706" : color}
-                    style={{ filter: `drop-shadow(0 0 3px ${isSel ? "#d9770660" : color + "55"})` }}>
-                    {GRAHA_SYMBOLS[p.name] ?? p.symbol ?? "?"}
-                  </text>
-                </motion.g>
-              );
-            })}
+            {(() => {
+              const n = planetsHere.length;
+              if (n === 0) return null;
+              // Adaptive sizes
+              const symSz = n <= 3 ? 14 : n <= 5 ? 12 : 10;
+              const lblSz = n <= 3 ? 7.5 : n <= 5 ? 7 : 6.5;
+              const rowH  = symSz + lblSz + 6;  // vertical gap between rows (radial)
+              // tangential columns, radial rows
+              const cols = n <= 2 ? n : n <= 4 ? 2 : n <= 6 ? 3 : 3;
+              const rows = Math.ceil(n / cols);
+              const tOff = n <= 2 ? 18 : n <= 4 ? 16 : 14;  // tangential px per col slot
+              const colCenter = (cols - 1) / 2;
+              const rowCenter = (rows - 1) / 2;
+              const perpAngle = mid + Math.PI / 2;
+
+              return planetsHere.map((p, pi) => {
+                const col = pi % cols;
+                const row = Math.floor(pi / cols);
+                // tangential displacement
+                const tang = (col - colCenter) * tOff;
+                // radial displacement (positive = toward center)
+                const rOff = (row - rowCenter) * rowH;
+                const r = rP - rOff;
+                const ppX = C + r * Math.cos(mid) + tang * Math.cos(perpAngle);
+                const ppY = C - r * Math.sin(mid) - tang * Math.sin(perpAngle);
+                const color = PLANET_COLORS[p.name] ?? "#64748b";
+                const isSel = selectedPlanet?.name === p.name;
+                const lbl = p.sanskritName?.slice(0, 3) ?? p.name.slice(0, 3);
+                return (
+                  <motion.g key={p.name} onClick={() => onPlanetClick?.(p)}
+                    className="cursor-pointer"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: 0.25 + pi * 0.04 }}>
+                    {isSel && <circle cx={ppX} cy={ppY} r={symSz * 0.65} fill={`${color}28`} />}
+                    <text x={ppX} y={ppY + symSz * 0.38} textAnchor="middle" fontSize={symSz}
+                      fontWeight="600"
+                      fontFamily="'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', serif"
+                      fill={isSel ? "#d97706" : color}
+                      style={{ filter: `drop-shadow(0 0 3px ${isSel ? "#d9770660" : color + "55"})` }}>
+                      {GRAHA_SYMBOLS[p.name] ?? p.symbol ?? "?"}
+                    </text>
+                    <text x={ppX} y={ppY + symSz * 0.38 + lblSz + 2} textAnchor="middle" fontSize={lblSz}
+                      fontWeight="500" fill={isSel ? GOLD : LABEL_SUB}>
+                      {lbl}
+                    </text>
+                  </motion.g>
+                );
+              });
+            })()}
           </g>
         );
       })}

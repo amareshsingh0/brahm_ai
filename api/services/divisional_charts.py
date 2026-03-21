@@ -9,22 +9,26 @@ from api.config import RASHI_NAMES, RASHI_LORDS, EXALTATION, DEBILITATION
 _ELEMENT_START = {0:0, 1:9, 2:6, 3:3}  # fire→0, earth→9, air→6, water→3
 
 VARGA_NAMES = {
-    1: ("D-1",  "Rashi",       "Body, Physical, General"),
-    2: ("D-2",  "Hora",        "Wealth, Family"),
-    3: ("D-3",  "Drekkana",    "Siblings, Courage"),
-    4: ("D-4",  "Chaturthamsha","Property, Fortune"),
-    7: ("D-7",  "Saptamsha",   "Children, Progeny"),
-    9: ("D-9",  "Navamsha",    "Marriage, Dharma, Soul"),
-    10: ("D-10", "Dashamsha",  "Career, Profession"),
-    12: ("D-12", "Dwadashamsha","Parents"),
-    16: ("D-16", "Shodashamsha","Vehicles, Happiness"),
-    20: ("D-20", "Vimshamsha",  "Spiritual Progress"),
+    1: ("D-1",  "Rashi",             "Body, Physical, General"),
+    2: ("D-2",  "Hora",              "Wealth, Family"),
+    3: ("D-3",  "Drekkana",          "Siblings, Courage"),
+    4: ("D-4",  "Chaturthamsha",     "Property, Fortune"),
+    5: ("D-5",  "Panchamsha",        "Fame, Power, Authority"),
+    6: ("D-6",  "Shashthamsha",      "Health, Enemies, Debts"),
+    7: ("D-7",  "Saptamsha",         "Children, Progeny"),
+    8: ("D-8",  "Ashtamsha",         "Sudden Events, Obstacles"),
+    9: ("D-9",  "Navamsha",          "Marriage, Dharma, Soul"),
+    10: ("D-10", "Dashamsha",        "Career, Profession"),
+    11: ("D-11", "Ekadashamsha",     "Gains, Income, Elder Siblings"),
+    12: ("D-12", "Dwadashamsha",     "Parents"),
+    16: ("D-16", "Shodashamsha",     "Vehicles, Happiness"),
+    20: ("D-20", "Vimshamsha",       "Spiritual Progress"),
     24: ("D-24", "Chaturvimshamsha", "Education, Learning"),
     27: ("D-27", "Saptavimshamsha",  "Strength, Vitality"),
-    30: ("D-30", "Trimshamsha", "Evils, Misfortunes"),
-    40: ("D-40", "Khavedamsha", "Auspicious/Inauspicious"),
-    45: ("D-45", "Akshavedamsha","General Well-being"),
-    60: ("D-60", "Shashtiamsha","Past Life Karma, All Matters"),
+    30: ("D-30", "Trimshamsha",      "Evils, Misfortunes"),
+    40: ("D-40", "Khavedamsha",      "Auspicious/Inauspicious"),
+    45: ("D-45", "Akshavedamsha",    "General Well-being"),
+    60: ("D-60", "Shashtiamsha",     "Past Life Karma, All Matters"),
 }
 
 
@@ -77,6 +81,24 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
         offsets = [0, 3, 6, 9]
         return (rashi_i + offsets[min(part, 3)]) % 12
 
+    elif division == 5:
+        # D-5: Panchamsha — 5 parts of 6° each
+        # Odd signs count from same sign, Even signs count from 9th sign
+        part = int(deg_in_rashi / 6.0)
+        part = min(part, 4)
+        is_odd = (rashi_i % 2 == 0)
+        start = rashi_i if is_odd else (rashi_i + 8) % 12
+        return (start + part) % 12
+
+    elif division == 6:
+        # D-6: Shashthamsha — 6 parts of 5° each
+        # Odd signs count from same sign, Even signs count from 7th sign
+        part = int(deg_in_rashi / 5.0)
+        part = min(part, 5)
+        is_odd = (rashi_i % 2 == 0)
+        start = rashi_i if is_odd else (rashi_i + 6) % 12
+        return (start + part) % 12
+
     elif division == 7:
         # D-7: Saptamsha — 7 parts of 4°17'8.57"
         # Odd signs count from same sign, Even signs count from 7th sign
@@ -84,6 +106,15 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
         part = min(part, 6)
         is_odd = (rashi_i % 2 == 0)  # 0-indexed
         start = rashi_i if is_odd else (rashi_i + 6) % 12
+        return (start + part) % 12
+
+    elif division == 8:
+        # D-8: Ashtamsha — 8 parts of 3°45' each
+        # Odd signs count from same sign, Even signs count from 9th sign
+        part = int(deg_in_rashi / 3.75)
+        part = min(part, 7)
+        is_odd = (rashi_i % 2 == 0)
+        start = rashi_i if is_odd else (rashi_i + 8) % 12
         return (start + part) % 12
 
     elif division == 9:
@@ -102,6 +133,15 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
         part = min(part, 9)
         is_odd = (rashi_i % 2 == 0)
         start = rashi_i if is_odd else (rashi_i + 8) % 12
+        return (start + part) % 12
+
+    elif division == 11:
+        # D-11: Ekadashamsha (Rudramsha) — 11 parts of 2°43'38" each
+        # Odd signs count from same sign, Even signs count from 7th sign
+        part = int(deg_in_rashi / (30.0 / 11))
+        part = min(part, 10)
+        is_odd = (rashi_i % 2 == 0)
+        start = rashi_i if is_odd else (rashi_i + 6) % 12
         return (start + part) % 12
 
     elif division == 12:

@@ -46,7 +46,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <span>{LANG_LABELS[lang]}</span>
             </button>
           </header>
-          <main className="flex-1 overflow-auto pb-20 md:pb-6 px-3 sm:px-5 lg:px-7 pt-5">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto pb-20 md:pb-6 px-3 sm:px-5 lg:px-7 pt-5">
             {children}
           </main>
         </div>

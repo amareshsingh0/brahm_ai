@@ -165,9 +165,13 @@ def _is_combust(gname: str, g_lon: float, sun_lon: float, g_retro: bool) -> bool
 
 
 def _calc_bhav_chalit(jd: float, lat: float, lon: float, ayanamsha: float, grahas: dict) -> dict:
-    """Calculate Bhav Chalit positions using Placidus house cusps (sidereal)."""
+    """Calculate Bhav Chalit positions using Placidus house cusps (sidereal).
+    Falls back to Sripati if Placidus is unavailable."""
     try:
-        cusps_trop, _ = swe.houses_ex(jd, lat, lon, b'P')
+        try:
+            cusps_trop, _ = swe.houses_ex(jd, lat, lon, b'P')  # Placidus
+        except Exception:
+            cusps_trop, _ = swe.houses_ex(jd, lat, lon, b'S')  # Sripati fallback
         cusps_sid = [(c - ayanamsha) % 360 for c in cusps_trop[:12]]
         planet_chalit = {}
         for gname, g in grahas.items():
@@ -845,8 +849,8 @@ def calc_kundali(
         # Get sunrise/sunset JDs for proper hora-based calculation
         _geo = (lon, lat, 0)
         try:
-            _, _tr = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.BIT_DISC_CENTER, _geo, 0, 0, swe.CALC_RISE)
-            _, _ts = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.BIT_DISC_CENTER, _geo, 0, 0, swe.CALC_SET)
+            _, _tr = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.FLG_SWIEPH, _geo, 0, 0, swe.CALC_RISE | swe.BIT_DISC_CENTER)
+            _, _ts = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.FLG_SWIEPH, _geo, 0, 0, swe.CALC_SET | swe.BIT_DISC_CENTER)
             _sr_jd = _tr[0] if _tr else 0
             _ss_jd = _ts[0] if _ts else 0
         except Exception:
