@@ -39,6 +39,9 @@ export interface GrahaData {
   graha_hindi?: string;
   karaka?: string;
   speed?: number;
+  combust?: boolean;
+  ruler_of?: number[];
+  lat_ecl?: number;
 }
 export interface NavamshaGraha {
   rashi: string;
@@ -63,12 +66,23 @@ export interface HouseData {
   lord_en?: string;
   signification?: string;
   planets?: string[];
+  gender?: string;
+  modality?: string;
+  tattva?: string;
+  aspected_by?: string[];
+}
+export interface PratyantarData {
+  lord: string;
+  days: number;
+  start: string;
+  end: string;
 }
 export interface AntardashaData {
   lord: string;
   years: number;
   start: string;
   end: string;
+  pratyantardashas?: PratyantarData[];
 }
 export interface DashaData {
   lord: string;
@@ -81,8 +95,40 @@ export interface DashaData {
 export interface YogaData {
   name: string;
   desc: string;
+  present: boolean;
   strength: string;
   category?: string;
+}
+export interface BirthPanchang {
+  tithi: string;
+  tithi_num: number;
+  paksha: string;
+  yoga: string;
+  karana: string;
+  vara: string;
+  sunrise: string;
+  sunset: string;
+}
+export interface PersonalChars {
+  nadi: string;
+  gana: string;
+  yoni: string;
+  varna: string;
+  tattva: string;
+  vashya: string;
+  nakshatra_paya: string;
+  rashi_paya: string;
+  yunja: string;
+}
+export interface UpagrahaEntry {
+  longitude: number;
+  rashi: number;
+  rashi_name: string;
+  degree: number;
+  dms: string;
+  nakshatra: string;
+  nakshatra_lord: string;
+  significance: string;
 }
 export interface VargaGraha {
   rashi: string;
@@ -119,6 +165,10 @@ export interface KundaliResponse {
   dashas: DashaData[];
   yogas: YogaData[];
   varga_charts?: Record<string, VargaChartData>;
+  birth_panchang?: BirthPanchang;
+  personal?: PersonalChars;
+  bhav_chalit?: { cusps_sid: number[]; planets: Record<string, number> };
+  upagraha?: Record<string, UpagrahaEntry>;
 }
 
 // ── Panchang ──────────────────────────────────────────────────
