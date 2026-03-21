@@ -15,8 +15,14 @@ export function useKundali() {
 
   return useMutation<KundaliResponse, Error, BirthDetails>({
     mutationFn: (details) => {
-      const payload: KundaliRequestPayload = {
-        ...details,
+      const payload = {
+        name: details.name,
+        date: details.dateOfBirth,
+        time: details.timeOfBirth,
+        place: details.birthPlace,
+        lat: details.lat,
+        lon: details.lon,
+        tz: details.tz,
         ayanamsha: settings.ayanamsha,
         rahu_mode: settings.rahuMode,
         calc_options: ["antardasha"],
