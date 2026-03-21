@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <!-- Stylized star / Om symbol placeholder -->
+    <path android:fillColor="#7C3AED"
+        android:pathData="M36,8 L42,28 L62,28 L46,40 L52,60 L36,48 L20,60 L26,40 L10,28 L30,28 Z"/>
+    <path android:fillColor="#F59E0B" android:fillAlpha="0.8"
+        android:pathData="M36,18 L39,27 L49,27 L41,33 L44,42 L36,36 L28,42 L31,33 L23,27 L33,27 Z"/>
+</vector>

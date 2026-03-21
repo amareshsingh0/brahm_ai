@@ -83,6 +83,12 @@ def _format_kundali(summary: dict) -> str:
             lines.append(f"    {name}: {pos}")
     if summary.get("yogas"):
         lines.append(f"  Yogas: {', '.join(summary['yogas'])}")
+    # Navamsha (D-9) — Soul, marriage, dharma potential
+    if summary.get("navamsha_lagna") and summary["navamsha_lagna"] != "?":
+        lines.append(f"  D-9 Lagna: {summary['navamsha_lagna']}")
+    if summary.get("navamsha"):
+        nav_parts = [f"{n}: {v}" for n, v in summary["navamsha"].items()]
+        lines.append(f"  D-9 Planets: {', '.join(nav_parts)}")
     return "\n".join(lines)
 
 
@@ -216,12 +222,47 @@ def _format_page_data(page_context: str, page_data: dict) -> str:
             return ""
 
 
+def _format_user_facts(facts: list) -> str:
+    if not facts:
+        return ""
+    lines = ["[User ke baare mein — unke khud ke bataye facts]"]
+    for f in facts[:8]:
+        lines.append(f"  • {f}")
+    return "\n".join(lines)
+
+
+def _clean_source_name(source: str) -> str:
+    """Same logic as rag_service — avoid circular import by duplicating small helper."""
+    import re
+    _OVERRIDES = {
+        "bhagavadgita": "Bhagavad Gita", "sarit": "SARIT Sanskrit Corpus",
+        "gretil": "GRETIL Sanskrit Texts", "suttacentral": "Sutta Central",
+        "openphilology": "Open Philology", "wikisource": "Wikisource",
+        "hf": "Sanskrit Texts", "brihat_parashara": "Brihat Parashara Hora Shastra",
+        "bphs": "Brihat Parashara Hora Shastra", "jataka_parijata": "Jataka Parijata",
+        "phaladeepika": "Phala Deepika", "saravali": "Saravali",
+        "brihat_jataka": "Brihat Jataka", "mahabharata": "Mahabharata",
+        "ramayana": "Ramayana", "wikipedia": "Wikipedia",
+    }
+    filename = source.split("/")[-1]
+    name_raw = re.sub(r"\.(pdf|txt|htm|html|json|xml)$", "", filename, flags=re.I)
+    name_raw = re.sub(r"[_-]?\d{4}[a-z]?$", "", name_raw)
+    name_lower = name_raw.lower()
+    for key, val in _OVERRIDES.items():
+        if key in name_lower:
+            return val
+    folder = source.split("/")[0].lower()
+    if folder in _OVERRIDES:
+        return _OVERRIDES[folder]
+    return re.sub(r"[_\-]+", " ", name_raw).strip().title() or source
+
+
 def _format_rag_docs(docs: list) -> str:
     if not docs:
         return ""
     lines = ["[Vedic Texts — Reference]"]
     for i, d in enumerate(docs[:3], 1):
-        src  = d.get("source", "?")
+        src  = _clean_source_name(d.get("source", "?"))
         text = d.get("text", "")[:600].strip()
         lines.append(f"\n  [Source {i}: {src}]\n  {text}")
     return "\n".join(lines)
@@ -276,8 +317,14 @@ Short, warm jawab do — 1-2 sentences. Koi calculations ya books mat use karo."
     calc_section    = _format_tool_results(tool_results)
     page_section    = _format_page_data(page_context, page_data)
     rag_section     = _format_rag_docs(rag_docs)
+    facts_section   = _format_user_facts(page_data.get("user_facts", []))
 
     sections = [MASTER_PERSONA, "", lang_line, ""]
+
+    # User facts (personal context — highest priority for personalization)
+    if facts_section:
+        sections.append(facts_section)
+        sections.append("")
 
     # Layer 1 — Kundali (always first if available)
     if kundali_section:
@@ -317,13 +364,23 @@ Short, warm jawab do — 1-2 sentences. Koi calculations ya books mat use karo."
         sections.append(
             f"Available data: {', '.join(layers_available) if layers_available else 'general knowledge'}. "
             "Sab layers use karo jo available hain. "
-            "Specific, insightful, aur actionable jawab do. "
-            "Agar gochar + dasha dono favorable hain → HIGH confidence bolo. "
-            "Agar sirf natal chart hai → MEDIUM confidence bolo aur honestly batao."
+            "Specific, insightful, aur actionable jawab do."
         )
     elif depth == "basic":
         sections.append("Short, clear, helpful jawab do. 2-3 sentences maximum.")
     else:
         sections.append("Detailed lekin focused jawab do. Unnecessary padding avoid karo.")
+
+    # Confidence tag — always add at end of non-conversational responses
+    if query_type != "CONVERSATIONAL":
+        has_gochar = "gochar" in tool_results and not tool_results.get("gochar_error")
+        has_dasha  = "dasha"  in tool_results and not tool_results.get("dasha_error")
+        sections.append(
+            "\nResponse ke BILKUL AKHIR mein — sirf ek line — confidence tag likho:\n"
+            "[CONFIDENCE: HIGH] — jab kundali + dasha + gochar teeno available aur aligned hain\n"
+            "[CONFIDENCE: MEDIUM] — jab sirf kundali hai, ya dasha/gochar mein se ek\n"
+            "[CONFIDENCE: LOW] — jab birth data nahi, ya data partial/conflicting hai\n"
+            "Koi explanation nahi — sirf tag. Kuch aur text nahi us line mein."
+        )
 
     return "\n".join(sections)

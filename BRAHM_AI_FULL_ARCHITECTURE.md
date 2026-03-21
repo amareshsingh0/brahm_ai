@@ -1,46 +1,63 @@
 # Brahm AI — Full Architecture Document
-# Last Updated: 2026-03-20 (v4.0 — AI Intelligence Engine LIVE)
+# Last Updated: 2026-03-21 (v5.0 — Native Mobile Apps Added)
 
 ---
 
 ## 1. SYSTEM OVERVIEW
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        BRAHM AI PLATFORM v3.0                        │
-│                    (Web + iOS + Android — same codebase)             │
-│                                                                      │
-│  ┌─────────────────────┐         ┌──────────────────────────────┐   │
-│  │   REACT FRONTEND    │ ──────▶ │      FASTAPI BACKEND          │   │
-│  │  (Web + Capacitor)  │  HTTP   │   34.135.70.190:8000          │   │
-│  │  localhost:8080     │  SSE    │   (Python, GPU VM)            │   │
-│  └─────────────────────┘         └──────────────┬───────────────┘   │
-│                                                 │                    │
-│                                  ┌──────────────▼───────────────┐   │
-│                                  │     AI + CALC LAYER (v4.0)    │   │
-│                                  │  Two-Pass: Gemini 2.5 Flash   │   │
-│                                  │  RAG Pipeline (FAISS 1.1M)    │   │
-│                                  │  BM25 + Reranker              │   │
-│                                  │  kundali_service.py           │   │
-│                                  │  panchang_service.py          │   │
-│                                  │  pyswisseph (Swiss Ephem)     │   │
-│                                  └──────────────┬───────────────┘   │
-│                                                 │                    │
-│                                  ┌──────────────▼───────────────┐   │
-│                                  │       DATA LAYER              │   │
-│                                  │  PostgreSQL (prod) /           │   │
-│                                  │  SQLite (dev) — users,        │   │
-│                                  │  subscriptions, sessions       │   │
-│                                  └──────────────────────────────┘   │
-│                                                                      │
-│  EXTERNAL SERVICES:                                                  │
-│  • Cashfree (payments/subscriptions)                                 │
-│  • MSG91 / Firebase (OTP SMS)                                        │
-│  • Supabase Auth (optional OAuth — Google)                           │
-│                                                                      │
-│  Gradio (port 7860) — kept as admin/fallback interface               │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         BRAHM AI PLATFORM v5.0                            │
+│              Web (React Vite) + Android (Java 17) + iOS (Swift 5.9)       │
+│                                                                            │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐        │
+│  │   REACT WEBSITE  │  │  ANDROID APP     │  │   iOS APP        │        │
+│  │  (Vite + React)  │  │  Java 17 + MVVM  │  │  Swift 5.9 SwiftUI       │
+│  │  brahmasmi.      │  │  Retrofit2 +     │  │  URLSession +    │        │
+│  │  bimoraai.com    │  │  OkHttp SSE      │  │  async/await SSE │        │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘        │
+│           │   HTTP/SSE          │   HTTP/SSE           │   HTTP/SSE       │
+│           └────────────────────┬┘──────────────────────┘                  │
+│                                │                                            │
+│                                ▼                                            │
+│                  ┌─────────────────────────────┐                           │
+│                  │       FASTAPI BACKEND         │                          │
+│                  │   brahmasmi.bimoraai.com/api  │                          │
+│                  │   (Google Cloud VM — GPU)     │                          │
+│                  └──────────────┬───────────────┘                          │
+│                                 │                                           │
+│               ┌─────────────────▼──────────────────┐                      │
+│               │         AI + CALC LAYER (v5.0)       │                     │
+│               │   Two-Pass: Gemini 2.5 Flash          │                    │
+│               │   RAG Pipeline (FAISS 1.1M chunks)    │                    │
+│               │   BM25 + Cross-Encoder Reranker        │                   │
+│               │   pyswisseph + Swiss Ephemeris         │                   │
+│               │   kundali/panchang/kp/prashna etc.     │                   │
+│               └──────────────┬─────────────────────┘                      │
+│                              │                                              │
+│               ┌──────────────▼───────────────┐                             │
+│               │          DATA LAYER            │                            │
+│               │  SQLite (dev) / PostgreSQL (prod)                           │
+│               │  users, subscriptions, sessions │                           │
+│               └───────────────────────────────┘                            │
+│                                                                             │
+│  EXTERNAL SERVICES:                                                         │
+│  • Google Cloud VM: g2-standard-32, 32 vCPU, 128GB RAM, NVIDIA L4 24GB    │
+│  • Cashfree (payments/subscriptions)                                        │
+│  • MSG91 / Firebase (OTP SMS + FCM push notifications)                     │
+│  • APNs (iOS push notifications)                                            │
+│  • Gemini 2.5 Flash API (google-genai SDK)                                 │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Platform Summary
+| Platform | Tech | Distribution | Status |
+|----------|------|--------------|--------|
+| **Website** | React 18 + Vite + TypeScript | brahmasmi.bimoraai.com | ✅ Live |
+| **Android** | Java 17 LTS + MVVM + Retrofit2 | Google Play Store | 🔜 Phase 1-4 |
+| **iOS** | Swift 5.9 + SwiftUI + URLSession | Apple App Store | 🔜 Phase 5-6 |
+
+All three platforms share the **same FastAPI backend** — zero backend changes needed for mobile.
 
 **VM:** Google Cloud g2-standard-32 | 32 vCPU | 128 GB RAM | NVIDIA L4 24GB GPU
 **IP:** 34.135.70.190 | Cost: ~$0.60/hr | OS: Debian 12 | CUDA 13.2
@@ -178,37 +195,154 @@ C:\desktop\Brahm AI\              (local project root)
 │   │   └── ui/                     50+ shadcn components
 │   │
 │   ├── pages/
-│   │   ├── LandingPage.tsx        ← NEW: first screen for unauthenticated users
-│   │   ├── LoginPage.tsx          ← NEW: phone OTP + optional Google OAuth
-│   │   ├── SubscriptionPage.tsx   ← NEW: plan cards + Cashfree checkout
-│   │   ├── Dashboard.tsx           reads store → zero change needed
-│   │   ├── KundliPage.tsx          reads kundaliData from store
-│   │   ├── AIChatPage.tsx          SSE streaming (Jyotishi+ plan only)
-│   │   ├── PanchangPage.tsx        usePanchang hook [route: /today]
-│   │   ├── GrahanPage.tsx          useGrahan + useFestivals + useCalendar
-│   │   ├── CalendarPage.tsx        embedded inside GrahanPage tab 1
-│   │   ├── MuhurtaPage.tsx         embedded inside PanchangPage tab 2
-│   │   ├── HoroscopePage.tsx       useHoroscope hook
-│   │   ├── CompatibilityPage.tsx   useCompatibility hook
-│   │   ├── TimelinePage.tsx        reads kundaliData.dashas from store
-│   │   ├── YogasPage.tsx           reads kundaliData.yogas from store
-│   │   ├── VedicLibraryPage.tsx    useSearch hook
-│   │   ├── MantraDictionaryPage.tsx useSearch hook
-│   │   ├── KnowledgeBasePage.tsx   useSearch hook
-│   │   ├── SkyPage.tsx             usePlanets hook
-│   │   ├── ProfilePage.tsx         useUser + useSubscription hooks
-│   │   ├── OnboardingPage.tsx      useKundali mutation + city from API
-│   │   ├── RashiExplorer.tsx       STATIC
-│   │   ├── NakshatraExplorer.tsx   STATIC
-│   │   ├── PalmistryPage.tsx       STATIC
-│   │   ├── StoriesPage.tsx         STATIC
-│   │   ├── GotraFinderPage.tsx     STATIC
-│   │   └── NotFound.tsx            STATIC
+│   │   ├── Index.tsx               route redirect → /dashboard or /landing
+│   │   ├── LandingPage.tsx         first screen for unauthenticated users
+│   │   ├── LoginPage.tsx           phone OTP + optional Google OAuth
+│   │   ├── OnboardingPage.tsx      birth details setup + city search → kundliStore
+│   │   ├── SubscriptionPage.tsx    plan cards + Cashfree checkout
+│   │   │
+│   │   ├── Dashboard.tsx           home dashboard — quick stats + chart preview
+│   │   ├── KundliPage.tsx          7-tab Kundali (Chart/Planets/Dashas/Yogas/Alerts/Shadbala/Navamsha)
+│   │   ├── AIChatPage.tsx          SSE streaming AI chat (Jyotishi+ plan)
+│   │   ├── PanchangPage.tsx        today's panchang + muhurta tabs [route: /today]
+│   │   ├── MuhurtaPage.tsx         auspicious timing finder (POST /api/muhurta/activity)
+│   │   ├── HoroscopePage.tsx       daily rashi horoscope (GET /api/horoscope/{rashi})
+│   │   ├── GocharPage.tsx          planetary transits + AV scoring (GET+POST /api/gochar)
+│   │   ├── CompatibilityPage.tsx   kundali milan + nakshatra compatibility (POST /api/compatibility)
+│   │   ├── GrahanPage.tsx          eclipse calendar + festival calendar
+│   │   ├── CalendarPage.tsx        monthly panchang calendar (embedded in GrahanPage)
+│   │   ├── SkyPage.tsx             live sky — current planet positions (GET /api/planets/now)
+│   │   │
+│   │   ├── TimelinePage.tsx        dasha timeline chart (reads kundaliData.dashas from store)
+│   │   ├── YogasPage.tsx           yoga analysis cards (reads kundaliData.yogas from store)
+│   │   ├── RemediesPage.tsx        yoga remedies (mantra/gem/deity) — reads kundaliData
+│   │   │
+│   │   ├── SadeSatiPage.tsx        sade sati calculator (GET /api/sade-sati)
+│   │   ├── DoshaPage.tsx           manglik + dosha analysis (GET /api/dosha)
+│   │   ├── GemstoneRecommendationsPage.tsx  gemstone recommendations (GET /api/gemstones)
+│   │   ├── KPPage.tsx              KP system sub-lords table (POST /api/kp)
+│   │   ├── PrashnaPage.tsx         prashna kundali — horary chart (POST /api/prashna)
+│   │   ├── VarshpalPage.tsx        varshphal solar return chart (POST /api/varshphal)
+│   │   ├── RectificationPage.tsx   birth time rectification (POST /api/rectification)
+│   │   ├── PalmistryPage.tsx       camera palm reading — Gemini Vision (POST /api/palmistry)
+│   │   │
+│   │   ├── VedicLibraryPage.tsx    vedic text search (GET /api/search)
+│   │   ├── MantraDictionaryPage.tsx mantra dictionary search (GET /api/search)
+│   │   ├── KnowledgeBasePage.tsx   knowledge base search (GET /api/search)
+│   │   ├── ProfilePage.tsx         user profile + birth details + plan info
+│   │   │
+│   │   ├── RashiExplorer.tsx       rashi info explorer (STATIC)
+│   │   ├── NakshatraExplorer.tsx   nakshatra info explorer (STATIC)
+│   │   ├── StoriesPage.tsx         vedic stories (STATIC)
+│   │   ├── GotraFinderPage.tsx     gotra finder tool (STATIC)
+│   │   └── NotFound.tsx            404 page (STATIC)
 │   │
 │   └── ingestion/                  Python OCR pipeline modules
 │
-├── android/                       ← NEW: Capacitor Android project (auto-generated)
-├── ios/                           ← NEW: Capacitor iOS project (auto-generated)
+│
+├── android/                       ← Native Android App (Java 17 + MVVM)
+│   └── app/
+│       ├── src/main/
+│       │   ├── java/com/bimoraai/brahm/
+│       │   │   ├── api/
+│       │   │   │   ├── ApiClient.java          ← Retrofit2 setup (base URL, auth header)
+│       │   │   │   ├── ApiService.java         ← all API endpoint interfaces
+│       │   │   │   └── SseManager.java         ← OkHttp EventSource for AI Chat SSE
+│       │   │   ├── model/
+│       │   │   │   ├── KundaliData.java        ← mirrors KundaliResponse from backend
+│       │   │   │   ├── PanchangData.java
+│       │   │   │   ├── ChatMessage.java
+│       │   │   │   └── UserProfile.java
+│       │   │   ├── repository/
+│       │   │   │   ├── KundaliRepository.java
+│       │   │   │   ├── ChatRepository.java
+│       │   │   │   └── PanchangRepository.java
+│       │   │   ├── viewmodel/
+│       │   │   │   ├── KundaliViewModel.java
+│       │   │   │   ├── ChatViewModel.java
+│       │   │   │   └── PanchangViewModel.java
+│       │   │   ├── ui/
+│       │   │   │   ├── auth/
+│       │   │   │   │   ├── LoginActivity.java       ← OTP phone login
+│       │   │   │   │   └── OnboardingActivity.java  ← name, DOB, time, city
+│       │   │   │   ├── main/
+│       │   │   │   │   └── MainActivity.java        ← bottom nav host (5 tabs)
+│       │   │   │   ├── home/HomeFragment.java       ← Dashboard
+│       │   │   │   ├── kundali/
+│       │   │   │   │   ├── KundaliFragment.java     ← 7-tab Kundali
+│       │   │   │   │   └── KundaliChartView.java    ← custom Canvas wheel
+│       │   │   │   ├── chat/ChatFragment.java       ← AI Chat (SSE streaming)
+│       │   │   │   ├── today/TodayFragment.java     ← Panchang
+│       │   │   │   ├── profile/ProfileFragment.java
+│       │   │   │   └── secondary/
+│       │   │   │       ├── GocharActivity.java
+│       │   │   │       ├── CompatibilityActivity.java
+│       │   │   │       ├── MuhurtaActivity.java
+│       │   │   │       ├── SadeSatiActivity.java
+│       │   │   │       ├── DoshaActivity.java
+│       │   │   │       ├── GemstoneActivity.java
+│       │   │   │       ├── KPActivity.java
+│       │   │   │       ├── PrashnaActivity.java
+│       │   │   │       ├── VarshpalActivity.java
+│       │   │   │       ├── RectificationActivity.java
+│       │   │   │       └── PalmistryActivity.java   ← camera + Gemini Vision
+│       │   │   └── utils/
+│       │   │       ├── PrefsHelper.java             ← SharedPreferences wrapper
+│       │   │       └── DateUtils.java
+│       │   └── res/
+│       │       ├── layout/                          ← XML layouts (Material Design 3)
+│       │       ├── navigation/nav_graph.xml         ← Jetpack Navigation
+│       │       ├── values/                          ← colors, strings, themes
+│       │       └── drawable/                        ← icons, assets
+│       ├── build.gradle                             ← Retrofit2, OkHttp, MPAndroidChart etc.
+│       └── google-services.json                     ← Firebase config (FCM push)
+│
+├── ios/                           ← Native iOS App (Swift 5.9 + SwiftUI)
+│   └── BrahmAI/
+│       ├── App/
+│       │   ├── BrahmAIApp.swift                    ← @main entry point
+│       │   └── ContentView.swift                   ← NavigationStack root
+│       ├── Network/
+│       │   ├── APIClient.swift                     ← URLSession base client
+│       │   ├── APIEndpoints.swift                  ← all endpoint definitions
+│       │   └── SSEStream.swift                     ← URLSession bytes stream for AI Chat
+│       ├── Models/
+│       │   ├── KundaliData.swift
+│       │   ├── PanchangData.swift
+│       │   ├── ChatMessage.swift
+│       │   └── UserProfile.swift
+│       ├── Views/
+│       │   ├── Auth/
+│       │   │   ├── LoginView.swift                 ← OTP phone login
+│       │   │   └── OnboardingView.swift            ← birth details setup
+│       │   ├── Main/
+│       │   │   └── MainTabView.swift               ← TabView (5 tabs)
+│       │   ├── Home/HomeView.swift                 ← Dashboard
+│       │   ├── Kundali/
+│       │   │   ├── KundaliView.swift               ← 7-tab Kundali
+│       │   │   └── KundaliChartView.swift          ← Swift Charts + Canvas wheel
+│       │   ├── Chat/ChatView.swift                 ← AI Chat (SSE streaming)
+│       │   ├── Today/TodayView.swift               ← Panchang
+│       │   ├── Profile/ProfileView.swift
+│       │   └── Secondary/
+│       │       ├── GocharView.swift
+│       │       ├── CompatibilityView.swift
+│       │       ├── MuhurtaView.swift
+│       │       ├── SadeSatiView.swift
+│       │       ├── DoshaView.swift
+│       │       ├── GemstoneView.swift
+│       │       ├── KPView.swift
+│       │       ├── PrashnaView.swift
+│       │       ├── VarshpalView.swift
+│       │       ├── RectificationView.swift
+│       │       └── PalmistryView.swift             ← camera + Gemini Vision
+│       ├── ViewModels/
+│       │   ├── KundaliViewModel.swift
+│       │   ├── ChatViewModel.swift
+│       │   └── PanchangViewModel.swift
+│       └── Utils/
+│           ├── KeychainHelper.swift                ← secure token storage
+│           └── DateUtils.swift
 │
 └── scripts/
     ├── 08_gradio_kundali.py        Gradio UI (kept, port 7860)
@@ -302,8 +436,9 @@ Mobile/Web                 FastAPI                  MSG91/Firebase
     │                         │                           │
     │── Store tokens          │                           │
     │   Web: localStorage     │                           │
-    │   App: Capacitor        │                           │
-    │        SecureStorage    │                           │
+    │   Android: Encrypted    │                           │
+    │     SharedPreferences   │                           │
+    │   iOS: Keychain         │                           │
 ```
 
 ### 4.2 JWT Structure
@@ -383,14 +518,208 @@ interface AuthState {
   logout:  () => void
 }
 
-// Persisted to localStorage (web) or Capacitor Preferences (app)
+// Persisted to localStorage (web) / EncryptedSharedPreferences (Android) / Keychain (iOS)
 ```
 
 ---
 
-## 5. SUBSCRIPTION SYSTEM (CASHFREE)
+## 5. MOBILE APP ARCHITECTURE (Native Java + Swift)
 
-### 5.1 Plan Definitions
+### 5.1 Mobile API Flow
+
+#### AI Chat — SSE Streaming
+```
+Android (OkHttp EventSource)          iOS (URLSession bytes stream)
+        │                                         │
+        │── POST /api/chat ───────────────────────┤
+        │   { "message": "...", "birth_data": {} }│
+        │                                         │
+        │◀── data: {"type":"chunk","content":"..."} ─▶│
+        │◀── data: {"type":"chunk","content":"..."} ─▶│
+        │◀── data: {"type":"done","sources":[...]} ─▶│
+        │                                         │
+        │  [Android] OkHttpClient.newEventSource()    │
+        │  → EventSourceListener.onEvent()            │
+        │  → LiveData.postValue() → UI update         │
+        │                                             │
+        │  [iOS] URLSession.bytes(for:request)        │
+        │  → AsyncThrowingStream → @Observable update │
+```
+
+#### All Other Requests — REST
+```
+Android (Retrofit2)                   iOS (URLSession + async/await)
+
+@GET("api/kundali")                   func fetchKundali() async throws
+Call<KundaliResponse> getKundali(     → URLSession.data(for: request)
+  @Query("date") String date, ...)    → JSONDecoder().decode(...)
+
+→ Retrofit callback → ViewModel       → await → ViewModel @Published
+→ LiveData.observe → Fragment UI      → @Observable → SwiftUI auto-update
+```
+
+### 5.2 Android — Java 17 MVVM Architecture
+
+```
+Activity/Fragment (View)
+    │ observe LiveData
+    ▼
+ViewModel (state, logic)
+    │ calls
+    ▼
+Repository (data layer)
+    │ calls
+    ▼
+ApiService (Retrofit interface) / SseManager (OkHttp)
+    │ HTTP/SSE
+    ▼
+FastAPI Backend (brahmasmi.bimoraai.com/api)
+```
+
+**Key dependencies (build.gradle):**
+```groovy
+implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+implementation 'com.squareup.okhttp3:okhttp-sse:4.12.0'      // AI Chat SSE
+implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'    // charts
+implementation 'com.github.bumptech.glide:glide:4.16.0'      // images
+implementation 'androidx.navigation:navigation-fragment:2.7.7'
+implementation 'com.google.firebase:firebase-messaging:23.4.1' // FCM push
+```
+
+**Token storage (Android):**
+```java
+// PrefsHelper.java
+EncryptedSharedPreferences.create(
+    "brahm_secure_prefs",
+    MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+    context,
+    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+);
+```
+
+### 5.3 iOS — Swift 5.9 SwiftUI Architecture
+
+```
+SwiftUI View (body)
+    │ @Bindable / @Observable
+    ▼
+@Observable ViewModel
+    │ async/await calls
+    ▼
+APIClient (URLSession)
+    │ HTTP / URLSession.bytes (SSE)
+    ▼
+FastAPI Backend (brahmasmi.bimoraai.com/api)
+```
+
+**Key stack (Swift Package Manager):**
+```swift
+// No external heavy deps — use Swift stdlib
+// URLSession for HTTP + SSE (built-in)
+// Swift Charts for charts (built-in, iOS 16+)
+// SwiftUI NavigationStack (iOS 16+)
+// Keychain via Security framework (built-in)
+// Firebase (optional — FCM + Analytics)
+```
+
+**Token storage (iOS):**
+```swift
+// KeychainHelper.swift
+SecItemAdd([
+    kSecClass: kSecClassGenericPassword,
+    kSecAttrAccount: "brahm_access_token",
+    kSecValueData: tokenData
+] as CFDictionary, nil)
+```
+
+### 5.4 All App Screens
+
+#### Bottom Navigation (5 main tabs)
+| Tab | Android | iOS | Backend |
+|-----|---------|-----|---------|
+| Home | HomeFragment | HomeView | Dashboard data |
+| Kundali | KundaliFragment (7 tabs) | KundaliView | POST /api/kundali |
+| Chat | ChatFragment (SSE) | ChatView (SSE) | POST /api/chat |
+| Today | TodayFragment | TodayView | GET /api/panchang |
+| Profile | ProfileFragment | ProfileView | GET /api/user/me |
+
+#### Secondary Screens
+| Screen | Android Activity | iOS View | Backend Endpoint |
+|--------|-----------------|---------|-----------------|
+| Gochar | GocharActivity | GocharView | GET /api/gochar + POST /api/gochar/analyze |
+| Compatibility | CompatibilityActivity | CompatibilityView | POST /api/compatibility |
+| Muhurta | MuhurtaActivity | MuhurtaView | POST /api/muhurta/activity |
+| Horoscope | HoroscopeActivity | HoroscopeView | GET /api/horoscope/{rashi} |
+| Sade Sati | SadeSatiActivity | SadeSatiView | GET /api/sade-sati |
+| Dosha | DoshaActivity | DoshaView | GET /api/dosha |
+| Gemstone | GemstoneActivity | GemstoneView | GET /api/gemstones |
+| KP System | KPActivity | KPView | POST /api/kp |
+| Prashna | PrashnaActivity | PrashnaView | POST /api/prashna |
+| Varshphal | VarshpalActivity | VarshpalView | POST /api/varshphal |
+| Rectification | RectificationActivity | RectificationView | POST /api/rectification |
+| Palmistry | PalmistryActivity | PalmistryView | POST /api/palmistry (camera + Gemini Vision) |
+| Remedies | RemediesActivity | RemediesView | Kundali store (local) |
+| Timeline | TimelineActivity | TimelineView | Kundali store (local) |
+| Yogas | YogasActivity | YogasView | Kundali store (local) |
+| Grahan | GrahanActivity | GrahanView | GET /api/grahan |
+| Rashi Explorer | RashiActivity | RashiView | Static |
+| Nakshatra Explorer | NakshatraActivity | NakshatraView | Static |
+| Vedic Library | LibraryActivity | LibraryView | GET /api/search |
+| Mantra Dictionary | MantraActivity | MantraView | GET /api/search |
+| Subscription | SubscriptionActivity | SubscriptionView | GET /api/subscription/plans |
+
+### 5.5 Push Notifications
+
+#### Android — Firebase Cloud Messaging (FCM)
+```
+Backend (scheduler) ──▶ FCM API ──▶ Android Device
+  • Daily Rahu Kaal alert (time-based)
+  • Daily horoscope (morning)
+  • Custom planetary alerts
+```
+
+#### iOS — APNs via Firebase
+```
+Backend (scheduler) ──▶ Firebase ──▶ APNs ──▶ iOS Device
+  Same notification types as Android
+  Uses same Firebase project (add iOS app)
+```
+
+### 5.6 Design System (Mobile)
+```
+Theme:          Dark (match website)
+Primary:        #7C3AED  (purple)
+Background:     #09090B  (zinc-950)
+Surface:        #18181B  (zinc-900)
+Text:           #FAFAFA  (zinc-50)
+Accent:         #F59E0B  (amber — star-gold)
+Font:           Poppins (downloaded as .ttf asset)
+Corner Radius:  12dp (Android) / 12pt (iOS)
+Min SDK:        Android 8.0 (API 26) — 95%+ devices
+Min iOS:        iOS 16 (SwiftUI NavigationStack + Swift Charts)
+```
+
+### 5.7 Phase Plan
+
+| Phase | Goal | Platform | Duration |
+|-------|------|----------|----------|
+| 1 | Foundation + Auth + Core Screens | Android | Week 1 |
+| 2 | AI Chat + Full Kundali | Android | Week 2 |
+| 3 | All Secondary Screens | Android | Week 3 |
+| 4 | Polish + Play Store | Android | Week 4 |
+| 5 | iOS Port (SwiftUI) | iOS | Week 5-6 |
+
+**Package name:** `com.bimoraai.brahm`
+**Bundle ID (iOS):** `com.bimoraai.brahm`
+
+---
+
+## 6. SUBSCRIPTION SYSTEM (CASHFREE)
+
+### 6.1 Plan Definitions
 ```json
 [
   {
@@ -521,7 +850,7 @@ def verify_webhook_signature(raw_body: bytes, received_sig: str) -> bool:
 
 ---
 
-## 6. MULTILINGUAL SUPPORT
+## 7. MULTILINGUAL SUPPORT
 
 ### 6.1 Strategy: Two Levels
 ```
@@ -601,113 +930,15 @@ LANG_PROMPTS = {
 
 ---
 
-## 7. MOBILE APP SYSTEM (CAPACITOR)
+## 8. ~~CAPACITOR~~ — REPLACED BY NATIVE APPS
 
-### 7.1 Why Capacitor (Not React Native)
-- **Same React codebase** — zero rewrite, just add Capacitor
-- Native iOS + Android from one build
-- Access native APIs: push notifications, biometric, secure storage, camera (palmistry?)
-- PWA-compatible: works as web app too
-- Deployment: App Store + Play Store + Web simultaneously
-
-### 7.2 Capacitor Setup
-```typescript
-// capacitor.config.ts
-import { CapacitorConfig } from "@capacitor/cli"
-
-const config: CapacitorConfig = {
-  appId:    "ai.brahm.app",
-  appName:  "Brahm AI",
-  webDir:   "dist",
-  server: {
-    androidScheme: "https",
-    url: "http://34.135.70.190:8000"   // dev only — prod: remove for offline-capable
-  },
-  plugins: {
-    SplashScreen: {
-      launchShowDuration: 2000,
-      backgroundColor: "#0a0a1a",      // dark cosmic
-      showSpinner: false,
-      androidSpinnerStyle: "small",
-      splashFullScreen: true
-    },
-    PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"]
-    }
-  }
-}
-```
-
-### 7.3 Build Commands
-```bash
-# Build web app
-npm run build
-
-# Sync to native projects (run after every web build)
-npx cap sync
-
-# Run on Android (needs Android Studio)
-npx cap run android
-
-# Run on iOS (needs Xcode + Mac)
-npx cap run ios
-
-# Open in IDE
-npx cap open android
-npx cap open ios
-```
-
-### 7.4 Capacitor Plugins Used
-```bash
-npm install @capacitor/app @capacitor/haptics @capacitor/keyboard
-npm install @capacitor/push-notifications     # daily panchang / eclipse alerts
-npm install @capacitor/splash-screen          # cosmic splash
-npm install @capacitor/preferences            # secure token storage (replaces localStorage)
-npm install @capacitor/browser                # for Cashfree payment redirect
-npm install @capacitor-community/biometric-auth  # fingerprint / Face ID login
-```
-
-### 7.5 Secure Token Storage (App vs Web)
-```typescript
-// src/lib/storage.ts — abstraction layer
-import { Capacitor } from "@capacitor/core"
-import { Preferences } from "@capacitor/preferences"
-
-export const secureStore = {
-  async set(key: string, value: string) {
-    if (Capacitor.isNativePlatform()) {
-      await Preferences.set({ key, value })
-    } else {
-      localStorage.setItem(key, value)
-    }
-  },
-  async get(key: string): Promise<string | null> {
-    if (Capacitor.isNativePlatform()) {
-      const { value } = await Preferences.get({ key })
-      return value
-    }
-    return localStorage.getItem(key)
-  }
-}
-
-// Usage in authStore.ts:
-// secureStore.set("brahm_token", accessToken)
-// secureStore.get("brahm_token")
-```
-
-### 7.6 Push Notifications (Daily Panchang)
-```
-Server (7 AM daily via cron):
-  → compute today's panchang for user's location
-  → FCM push: "Today: Ekadashi 🌙 | Shatabhisha | Avoid starting new work"
-  → Eclipse alerts: "Grahan in 2 days — Sutak begins tomorrow at 9 PM"
-
-User opt-in preferences (in profile):
-  [ ] Daily panchang notification
-  [ ] Eclipse / Grahan alerts
-  [ ] Festival reminders (3 days before)
-  [ ] Dasha change alerts (30 days before major dasha change)
-```
+> **Decision (2026-03-21):** Capacitor approach discarded. We are building fully native apps:
+> - **Android:** Java 17 + MVVM + Retrofit2 (see Section 5)
+> - **iOS:** Swift 5.9 + SwiftUI + URLSession (see Section 5)
+>
+> Reasons: Better performance (60/120fps), full native API access, camera for Palmistry,
+> no framework dependency risk, best App Store / Play Store acceptance.
+> All details are in **Section 5: MOBILE APP ARCHITECTURE**.
 
 ---
 
@@ -963,53 +1194,81 @@ WHERE used_at >= date('now', '-30 days');
 
 | URL | Sidebar Label | Component | Auth Required | Notes |
 |-----|--------------|-----------|---------------|-------|
-| `/` | — | LandingPage | ✗ | Shows if not logged in; redirects to /dashboard if logged in |
+| `/` | — | Index.tsx → LandingPage | ✗ | Redirects to /dashboard if logged in |
 | `/login` | — | LoginPage | ✗ | Phone OTP form |
+| `/onboarding` | — | OnboardingPage | ✓ | Birth details setup after first login |
 | `/dashboard` | Dashboard | Dashboard | ✓ | Personalized daily snapshot |
-| `/chat` | Brahm AI Chat | AIChatPage | ✓ Jyotishi+ | 5 msg/day on Free |
-| `/kundli` | My Kundli | KundliPage | ✓ | |
-| `/sky` | Live Sky | SkyPage | ✓ | |
-| `/timeline` | Dasha Timeline | TimelinePage | ✓ Jyotishi+ | |
+| `/chat` | Brahm AI Chat | AIChatPage | ✓ Jyotishi+ | SSE streaming AI |
+| `/kundli` | My Kundli | KundliPage | ✓ | 7 tabs: Chart/Planets/Dashas/Yogas/Alerts/Shadbala/Navamsha |
+| `/sky` | Live Sky | SkyPage | ✓ | Current planet positions |
+| `/timeline` | Dasha Timeline | TimelinePage | ✓ | Dasha timeline chart |
+| `/yogas` | Yogas | YogasPage | ✓ | Yoga analysis cards |
+| `/remedies` | Remedies | RemediesPage | ✓ | Yoga remedies (mantra/gem/deity) |
 | `/horoscope` | Daily Horoscope | HoroscopePage | ✗ | Public |
-| `/rashi` | Rashi Explorer | RashiExplorer | ✗ | Public |
-| `/nakshatra` | Nakshatra Explorer | NakshatraExplorer | ✗ | Public |
-| `/yogas` | Yogas | YogasPage | ✓ | |
-| `/compatibility` | Compatibility | CompatibilityPage | ✓ Jyotishi+ | |
-| `/palmistry` | Palmistry | PalmistryPage | ✓ | |
-| **`/today`** | **Today** | PanchangPage | ✓ | Tab 1: Panchang · Tab 2: Muhurta |
-| **`/panchang`** | **Panchang** | GrahanPage | ✗ | Public — Tab 1: Calendar · Tab 2: Festivals · Tab 3: Eclipses |
-| `/library` | Vedic Library | VedicLibraryPage | ✓ Acharya | Sanskrit search |
-| `/mantras` | Mantra Dictionary | MantraDictionaryPage | ✓ | |
-| `/knowledge` | Knowledge Base | KnowledgeBasePage | ✓ | |
-| `/stories` | Stories | StoriesPage | ✗ | Public |
+| `/rashi` | Rashi Explorer | RashiExplorer | ✗ | Public — static |
+| `/nakshatra` | Nakshatra Explorer | NakshatraExplorer | ✗ | Public — static |
+| `/compatibility` | Compatibility | CompatibilityPage | ✓ | Kundali milan + nakshatra tab |
+| `/palmistry` | Palmistry | PalmistryPage | ✓ | Camera + Gemini Vision (POST /api/palmistry) |
+| `/gochar` | Gochar | GocharPage | ✓ | Planetary transits + AV scoring |
+| `/today` | Today | PanchangPage | ✓ | Tab 1: Panchang · Tab 2: Muhurta |
+| `/panchang` | Panchang | GrahanPage | ✗ | Public — Calendar / Festivals / Eclipses |
+| `/grahan` | — | → redirect /panchang | ✗ | Redirect alias |
+| `/calendar` | — | → redirect /panchang | ✗ | Redirect alias |
+| `/muhurta` | — | → redirect /today | ✓ | Redirect alias |
+| `/sade-sati` | Sade Sati | SadeSatiPage | ✓ | Sade Sati calculator |
+| `/dosha` | Dosha | DoshaPage | ✓ | Manglik + dosha analysis |
+| `/gemstones` | Gemstones | GemstoneRecommendationsPage | ✓ | Gemstone recommendations |
+| `/kp` | KP System | KPPage | ✓ | KP sub-lords table |
+| `/prashna` | Prashna | PrashnaPage | ✓ | Prashna (horary) kundali |
+| `/varshphal` | Varshphal | VarshpalPage | ✓ | Varshphal solar return |
+| `/rectification` | Rectification | RectificationPage | ✓ | Birth time rectification |
+| `/library` | Vedic Library | VedicLibraryPage | ✓ Acharya | Sanskrit text search |
+| `/mantras` | Mantra Dictionary | MantraDictionaryPage | ✓ | Mantra search |
+| `/knowledge` | Knowledge Base | KnowledgeBasePage | ✓ | Knowledge base search |
+| `/stories` | Stories | StoriesPage | ✗ | Public — static |
 | `/gotra` | Gotra Finder | GotraFinderPage | ✓ | |
-| `/profile` | Profile | ProfilePage | ✓ | Subscription mgmt |
-| `/subscription` | — | SubscriptionPage | ✓ | Plan selection + Cashfree |
+| `/profile` | Profile | ProfilePage | ✓ | Account + birth details + plan |
+| `/subscription` | — | SubscriptionPage | ✓ | Plan selection + Cashfree checkout |
+| `*` | — | NotFound | ✗ | 404 |
 
 ---
 
 ## 11. PAGE → API → HOOK MAPPING
 
-| Page | API Endpoint | Hook | Auth |
-|------|-------------|------|------|
-| **LandingPage** | GET /api/panchang (public snapshot) | usePanchang | ✗ |
+| Page | API Endpoint | Hook / Direct call | Auth |
+|------|-------------|-------------------|------|
+| **LandingPage** | — | — | ✗ |
 | **LoginPage** | POST /api/auth/send-otp + /verify-otp | useAuth | ✗ |
 | **OnboardingPage** | POST /api/kundali | useKundali | ✓ |
-| **Dashboard** | Zustand store + /api/panchang | usePanchang | ✓ |
-| **AIChatPage** | POST /api/chat (SSE) | useChat | ✓ Jyotishi+ |
-| **KundliPage** | Zustand store | — | ✓ |
-| **TimelinePage** | Zustand store | — | ✓ |
-| **YogasPage** | Zustand store | — | ✓ |
-| **PanchangPage** | GET /api/panchang + /api/muhurta | usePanchang, useMuhurta | ✓ |
-| **GrahanPage** | GET /api/calendar/month + /api/festivals + /api/grahan | useCalendar, useFestivals, useGrahan | ✗ |
+| **Dashboard** | Zustand store + GET /api/panchang | usePanchang | ✓ |
+| **AIChatPage** | POST /api/chat (SSE stream) | useChat | ✓ |
+| **KundliPage** | Zustand store (kundaliData) | — | ✓ |
+| **TimelinePage** | Zustand store (kundaliData.dashas) | — | ✓ |
+| **YogasPage** | Zustand store (kundaliData.yogas) | — | ✓ |
+| **RemediesPage** | Zustand store (kundaliData) | — | ✓ |
+| **PanchangPage** | GET /api/panchang + POST /api/muhurta/activity | usePanchang | ✓ |
+| **GrahanPage** | GET /api/grahan + /api/festivals + /api/calendar/month | useGrahan | ✗ |
 | **HoroscopePage** | GET /api/horoscope/{rashi} | useHoroscope | ✗ |
-| **CompatibilityPage** | POST /api/compatibility | useCompatibility | ✓ Jyotishi+ |
+| **GocharPage** | GET /api/gochar + POST /api/gochar/analyze | api.get / api.post | ✓ |
+| **CompatibilityPage** | POST /api/compatibility | useCompatibility | ✓ |
+| **SadeSatiPage** | GET /api/sade-sati | api.get | ✓ |
+| **DoshaPage** | GET /api/dosha | api.get | ✓ |
+| **GemstoneRecommendationsPage** | GET /api/gemstones | api.get | ✓ |
+| **KPPage** | POST /api/kp | api.post | ✓ |
+| **PrashnaPage** | POST /api/prashna | api.post | ✓ |
+| **VarshpalPage** | POST /api/varshphal | api.post | ✓ |
+| **RectificationPage** | POST /api/rectification | api.post | ✓ |
+| **PalmistryPage** | POST /api/palmistry (multipart image) | api.post | ✓ |
+| **SkyPage** | GET /api/planets/now | usePlanets | ✓ |
 | **VedicLibraryPage** | GET /api/search | useSearch | ✓ Acharya |
 | **MantraDictionaryPage** | GET /api/search | useSearch | ✓ |
 | **KnowledgeBasePage** | GET /api/search | useSearch | ✓ |
-| **SkyPage** | GET /api/planets/now | usePlanets | ✓ |
-| **ProfilePage** | GET+PATCH /api/user/me + /api/subscription/status | useUser, useSubscription | ✓ |
+| **ProfilePage** | GET+PATCH /api/user/me | useUser | ✓ |
 | **SubscriptionPage** | GET /api/subscription/plans + POST /checkout | useSubscription | ✓ |
+| **RashiExplorer** | — | — | ✗ (static) |
+| **NakshatraExplorer** | — | — | ✗ (static) |
+| **StoriesPage** | — | — | ✗ (static) |
+| **GotraFinderPage** | — | — | ✓ (static) |
 
 ---
 
@@ -1318,7 +1577,7 @@ Available buffer:             17.1 GB
 
 ## 20. TECH STACK SUMMARY (UPDATED)
 
-### Frontend
+### Web Frontend
 | Layer | Technology | Notes |
 |-------|-----------|-------|
 | Framework | React 18.3.1 | |
@@ -1331,9 +1590,37 @@ Available buffer:             17.1 GB
 | Server State | React Query 5.83.0 | |
 | Routing | React Router 6.30.1 | |
 | i18n | react-i18next | EN/HI/SA |
-| Mobile | Capacitor 6.x | iOS + Android |
+| Storage | localStorage | JWT, birth details |
 | Payments | Cashfree JS SDK | In-app checkout |
-| Storage | Capacitor Preferences (app) / localStorage (web) | |
+
+### Android App
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Language | Java 17 LTS | Records, sealed classes, text blocks |
+| IDE | Android Studio Hedgehog+ | |
+| UI | XML Layouts + Material Design 3 | |
+| HTTP | Retrofit2 + OkHttp3 | All REST calls |
+| SSE (AI Chat) | OkHttp EventSource | Streaming responses |
+| Charts | MPAndroidChart + custom Canvas | Kundali wheel |
+| Images | Glide | |
+| Storage | EncryptedSharedPreferences + Room DB | Secure token |
+| Navigation | Jetpack Navigation Component | |
+| Async | ExecutorService + LiveData | MVVM pattern |
+| Push | Firebase Cloud Messaging (FCM) | Daily alerts |
+| Min SDK | API 26 (Android 8.0) | 95%+ device coverage |
+
+### iOS App
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Language | Swift 5.9 | async/await, @Observable |
+| IDE | Xcode 15+ (Mac required) | |
+| UI | SwiftUI | NavigationStack |
+| HTTP | URLSession + async/await | All REST calls |
+| SSE (AI Chat) | URLSession bytes stream | Streaming responses |
+| Charts | Swift Charts + custom Canvas | Kundali wheel |
+| Storage | UserDefaults + Keychain + CoreData | Secure token |
+| Push | APNs via Firebase | Daily alerts |
+| Min iOS | iOS 16 | SwiftUI NavigationStack |
 
 ### Backend
 | Layer | Technology | Notes |
@@ -1389,7 +1676,7 @@ open http://34.135.70.190:8000/docs
 
 ---
 
-*Generated: 2026-03-18 | Brahm AI v3.0 — Web + App + Auth + Subscriptions*
+*Generated: 2026-03-21 | Brahm AI v5.0 — Web + Android (Java 17) + iOS (Swift 5.9) + AI Engine*
 
 ---
 

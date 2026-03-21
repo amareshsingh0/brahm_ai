@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Palmistry AI"
+                android:fontFamily="@font/poppins_bold"
+                android:textSize="28sp"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gemini Vision Analysis"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Camera Preview Area -->
+        <FrameLayout
+            android:id="@+id/cameraPreview"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@color/bg_surface"
+            android:layout_marginBottom="16dp">
+
+            <!-- Dashed border overlay drawn via drawable -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_camera_dashed_border" />
+
+            <!-- Placeholder content (shown when no image) -->
+            <LinearLayout
+                android:id="@+id/layoutCameraPlaceholder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✋"
+                    android:textSize="48sp"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Place your palm here"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Open camera or choose from gallery"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_muted"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Selected Image Preview (hidden initially) -->
+            <ImageView
+                android:id="@+id/ivPalmImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                tools:src="@drawable/ic_palmistry_placeholder"
+                tools:visibility="visible" />
+
+            <!-- Retake button overlay (shown when image selected) -->
+            <TextView
+                android:id="@+id/btnRetake"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="10dp"
+                android:text="  Retake  "
+                android:fontFamily="@font/poppins_semibold"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/bg_retake_badge"
+                android:paddingVertical="4dp"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!-- Camera / Gallery Buttons Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/btnOpenCamera"
+                style="@style/Widget.BrahmAI.ButtonOutlined"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="Open Camera"
+                android:fontFamily="@font/poppins_semibold"
+                android:textSize="13sp"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/btnGallery"
+                style="@style/Widget.BrahmAI.ButtonOutlined"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="Choose from Gallery"
+                android:fontFamily="@font/poppins_semibold"
+                android:textSize="13sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Analyze Button (disabled until image selected) -->
+        <Button
+            android:id="@+id/btnAnalyzePalm"
+            style="@style/Widget.BrahmAI.Button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Analyze Palm"
+            android:fontFamily="@font/poppins_semibold"
+            android:textSize="15sp"
+            android:enabled="false"
+            android:alpha="0.5"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Tips banner -->
+        <LinearLayout
+            android:id="@+id/layoutTips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_info_banner"
+            android:padding="12dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡"
+                android:textSize="14sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="For best results: good lighting, clean palm, all lines visible, right hand for males and left hand for females."
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingMultiplier="1.4" />
+        </LinearLayout>
+
+        <!-- Analysis Result Card (hidden by default) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardResult"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Palm Analysis"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textSize="14sp"
+                        android:textColor="@color/accent_gold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gemini Vision"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="11sp"
+                        android:textColor="@color/primary"
+                        android:background="@drawable/bg_badge_primary"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvAnalysis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingMultiplier="1.7"
+                    tools:text="Your heart line is deep and curved, indicating strong emotional intelligence and capacity for love. The head line runs straight across the palm showing logical thinking and focus. Your life line is long and clear suggesting good vitality. The fate line starts from the wrist and runs strong to the Saturn mount, indicating a structured career path with steady growth..." />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

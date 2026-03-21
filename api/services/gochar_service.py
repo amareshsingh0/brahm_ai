@@ -17,6 +17,15 @@ RASHIS = [
 ]
 RASHI_IDX = {r: i for i, r in enumerate(RASHIS)}
 
+# Normalize full rashi names (from kundali_service) to gochar short names
+_RASHI_NORM = {
+    "Mesha":"Mesh", "Vrishabha":"Vrish", "Mithuna":"Mithun", "Karka":"Kark",
+    "Simha":"Simha", "Kanya":"Kanya", "Tula":"Tula", "Vrischika":"Vrischik",
+    "Dhanu":"Dhanu", "Makara":"Makar", "Kumbha":"Kumbh", "Meena":"Meen",
+}
+def _norm(r: str) -> str:
+    return _RASHI_NORM.get(r, r)
+
 PLANETS = {
     "Surya":   swe.SUN,
     "Chandra": swe.MOON,
@@ -94,7 +103,7 @@ def get_current_planet_positions() -> dict:
     return _get_current_positions()
 
 
-def get_transits(natal_lagna_rashi: str, natal_moon_rashi: str) -> dict:
+def get_transits(natal_lagna_rashi: str, natal_moon_rashi: str, natal_bav: dict = None) -> dict:  # noqa: C901
     """
     Main function — returns complete transit (gochar) analysis.
 
@@ -108,8 +117,8 @@ def get_transits(natal_lagna_rashi: str, natal_moon_rashi: str) -> dict:
       sade_sati: bool
       summary: one-line summary of key planets
     """
-    lagna_idx = RASHI_IDX.get(natal_lagna_rashi, 0)
-    moon_idx  = RASHI_IDX.get(natal_moon_rashi, 0)
+    lagna_idx = RASHI_IDX.get(_norm(natal_lagna_rashi), 0)
+    moon_idx  = RASHI_IDX.get(_norm(natal_moon_rashi), 0)
 
     current = _get_current_positions()
 
@@ -141,26 +150,57 @@ def get_transits(natal_lagna_rashi: str, natal_moon_rashi: str) -> dict:
                 f"Guru {guru['current_rashi']} mein ({h}H) — growth slow ho sakti hai, patience rakho"
             )
 
-    # --- Shani (Saturn) + Sade Sati check ---
+    # --- Shani (Saturn) + Sade Sati + Ashtama/Kantaka check ---
     shani = transits.get("Shani", {})
+    sade_sati_phase  = None
+    ashtama_shani    = False
+    kantaka_shani    = False
+    shani_house_moon = None
+    shani_house_lagna = None
     if shani:
-        diff = abs(current["Shani"]["rashi_idx"] - moon_idx)
-        if diff > 6:
-            diff = 12 - diff
-        sade_sati = diff <= 1
+        shani_idx = current["Shani"]["rashi_idx"]
+        diff_signed = (shani_idx - moon_idx) % 12   # 0=peak,1=setting,11=rising
+        diff_abs    = min(diff_signed, 12 - diff_signed)
+        sade_sati   = diff_abs <= 1
+
+        # Phase
+        if diff_signed == 0:
+            sade_sati_phase = "Peak"
+        elif diff_signed == 11:
+            sade_sati_phase = "Rising"
+        elif diff_signed == 1:
+            sade_sati_phase = "Setting"
+
         if sade_sati:
             cautions.append(
-                f"SADE SATI CHAL RAHI HAI — Shani {shani['current_rashi']} mein, "
+                f"SADE SATI CHAL RAHI HAI ({sade_sati_phase or 'Active'} phase) — Shani {shani['current_rashi']} mein, "
                 f"natal Chandra ke paas. Discipline, patience aur hard work se hi safalta milegi."
+            )
+
+        # Ashtama Shani: Saturn in 8th from Moon
+        shani_house_moon  = ((shani_idx - moon_idx) % 12) + 1
+        shani_house_lagna = shani["natal_house"]
+        ashtama_shani     = shani_house_moon == 8
+        kantaka_shani     = shani_house_lagna in [4, 7, 8, 10]
+
+        if ashtama_shani and not sade_sati:
+            cautions.append(
+                f"ASHTAMA SHANI — Shani {shani['current_rashi']} mein, Chandra se 8th house. "
+                "Health, hidden enemies, sudden obstacles se chetavni. Shani puja aur patience rakh."
+            )
+        if kantaka_shani and not sade_sati:
+            cautions.append(
+                f"KANTAKA SHANI — Shani {shani['current_rashi']} mein ({shani_house_lagna}H from lagna). "
+                "Career, relationships mein disruption possible. Discipline aur dharma se kaam lo."
             )
 
         h = shani["natal_house"]
         eff = TRANSIT_EFFECTS["Shani"]
-        if h in eff["shubh"] and not sade_sati:
+        if h in eff["shubh"] and not sade_sati and not kantaka_shani:
             opportunities.append(
                 f"Shani {shani['current_rashi']} mein ({h}H) — karmic mehnat rewarded hogi, steady progress"
             )
-        elif h in eff["ashubh"]:
+        elif h in eff["ashubh"] and not sade_sati:
             cautions.append(
                 f"Shani {shani['current_rashi']} mein ({h}H) — obstacles possible, slow & steady approach best"
             )
@@ -193,14 +233,30 @@ def get_transits(natal_lagna_rashi: str, natal_moon_rashi: str) -> dict:
                 f"Mangal {mangal['current_rashi']} mein ({h}H) — impulsive decisions avoid karo (short-term)"
             )
 
+    # Ashtakavarga transit scores (bindus in current rashi per planet's BAV)
+    av_scores = {}
+    if natal_bav:
+        for planet, data in current.items():
+            if planet in natal_bav:
+                av_scores[planet] = {
+                    "score": natal_bav[planet][data["rashi_idx"]],
+                    "rashi": data["rashi"],
+                }
+
     return {
         "current_positions": {
             p: f"{d['current_rashi']} ({d['natal_house']}H)"
             for p, d in transits.items()
         },
-        "opportunities": opportunities,
-        "cautions":      cautions,
-        "sade_sati":     sade_sati,
+        "opportunities":      opportunities,
+        "cautions":           cautions,
+        "sade_sati":          sade_sati,
+        "sade_sati_phase":    sade_sati_phase,
+        "ashtama_shani":      ashtama_shani,
+        "kantaka_shani":      kantaka_shani,
+        "shani_house_lagna":  shani_house_lagna,
+        "shani_house_moon":   shani_house_moon,
+        "av_scores":          av_scores,
         "summary": (
             f"Guru: {current['Guru']['rashi']} | "
             f"Shani: {current['Shani']['rashi']} | "

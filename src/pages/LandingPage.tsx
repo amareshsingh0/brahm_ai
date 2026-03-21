@@ -238,7 +238,7 @@ export default function LandingPage() {
             <h2 className="font-display text-3xl text-foreground">Begin in 3 Steps</h2>
           </motion.div>
 
-          <div className="grid sm:grid-cols-3 gap-6 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
             {[
               { step: "01", title: "Login with OTP", desc: "Enter your phone number. Get a 6-digit OTP. No password needed.", icon: "ðŸ“±" },
               { step: "02", title: "Enter Birth Details", desc: "Name, date, time, and city of birth. Your Kundali is generated instantly.", icon: "ðŸŒŸ" },
@@ -274,7 +274,7 @@ export default function LandingPage() {
           <h2 className="font-display text-3xl text-foreground">Start Free, Upgrade Anytime</h2>
         </motion.div>
 
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             {
               name: "Free", nameHi: "à¤¨à¤¿à¤ƒà¤¶à¥à¤²à¥à¤•", price: "â‚¹0", period: "",

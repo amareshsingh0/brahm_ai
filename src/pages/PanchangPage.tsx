@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, MapPin, RefreshCw, Sun, Moon, ChevronDown } from "lucide-react";
 import { usePanchang } from "@/hooks/usePanchang";
+import { useRahuKaalNotification } from "@/hooks/useRahuKaalNotification";
 import { getCities, searchCities, type City } from "@/lib/cities";
 import MuhurtaPage from "./MuhurtaPage";
 
@@ -325,6 +326,9 @@ export default function PanchangPage() {
   const [now, setNow] = useState(new Date());
   const [chogTab, setChogTab] = useState<"day" | "night">("day");
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission | "unsupported">(
+    "Notification" in window ? Notification.permission : "unsupported"
+  );
 
   const toggle = (k: string) => setExpandedKey(v => v === k ? null : k);
 
@@ -339,6 +343,9 @@ export default function PanchangPage() {
   const { data, isLoading, isError, refetch, isFetching } = usePanchang({
     date: localDate, lat: selectedCity.lat, lon: selectedCity.lon, tz: selectedCity.tz,
   });
+
+  // Schedule Rahu Kaal browser notifications
+  useRahuKaalNotification(data?.rahukaal?.start, data?.rahukaal?.end);
 
   useEffect(() => {
     const t = setInterval(() => refetch(), 5 * 60 * 1000);
@@ -492,7 +499,22 @@ export default function PanchangPage() {
 
           {/* ── Daily Timings ── */}
           <div>
-            <h2 className="font-display text-xs text-muted-foreground uppercase tracking-wider mb-3">Daily Timings · {selectedCity.name}</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-xs text-muted-foreground uppercase tracking-wider">Daily Timings · {selectedCity.name}</h2>
+              {"Notification" in window && notifPerm !== "granted" && (
+                <button
+                  onClick={async () => {
+                    const p = await Notification.requestPermission();
+                    setNotifPerm(p);
+                  }}
+                  className="text-[10px] px-2 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition flex items-center gap-1">
+                  🔔 Alert before Rahu Kaal
+                </button>
+              )}
+              {notifPerm === "granted" && (
+                <span className="text-[10px] text-emerald-400 flex items-center gap-1">🔔 Rahu Kaal alerts on</span>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {timings.map(t => (
                 <TimingRow key={t.label} {...t}

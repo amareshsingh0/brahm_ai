@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Brahm AI</string>
+    <string name="app_tagline">Your Vedic Astrology Companion</string>
+
+    <!-- Auth -->
+    <string name="enter_phone">Enter your mobile number</string>
+    <string name="phone_hint">+91 XXXXX XXXXX</string>
+    <string name="send_otp">Send OTP</string>
+    <string name="enter_otp">Enter 6-digit OTP</string>
+    <string name="verify_otp">Verify OTP</string>
+    <string name="resend_otp">Resend OTP</string>
+    <string name="resend_in">Resend in %ds</string>
+
+    <!-- Onboarding -->
+    <string name="setup_profile">Setup Your Profile</string>
+    <string name="full_name_hint">Your full name</string>
+    <string name="dob_hint">Date of Birth</string>
+    <string name="tob_hint">Time of Birth</string>
+    <string name="place_hint">Birth Place</string>
+    <string name="search_city">Search city…</string>
+    <string name="generate_kundali">Generate My Kundali</string>
+
+    <!-- Bottom Nav -->
+    <string name="nav_home">Home</string>
+    <string name="nav_kundali">Kundali</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_today">Today</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Home -->
+    <string name="good_morning">Good morning</string>
+    <string name="todays_energy">Today\'s Energy</string>
+    <string name="view_full_chart">View Full Chart</string>
+    <string name="ask_brahm_ai">Ask Brahm AI…</string>
+
+    <!-- Kundali tabs -->
+    <string name="tab_chart">Chart</string>
+    <string name="tab_planets">Planets</string>
+    <string name="tab_dashas">Dashas</string>
+    <string name="tab_yogas">Yogas</string>
+    <string name="tab_alerts">Alerts</string>
+    <string name="tab_shadbala">Shadbala</string>
+    <string name="tab_navamsha">D-9</string>
+
+    <!-- Chat -->
+    <string name="chat_hint">Ask about your kundali…</string>
+    <string name="brahm_ai_thinking">Brahm AI is thinking…</string>
+
+    <!-- Today/Panchang -->
+    <string name="todays_panchang">Today\'s Panchang</string>
+    <string name="tithi">Tithi</string>
+    <string name="nakshatra">Nakshatra</string>
+    <string name="yoga">Yoga</string>
+    <string name="karana">Karana</string>
+    <string name="rahu_kaal">Rahu Kaal</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+
+    <!-- Secondary screens -->
+    <string name="gochar">Gochar</string>
+    <string name="compatibility">Compatibility</string>
+    <string name="muhurta">Muhurta</string>
+    <string name="sade_sati">Sade Sati</string>
+    <string name="dosha">Dosha Analysis</string>
+    <string name="gemstones">Gemstone Guide</string>
+    <string name="kp_system">KP System</string>
+    <string name="prashna">Prashna Kundali</string>
+    <string name="varshphal">Varshphal</string>
+    <string name="rectification">Birth Time Rectification</string>
+    <string name="palmistry">Palmistry AI</string>
+
+    <!-- Common -->
+    <string name="loading">Loading…</string>
+    <string name="retry">Retry</string>
+    <string name="calculate">Calculate</string>
+    <string name="analyze">Analyze</string>
+    <string name="generate">Generate</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="retro">Retrograde</string>
+    <string name="house">House %d</string>
+    <string name="degree">%.1f°</string>
+</resources>

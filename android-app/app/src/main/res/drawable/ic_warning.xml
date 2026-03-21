@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Triangle outline -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M10.29,3.86 L1.82,18 Q1,19.5 2.73,19.5 L21.27,19.5 Q23,19.5 22.18,18 L13.71,3.86 Q12.9,2.36 11.1,2.36 Q10.29,2.36 10.29,3.86 Z" />
+    <!-- Exclamation mark stem -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M12,9 L12,14" />
+    <!-- Exclamation dot -->
+    <circle
+        android:fillColor="#FFFFFF"
+        android:cx="12"
+        android:cy="17"
+        android:r="0.8" />
+</vector>

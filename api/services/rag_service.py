@@ -6,6 +6,73 @@ Gemini API for answer generation (Qwen removed 2026-03-19).
 import os, json, re
 from typing import List, Generator
 
+# ── Clean book name from raw source path ──────────────────────────────────────
+_SOURCE_OVERRIDES = {
+    # Folder-level overrides (source.split("/")[0])
+    "bhagavadgita":   "Bhagavad Gita",
+    "sarit":          "SARIT Sanskrit Corpus",
+    "gretil":         "GRETIL Sanskrit Texts",
+    "suttacentral":   "Sutta Central",
+    "openphilology":  "Open Philology",
+    "wikisource":     "Wikisource",
+    "hf":             "Sanskrit Texts",
+    # Common PDF/file name fragments → proper names
+    "brihat_parashara": "Brihat Parashara Hora Shastra",
+    "bphs":             "Brihat Parashara Hora Shastra",
+    "jataka_parijata":  "Jataka Parijata",
+    "phaladeepika":     "Phala Deepika",
+    "saravali":         "Saravali",
+    "uttara_kalamrita": "Uttara Kalamrita",
+    "hora_sara":        "Hora Sara",
+    "brihat_jataka":    "Brihat Jataka",
+    "chamatkar_chintamani": "Chamatkar Chintamani",
+    "sarvartha_chintamani": "Sarvartha Chintamani",
+    "mansagari":        "Mansagari",
+    "laghu_parashari":  "Laghu Parashari",
+    "jaimini":          "Jaimini Sutras",
+    "mahabharata":      "Mahabharata",
+    "ramayana":         "Ramayana",
+    "srimad_bhagavatam": "Srimad Bhagavatam",
+    "vishnu_purana":    "Vishnu Purana",
+    "garuda_purana":    "Garuda Purana",
+    "agni_purana":      "Agni Purana",
+    "manu_smriti":      "Manu Smriti",
+    "arthashastra":     "Arthashastra",
+    "yoga_sutras":      "Yoga Sutras",
+    "upanishad":        "Upanishads",
+    "wikipedia":        "Wikipedia",
+}
+
+
+def _clean_source_name(source: str) -> str:
+    """Convert raw source path to a clean, readable book name."""
+    # Get filename without extension
+    filename = source.split("/")[-1]
+    name_raw = re.sub(r"\.(pdf|txt|htm|html|json|xml)$", "", filename, flags=re.I)
+    # Remove trailing year/numbers like _2003, _v2
+    name_raw = re.sub(r"[_-]?\d{4}[a-z]?$", "", name_raw)
+    name_raw_lower = name_raw.lower()
+
+    # Check filename-level overrides
+    for key, val in _SOURCE_OVERRIDES.items():
+        if key in name_raw_lower:
+            return val
+
+    # Check folder-level override
+    folder = source.split("/")[0].lower()
+    if folder in _SOURCE_OVERRIDES:
+        # If we have a clean filename, use it; else use folder override
+        if name_raw and name_raw_lower not in ("", folder):
+            clean = re.sub(r"[_\-]+", " ", name_raw).strip().title()
+            # Remove common noise words
+            clean = re.sub(r"\b(Vol|Part|Chapter|Book|Text|Doc|File)\b", "", clean, flags=re.I).strip()
+            return clean if len(clean) > 3 else _SOURCE_OVERRIDES[folder]
+        return _SOURCE_OVERRIDES[folder]
+
+    # Generic clean: replace separators, title case
+    clean = re.sub(r"[_\-]+", " ", name_raw).strip().title()
+    return clean if clean else source
+
 import numpy as np
 
 from api.config import (
@@ -204,7 +271,7 @@ def generate_stream(
         yield json.dumps({"type": "token", "content": f"\n[Error: {str(e)}]"})
 
     sources = [
-        {"book": d["source"].split("/")[0], "source": d["source"], "language": d["language"]}
+        {"book": _clean_source_name(d["source"]), "source": d["source"], "language": d["language"]}
         for d in retrieved
     ]
     yield json.dumps({"type": "sources", "sources": sources})

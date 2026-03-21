@@ -34,7 +34,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-xl">
+    <div className="p-4 sm:p-6 space-y-6 max-w-xl mx-auto w-full">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Profile</h1>
         <p className="text-sm text-muted-foreground">Your account, chart, and subscription</p>
@@ -133,7 +133,7 @@ export default function ProfilePage() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           <div className="cosmic-card rounded-xl p-5">
             <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Quick Summary</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3">
               <QuickStat label="Moon Rashi" value="Cancer" />
               <QuickStat label="Nakshatra" value="Ashlesha" />
               <QuickStat label="Ascendant" value="Aries" />

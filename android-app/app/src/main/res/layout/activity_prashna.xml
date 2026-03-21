@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Prashna Kundali"
+                android:fontFamily="@font/poppins_bold"
+                android:textSize="28sp"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Horary Astrology"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Location Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardLocation"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Current Location"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="14sp"
+                    android:textColor="@color/accent_gold"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- City Search -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.BrahmAI.TextInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Search City"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/ic_search"
+                    android:layout_marginBottom="12dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Lat / Lon / TZ Row (auto-filled) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.BrahmAI.TextInput"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Latitude"
+                        android:layout_marginEnd="6dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etLat"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_primary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.BrahmAI.TextInput"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Longitude"
+                        android:layout_marginHorizontal="6dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etLon"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_primary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.BrahmAI.TextInput"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="TZ"
+                        android:layout_marginStart="6dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etTZ"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberDecimal|numberSigned"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_primary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Question Domain Chips Card -->
+        <androidx.cardview.widget.CardView
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Question Domain"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="12dp" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupDomain"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:selectionRequired="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipGeneral"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="General"
+                            android:checked="true" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipWealth"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Wealth" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipCareer"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Career" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipRelationship"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Relationship" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipHealth"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Health" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipTravel"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Travel" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipProperty"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Property" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipEducation"
+                            style="@style/Widget.BrahmAI.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Education" />
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Optional Question Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.BrahmAI.TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your question (optional)"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etQuestion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="2"
+                android:maxLines="4"
+                android:gravity="top"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Ask Now Button -->
+        <Button
+            android:id="@+id/btnAskNow"
+            style="@style/Widget.BrahmAI.Button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Ask Now — Cast Chart"
+            android:fontFamily="@font/poppins_semibold"
+            android:textSize="15sp"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Verdict Banner (hidden by default) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardVerdict"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Prashna Verdict"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_muted"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvVerdict"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="YES"
+                    android:fontFamily="@font/poppins_bold"
+                    android:textSize="40sp"
+                    android:textColor="#10B981"
+                    android:layout_marginBottom="8dp"
+                    tools:text="YES" />
+
+                <TextView
+                    android:id="@+id/tvVerdictSummary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chart shows favorable indications"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    tools:text="Chart shows favorable indications" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Factors Card (hidden by default) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardFactors"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Key Factors"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="14sp"
+                    android:textColor="@color/accent_gold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvAnalysis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingMultiplier="1.6"
+                    tools:text="Lagna lord Mercury is strong in 10th house.\nMoon is waxing and placed in benefic nakshatra.\nSignificator of the question is unafflicted.\nNo malefic aspects on query house." />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

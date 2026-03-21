@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daily Horoscope"
+                android:fontFamily="@font/poppins_bold"
+                android:textSize="28sp"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Saturday, 22 March 2026"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp"
+                tools:text="Saturday, 22 March 2026" />
+        </LinearLayout>
+
+        <!-- Rashi Chips Horizontal Scroll -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingHorizontal="16dp"
+            android:layout_marginBottom="20dp"
+            android:clipToPadding="false">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupRashi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMesh"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♈ Mesh" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipVrishabh"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♉ Vrishabh"
+                    android:checked="true" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMithun"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♊ Mithun" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipKark"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♋ Kark" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSimha"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♌ Simha" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipKanya"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♍ Kanya" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTula"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♎ Tula" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipVrishchik"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♏ Vrishchik" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDhanu"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♐ Dhanu" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMakar"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♑ Makar" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipKumbh"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♒ Kumbh" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMeen"
+                    style="@style/Widget.BrahmAI.ChipRashi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="♓ Meen" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <!-- Selected Rashi Large Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardSelectedRashi"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="20dp"
+                android:gravity="center_vertical">
+
+                <!-- Rashi Symbol -->
+                <TextView
+                    android:id="@+id/tvRashiSymbol"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:text="♉"
+                    android:textSize="36sp"
+                    android:gravity="center"
+                    android:textColor="@color/accent_gold"
+                    android:background="@drawable/bg_circle_gold_faint"
+                    android:layout_marginEnd="16dp"
+                    tools:text="♉" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvRashiName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Vrishabh"
+                        android:fontFamily="@font/poppins_bold"
+                        android:textSize="22sp"
+                        android:textColor="@color/text_primary"
+                        tools:text="Vrishabh" />
+
+                    <TextView
+                        android:id="@+id/tvRashiEnglish"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Taurus"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        tools:text="Taurus" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lord: Venus"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_muted" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="  |  Element: Earth"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Overall Rating -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/tvRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="8"
+                        android:fontFamily="@font/poppins_bold"
+                        android:textSize="28sp"
+                        android:textColor="@color/primary"
+                        tools:text="8" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="/10"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_muted" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Prediction Card (Love/Career/Health with colored left borders) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardPrediction"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Today's Prediction"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="14sp"
+                    android:textColor="@color/accent_gold"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Love Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="match_parent"
+                        android:background="#EC4899"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Love &amp; Relationships"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="13sp"
+                            android:textColor="#EC4899"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:id="@+id/tvLovePrediction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="13sp"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingMultiplier="1.5"
+                            tools:text="Venus in a harmonious position brings warmth to existing relationships. A good day to express feelings and strengthen bonds with your partner." />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Career Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="match_parent"
+                        android:background="#3B82F6"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Career &amp; Finance"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="13sp"
+                            android:textColor="#3B82F6"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:id="@+id/tvCareerPrediction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="13sp"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingMultiplier="1.5"
+                            tools:text="Jupiter's favorable aspect supports professional growth. A financial decision made today carries positive outcomes. Avoid impulsive spending in the afternoon." />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Health Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="match_parent"
+                        android:background="#10B981"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Health &amp; Wellness"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="13sp"
+                            android:textColor="#10B981"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:id="@+id/tvHealthPrediction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="13sp"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingMultiplier="1.5"
+                            tools:text="Overall health is stable. Avoid overexertion in the evening. Staying hydrated and light yoga in the morning is recommended." />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Lucky Color / Number / Day Row -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardLucky"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <!-- Lucky Color -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="8dp">
+
+                    <View
+                        android:id="@+id/vLuckyColor"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/bg_lucky_color"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lucky Color"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_muted"
+                        android:gravity="center"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvLuckyColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Green"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center"
+                        tools:text="Green" />
+                </LinearLayout>
+
+                <View android:layout_width="1dp" android:layout_height="match_parent"
+                    android:background="@color/bg_border"/>
+
+                <!-- Lucky Number -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:id="@+id/tvLuckyNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="6"
+                        android:fontFamily="@font/poppins_bold"
+                        android:textSize="28sp"
+                        android:textColor="@color/accent_gold"
+                        android:layout_marginBottom="4dp"
+                        tools:text="6" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lucky Number"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_muted"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <View android:layout_width="1dp" android:layout_height="match_parent"
+                    android:background="@color/bg_border"/>
+
+                <!-- Lucky Day -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📅"
+                        android:textSize="24sp"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lucky Day"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_muted"
+                        android:gravity="center"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvLuckyDay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Friday"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center"
+                        tools:text="Friday" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

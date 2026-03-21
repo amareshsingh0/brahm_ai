@@ -83,7 +83,7 @@ export default function SubscriptionPage() {
   };
 
   return (
-    <div className="p-6 space-y-10 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-8 sm:space-y-10 max-w-5xl mx-auto w-full">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
         <p className="text-xs uppercase tracking-widest text-primary/60">Brahm AI Plans</p>
@@ -111,7 +111,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Plan Cards */}
-      <div className="grid sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
         {plans.map((plan, i) => {
           const Icon = PLAN_ICONS[plan.id] ?? Zap;
           const isHighlight = PLAN_HIGHLIGHT[plan.id];

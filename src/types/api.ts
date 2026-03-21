@@ -107,6 +107,20 @@ export interface YogaData {
   present: boolean;
   strength: string;
   category?: string;
+  mantra?: string;
+  gemstone?: string;
+  deity?: string;
+  remedy?: string;
+}
+export interface AlertData {
+  type: "graha_yuddha" | "combust";
+  message: string;
+  planet?: string;
+  planet1?: string;
+  planet2?: string;
+  winner?: string;
+  loser?: string;
+  orb?: number;
 }
 export interface BirthPanchang {
   tithi: string;
@@ -220,6 +234,7 @@ export interface KundaliResponse {
   shadbala?: ShadbalaResponse;
   bhavabala?: BhavabalaEntry[];
   ashtakavarga?: AshtakavargaResponse;
+  alerts?: AlertData[];
 }
 
 // ── Panchang ──────────────────────────────────────────────────

@@ -9,7 +9,7 @@ export default function HoroscopePage() {
   const { data: horoscope } = useHoroscope(selectedRashi);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Daily Horoscope</h1>
         <p className="text-sm text-muted-foreground">Your cosmic guidance for today</p>
@@ -39,9 +39,9 @@ export default function HoroscopePage() {
         key={selectedRashi}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-xl"
+        className="w-full max-w-xl"
       >
-        <div className="cosmic-card rounded-2xl p-8 space-y-6">
+        <div className="cosmic-card rounded-2xl p-5 sm:p-8 space-y-5 sm:space-y-6">
           <div className="text-center">
             <span className="text-6xl block mb-3">
               {rashiData.find((r) => r.name === selectedRashi)?.symbol}

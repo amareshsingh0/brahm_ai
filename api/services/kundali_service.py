@@ -71,6 +71,40 @@ _VARA_NAMES    = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","S
 _COMBUST_ORB   = {"Chandra":12,"Mangal":17,"Budh":14,"Guru":11,"Shukra":10,"Shani":15}
 _TARA_NAMES    = ["Janma","Sampat","Vipat","Kshema","Pratyak","Sadhana","Naidhana","Mitra","Parama Mitra"]
 
+# ── Yoga remedies (mantra / gemstone / deity / remedy) ──────────────────────
+YOGA_REMEDIES = {
+    "Ruchaka Yoga":      {"mantra": "Om Angarakaya Namah (108× Tuesday)", "gemstone": "Red Coral (Moonga)", "deity": "Kartikeya", "remedy": "Donate red lentils and jaggery on Tuesdays"},
+    "Bhadra Yoga":       {"mantra": "Om Budhaya Namah (108× Wednesday)", "gemstone": "Emerald (Panna)", "deity": "Lord Vishnu", "remedy": "Donate green cloth and moong dal on Wednesdays"},
+    "Hamsa Yoga":        {"mantra": "Om Gurave Namah (108× Thursday)", "gemstone": "Yellow Sapphire (Pukhraj)", "deity": "Brihaspati / Dakshinamurti", "remedy": "Donate turmeric, yellow sweets and books on Thursdays"},
+    "Malavya Yoga":      {"mantra": "Om Shukraya Namah (108× Friday)", "gemstone": "Diamond / White Sapphire", "deity": "Goddess Lakshmi", "remedy": "Offer white flowers and rice to Lakshmi on Fridays"},
+    "Shasha Yoga":       {"mantra": "Om Shanicharaya Namah (108× Saturday)", "gemstone": "Blue Sapphire (Neelam)", "deity": "Shani Dev / Bhairava", "remedy": "Donate sesame oil and black cloth on Saturdays"},
+    "Budhaditya Yoga":   {"mantra": "Om Hreem Suryaya Budhaya Namah", "gemstone": "Ruby + Emerald (consult astrologer)", "deity": "Surya-Budha / Lord Vishnu", "remedy": "Offer water to Sun at sunrise on Sundays and Wednesdays"},
+    "Gajakesari Yoga":   {"mantra": "Om Gurave Namah + Om Som Somaya Namah", "gemstone": "Yellow Sapphire + Pearl", "deity": "Brihaspati / Lord Ganesha", "remedy": "Donate yellow sweets on Thursdays; fast on Mondays"},
+    "Raj Yoga":          {"mantra": "Om Namo Bhagavate Vasudevaya (108× daily)", "gemstone": "As per kendra-trikona lords", "deity": "Lord Vishnu / Indra", "remedy": "Recite Vishnu Sahasranama on Ekadashi; donate to temples"},
+    "Dhana Yoga":        {"mantra": "Om Shreem Maha Lakshmiyei Namah + Om Kuberaya Namah", "gemstone": "Per 2nd and 11th lords", "deity": "Kubera / Lakshmi", "remedy": "Keep a Kubera Yantra at home; donate food on Thursdays"},
+    "Kala Sarpa Yoga":   {"mantra": "Om Namah Shivaya / Maha Mrityunjaya", "gemstone": "Hessonite (Gomed) + Cat's Eye", "deity": "Lord Shiva / Naga Devata", "remedy": "Perform Kala Sarpa Shanti Puja; offer milk to Shiva Lingam on Mondays; Naga Panchami puja"},
+    "Mangal Dosha":      {"mantra": "Om Angarakaya Namah (108× Tuesday)", "gemstone": "Red Coral (if Mangal benefic for lagna)", "deity": "Kartikeya / Hanuman", "remedy": "Kuja Dosha Nivaran Puja; Hanuman Chalisa on Tuesdays; marry a Manglik or perform Kumbh Vivah"},
+    "Kemadruma Yoga":    {"mantra": "Om Som Somaya Namah (108× Monday)", "gemstone": "Pearl (Moti)", "deity": "Lord Shiva / Chandra Dev", "remedy": "Observe Monday fasts; offer milk and white flowers to Shiva; keep silver at home"},
+    "Lakshmi Yoga":      {"mantra": "Om Shrim Maha Lakshmiyei Namah (108× Friday)", "gemstone": "Diamond or White Sapphire", "deity": "Goddess Lakshmi", "remedy": "Worship Lakshmi with lotus flowers on Fridays; light a ghee lamp"},
+    "Saraswati Yoga":    {"mantra": "Om Aim Saraswatyei Namah (108× daily)", "gemstone": "Emerald (Panna)", "deity": "Goddess Saraswati", "remedy": "Worship Saraswati on Panchami; donate books and pens to students"},
+    "Chatussagara Yoga": {"mantra": "Om Namo Narayanaya", "gemstone": "Per lagna lord", "deity": "Lord Vishnu", "remedy": "Donate to charity on auspicious days; visit all four dhams"},
+    "Vipareeta Raja Yoga":{"mantra": "Om Namah Shivaya — Maha Mrityunjaya", "gemstone": "Per yoga-forming planet", "deity": "Lord Shiva / Kali", "remedy": "Worship on the day of the yoga planet; Durga Saptashati recitation"},
+    "Sunapha Yoga":      {"mantra": "Per yoga-forming planet", "gemstone": "Per yoga-forming planet", "deity": "Per yoga planet", "remedy": "Strengthen the yoga-forming planet through its specific day remedy"},
+    "Anapha Yoga":       {"mantra": "Per yoga-forming planet", "gemstone": "Per yoga-forming planet", "deity": "Per yoga planet", "remedy": "Donate on the day of the yoga-forming planet"},
+    "Parvata Yoga":      {"mantra": "Om Namo Bhagavate Vasudevaya", "gemstone": "Per lagna lord", "deity": "Lord Vishnu", "remedy": "Donate on benefic days (Thursday, Friday)"},
+    "Adhi Yoga":         {"mantra": "Om Aim Hreem Shreem (Trimurti mantra)", "gemstone": "Per yoga planets (Budh/Guru/Shukra)", "deity": "Trimurti (Brahma-Vishnu-Shiva)", "remedy": "Strengthen Budh, Guru, Shukra — offer on their respective days"},
+    "Mahabhagya Yoga":   {"mantra": "Om Surya Chandra Lagneshu Namah", "gemstone": "Per lagna lord", "deity": "Surya / Chandra", "remedy": "Observe Ekadashi fasts; donate on Sun/Moon days"},
+    "Chandra-Mangal Yoga":{"mantra": "Om Chandraya Namah + Om Angarakaya Namah", "gemstone": "Pearl + Red Coral", "deity": "Chandra Dev + Kartikeya", "remedy": "Worship on Mondays and Tuesdays; offer white and red flowers"},
+    "Shakata Yoga":      {"mantra": "Om Gurave Namah + Om Som Somaya Namah", "gemstone": "Yellow Sapphire + Pearl", "deity": "Brihaspati / Chandra", "remedy": "Thursday Jupiter puja; fast on Mondays to strengthen Moon"},
+    "Amala Yoga":        {"mantra": "Om Namo Bhagavate Vasudevaya", "gemstone": "Per benefic in 10th", "deity": "Lord Vishnu / Lakshmi", "remedy": "Maintain ethical conduct; donate on the 10th-house planet's day"},
+}
+_DEFAULT_REMEDY = {
+    "mantra": "Om Namah Shivaya (universal remedy)",
+    "gemstone": "Consult astrologer for your lagna",
+    "deity": "Ishta Devata (your chosen deity)",
+    "remedy": "Maintain dharmic living; offer to your lagna lord deity",
+}
+
 
 _GRAHAS_MAP_MEAN = None
 _GRAHAS_MAP_TRUE = None
@@ -290,8 +324,11 @@ def _detect_yogas(grahas: dict, houses: list, lagna_rashi_i: int) -> list:
     lagna_lord = RASHI_LORDS.get(lagna_rashi_i, "")
 
     def add(name, desc, strength, category, present=True):
+        rem = YOGA_REMEDIES.get(name, _DEFAULT_REMEDY)
         yogas.append({"name": name, "desc": desc, "present": present,
-                      "strength": strength, "category": category})
+                      "strength": strength, "category": category,
+                      "mantra": rem["mantra"], "gemstone": rem["gemstone"],
+                      "deity": rem["deity"], "remedy": rem["remedy"]})
 
     # ── Pancha Mahapurusha ────────────────────────────────────────────
     for g, (yn, yd, cat) in [
@@ -491,6 +528,44 @@ def _calc_antardashas(maha_lord: str, maha_start: datetime, maha_years: float,
         cur = end
 
     return antardashas
+
+
+def _detect_alerts(grahas_out: dict, sun_lon: float) -> list:
+    """Detect planetary war (Graha Yuddha) and combustion alerts."""
+    alerts = []
+    YUDDHA_PLANETS = ["Mangal", "Budh", "Guru", "Shukra", "Shani"]
+    eligible = [(g, grahas_out[g]) for g in YUDDHA_PLANETS if g in grahas_out]
+
+    for i, (g1, d1) in enumerate(eligible):
+        for g2, d2 in eligible[i + 1:]:
+            diff = abs(d1["longitude"] - d2["longitude"])
+            if diff > 180:
+                diff = 360 - diff
+            if diff <= 1.0:
+                lat1 = d1.get("lat_ecl", 0.0)
+                lat2 = d2.get("lat_ecl", 0.0)
+                winner = g1 if lat1 >= lat2 else g2
+                loser  = g2 if winner == g1 else g1
+                alerts.append({
+                    "type": "graha_yuddha",
+                    "planet1": g1, "planet2": g2,
+                    "winner": winner, "loser": loser,
+                    "orb": round(diff, 2),
+                    "message": (
+                        f"Graha Yuddha: {g1} & {g2} ({diff:.1f}° apart) — "
+                        f"{loser} loses the war and its karakas are weakened"
+                    ),
+                })
+
+    for gname, gdata in grahas_out.items():
+        if gdata.get("combust"):
+            alerts.append({
+                "type": "combust",
+                "planet": gname,
+                "message": f"{gname} is Combust (asta) — too close to Sun, its significations are severely weakened",
+            })
+
+    return alerts
 
 
 def calc_kundali(
@@ -813,6 +888,7 @@ def calc_kundali(
         ],
         "dashas": dashas,
         "yogas": yogas,
+        "alerts": _detect_alerts(grahas_out, grahas["Surya"]["longitude"]),
         "birth_panchang": birth_panchang,
         "personal": personal,
         "bhav_chalit": bhav_chalit,

@@ -71,6 +71,11 @@ class YogaData(BaseModel):
     desc: str
     strength: str
     category: Optional[str] = None
+    present: Optional[bool] = True
+    mantra: Optional[str] = None
+    gemstone: Optional[str] = None
+    deity: Optional[str] = None
+    remedy: Optional[str] = None
 
 
 class VargaGraha(BaseModel):
@@ -130,3 +135,4 @@ class KundaliResponse(BaseModel):
     upagraha: Optional[Dict[str, Any]] = None
     birth_panchang: Optional[Dict[str, Any]] = None
     personal_chars: Optional[Dict[str, Any]] = None
+    alerts: Optional[List[Any]] = None

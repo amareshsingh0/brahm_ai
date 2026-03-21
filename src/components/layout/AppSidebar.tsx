@@ -1,5 +1,5 @@
 ﻿import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Star, Globe, Clock, Sparkles, BookOpen, Moon, Heart, Gem, Sun, Compass, User, Zap, Hand, Eclipse, Calendar, Bot, Library, Music, TreePine, Database, LogOut, CreditCard } from "lucide-react";
+import { LayoutDashboard, Star, Globe, Clock, Sparkles, BookOpen, Moon, Heart, Gem, Sun, Compass, User, Zap, Hand, Eclipse, Calendar, Bot, Library, Music, TreePine, Database, LogOut, CreditCard, HelpCircle, ShieldAlert, Activity } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -30,9 +30,16 @@ const exploreNavItems = [
   { key: "nakshatra", url: "/nakshatra", icon: Compass },
   { key: "yogas", url: "/yogas", icon: Zap },
   { key: "remedies", url: "/remedies", icon: Gem },
+  { key: "gemstones", url: "/gemstones", icon: Gem },
   { key: "compatibility", url: "/compatibility", icon: Heart },
   { key: "palmistry", url: "/palmistry", icon: Hand },
   { key: "gochar", url: "/gochar", icon: Moon },
+  { key: "rectification", url: "/rectification", icon: Clock },
+  { key: "prashna",       url: "/prashna",       icon: HelpCircle },
+  { key: "varshphal",     url: "/varshphal",     icon: Sun },
+  { key: "kp",            url: "/kp",            icon: Star },
+  { key: "dosha",         url: "/dosha",         icon: ShieldAlert },
+  { key: "sade_sati",     url: "/sade-sati",     icon: Activity },
   { key: "today", url: "/today", icon: Calendar },
   { key: "panchang", url: "/panchang", icon: Eclipse },
   { key: "library", url: "/library", icon: Library },

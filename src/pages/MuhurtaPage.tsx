@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 import { usePanchang } from "@/hooks/usePanchang";
+import { api } from "@/lib/api";
+import { useKundliStore } from "@/store/kundliStore";
 
 interface Muhurta {
   event: string;
@@ -116,10 +120,61 @@ const rahuKaal = [
   { day: "Sunday", time: "4:30 PM – 6:00 PM", avoid: "Important tasks" },
 ];
 
+const ACTIVITIES = [
+  { value: "marriage",  label: "💒 Marriage" },
+  { value: "travel",    label: "✈️ Travel" },
+  { value: "business",  label: "💼 Business" },
+  { value: "medical",   label: "🏥 Medical" },
+  { value: "education", label: "📚 Education" },
+  { value: "property",  label: "🏠 Property" },
+  { value: "general",   label: "⭐ General" },
+];
+
+interface ActivitySlot {
+  date: string; weekday: string; period: string;
+  choghadiya: string; start: string; end: string;
+  score: number; quality: string;
+  nakshatra: string; yoga: string; avoid_rahukaal: string;
+}
+
+const QUALITY_CLS: Record<string, string> = {
+  Excellent: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+  Good:      "text-amber-400 border-amber-500/30 bg-amber-500/10",
+  Acceptable:"text-blue-400 border-blue-500/30 bg-blue-500/10",
+};
+
 export default function MuhurtaPage() {
   const d = new Date();
   const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const { data: panchang } = usePanchang({ date: today });
+  const { birthDetails } = useKundliStore();
+
+  const [activity, setActivity]   = useState("general");
+  const [startDate, setStartDate] = useState(today);
+  const [days, setDays]           = useState(7);
+  const [slots, setSlots]         = useState<ActivitySlot[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [searchErr, setSearchErr] = useState("");
+
+  async function findMuhurta() {
+    setSearchErr("");
+    setSearching(true);
+    try {
+      const res = await api.post("/api/muhurta/activity", {
+        activity,
+        start_date: startDate,
+        days,
+        lat:  birthDetails?.lat  ?? 28.6139,
+        lon:  birthDetails?.lon  ?? 77.209,
+        tz:   birthDetails?.tz   ?? 5.5,
+      });
+      setSlots(res.data.slots ?? []);
+    } catch (e: any) {
+      setSearchErr(e.response?.data?.detail ?? "Error finding muhurta");
+    } finally {
+      setSearching(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -138,7 +193,7 @@ export default function MuhurtaPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid sm:grid-cols-3 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">✨ Abhijit Muhurta</p>
                   <p className="font-mono font-bold text-emerald-400">{panchang.abhijit_muhurta.start} – {panchang.abhijit_muhurta.end}</p>
@@ -163,12 +218,95 @@ export default function MuhurtaPage() {
         </motion.div>
       )}
 
-      <Tabs defaultValue="muhurta" className="w-full">
-        <TabsList className="glass">
-          <TabsTrigger value="muhurta">Auspicious Times</TabsTrigger>
+      <Tabs defaultValue="finder" className="w-full">
+        <TabsList className="glass flex overflow-x-auto w-full sm:w-auto scrollbar-none">
+          <TabsTrigger value="finder">Activity Finder</TabsTrigger>
+          <TabsTrigger value="muhurta">General Guide</TabsTrigger>
           <TabsTrigger value="panchang">Panchang Elements</TabsTrigger>
           <TabsTrigger value="rahukaal">Rahu Kaal</TabsTrigger>
         </TabsList>
+
+        {/* ── Activity Finder tab ────────────────────────────────────────── */}
+        <TabsContent value="finder" className="mt-4 space-y-4">
+          <Card className="glass border-border/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Find Best Time for Your Activity</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Activity chips */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Select Activity</p>
+                <div className="flex flex-wrap gap-2">
+                  {ACTIVITIES.map(a => (
+                    <button key={a.value} onClick={() => setActivity(a.value)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition ${activity === a.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border/40 text-muted-foreground hover:bg-muted/30"}`}>
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Date range */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Start Date</p>
+                  <input type="date" value={startDate}
+                    onChange={e => setStartDate(e.target.value)}
+                    className="w-full h-9 rounded-lg border border-border/40 bg-background px-3 text-sm focus:outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Days to scan (max 14)</p>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setDays(d => Math.max(1, d - 1))}
+                      className="h-9 w-9 rounded-lg border border-border/40 text-foreground hover:bg-muted/30 text-sm">−</button>
+                    <span className="flex-1 text-center text-sm font-medium">{days}</span>
+                    <button onClick={() => setDays(d => Math.min(14, d + 1))}
+                      className="h-9 w-9 rounded-lg border border-border/40 text-foreground hover:bg-muted/30 text-sm">+</button>
+                  </div>
+                </div>
+              </div>
+              {birthDetails?.place && (
+                <p className="text-xs text-muted-foreground">Location: {birthDetails.place} ({(birthDetails.lat ?? 0).toFixed(2)}°, {(birthDetails.lon ?? 0).toFixed(2)}°)</p>
+              )}
+              {searchErr && <p className="text-xs text-destructive">{searchErr}</p>}
+              <button onClick={findMuhurta} disabled={searching}
+                className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50 flex items-center justify-center gap-2">
+                {searching ? <><Loader2 className="h-4 w-4 animate-spin" /> Scanning {days} days...</> : `Find Best ${ACTIVITIES.find(a => a.value === activity)?.label ?? "Time"} Muhurtas`}
+              </button>
+            </CardContent>
+          </Card>
+
+          {/* Results */}
+          {slots !== null && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">
+                {slots.length > 0 ? `${slots.length} auspicious slots found — sorted by score` : "No auspicious slots found for this period"}
+              </p>
+              {slots.map((s, i) => (
+                <div key={i} className={`rounded-xl border p-3 ${QUALITY_CLS[s.quality] ?? "border-border/30"}`}>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <span className="font-semibold text-sm">{s.date}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{s.weekday}</span>
+                      <span className={`ml-2 text-xs px-1.5 py-0.5 rounded border ${QUALITY_CLS[s.quality] ?? ""}`}>{s.quality}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Score: {s.score}</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1 text-sm">
+                    <span className="font-mono font-medium">{s.start} – {s.end}</span>
+                    <span className="text-xs text-muted-foreground">{s.choghadiya} · {s.period}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
+                    <span>Nak: {s.nakshatra}</span>
+                    {s.yoga && <span>Yoga: {s.yoga}</span>}
+                    {s.avoid_rahukaal && <span className="text-red-400">⚠ Rahu Kaal: {s.avoid_rahukaal}</span>}
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </TabsContent>
 
         <TabsContent value="muhurta" className="space-y-4 mt-4">
           {muhurtaData.map((m, i) => (

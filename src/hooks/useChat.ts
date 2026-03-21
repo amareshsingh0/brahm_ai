@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import type { ChatMessage, Source } from '../types/api';
 import { useLanguageStore, LANG_TO_API } from '@/store/languageStore';
 import { useKundliStore } from '@/store/kundliStore';
+import { useFactSheet } from '@/hooks/useFactSheet';
 
 export interface UseChatOptions {
   pageContext?: string;
@@ -40,6 +41,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
   // Auto-read user profile from store
   const birthDetails = useKundliStore((s) => s.birthDetails);
   const kundaliData = useKundliStore((s) => s.kundaliData);
+  const { facts } = useFactSheet();
 
   // Persist messages to localStorage when they change
   useEffect(() => {
@@ -71,8 +73,13 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       data.kundali_raw = kundaliData;
     }
 
+    // Auto-attach user fact-sheet if available
+    if (facts.length > 0) {
+      data.user_facts = facts;
+    }
+
     return data;
-  }, [pageData, birthDetails, kundaliData]);
+  }, [pageData, birthDetails, kundaliData, facts]);
 
   const sendMessage = useCallback((text: string) => {
     if (streaming) {

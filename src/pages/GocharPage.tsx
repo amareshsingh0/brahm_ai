@@ -43,7 +43,13 @@ interface AnalysisResult {
   opportunities: string[];
   cautions: string[];
   sade_sati: boolean;
+  sade_sati_phase?: string;
+  ashtama_shani?: boolean;
+  kantaka_shani?: boolean;
+  shani_house_lagna?: number;
+  shani_house_moon?: number;
   summary: string;
+  av_scores?: Record<string, { score: number; rashi: string }>;
 }
 
 export default function GocharPage() {
@@ -81,9 +87,12 @@ export default function GocharPage() {
 
     setLoadingAn(true);
     try {
+      const natal_bav = kundaliData?.ashtakavarga?.bav
+        ? Object.fromEntries(Object.entries(kundaliData.ashtakavarga.bav).map(([k, v]) => [k, v.points]))
+        : undefined;
       const res = await api.post<{ status: string } & AnalysisResult>(
         "/api/gochar/analyze",
-        { lagna_rashi: lagnaRashi, moon_rashi: moonRashi, name: birthDetails?.name ?? "" }
+        { lagna_rashi: lagnaRashi, moon_rashi: moonRashi, name: birthDetails?.name ?? "", natal_bav }
       );
       if (res.status === "ok") setAnalysis(res);
     } catch {
@@ -147,7 +156,7 @@ export default function GocharPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="grid grid-cols-3 sm:grid-cols-5 gap-3"
+          className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3"
         >
           {ORDER.map((planet) => {
             const pos = positions[planet];
@@ -197,33 +206,76 @@ export default function GocharPage() {
       ) : analysis ? (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <User className="w-4 h-4 text-star-gold" />
             <h2 className="text-sm font-semibold text-foreground">
               {birthDetails?.name ? `${birthDetails.name}'s Transit Analysis` : "Your Transit Analysis"}
             </h2>
             {analysis.sade_sati && (
               <span className="text-xs bg-destructive/20 text-destructive px-2 py-0.5 rounded-full font-medium">
-                Sade Sati Active
+                ☄ Sade Sati{analysis.sade_sati_phase ? ` · ${analysis.sade_sati_phase}` : ""}
+              </span>
+            )}
+            {!analysis.sade_sati && analysis.ashtama_shani && (
+              <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-medium">
+                ⚠ Ashtama Shani
+              </span>
+            )}
+            {!analysis.sade_sati && !analysis.ashtama_shani && analysis.kantaka_shani && (
+              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">
+                ⚡ Kantaka Shani (H{analysis.shani_house_lagna})
               </span>
             )}
           </div>
 
+          {/* Saturn detail banner */}
+          {(analysis.sade_sati || analysis.ashtama_shani || analysis.kantaka_shani) && (
+            <div className={`rounded-xl border p-3 text-xs space-y-1 ${
+              analysis.sade_sati ? "border-destructive/30 bg-destructive/5 text-destructive"
+              : analysis.ashtama_shani ? "border-orange-500/30 bg-orange-500/5 text-orange-400"
+              : "border-amber-500/30 bg-amber-500/5 text-amber-400"
+            }`}>
+              {analysis.sade_sati && (
+                <p><strong>Sade Sati ({analysis.sade_sati_phase})</strong> — Shani H{analysis.shani_house_moon} from Moon. Duration ~2.5 yrs per phase, total 7.5 yrs. Focus on discipline, avoid shortcuts. Worship Shani Dev on Saturdays.</p>
+              )}
+              {!analysis.sade_sati && analysis.ashtama_shani && (
+                <p><strong>Ashtama Shani</strong> — Saturn in 8th from Moon (H{analysis.shani_house_moon}). Sudden obstacles, health concerns, hidden enemies possible. Hanuman/Shani puja, blue sapphire only if very strong chart.</p>
+              )}
+              {!analysis.sade_sati && !analysis.ashtama_shani && analysis.kantaka_shani && (
+                <p><strong>Kantaka Shani</strong> — Saturn in {analysis.shani_house_lagna}H from Lagna. Career/relationship disruptions possible. Remedy: iron ring, sesame oil donation Saturdays, Shani Chalisa.</p>
+              )}
+            </div>
+          )}
+
           {/* Personal positions table */}
           <div className="cosmic-card rounded-xl overflow-hidden">
-            <div className="px-4 py-2 border-b border-border/30 bg-muted/10">
+            <div className="px-4 py-2 border-b border-border/30 bg-muted/10 flex items-center justify-between">
               <p className="text-xs text-muted-foreground">Transit positions relative to your natal chart</p>
+              {analysis.av_scores && Object.keys(analysis.av_scores).length > 0 && (
+                <p className="text-[10px] text-muted-foreground/60">AV = Ashtakavarga bindus</p>
+              )}
             </div>
             <div className="divide-y divide-border/20">
-              {Object.entries(analysis.current_positions).map(([planet, pos]) => (
-                <div key={planet} className="flex items-center px-4 py-2.5 gap-3">
-                  <span className="text-base w-6 text-center" style={{ color: GRAHA_COLOR[planet] }}>
-                    {GRAHA_SYMBOL[planet]}
-                  </span>
-                  <span className="text-xs text-foreground w-20">{GRAHA_EN[planet] ?? planet}</span>
-                  <span className="text-xs text-star-gold font-medium">{pos}</span>
-                </div>
-              ))}
+              {Object.entries(analysis.current_positions).map(([planet, pos]) => {
+                const av = analysis.av_scores?.[planet];
+                const avColor = av
+                  ? av.score >= 5 ? "text-emerald-400" : av.score >= 4 ? "text-amber-400" : "text-red-400"
+                  : "";
+                return (
+                  <div key={planet} className="flex items-center px-4 py-2.5 gap-3">
+                    <span className="text-base w-6 text-center" style={{ color: GRAHA_COLOR[planet] }}>
+                      {GRAHA_SYMBOL[planet]}
+                    </span>
+                    <span className="text-xs text-foreground w-20">{GRAHA_EN[planet] ?? planet}</span>
+                    <span className="text-xs text-star-gold font-medium flex-1">{pos}</span>
+                    {av && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded bg-muted/20 ${avColor}`} title="Ashtakavarga bindus in transit rashi">
+                        AV {av.score}/8
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/page_padding">
+
+        <!-- Profile card -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_spacing">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:gravity="center_horizontal">
+
+                <!-- Avatar -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivAvatar"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:src="@drawable/ic_person"
+                    android:tint="@color/text_secondary"
+                    android:background="@color/bg_surface_2"
+                    app:shapeAppearanceOverlay="@style/ShapeCircle"
+                    android:padding="16dp" />
+
+                <TextView
+                    android:id="@+id/tvName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Ramesh Sharma"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_lg"
+                    android:fontFamily="@font/poppins_semibold" />
+
+                <TextView
+                    android:id="@+id/tvPhone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="+91 98765 43210"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="@dimen/text_sm" />
+
+                <!-- Plan badge -->
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPlan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Free Plan"
+                    android:textColor="@color/primary"
+                    style="@style/Widget.BrahmAI.Chip"
+                    app:chipStrokeColor="@color/primary_dim" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Birth details card -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_spacing">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Birth Details"
+                        android:textColor="@color/text_primary" android:textSize="@dimen/text_base"
+                        android:fontFamily="@font/poppins_semibold" />
+                    <TextView android:id="@+id/tvEditBirth"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Edit" android:textColor="@color/primary"
+                        android:textSize="@dimen/text_xs" android:padding="4dp" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Date of Birth"
+                        android:textColor="@color/text_muted" android:textSize="@dimen/text_sm" />
+                    <TextView android:id="@+id/tvDob" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="14 Apr 2003"
+                        android:textColor="@color/text_primary" android:textSize="@dimen/text_sm" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Time of Birth"
+                        android:textColor="@color/text_muted" android:textSize="@dimen/text_sm" />
+                    <TextView android:id="@+id/tvTob" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="20:30"
+                        android:textColor="@color/text_primary" android:textSize="@dimen/text_sm" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Birth Place"
+                        android:textColor="@color/text_muted" android:textSize="@dimen/text_sm" />
+                    <TextView android:id="@+id/tvPlace" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="Varanasi, UP"
+                        android:textColor="@color/text_primary" android:textSize="@dimen/text_sm" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Upgrade CTA -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardUpgrade"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_spacing"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
+
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_star" android:tint="@color/accent_gold"
+                    android:layout_marginEnd="12dp" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Upgrade to Jyotishi" android:textColor="@color/text_primary"
+                        android:textSize="@dimen/text_base" android:fontFamily="@font/poppins_semibold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Unlimited AI chat · Full Kundali · ₹199/mo"
+                        android:textColor="@color/text_secondary" android:textSize="@dimen/text_xs" />
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_right" android:tint="@color/primary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Logout button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:text="Logout"
+            android:textColor="@color/error"
+            style="@style/Widget.BrahmAI.Button.Outlined"
+            app:strokeColor="@color/error" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

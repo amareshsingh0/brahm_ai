@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gochar"
+                android:fontFamily="@font/poppins_bold"
+                android:textSize="28sp"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Planetary Transits"
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Current Planet Positions Card -->
+        <androidx.cardview.widget.CardView
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Current Planetary Positions"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="14sp"
+                    android:textColor="@color/accent_gold"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Row 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <!-- Sun -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☀"
+                            android:textSize="20sp"
+                            android:textColor="#F59E0B" />
+
+                        <TextView
+                            android:id="@+id/tvSunPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sun"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#F59E0B" />
+
+                        <TextView
+                            android:id="@+id/tvSunSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pisces"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvSunDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="12°34'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+
+                    <!-- Moon -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☽"
+                            android:textSize="20sp"
+                            android:textColor="#E2E8F0" />
+
+                        <TextView
+                            android:id="@+id/tvMoonPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Moon"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#E2E8F0" />
+
+                        <TextView
+                            android:id="@+id/tvMoonSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Scorpio"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvMoonDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="8°22'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+
+                    <!-- Mars -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="♂"
+                            android:textSize="20sp"
+                            android:textColor="#EF4444" />
+
+                        <TextView
+                            android:id="@+id/tvMarsPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mars"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#EF4444" />
+
+                        <TextView
+                            android:id="@+id/tvMarsSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gemini"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvMarsDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="5°10'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/bg_border"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Row 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <!-- Mercury -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☿"
+                            android:textSize="20sp"
+                            android:textColor="#10B981" />
+
+                        <TextView
+                            android:id="@+id/tvMercuryPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mercury"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#10B981" />
+
+                        <TextView
+                            android:id="@+id/tvMercurySign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Aquarius"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvMercuryDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="22°45'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+
+                    <!-- Jupiter -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="♃"
+                            android:textSize="20sp"
+                            android:textColor="#F59E0B" />
+
+                        <TextView
+                            android:id="@+id/tvJupiterPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Jupiter"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#F59E0B" />
+
+                        <TextView
+                            android:id="@+id/tvJupiterSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Taurus"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvJupiterDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="18°03'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+
+                    <!-- Venus -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="♀"
+                            android:textSize="20sp"
+                            android:textColor="#EC4899" />
+
+                        <TextView
+                            android:id="@+id/tvVenusPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Venus"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#EC4899" />
+
+                        <TextView
+                            android:id="@+id/tvVenusSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Aries"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvVenusDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="3°58'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/bg_border"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Row 3 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- Saturn -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="♄"
+                            android:textSize="20sp"
+                            android:textColor="#94A3B8" />
+
+                        <TextView
+                            android:id="@+id/tvSaturnPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Saturn"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#94A3B8" />
+
+                        <TextView
+                            android:id="@+id/tvSaturnSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Aquarius"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvSaturnDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="11°20'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+
+                    <!-- Rahu -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☊"
+                            android:textSize="20sp"
+                            android:textColor="#8B5CF6" />
+
+                        <TextView
+                            android:id="@+id/tvRahuPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Rahu"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#8B5CF6" />
+
+                        <TextView
+                            android:id="@+id/tvRahuSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pisces"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvRahuDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="20°15'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+
+                    <!-- Ketu -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☋"
+                            android:textSize="20sp"
+                            android:textColor="#6366F1" />
+
+                        <TextView
+                            android:id="@+id/tvKetuPlanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ketu"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textSize="12sp"
+                            android:textColor="#6366F1" />
+
+                        <TextView
+                            android:id="@+id/tvKetuSign"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Virgo"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvKetuDeg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="20°15'"
+                            android:fontFamily="@font/poppins_regular"
+                            android:textSize="10sp"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Analyze Button -->
+        <Button
+            android:id="@+id/btnAnalyze"
+            style="@style/Widget.BrahmAI.Button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Analyze My Transits"
+            android:fontFamily="@font/poppins_semibold"
+            android:textSize="15sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Result Card (hidden by default) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardResult"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Ashtama / Sade Sati Phase Banner -->
+                <LinearLayout
+                    android:id="@+id/layoutPhaseBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_warning_banner"
+                    android:padding="12dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠"
+                        android:textSize="16sp"
+                        android:textColor="#F59E0B"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:id="@+id/tvPhaseBanner"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Sade Sati — Peak Phase Active"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textSize="13sp"
+                        android:textColor="#F59E0B" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Transit Analysis"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="14sp"
+                    android:textColor="@color/accent_gold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvAnalysisResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:fontFamily="@font/poppins_regular"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingMultiplier="1.6"
+                    tools:text="Jupiter transiting your 5th house brings opportunities for creativity and children matters. Saturn's transit through 8th house demands caution with finances and partnerships..." />
+
+                <!-- AV Score Row -->
+                <LinearLayout
+                    android:id="@+id/layoutAVScore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ashtakavarga Score:"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvAVScore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="34 / 48"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textSize="13sp"
+                        android:textColor="@color/primary"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

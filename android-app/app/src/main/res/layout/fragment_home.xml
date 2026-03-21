@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/page_padding">
+
+        <!-- Header: greeting + date -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/good_morning"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="@dimen/text_sm" />
+                <TextView
+                    android:id="@+id/tvUserName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ramesh"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_xl"
+                    android:fontFamily="@font/poppins_semibold" />
+            </LinearLayout>
+
+            <!-- Notification bell -->
+            <ImageButton
+                android:id="@+id/btnNotification"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_btn"
+                android:src="@drawable/ic_bell"
+                android:tint="@color/text_secondary"
+                android:padding="8dp"
+                android:contentDescription="Notifications" />
+        </LinearLayout>
+
+        <!-- Today's Energy hero card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardTodayEnergy"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_spacing">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/todays_energy"
+                    android:textColor="@color/accent_gold"
+                    android:textSize="@dimen/text_xs"
+                    android:fontFamily="@font/poppins_medium"
+                    android:letterSpacing="0.1" />
+
+                <!-- Panchang quick info -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                        <TextView android:id="@+id/tvTithi"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Ekadashi" android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_base" android:fontFamily="@font/poppins_semibold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="@string/tithi" android:textColor="@color/text_muted"
+                            android:textSize="@dimen/text_xs" />
+                    </LinearLayout>
+
+                    <View android:layout_width="1dp" android:layout_height="match_parent"
+                        android:background="@color/bg_border" android:layout_marginHorizontal="8dp" />
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                        <TextView android:id="@+id/tvNakshatra"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Rohini" android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_base" android:fontFamily="@font/poppins_semibold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="@string/nakshatra" android:textColor="@color/text_muted"
+                            android:textSize="@dimen/text_xs" />
+                    </LinearLayout>
+
+                    <View android:layout_width="1dp" android:layout_height="match_parent"
+                        android:background="@color/bg_border" android:layout_marginHorizontal="8dp" />
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                        <TextView android:id="@+id/tvRahuKaal"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="07:30–09:00" android:textColor="@color/error"
+                            android:textSize="@dimen/text_base" android:fontFamily="@font/poppins_semibold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="@string/rahu_kaal" android:textColor="@color/text_muted"
+                            android:textSize="@dimen/text_xs" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Kundali chart preview card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardKundaliPreview"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_spacing">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="My Kundali"
+                        android:textColor="@color/text_primary"
+                        android:textSize="@dimen/text_base"
+                        android:fontFamily="@font/poppins_semibold" />
+
+                    <TextView
+                        android:id="@+id/tvViewChart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/view_full_chart"
+                        android:textColor="@color/primary"
+                        android:textSize="@dimen/text_xs" />
+                </LinearLayout>
+
+                <!-- Mini chart preview -->
+                <com.bimoraai.brahm.ui.kundali.KundaliChartView
+                    android:id="@+id/miniChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Ask AI shortcut -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAskAI"
+            style="@style/Widget.BrahmAI.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_spacing">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_ai_star"
+                    android:tint="@color/primary"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/ask_brahm_ai"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_base" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_right"
+                    android:tint="@color/text_muted" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Quick access grid -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:layout_marginTop="8dp"
+            android:text="Quick Access"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_sm"
+            android:fontFamily="@font/poppins_medium" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvQuickAccess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -43,6 +43,19 @@ def compress_kundali(kundali: dict) -> dict:
 
     yoga_names = [y.get("name", "") for y in yogas[:6] if y.get("name")]
 
+    # Navamsha (D-9) — Marriage, Dharma, Soul potential
+    navamsha_raw = kundali.get("navamsha", {})
+    nav_lagna    = kundali.get("navamsha_lagna", {}).get("rashi", "?")
+    _NAV_KEY     = ["Surya", "Chandra", "Mangal", "Shukra", "Guru", "Shani", "Budh", "Rahu", "Ketu"]
+    nav_summary  = {}
+    for name in _NAV_KEY:
+        nd = navamsha_raw.get(name)
+        if nd:
+            parts = [nd.get("rashi", "?"), f"{nd.get('house','?')}H"]
+            if nd.get("status") and nd["status"] not in ("Normal", ""):
+                parts.append(nd["status"])
+            nav_summary[name] = " ".join(parts)
+
     return {
         "lagna":         lagna.get("rashi", "?"),
         "lagna_degree":  lagna.get("degree", "?"),
@@ -57,8 +70,10 @@ def compress_kundali(kundali: dict) -> dict:
             f"{next_dasha.get('lord','?')} from {next_dasha.get('start','?')}"
             if next_dasha else "N/A"
         ),
-        "planets": planet_summary,
-        "yogas":   yoga_names,
+        "planets":       planet_summary,
+        "yogas":         yoga_names,
+        "navamsha_lagna": nav_lagna,
+        "navamsha":      nav_summary,
     }
 
 

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Zap, FileDown, ChevronDown, ChevronUp, Star, Calendar,
-  Layers, Home, Loader2, Edit2, User, MapPin,
+  Layers, Home, Loader2, Edit2, User, MapPin, AlertTriangle, BookOpen, Share2, Check,
 } from "lucide-react";
 import PageBot from "@/components/PageBot";
 import { searchCities, getCities, type City } from "@/lib/cities";
@@ -92,6 +92,136 @@ const DASHA_COLORS: Record<string, string> = {
 const YOGA_CATEGORY_COLORS: Record<string, string> = {
   Power: "text-amber-400", Wealth: "text-emerald-400", Intellect: "text-blue-400",
   Spiritual: "text-purple-400", Marriage: "text-pink-400", Adversity: "text-red-400",
+};
+
+type DashaPred = { theme: string; positive: string; challenge: string; tip: string };
+const _DP: Record<string, Record<string, DashaPred>> = {
+  Surya: {
+    Mesha:    {theme:"Authority & Self",    positive:"Leadership, recognition, government favor",  challenge:"Ego conflicts, bone/eye health",  tip:"Offer water to Sun daily, Ruby if lagna lord"},
+    Vrishabha:{theme:"Wealth & Family",     positive:"Income from authority, father's blessings",  challenge:"Eye/bone issues, ego clashes",     tip:"Aditya Hridayam daily, red garnet"},
+    Mithuna:  {theme:"Fame & Siblings",     positive:"Intellectual recognition, courage",          challenge:"Sibling tensions, travel stress",  tip:"Gayatri Mantra, donate wheat Sunday"},
+    Karka:    {theme:"Home & Property",     positive:"Property gains, maternal happiness",         challenge:"Mother's health, mental stress",   tip:"Surya Yantra at home, water offering"},
+    Simha:    {theme:"Royalty & Power",     positive:"Peak career, fame, leadership",              challenge:"Overconfidence, heart health",     tip:"Surya Chalisa, donate copper"},
+    Kanya:    {theme:"Service & Health",    positive:"Systematic success, health improvement",     challenge:"Enemies, service disruptions",     tip:"Help the poor, Gayatri Mantra"},
+    Tula:     {theme:"Partnerships",        positive:"Balanced decisions, legal victories",        challenge:"Marital tensions, legal disputes",  tip:"Sunday charity, Surya namaskar"},
+    Vrischika:{theme:"Transformation",      positive:"Research, occult abilities",                challenge:"Accidents, hidden enemies",         tip:"Surya namaskar, control ego"},
+    Dhanu:    {theme:"Wisdom & Fortune",    positive:"Spiritual growth, higher education",         challenge:"Father's health, travel fatigue",  tip:"Donate wheat Sundays, Aditya mantra"},
+    Makara:   {theme:"Discipline & Power",  positive:"Political influence, rewards for discipline",challenge:"Setbacks, joint/bone issues",       tip:"Offer Arghya to Sun, Ruby"},
+    Kumbha:   {theme:"Losses & Liberation", positive:"Spiritual insights, foreign success",        challenge:"Expenses, isolation",               tip:"Meditate, offer to the poor"},
+    Meena:    {theme:"Gains & Network",     positive:"Income, social influence, eye for detail",  challenge:"Eye problems, overextension",       tip:"Aditya Hridayam, Sun worship"},
+  },
+  Chandra: {
+    Mesha:    {theme:"Mind & Popularity",   positive:"Fame, real estate gains, public support",   challenge:"Mental instability, mother's health", tip:"Monday fasts, Pearl, milk to Shiva"},
+    Vrishabha:{theme:"Wealth & Comfort",    positive:"Financial growth, property, luxury",        challenge:"Overindulgence, weight gain",         tip:"Pearl ring, donate white rice Monday"},
+    Mithuna:  {theme:"Communication",       positive:"Travel, writing, social success",           challenge:"Mental restlessness, anxiety",        tip:"Chandra yantra, white flowers"},
+    Karka:    {theme:"Home & Happiness",    positive:"Family joy, good health, peace",            challenge:"Emotional mood swings",              tip:"Fast Mondays, drink milk"},
+    Simha:    {theme:"Creative Fame",       positive:"Creative recognition, popularity",          challenge:"Pride, stomach issues",               tip:"White flowers to Devi"},
+    Kanya:    {theme:"Service & Analysis",  positive:"Healthcare success, detailed work",         challenge:"Overthinking, worry",                 tip:"Worship Saraswati, Pearl"},
+    Tula:     {theme:"Relationships",       positive:"Love, social harmony, gains",               challenge:"Indecisiveness",                      tip:"Pearl, donate white cloth"},
+    Vrischika:{theme:"Deep Transformation", positive:"Research, occult mastery",                  challenge:"Emotional turbulence",                tip:"Offer milk to Shiva Lingam"},
+    Dhanu:    {theme:"Fortune & Travel",    positive:"Spiritual wisdom, good fortune",            challenge:"Restlessness, wandering",             tip:"White flowers at temple"},
+    Makara:   {theme:"Discipline & Career", positive:"Career stability, discipline rewarded",     challenge:"Depression, emotional coldness",      tip:"Chandra mantra, Monday fasts"},
+    Kumbha:   {theme:"Humanitarian Gains",  positive:"Social work, abroad earnings",              challenge:"Mental fog, isolation",               tip:"Offer water to Moon nightly"},
+    Meena:    {theme:"Spiritual Gains",     positive:"Income, spirituality, foreign travel",      challenge:"Escapism, overidealism",              tip:"Pearl, worship Devi"},
+  },
+  Mangal: {
+    Mesha:    {theme:"Energy & Leadership", positive:"Courage, sports success, new ventures",     challenge:"Accidents, conflicts, blood pressure", tip:"Hanuman Chalisa Tuesdays, Red Coral"},
+    Vrishabha:{theme:"Wealth Battles",      positive:"Real estate gains, physical strength",      challenge:"Financial disputes, health",           tip:"Donate red lentils Tuesday"},
+    Mithuna:  {theme:"Action & Speech",     positive:"Technical skills, bold communication",      challenge:"Siblings conflict, accidents",         tip:"Kartikeya worship, Red Coral"},
+    Karka:    {theme:"Home & Property",     positive:"Property gains, strong family",             challenge:"Family conflicts, blood disorders",    tip:"Tuesday Hanuman puja"},
+    Simha:    {theme:"Power & Authority",   positive:"Leadership, political power, recognition",  challenge:"Arrogance, heat-related issues",       tip:"Red Coral if benefic, Mangal mantra"},
+    Kanya:    {theme:"Service & Enemies",   positive:"Victory over enemies, health discipline",   challenge:"Enemies, debt",                        tip:"Donate red cloth on Tuesdays"},
+    Tula:     {theme:"Partnership Battles", positive:"Bold business moves, real estate",          challenge:"Marital conflicts, legal issues",      tip:"Hanuman worship, Tuesday fast"},
+    Vrischika:{theme:"Deep Power",          positive:"Research, occult, surgery success",         challenge:"Surgeries, injuries",                  tip:"Karthikeya mantra, Red Coral"},
+    Dhanu:    {theme:"Fortune & Drive",     positive:"Sports, adventure, higher learning",        challenge:"Recklessness, injuries",               tip:"Mangal yantra, Tuesday fast"},
+    Makara:   {theme:"Ambition & Discipline",positive:"Career authority, disciplined effort",    challenge:"Knee/joint issues",                    tip:"Offer blood-red flowers Tuesday"},
+    Kumbha:   {theme:"Gains & Action",      positive:"Income through action, technical jobs",     challenge:"Accidents, unexpected costs",          tip:"Red Coral, Hanuman Chalisa"},
+    Meena:    {theme:"Losses & Moksha",     positive:"Spiritual drive, hidden strengths",         challenge:"Accidents, expenditure",               tip:"Hanuman puja, avoid rash decisions"},
+  },
+  Budh: {
+    Mesha:    {theme:"Intelligence & Action",positive:"Business acumen, communication",          challenge:"Nervous system, indecision",           tip:"Emerald if benefic, feed green parrots"},
+    Vrishabha:{theme:"Wealth & Speech",     positive:"Business gains, eloquent communication",   challenge:"Skin issues, overthinking",            tip:"Saraswati worship, Emerald"},
+    Mithuna:  {theme:"Intellect & Skills",  positive:"Peak intellectual power, media success",   challenge:"Nervousness, skin issues",             tip:"Wednesday fasts, green moong donation"},
+    Karka:    {theme:"Mind & Home",         positive:"Education, writing from home",             challenge:"Indecisiveness, digestive issues",     tip:"Budha yantra, Saraswati mantra"},
+    Simha:    {theme:"Fame & Intellect",    positive:"Renowned speaker/writer, recognition",     challenge:"Ego in communication, pride",          tip:"Recite Budha Ashtakam"},
+    Kanya:    {theme:"Service & Analysis",  positive:"Maximum intellectual power, health jobs",  challenge:"Overthinking, perfectionism",          tip:"Emerald, feed cows green grass"},
+    Tula:     {theme:"Partnerships",        positive:"Business partnerships, balanced intellect", challenge:"Indecisiveness in relationships",     tip:"Wednesday worship, green charity"},
+    Vrischika:{theme:"Research & Depth",    positive:"Research, occult studies, investigative",  challenge:"Suspicious nature, nervous disorders", tip:"Saraswati puja"},
+    Dhanu:    {theme:"Wisdom & Learning",   positive:"Academic success, philosophical writing",  challenge:"Scattered focus",                      tip:"Donate books on Wednesdays"},
+    Makara:   {theme:"Practical Intellect", positive:"Business systems, financial planning",     challenge:"Dry communication",                   tip:"Emerald, Wednesday fast"},
+    Kumbha:   {theme:"Humanitarian Intellect",positive:"Social media, tech innovation",          challenge:"Eccentric thinking",                  tip:"Budha mantra, green charity"},
+    Meena:    {theme:"Spiritual Wisdom",    positive:"Creative writing, imagination, spirituality",challenge:"Confusion, impracticality",           tip:"Donate green cloth Wednesday"},
+  },
+  Guru: {
+    Mesha:    {theme:"Fortune & Expansion", positive:"Legal wins, teaching, children blessed",   challenge:"Weight gain, overoptimism",            tip:"Yellow Sapphire, Thursday fast"},
+    Vrishabha:{theme:"Wealth & Wisdom",     positive:"Financial boom, family happiness",         challenge:"Overindulgence",                       tip:"Donate yellow sweets Thursday"},
+    Mithuna:  {theme:"Intellect & Fortune", positive:"Higher education, publishing, travel",     challenge:"Liver/fat issues",                     tip:"Guru mantra, Yellow Sapphire"},
+    Karka:    {theme:"Home & Blessings",    positive:"Family blessings, property, children",     challenge:"Overprotection",                       tip:"Brihaspati Vrata Thursdays"},
+    Simha:    {theme:"Royalty & Dharma",    positive:"Leadership recognition, spiritual authority",challenge:"Pride in knowledge",                 tip:"Worship Dakshinamurti"},
+    Kanya:    {theme:"Service & Analysis",  positive:"Teaching, medical success, systematic work",challenge:"Over-analysis, weight",               tip:"Yellow Sapphire, donate turmeric"},
+    Tula:     {theme:"Relationships",       positive:"Marriage blessings, business partnerships", challenge:"Relationship overextension",          tip:"Thursday fast, yellow cloth donation"},
+    Vrischika:{theme:"Transformation",      positive:"Research, spiritual depth, healing",        challenge:"Hidden enemies, liver",               tip:"Guru yantra, Brihaspati Vrata"},
+    Dhanu:    {theme:"Peak Fortune",        positive:"Maximum expansion, travel, wisdom, wealth", challenge:"Overconfidence, travel excess",        tip:"Yellow Sapphire, Thursday worship"},
+    Makara:   {theme:"Discipline & Wisdom", positive:"Structured growth, senior recognition",    challenge:"Delayed rewards",                      tip:"Donate yellow on Thursdays"},
+    Kumbha:   {theme:"Humanitarian",        positive:"Social causes, innovation, income",        challenge:"Unconventional path",                 tip:"Feed Brahmin on Thursdays"},
+    Meena:    {theme:"Spiritual Fortune",   positive:"Spiritual growth, abroad success, wisdom",  challenge:"Idealism, overgiving",                tip:"Worship Brihaspati, Yellow Sapphire"},
+  },
+  Shukra: {
+    Mesha:    {theme:"Relationships & Luxury",positive:"Love, beauty, artistic success",        challenge:"Laziness, relationship turbulence",     tip:"Diamond/White Sapphire, Friday fast"},
+    Vrishabha:{theme:"Wealth & Pleasure",   positive:"Maximum luxury, love, financial growth",   challenge:"Overindulgence",                       tip:"Worship Lakshmi on Fridays"},
+    Mithuna:  {theme:"Arts & Communication",positive:"Artistic/media success, pleasant speech",  challenge:"Fickleness in relationships",          tip:"Diamond, Friday Lakshmi puja"},
+    Karka:    {theme:"Home & Beauty",       positive:"Beautiful home, happy family",             challenge:"Emotional in love",                   tip:"Offer white flowers to Lakshmi"},
+    Simha:    {theme:"Fame & Arts",         positive:"Fame in arts, creative recognition",       challenge:"Pride in beauty",                      tip:"Friday fast, white flowers"},
+    Kanya:    {theme:"Service & Refinement",positive:"Fine arts, healthcare aesthetics",         challenge:"Perfectionism in love",                tip:"White Sapphire, Lakshmi mantra"},
+    Tula:     {theme:"Partnerships & Luxury",positive:"Peak relationships, wealth, beauty",      challenge:"Over-dependence on partners",          tip:"Diamond, Friday puja"},
+    Vrischika:{theme:"Depth & Passion",     positive:"Deep love, research in arts",              challenge:"Jealousy, hidden conflicts",            tip:"Offer lotus to Lakshmi"},
+    Dhanu:    {theme:"Fortune & Romance",   positive:"Foreign love, artistic recognition",       challenge:"Excess, overindulgence",               tip:"White Sapphire, Friday charity"},
+    Makara:   {theme:"Disciplined Beauty",  positive:"Wealth through discipline, business growth",challenge:"Cold in relationships",               tip:"Friday fast, donate white sweets"},
+    Kumbha:   {theme:"Humanitarian Beauty", positive:"Income from arts, social charm",           challenge:"Eccentric relationships",              tip:"Diamond, donate on Fridays"},
+    Meena:    {theme:"Spiritual Love",      positive:"Spiritual love, artistic vision, gains",   challenge:"Overidealism in relationships",        tip:"Worship Lakshmi, White Sapphire"},
+  },
+  Shani: {
+    Mesha:    {theme:"Discipline & Delays", positive:"Hard work rewarded, endurance built",      challenge:"Delays, health issues, obstacles",     tip:"Blue Sapphire if benefic, Saturday fasts"},
+    Vrishabha:{theme:"Wealth Through Work", positive:"Slow but steady wealth, discipline",       challenge:"Financial delays, family issues",      tip:"Donate sesame oil Saturday"},
+    Mithuna:  {theme:"Karma & Skills",      positive:"Technical mastery, communications",        challenge:"Slow progress, isolation",             tip:"Shani mantra, Saturday fast"},
+    Karka:    {theme:"Home Karma",          positive:"Property through hard work, discipline",   challenge:"Mother's health, family burdens",      tip:"Offer sesame to Shani Dev"},
+    Simha:    {theme:"Power Through Karma", positive:"Political success through discipline",     challenge:"Ego challenged, delays",               tip:"Shani yantra, Saturday puja"},
+    Kanya:    {theme:"Service & Karma",     positive:"Methodical success, health jobs",          challenge:"Perfectionist delays",                 tip:"Blue Sapphire if 5th/6th lord, donate"},
+    Tula:     {theme:"Exaltation Period",   positive:"Peak career, justice served, rewards",     challenge:"Slow start then great rewards",        tip:"Blue Sapphire, Saturday worship"},
+    Vrischika:{theme:"Deep Transformation", positive:"Research, discipline, occult mastery",     challenge:"Painful transformation, losses",       tip:"Shani puja, feed crows"},
+    Dhanu:    {theme:"Wisdom Through Work", positive:"Academic/spiritual discipline rewarded",   challenge:"Travel restrictions, philosophical doubts",tip:"Saturday fasts, donate black sesame"},
+    Makara:   {theme:"Maximum Power",       positive:"Authority, career peak, discipline wins",  challenge:"Isolation, cold demeanor",             tip:"Blue Sapphire, Shani Chalisa"},
+    Kumbha:   {theme:"Humanitarian Karma",  positive:"Social service, technology career",        challenge:"Delayed social recognition",           tip:"Donate to the poor on Saturdays"},
+    Meena:    {theme:"Liberation & Loss",   positive:"Spiritual liberation, hidden wisdom",      challenge:"Losses, isolation, self-undoing",      tip:"Hanuman worship, Saturday fast"},
+  },
+  Rahu: {
+    Mesha:    {theme:"Ambition & Drive",    positive:"Unconventional success, sudden rise",      challenge:"Accidents, rash decisions",            tip:"Gomed (Hessonite), Saturday Rahu puja"},
+    Vrishabha:{theme:"Wealth Obsession",    positive:"Sudden wealth, foreign business",          challenge:"Greed, overindulgence",                tip:"Rahu yantra, donate on Saturdays"},
+    Mithuna:  {theme:"Communication Fame",  positive:"Media success, public influence",          challenge:"Deception, confusion",                 tip:"Feed parrots, avoid lies"},
+    Karka:    {theme:"Home Disruption",     positive:"Foreign property gains",                   challenge:"Family disruption, mental fog",        tip:"Offer coconut to Rahu on Saturdays"},
+    Simha:    {theme:"Fame Distortion",     positive:"Unconventional fame, sudden recognition",  challenge:"False reputation, inflated ego",       tip:"Rahu mantra, avoid ego trips"},
+    Kanya:    {theme:"Service Innovation",  positive:"Tech/medical innovation success",          challenge:"Health complications, enemies",        tip:"Gomed, service to outcastes"},
+    Tula:     {theme:"Relationship Illusions",positive:"Unusual partnerships, foreign love",     challenge:"Deceptive partners",                   tip:"Rahu puja, Gomed if chart suits"},
+    Vrischika:{theme:"Occult Mastery",      positive:"Research, hidden knowledge, tantra",       challenge:"Dangerous obsessions",                 tip:"Rahu-Ketu Shanti puja"},
+    Dhanu:    {theme:"False Wisdom",        positive:"Foreign education, philosophical breakthroughs",challenge:"False gurus, overconfidence",       tip:"Naga Puja, Gomed"},
+    Makara:   {theme:"Power Games",         positive:"Political influence, career success",      challenge:"Unethical shortcuts",                  tip:"Saturday fast, Shani-Rahu puja"},
+    Kumbha:   {theme:"Technology & Innovation",positive:"Tech success, foreign gains",           challenge:"Eccentric behavior",                   tip:"Rahu yantra, gomed"},
+    Meena:    {theme:"Spiritual Confusion",  positive:"Foreign spirituality, liberation",         challenge:"Deception, addiction",                 tip:"Naga Puja, offer milk to Shiva"},
+  },
+  Ketu: {
+    Mesha:    {theme:"Detachment & Liberation",positive:"Spiritual powers, moksha wisdom",      challenge:"Accidents, separation, identity loss",  tip:"Cat's Eye, Ketu puja"},
+    Vrishabha:{theme:"Material Detachment",  positive:"Spiritual wealth, moksha insights",       challenge:"Financial losses, detachment from family",tip:"Cat's Eye, Ganesha worship"},
+    Mithuna:  {theme:"Communication Loss",   positive:"Intuitive wisdom, spiritual expression",  challenge:"Communication barriers, travel accidents",tip:"Ketu mantra, fast Saturday"},
+    Karka:    {theme:"Home & Mother",        positive:"Spiritual home, past-life connections",   challenge:"Mother's health, domestic isolation",  tip:"Offer to ancestors, Shraddha"},
+    Simha:    {theme:"Fame Detachment",      positive:"Spiritual fame, non-attachment to glory", challenge:"Loss of authority, ego dissolution",   tip:"Cat's Eye, Sun worship"},
+    Kanya:    {theme:"Service & Karma",      positive:"Medical intuition, service-oriented gains",challenge:"Health issues, perfectionism",         tip:"Cat's Eye, serve the sick"},
+    Tula:     {theme:"Relationship Karma",   positive:"Spiritual partnerships, karmic love",     challenge:"Relationship losses, detachment",      tip:"Ketu puja, serve saints"},
+    Vrischika:{theme:"Occult Liberation",    positive:"Deep spiritual powers, past-life wisdom", challenge:"Obsessions, accidents",                tip:"Cat's Eye, Naga Puja"},
+    Dhanu:    {theme:"Wisdom & Detachment",  positive:"Spiritual wisdom, guru connections",      challenge:"Lack of focus, wandering",             tip:"Worship Dakshinamurti, Cat's Eye"},
+    Makara:   {theme:"Karma Clearance",      positive:"Past karma cleared, spiritual discipline", challenge:"Career setbacks, isolation",           tip:"Shani-Ketu puja, serve elders"},
+    Kumbha:   {theme:"Humanitarian Liberation",positive:"Social service, spiritual innovation", challenge:"Aimlessness, eccentric behavior",       tip:"Donate to orphans"},
+    Meena:    {theme:"Moksha",               positive:"Maximum spiritual liberation, moksha",    challenge:"Confusion, loss of worldly direction",  tip:"Cat's Eye, Kashi pilgrimage"},
+  },
 };
 
 // All varga charts — BC + D-1 to D-60
@@ -576,19 +706,31 @@ export default function KundliPage() {
   const [view, setView] = useState<"input" | "result">(kundaliData ? "result" : "input");
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Local form — pre-fill from store if available
+  // Check URL params for shared kundali
+  const _sp = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const _sharedForm: Partial<LocalForm> = _sp.has("dob") ? {
+    name:  _sp.get("name") ?? "",
+    date:  _sp.get("dob")  ?? "",
+    time:  _sp.get("tob")  ?? "12:00",
+    place: _sp.get("place") ?? "",
+  } : {};
+  const _sharedLoc = _sp.has("lat") ? { lat: Number(_sp.get("lat")), lon: Number(_sp.get("lon")), tz: Number(_sp.get("tz") ?? "5.5") } : null;
+
+  // Local form — pre-fill from store or URL share params
   const [localForm, setLocalForm] = useState<LocalForm>({
-    name: birthDetails?.name ?? "",
-    date: birthDetails?.dateOfBirth ?? "",
-    time: birthDetails?.timeOfBirth ?? "",
-    place: birthDetails?.birthPlace ?? "",
+    name:  _sharedForm.name  ?? birthDetails?.name          ?? "",
+    date:  _sharedForm.date  ?? birthDetails?.dateOfBirth   ?? "",
+    time:  _sharedForm.time  ?? birthDetails?.timeOfBirth   ?? "",
+    place: _sharedForm.place ?? birthDetails?.birthPlace    ?? "",
   });
 
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetData | null>(null);
   const [activeTab, setActiveTab] = useState<"charts" | "grahas" | "dasha" | "houses" | "chalit" | "strength" | "ashtaka" | "upagraha" | "yogas" | "lagna">("charts");
   const [expandedGraha, setExpandedGraha] = useState<{ side: "L"|"R"; gn: string } | null>(null);
   const [showAllYogas, setShowAllYogas] = useState(false);
+  const [expandedYoga, setExpandedYoga] = useState<string | null>(null);
   const [expandedDasha, setExpandedDasha] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   // Dual chart state — div=0 means BC
   const [selectedVargaL, setSelectedVargaL] = useState(1);
   const [selectedVargaR, setSelectedVargaR] = useState(9);
@@ -620,6 +762,13 @@ export default function KundliPage() {
       setFormError(e instanceof Error ? e.message : "Calculation failed. Please check birth details.");
     }
   }, [kundaliMutation, setBirthDetails]);
+
+  // Auto-generate from shared URL params (run once on mount)
+  useEffect(() => {
+    if (_sp.has("dob") && _sharedForm.date && _sharedLoc && !kundaliData) {
+      handleGenerate(_sharedForm as LocalForm, _sharedLoc);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Recalculate handler for settings changes (ayanamsha/rahu mode)
   const handleRecalculate = useCallback(() => {
@@ -756,6 +905,29 @@ export default function KundliPage() {
             <button onClick={() => setView("input")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/20 hover:border-border/40 transition-colors">
               <Edit2 className="h-3 w-3" /> New / Edit
+            </button>
+          )}
+          {view === "result" && kundaliData && birthDetails && (
+            <button
+              onClick={() => {
+                const bd = birthDetails as any;
+                const p = new URLSearchParams({
+                  name: bd.name ?? bd.dateOfBirth?.split(" ")[0] ?? "",
+                  dob:  bd.dob ?? bd.dateOfBirth ?? "",
+                  tob:  bd.tob ?? bd.timeOfBirth ?? "12:00",
+                  place: bd.place ?? bd.birthPlace ?? "",
+                  lat:  String(bd.lat ?? 28.6139),
+                  lon:  String(bd.lon ?? 77.209),
+                  tz:   String(bd.tz ?? 5.5),
+                });
+                const url = `${window.location.origin}/kundli?${p.toString()}`;
+                navigator.clipboard.writeText(url).then(() => {
+                  setShareCopied(true);
+                  setTimeout(() => setShareCopied(false), 2500);
+                });
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors border border-border/20">
+              {shareCopied ? <><Check className="h-3.5 w-3.5 text-emerald-400" /> Copied!</> : <><Share2 className="h-3.5 w-3.5" /> Share</>}
             </button>
           )}
           {view === "result" && kundaliData && (
@@ -904,6 +1076,25 @@ export default function KundliPage() {
               </button>
             ))}
           </div>
+
+          {/* Planetary War & Combustion Alerts */}
+          {kundaliData?.alerts && kundaliData.alerts.length > 0 && (
+            <div className="space-y-1.5 mb-2">
+              {kundaliData.alerts.map((alert, i) => (
+                <div
+                  key={i}
+                  className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs border ${
+                    alert.type === "graha_yuddha"
+                      ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                      : "bg-orange-500/10 border-orange-500/30 text-orange-300"
+                  }`}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>{alert.message}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           <AnimatePresence mode="wait">
             {/* Dual Charts Tab */}
@@ -1303,6 +1494,30 @@ export default function KundliPage() {
                               </div>
                             </div>
                           </div>
+                          {/* Dasha prediction card for active dasha */}
+                          {cur && (() => {
+                            const pred = _DP[d.lord]?.[lagnaRashi];
+                            if (!pred) return null;
+                            return (
+                              <div className="mt-1.5 mx-0.5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 space-y-2">
+                                <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide">{pred.theme}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                                  <div>
+                                    <p className="text-emerald-400 font-medium mb-0.5">✦ Positive</p>
+                                    <p className="text-muted-foreground">{pred.positive}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-red-400 font-medium mb-0.5">⚠ Challenge</p>
+                                    <p className="text-muted-foreground">{pred.challenge}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-primary font-medium mb-0.5">🕉 Remedy</p>
+                                    <p className="text-muted-foreground">{pred.tip}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                           {/* Antardasha expansion */}
                           <AnimatePresence>
                             {isExpanded && d.antardashas && (
@@ -1785,26 +2000,57 @@ export default function KundliPage() {
                 {yogas.length > 0 ? (
                   <div className="space-y-1.5">
                     <p className="text-xs text-muted-foreground mb-3">
-                      {yogas.filter(y => y.present !== false).length} active of {yogas.length} total yogas
+                      {yogas.filter(y => y.present !== false).length} active of {yogas.length} total yogas — click any yoga for remedies
                     </p>
                     {yogas.map(y => {
                       const isPresent = y.present !== false;
+                      const isExpY = expandedYoga === y.name;
                       const strengthCls = !isPresent ? "text-muted-foreground/60 border-border/10 bg-muted/5"
                         : y.strength === "Very Strong" ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
                         : y.strength === "Strong" ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
                         : "text-muted-foreground border-border/20 bg-muted/10";
                       const catColor = YOGA_CATEGORY_COLORS[y.category ?? ""] ?? "text-muted-foreground";
                       return (
-                        <div key={y.name} className={`rounded-lg p-2.5 border border-border/10 ${isPresent ? "bg-muted/20" : "bg-muted/5 opacity-50"}`}>
-                          <div className="flex items-center justify-between mb-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className={`text-xs font-bold ${isPresent ? "text-emerald-400" : "text-red-400/50"}`}>{isPresent ? "✓" : "✗"}</span>
-                              <p className={`text-xs font-medium ${isPresent ? "text-foreground" : "text-muted-foreground/70"}`}>{y.name}</p>
-                              {y.category && <span className={`text-[10px] ${catColor}`}>{y.category}</span>}
+                        <div key={y.name} className={`rounded-lg border ${isPresent ? "bg-muted/20 border-border/20" : "bg-muted/5 border-border/10 opacity-50"}`}>
+                          <button
+                            className="w-full text-left p-2.5"
+                            onClick={() => isPresent && setExpandedYoga(isExpY ? null : y.name)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs font-bold ${isPresent ? "text-emerald-400" : "text-red-400/50"}`}>{isPresent ? "✓" : "✗"}</span>
+                                <p className={`text-xs font-medium ${isPresent ? "text-foreground" : "text-muted-foreground/70"}`}>{y.name}</p>
+                                {y.category && <span className={`text-[10px] ${catColor}`}>{y.category}</span>}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {isPresent && <span className={`text-[10px] px-1.5 py-0.5 rounded border ${strengthCls}`}>{y.strength}</span>}
+                                {isPresent && (isExpY ? <ChevronUp className="h-3 w-3 text-muted-foreground" /> : <ChevronDown className="h-3 w-3 text-muted-foreground" />)}
+                              </div>
                             </div>
-                            {isPresent && <span className={`text-[10px] px-1.5 py-0.5 rounded border ${strengthCls}`}>{y.strength}</span>}
-                          </div>
-                          {isPresent && <p className="text-[11px] text-muted-foreground mt-0.5">{y.desc}</p>}
+                            {isPresent && <p className="text-[11px] text-muted-foreground mt-0.5">{y.desc}</p>}
+                          </button>
+                          {isPresent && isExpY && (
+                            <div className="px-2.5 pb-2.5 border-t border-border/20 mt-0 pt-2 space-y-2">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <BookOpen className="w-3 h-3 text-star-gold" />
+                                <span className="text-[10px] font-semibold text-star-gold uppercase tracking-wide">Remedies</span>
+                              </div>
+                              {[
+                                { icon: "🕉️", label: "Mantra", val: y.mantra },
+                                { icon: "💎", label: "Gemstone", val: y.gemstone },
+                                { icon: "🪔", label: "Deity", val: y.deity },
+                                { icon: "🌿", label: "Remedy", val: y.remedy },
+                              ].filter(r => r.val).map(r => (
+                                <div key={r.label} className="flex gap-2 text-[11px]">
+                                  <span className="shrink-0 text-sm leading-none mt-0.5">{r.icon}</span>
+                                  <div>
+                                    <span className="text-muted-foreground/70 font-medium">{r.label}: </span>
+                                    <span className="text-foreground">{r.val}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
                     })}

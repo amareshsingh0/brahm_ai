@@ -134,7 +134,7 @@ export default function AIChatPage() {
   const isTyping = streaming;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-[calc(100vh-8rem)] sm:h-[calc(100vh-4rem)]">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex-shrink-0 pb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-primary/10">
@@ -168,7 +168,7 @@ export default function AIChatPage() {
                   <Sparkles className="h-4 w-4 text-primary" />
                 </div>
               )}
-              <div className={`max-w-[80%] ${msg.role === "user" ? "order-first" : ""}`}>
+              <div className={`max-w-[88%] sm:max-w-[80%] ${msg.role === "user" ? "order-first" : ""}`}>
                 <Card className={`${msg.role === "user" ? "bg-primary text-primary-foreground border-primary" : "glass border-border/30"}`}>
                   <CardContent className="p-4 text-sm whitespace-pre-line leading-relaxed">
                     {msg.content.split(/(\*\*[^*]+\*\*)/).map((part, i) =>

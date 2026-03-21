@@ -37,6 +37,13 @@ const GotraFinderPage = lazy(() => import("./pages/GotraFinderPage"));
 const KnowledgeBasePage = lazy(() => import("./pages/KnowledgeBasePage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
 const GocharPage = lazy(() => import("./pages/GocharPage"));
+const RectificationPage = lazy(() => import("./pages/RectificationPage"));
+const PrashnaPage = lazy(() => import("./pages/PrashnaPage"));
+const VarshpalPage = lazy(() => import("./pages/VarshpalPage"));
+const KPPage = lazy(() => import("./pages/KPPage"));
+const DoshaPage = lazy(() => import("./pages/DoshaPage"));
+const SadeSatiPage = lazy(() => import("./pages/SadeSatiPage"));
+const GemstoneRecommendationsPage = lazy(() => import("./pages/GemstoneRecommendationsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -262,6 +269,62 @@ const App = () => {
                     element={
                       <AppLayout>
                         <GocharPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/rectification"
+                    element={
+                      <AppLayout>
+                        <RectificationPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/prashna"
+                    element={
+                      <AppLayout>
+                        <PrashnaPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/varshphal"
+                    element={
+                      <AppLayout>
+                        <VarshpalPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/kp"
+                    element={
+                      <AppLayout>
+                        <KPPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/dosha"
+                    element={
+                      <AppLayout>
+                        <DoshaPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/sade-sati"
+                    element={
+                      <AppLayout>
+                        <SadeSatiPage />
+                      </AppLayout>
+                    }
+                  />
+                  <Route
+                    path="/gemstones"
+                    element={
+                      <AppLayout>
+                        <GemstoneRecommendationsPage />
                       </AppLayout>
                     }
                   />

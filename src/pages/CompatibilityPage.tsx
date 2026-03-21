@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageBot from '@/components/PageBot';
 import { Input } from "@/components/ui/input";
@@ -6,14 +6,14 @@ import { Label } from "@/components/ui/label";
 import {
   Heart, Star, Loader2, CheckCircle2, AlertTriangle, XCircle,
   ChevronDown, ChevronUp, TrendingUp, TrendingDown, Edit2,
-  FileDown, MapPin, Clock, Calendar,
+  FileDown, MapPin, Clock, Calendar, Moon,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip,
 } from "recharts";
 import { useCompatibility } from "@/hooks/useCompatibility";
 import { getCities, searchCities, type City } from "@/lib/cities"; // getCities preloads cache
-import type { CompatibilityResponse, GunaScore, DoshaSummary, LifeAreaScore } from "@/types/api";
+import type { CompatibilityResponse, GunaScore, DoshaSummary, LifeAreaScore, VedhaDosha } from "@/types/api";
 
 // ── Varna label map ────────────────────────────────────────────────────────────
 const VARNA_LABEL: Record<string, string> = {
@@ -22,6 +22,365 @@ const VARNA_LABEL: Record<string, string> = {
   "Vaishya":   "Vaishya (Artha)",
   "Shudra":    "Shudra (Seva)",
 };
+
+// ── Nakshatra data ─────────────────────────────────────────────────────────────
+const NAKSHATRA_GANA: Record<string, string> = {
+  Ashwini: "Deva", Mrigashira: "Deva", Punarvasu: "Deva", Pushya: "Deva",
+  Hasta: "Deva", Swati: "Deva", Anuradha: "Deva", Shravana: "Deva", Revati: "Deva",
+  Bharani: "Manushya", Rohini: "Manushya", Ardra: "Manushya", Purva_Phalguni: "Manushya",
+  Uttara_Phalguni: "Manushya", Purva_Ashadha: "Manushya", Uttara_Ashadha: "Manushya",
+  Purva_Bhadrapada: "Manushya", Uttara_Bhadrapada: "Manushya",
+  Krittika: "Rakshasa", Ashlesha: "Rakshasa", Magha: "Rakshasa", Chitra: "Rakshasa",
+  Vishakha: "Rakshasa", Jyeshtha: "Rakshasa", Mula: "Rakshasa", Dhanishta: "Rakshasa",
+  Shatabhisha: "Rakshasa",
+};
+
+const NAKSHATRA_QUALITIES: Record<string, string> = {
+  Ashwini: "Swift, healing energy — pioneering spirit",
+  Bharani: "Transformative, creative, intense and restrained",
+  Krittika: "Sharp, purifying, determined — like fire",
+  Rohini: "Fertile, charming, fixed in nature — beauty",
+  Mrigashira: "Searching, gentle, curious wanderer",
+  Ardra: "Stormy, transformative, sharp intellectual",
+  Punarvasu: "Renewal, optimism, wisdom — returns to light",
+  Pushya: "Nourishing, auspicious, protective energy",
+  Ashlesha: "Mystical, perceptive, serpentine wisdom",
+  Magha: "Royal, ancestral, authoritative presence",
+  Purva_Phalguni: "Creative, romantic, joyful expression",
+  Uttara_Phalguni: "Generous, kind, prosperous and stable",
+  Hasta: "Skilled, crafty, humorous dexterity",
+  Chitra: "Artistic, brilliant, beautiful artisan",
+  Swati: "Independent, flexible, diplomatic breeze",
+  Vishakha: "Determined, goal-oriented, powerful focus",
+  Anuradha: "Devoted, friendly, successful partnerships",
+  Jyeshtha: "Protective, senior, courageous leadership",
+  Mula: "Root-seeking, transformative, profound depth",
+  Purva_Ashadha: "Invincible, purifying, proud achievement",
+  Uttara_Ashadha: "Victorious, enduring, universal dharma",
+  Shravana: "Listening, learning, connected wisdom",
+  Dhanishta: "Musical, wealthy, generous abundance",
+  Shatabhisha: "Healer, mystical, secretive medicine",
+  Purva_Bhadrapada: "Intense, spiritual, fiery aspiration",
+  Uttara_Bhadrapada: "Deep, wise, controlled stability",
+  Revati: "Nurturing, prosperous, gentle completion",
+};
+
+// Normalize nakshatra name for lookup (replace spaces with underscores)
+function normalizeNakshatra(name: string): string {
+  return name.trim().replace(/\s+/g, "_");
+}
+
+function getNakshatraGana(name: string): string {
+  return NAKSHATRA_GANA[normalizeNakshatra(name)] ?? "Unknown";
+}
+
+function getNakshatraQuality(name: string): string {
+  return NAKSHATRA_QUALITIES[normalizeNakshatra(name)] ?? "Ancient nakshatra with deep Vedic significance";
+}
+
+// Gana compatibility
+interface GanaResult { score: number; max: number; label: string; color: "green" | "amber" | "red" }
+function ganaCompatibility(a: string, b: string): GanaResult {
+  if (a === b) return { score: 6, max: 6, label: "Excellent — same nature", color: "green" };
+  if ((a === "Deva" && b === "Manushya") || (a === "Manushya" && b === "Deva"))
+    return { score: 5, max: 6, label: "Good — complementary", color: "green" };
+  return { score: 0, max: 6, label: "Incompatible — conflicting natures", color: "red" };
+}
+
+// Yoni compatibility
+const YONI_FRIENDLY: Record<string, string[]> = {
+  Horse:    ["Horse","Deer"],   Elephant: ["Elephant","Cat"],
+  Sheep:    ["Sheep","Hare"],   Serpent:  ["Serpent","Mongoose"],
+  Dog:      ["Dog","Hare"],     Cat:      ["Cat","Rat"],
+  Rat:      ["Rat","Cat"],      Cow:      ["Cow","Buffalo"],
+  Buffalo:  ["Buffalo","Cow"],  Tiger:    ["Tiger","Deer"],
+  Hare:     ["Hare","Dog"],     Deer:     ["Deer","Tiger"],
+  Monkey:   ["Monkey","Mongoose"], Mongoose: ["Mongoose","Monkey"],
+  Lion:     ["Lion"],
+};
+const YONI_ENEMY: Record<string, string> = {
+  Horse:"Buffalo", Elephant:"Lion", Sheep:"Monkey", Serpent:"Mongoose",
+  Dog:"Hare", Cat:"Rat", Rat:"Cat", Cow:"Tiger", Buffalo:"Horse",
+  Tiger:"Deer", Hare:"Dog", Deer:"Tiger", Monkey:"Sheep", Mongoose:"Serpent",
+  Lion:"Elephant",
+};
+
+interface YoniResult { label: string; color: "green" | "amber" | "red" }
+function yoniCompatibility(a: string, b: string): YoniResult {
+  if (!a || !b) return { label: "Unknown", color: "amber" };
+  const aAnimal = a.split("(")[0].trim();
+  const bAnimal = b.split("(")[0].trim();
+  if (aAnimal === bAnimal) return { label: "Excellent — same yoni", color: "green" };
+  if (YONI_ENEMY[aAnimal] === bAnimal || YONI_ENEMY[bAnimal] === aAnimal)
+    return { label: "Unfavorable — enemy yoni", color: "red" };
+  const friendly = YONI_FRIENDLY[aAnimal] ?? [];
+  if (friendly.includes(bAnimal)) return { label: "Good — friendly yoni", color: "green" };
+  return { label: "Neutral — tolerable match", color: "amber" };
+}
+
+// Varna compatibility
+const VARNA_RANK: Record<string, number> = {
+  Brahmin: 4, Kshatriya: 3, Vaishya: 2, Shudra: 1,
+};
+interface VarnaResult { label: string; color: "green" | "amber" | "red" }
+function varnaCompatibility(a: string, b: string): VarnaResult {
+  const ra = VARNA_RANK[a] ?? 0;
+  const rb = VARNA_RANK[b] ?? 0;
+  if (ra === rb) return { label: "Equal — fully compatible", color: "green" };
+  if (ra >= rb) return { label: "Groom higher — acceptable", color: "amber" };
+  return { label: "Bride higher — inauspicious", color: "red" };
+}
+
+// ── NakshatraTab component ─────────────────────────────────────────────────────
+function StatusBadge({ color, children }: { color: "green" | "amber" | "red"; children: React.ReactNode }) {
+  const cls = color === "green"
+    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
+    : color === "amber"
+    ? "bg-amber-500/15 text-amber-400 border-amber-500/25"
+    : "bg-red-500/15 text-red-400 border-red-500/25";
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${cls}`}>
+      {children}
+    </span>
+  );
+}
+
+function NakshatraRow({ label, valueA, valueB, badge, delay }: {
+  label: string; valueA: string; valueB: string;
+  badge?: { label: string; color: "green" | "amber" | "red" };
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: delay ?? 0 }}
+      className="grid grid-cols-[1fr_auto_auto] sm:grid-cols-[140px_1fr_1fr_auto] items-center gap-2 py-2
+                 border-b border-border/10 last:border-0"
+    >
+      <span className="text-xs text-muted-foreground sm:col-span-1">{label}</span>
+      <span className="text-xs text-foreground font-medium text-center">{valueA}</span>
+      <span className="text-xs text-foreground font-medium text-center">{valueB}</span>
+      {badge && <StatusBadge color={badge.color}>{badge.label}</StatusBadge>}
+    </motion.div>
+  );
+}
+
+function NakshatraTab({ result, nameA, nameB }: {
+  result: CompatibilityResponse;
+  nameA: string;
+  nameB: string;
+}) {
+  const gana    = ganaCompatibility(result.gana_a, result.gana_b);
+  const yoni    = yoniCompatibility(result.yoni_a ?? "", result.yoni_b ?? "");
+  const varna   = varnaCompatibility(result.varna_a, result.varna_b);
+  const nadiSame = result.nadi_a && result.nadi_b &&
+    result.nadi_a.split(" ")[0] === result.nadi_b.split(" ")[0];
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+
+      {/* Nakshatra pair header */}
+      <div className="cosmic-card rounded-xl p-4">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+          Nakshatra Pair
+        </h3>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { name: nameA, nakshatra: result.nakshatra_a },
+            { name: nameB, nakshatra: result.nakshatra_b },
+          ].map(({ name, nakshatra }) => (
+            <div key={name} className="cosmic-card rounded-lg p-3 space-y-1">
+              <p className="text-xs text-primary font-semibold">{name}</p>
+              <p className="text-sm font-display text-foreground">{nakshatra}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {getNakshatraQuality(nakshatra)}
+              </p>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
+                Gana: {getNakshatraGana(nakshatra)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Column headers */}
+      <div className="hidden sm:grid sm:grid-cols-[140px_1fr_1fr_auto] gap-2 px-0.5 mb-1">
+        <span className="text-xs text-muted-foreground/60 uppercase tracking-wide">Factor</span>
+        <span className="text-xs text-primary/70 uppercase tracking-wide text-center">{nameA}</span>
+        <span className="text-xs text-primary/70 uppercase tracking-wide text-center">{nameB}</span>
+        <span className="text-xs text-muted-foreground/60 uppercase tracking-wide">Result</span>
+      </div>
+
+      {/* Gana compatibility */}
+      <div className="cosmic-card rounded-xl p-4 space-y-1">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          Gana (Nature Match)
+        </h3>
+        <div className={`rounded-lg border p-3 ${
+          gana.color === "green" ? "bg-emerald-500/10 border-emerald-500/25"
+          : "bg-red-500/10 border-red-500/25"
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {gana.color === "green"
+                ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                : <XCircle className="h-3.5 w-3.5 text-red-400" />}
+              <span className="text-sm font-medium text-foreground">
+                {result.gana_a} × {result.gana_b}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <StatusBadge color={gana.color}>{gana.label}</StatusBadge>
+              <span className="text-xs font-bold text-muted-foreground">{gana.score}/{gana.max}</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Deva (divine) + Manushya (human) = 5 pts · Same gana = 6 pts · Rakshasa with Deva/Manushya = 0 pts
+          </p>
+        </div>
+      </div>
+
+      {/* Nadi dosha */}
+      <div className={`cosmic-card rounded-xl p-4 border ${
+        nadiSame ? "border-red-500/25" : "border-border/20"
+      }`}>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          Nadi Dosha
+        </h3>
+        <div className={`rounded-lg border p-3 ${
+          nadiSame ? "bg-red-500/10 border-red-500/25" : "bg-emerald-500/10 border-emerald-500/25"
+        }`}>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              {nadiSame
+                ? <XCircle className="h-3.5 w-3.5 text-red-400" />
+                : <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
+              <span className="text-sm font-medium text-foreground">
+                {result.nadi_a?.split(" ")[0]} × {result.nadi_b?.split(" ")[0]}
+              </span>
+            </div>
+            <StatusBadge color={nadiSame ? "red" : "green"}>
+              {nadiSame ? "Nadi Dosha — Serious" : "No Dosha"}
+            </StatusBadge>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {nadiSame
+              ? "Both partners share the same Nadi. This is a serious dosha affecting health and progeny. Remedies: Nadi dosha nivarana puja, gifting of gold, cow, or grain."
+              : "Different Nadis — good for health, compatibility, and progeny. Maximum 8 points scored."}
+          </p>
+        </div>
+      </div>
+
+      {/* Rajju dosha */}
+      {result.rajju_dosha && (
+        <div className="cosmic-card rounded-xl p-4">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+            Rajju Dosha
+          </h3>
+          <div className={`rounded-lg border p-3 ${
+            result.rajju_dosha.present ? "bg-red-500/10 border-red-500/25" : "bg-emerald-500/10 border-emerald-500/25"
+          }`}>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                {result.rajju_dosha.present
+                  ? <XCircle className="h-3.5 w-3.5 text-red-400" />
+                  : <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
+                <span className="text-sm font-medium text-foreground">Rajju Dosha</span>
+              </div>
+              <StatusBadge color={result.rajju_dosha.present ? "red" : "green"}>
+                {result.rajju_dosha.present ? `Present${result.rajju_dosha.type ? " — " + result.rajju_dosha.type : ""}` : "Absent"}
+              </StatusBadge>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {result.rajju_dosha.note ?? (result.rajju_dosha.present
+                ? "Rajju dosha present — indicates challenges to the spouse indicated by the Rajju type. Seek Jyotishi guidance."
+                : "No Rajju dosha — auspicious for long married life.")}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Vedha dosha */}
+      {result.vedha_dosha && (
+        <div className="cosmic-card rounded-xl p-4">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+            Vedha Dosha
+          </h3>
+          <div className={`rounded-lg border p-3 ${
+            result.vedha_dosha.present ? "bg-amber-500/10 border-amber-500/25" : "bg-emerald-500/10 border-emerald-500/25"
+          }`}>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                {result.vedha_dosha.present
+                  ? <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+                  : <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
+                <span className="text-sm font-medium text-foreground">Vedha Dosha</span>
+              </div>
+              <StatusBadge color={result.vedha_dosha.present ? "amber" : "green"}>
+                {result.vedha_dosha.present ? "Present" : "Absent"}
+              </StatusBadge>
+            </div>
+            {(result.vedha_dosha as VedhaDosha & { nakshatra_pair?: string }).nakshatra_pair && (
+              <p className="text-xs text-amber-400/80 mb-1">Pair: {(result.vedha_dosha as VedhaDosha & { nakshatra_pair?: string }).nakshatra_pair}</p>
+            )}
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {result.vedha_dosha.note ?? (result.vedha_dosha.present
+                ? "Vedha dosha — these nakshatras obstruct each other's positive qualities. Remedies: Mrityunjaya japa, shared fasting."
+                : "No Vedha dosha between these nakshatras.")}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Yoni match */}
+      <div className="cosmic-card rounded-xl p-4">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          Yoni (Instinct Compatibility)
+        </h3>
+        {result.yoni_a && result.yoni_b ? (
+          <div className={`rounded-lg border p-3 ${
+            yoni.color === "green" ? "bg-emerald-500/10 border-emerald-500/25"
+            : yoni.color === "red" ? "bg-red-500/10 border-red-500/25"
+            : "bg-amber-500/10 border-amber-500/25"
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-foreground">
+                {result.yoni_a} × {result.yoni_b}
+              </span>
+              <StatusBadge color={yoni.color}>{yoni.label}</StatusBadge>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Yoni reflects instinctual nature and physical compatibility. Same or friendly yoni = deep natural harmony.
+            </p>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Yoni data not available.</p>
+        )}
+      </div>
+
+      {/* Varna */}
+      <div className="cosmic-card rounded-xl p-4">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          Varna (Spiritual Temperament)
+        </h3>
+        <NakshatraRow
+          label="Varna"
+          valueA={VARNA_LABEL[result.varna_a] ?? result.varna_a}
+          valueB={VARNA_LABEL[result.varna_b] ?? result.varna_b}
+          badge={varna}
+          delay={0}
+        />
+        <p className="text-xs text-muted-foreground/60 pt-2 leading-relaxed">
+          * Spiritual temperament by Moon nakshatra — not social caste. Groom's varna should be equal or higher.
+        </p>
+      </div>
+
+      <p className="text-xs text-muted-foreground/60 leading-relaxed pb-2">
+        Lahiri Ayanamsha · Nakshatra analysis is a supplementary layer — consult a qualified Jyotishi for complete guidance.
+      </p>
+    </motion.div>
+  );
+}
 
 // ── Percentage → label ─────────────────────────────────────────────────────────
 function pctLabel(score: number, max: number) {
@@ -370,12 +729,15 @@ function generatePDF(result: CompatibilityResponse, nameA: string, nameB: string
 }
 
 // ── ResultView ─────────────────────────────────────────────────────────────────
+type ResultTab = "milan" | "nakshatra";
+
 function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
   result: CompatibilityResponse;
   nameA: string; nameB: string;
   personA: PersonState; personB: PersonState;
   onEdit: () => void;
 }) {
+  const [activeTab, setActiveTab] = useState<ResultTab>("milan");
   const pct = result.percentage;
   const verdictColor = pct >= 72 ? "text-emerald-400" : pct >= 55 ? "text-amber-400" : pct >= 36 ? "text-orange-400" : "text-red-400";
   const ringColor = pct >= 72 ? "hsl(142 70% 50%)" : pct >= 55 ? "hsl(42 90% 64%)" : pct >= 36 ? "hsl(25 85% 55%)" : "hsl(0 72% 60%)";
@@ -391,7 +753,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full">
       {/* ── Topbar: names + actions ── */}
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
           <h2 className="font-display text-xl text-foreground">{nameA} <span className="text-primary">×</span> {nameB}</h2>
           <p className="text-xs text-muted-foreground">Kundali Milan Report</p>
@@ -412,8 +774,36 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
         </div>
       </div>
 
+      {/* ── Tabs ── */}
+      <div className="flex gap-1 mb-5 border-b border-border/20">
+        {([
+          { id: "milan",     label: "Ashtakoot Milan", icon: <Heart className="h-3.5 w-3.5" /> },
+          { id: "nakshatra", label: "Nakshatra Match",  icon: <Moon  className="h-3.5 w-3.5" /> },
+        ] as { id: ResultTab; label: string; icon: React.ReactNode }[]).map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 -mb-px ${
+              activeTab === tab.id
+                ? "border-primary text-primary bg-primary/5"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Nakshatra tab ── */}
+      {activeTab === "nakshatra" && (
+        <NakshatraTab result={result} nameA={nameA} nameB={nameB} />
+      )}
+
+      {/* ── Milan tab (original content) ── */}
+      {activeTab === "milan" && (<>
       {/* ── Two-column grid ── */}
-      <div className="grid lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-5">
 
         {/* ── LEFT: Score + Radar + Life Areas + Gunas ── */}
         <div className="lg:col-span-3 space-y-4">
@@ -641,6 +1031,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
           </p>
         </div>
       </div>
+      </>)}
     </motion.div>
   );
 }

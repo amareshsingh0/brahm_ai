@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.BrahmAI" parent="Theme.Material3.Dark">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_light</item>
+        <item name="colorOnPrimary">@color/text_primary</item>
+        <item name="colorSecondary">@color/accent_gold</item>
+        <item name="colorOnSecondary">@color/bg_primary</item>
+        <item name="colorSurface">@color/bg_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:colorBackground">@color/bg_primary</item>
+        <item name="android:windowBackground">@color/bg_primary</item>
+        <item name="android:statusBarColor">@color/status_bar</item>
+        <item name="android:navigationBarColor">@color/nav_bar</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="materialButtonStyle">@style/Widget.BrahmAI.Button</item>
+        <item name="bottomNavigationStyle">@style/Widget.BrahmAI.BottomNav</item>
+    </style>
+
+    <!-- Splash screen -->
+    <style name="Theme.BrahmAI.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/bg_primary</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_brahm_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.BrahmAI</item>
+    </style>
+
+    <!-- No action bar for auth screens -->
+    <style name="Theme.BrahmAI.NoBar" parent="Theme.BrahmAI">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Primary button -->
+    <style name="Widget.BrahmAI.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+    </style>
+
+    <!-- Outlined button -->
+    <style name="Widget.BrahmAI.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/primary</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- Bottom navigation -->
+    <style name="Widget.BrahmAI.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/bottom_nav_bg</item>
+        <item name="itemIconTint">@color/bottom_nav_icon_tint</item>
+        <item name="itemTextColor">@color/bottom_nav_icon_tint</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.BrahmAI.BottomNav.Indicator</item>
+    </style>
+
+    <style name="Widget.BrahmAI.BottomNav.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/bottom_nav_indicator</item>
+    </style>
+
+    <!-- Card style -->
+    <style name="Widget.BrahmAI.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/bg_surface</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/bg_border</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Chip -->
+    <style name="Widget.BrahmAI.Chip" parent="Widget.Material3.Chip.Filter">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="chipBackgroundColor">@color/bg_surface_2</item>
+        <item name="chipStrokeColor">@color/bg_border</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipCornerRadius">20dp</item>
+    </style>
+
+    <!-- Input field -->
+    <style name="Widget.BrahmAI.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/bg_border</item>
+        <item name="boxBackgroundColor">@color/bg_surface</item>
+        <item name="hintTextColor">@color/text_muted</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+</resources>

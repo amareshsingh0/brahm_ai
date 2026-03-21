@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="page_padding">16dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_radius">12dp</dimen>
+    <dimen name="button_height">52dp</dimen>
+    <dimen name="input_height">52dp</dimen>
+    <dimen name="section_spacing">20dp</dimen>
+    <dimen name="item_spacing">12dp</dimen>
+    <dimen name="icon_size_sm">16dp</dimen>
+    <dimen name="icon_size_md">20dp</dimen>
+    <dimen name="icon_size_lg">24dp</dimen>
+
+    <dimen name="text_xs">10sp</dimen>
+    <dimen name="text_sm">12sp</dimen>
+    <dimen name="text_base">14sp</dimen>
+    <dimen name="text_md">16sp</dimen>
+    <dimen name="text_lg">18sp</dimen>
+    <dimen name="text_xl">20sp</dimen>
+    <dimen name="text_2xl">24sp</dimen>
+    <dimen name="text_3xl">30sp</dimen>
+
+    <dimen name="bottom_nav_height">64dp</dimen>
+    <dimen name="kundali_chart_size">320dp</dimen>
+    <dimen name="avatar_size">40dp</dimen>
+</resources>

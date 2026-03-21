@@ -6,16 +6,17 @@ POST /api/gochar/analyze  → personal transit analysis over natal chart
 """
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, List
 from api.services.gochar_service import get_current_planet_positions, get_transits
 
 router = APIRouter()
 
 
 class GocharRequest(BaseModel):
-    lagna_rashi: str        # e.g. "Kanya"
-    moon_rashi:  str        # e.g. "Mithun"
+    lagna_rashi: str                                    # e.g. "Kanya"
+    moon_rashi:  str                                    # e.g. "Mithun"
     name:        Optional[str] = ""
+    natal_bav:   Optional[Dict[str, List[int]]] = None  # Ashtakavarga BAV per planet
 
 
 @router.get("/gochar")
@@ -45,7 +46,7 @@ def analyze_transits(req: GocharRequest):
     opportunities, cautions, sade sati.
     """
     try:
-        result = get_transits(req.lagna_rashi, req.moon_rashi)
+        result = get_transits(req.lagna_rashi, req.moon_rashi, natal_bav=req.natal_bav)
         return {"status": "ok", **result}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
