@@ -534,7 +534,15 @@ export default function KundliPage() {
   // Recalculate handler for settings changes (ayanamsha/rahu mode)
   const handleRecalculate = useCallback(() => {
     if (!birthDetails) return;
-    kundaliMutation.mutate(birthDetails as any);
+    kundaliMutation.mutate({
+      name: birthDetails.name,
+      dateOfBirth: birthDetails.dateOfBirth,
+      timeOfBirth: birthDetails.timeOfBirth,
+      birthPlace: birthDetails.birthPlace,
+      lat: birthDetails.lat,
+      lon: birthDetails.lon,
+      tz: birthDetails.tz,
+    });
   }, [birthDetails, kundaliMutation]);
 
   // Map kundaliData → PlanetData[] for chart
@@ -590,7 +598,13 @@ export default function KundliPage() {
     try {
       const { api } = await import("@/lib/api");
       const resp = await api.post<KundaliResponse>("/api/kundali", {
-        ...birthDetails,
+        name: birthDetails.name,
+        date: birthDetails.dateOfBirth,
+        time: birthDetails.timeOfBirth,
+        place: birthDetails.birthPlace,
+        lat: birthDetails.lat,
+        lon: birthDetails.lon,
+        tz: birthDetails.tz,
         ayanamsha: kundaliData?.ayanamsha_mode ?? "lahiri",
         rahu_mode: kundaliData?.rahu_mode ?? "mean",
         calc_options: [`d${div}`],
