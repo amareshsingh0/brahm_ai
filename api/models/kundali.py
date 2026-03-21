@@ -125,7 +125,7 @@ class KundaliResponse(BaseModel):
     varga_charts: Optional[Dict[str, VargaChartData]] = None
     bhav_chalit: Optional[Dict[str, Any]] = None
     shadbala: Optional[Dict[str, Any]] = None
-    bhavabala: Optional[Dict[str, Any]] = None
+    bhavabala: Optional[List[Any]] = None
     ashtakavarga: Optional[Dict[str, Any]] = None
     upagraha: Optional[Dict[str, Any]] = None
     birth_panchang: Optional[Dict[str, Any]] = None
