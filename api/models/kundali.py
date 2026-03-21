@@ -20,6 +20,11 @@ class GrahaData(BaseModel):
     graha_hindi: Optional[str] = None
     karaka: Optional[str] = None
     speed: Optional[float] = None
+    combust: Optional[bool] = None
+    ruler_of: Optional[List[int]] = None
+    lat_ecl: Optional[float] = None
+    ra: Optional[float] = None
+    dec: Optional[float] = None
 
 
 class NavamshaGraha(BaseModel):
@@ -47,6 +52,10 @@ class HouseData(BaseModel):
     lord_en: Optional[str] = None
     signification: Optional[str] = None
     planets: Optional[List[str]] = None
+    gender: Optional[str] = None
+    modality: Optional[str] = None
+    tattva: Optional[str] = None
+    aspected_by: Optional[List[str]] = None
 
 
 class DashaData(BaseModel):
@@ -114,3 +123,10 @@ class KundaliResponse(BaseModel):
     dashas: List[DashaData]
     yogas: List[YogaData]
     varga_charts: Optional[Dict[str, VargaChartData]] = None
+    bhav_chalit: Optional[Dict[str, Any]] = None
+    shadbala: Optional[Dict[str, Any]] = None
+    bhavabala: Optional[Dict[str, Any]] = None
+    ashtakavarga: Optional[Dict[str, Any]] = None
+    upagraha: Optional[Dict[str, Any]] = None
+    birth_panchang: Optional[Dict[str, Any]] = None
+    personal_chars: Optional[Dict[str, Any]] = None
