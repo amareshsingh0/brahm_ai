@@ -44,7 +44,6 @@ public class CompatibilityActivity extends AppCompatActivity {
     }
 
     private void setupToolbar() {
-        if (b.btnBack != null) b.btnBack.setOnClickListener(v -> finish());
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
@@ -178,9 +177,7 @@ public class CompatibilityActivity extends AppCompatActivity {
                 sb.append(koot).append(": ").append(points)
                   .append("/").append(max).append("\n");
             }
-            // Set to a summary TextView if rvResults is a TextView
-            if (b.rvResults instanceof android.widget.TextView)
-                ((android.widget.TextView) b.rvResults).setText(sb.toString().trim());
+            // Results displayed in cardResult / tvScore / tvRecommendation
         }
     }
 

@@ -1,0 +1,110 @@
+[
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/fragment_kundali.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_kundali.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_dosha.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_dosha.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_gemstone.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_gemstone.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_chat_ai.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_chat_ai.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_muhurta.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_muhurta.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_horoscope.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_horoscope.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/fragment_home.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_home.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_city.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_city.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_palmistry.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_palmistry.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/fragment_chat.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_chat.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_login.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_rectification.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_rectification.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_planet_row.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_planet_row.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_chat_user.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_chat_user.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_gochar.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_gochar.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_onboarding.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_onboarding.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_main.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_quick_access.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_quick_access.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_kp.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_kp.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_muhurta.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_muhurta.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_sade_sati.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_sade_sati.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_gemstone.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_gemstone.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_varshpal.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_varshpal.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_prashna.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_prashna.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/activity_compatibility.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_compatibility.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/fragment_today.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_today.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/fragment_profile.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_profile.xml"
+    }
+]

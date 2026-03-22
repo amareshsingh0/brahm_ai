@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Bottom nav icon tint selector (referenced in theme) -->
-    <selector xmlns:android="http://schemas.android.com/apk/res/android" name="bottom_nav_icon_tint">
-        <item android:state_checked="true" android:color="@color/primary" />
-        <item android:color="@color/text_muted" />
-    </selector>
-</resources>

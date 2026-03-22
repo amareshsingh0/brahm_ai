@@ -3,17 +3,17 @@ Brahm AI FastAPI — Entry Point
 Run: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1
      (--workers 1 is MANDATORY: Qwen LLM cannot be loaded in multiple processes)
 """
-import threading
+import time, threading
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import (
     chat, kundali, panchang, compatibility,
     search, planets, muhurta, grahan,
     horoscope, user, cities, festivals, calendar, palmistry, gochar, rectification,
-    prashna, varshphal, kp,
+    prashna, varshphal, kp, admin, auth,
 )
 from api.services.rag_service import load_all
 from api.dependencies import G
@@ -49,6 +49,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def _activity_log(request: Request, call_next):
+    """Log every /api/ request (non-admin) to activity_logs.db asynchronously."""
+    path = request.url.path
+    if path.startswith("/api/") and not path.startswith("/api/admin"):
+        session_id = request.query_params.get("session_id", "")
+        method = request.method
+        start = time.time()
+        response = await call_next(request)
+        duration_ms = int((time.time() - start) * 1000)
+        threading.Thread(
+            target=admin.log_request,
+            args=(method, path, session_id, response.status_code, duration_ms),
+            daemon=True,
+        ).start()
+        return response
+    return await call_next(request)
+
 PREFIX = "/api"
 
 app.include_router(cities.router,        prefix=PREFIX, tags=["Reference"])
@@ -70,6 +89,8 @@ app.include_router(rectification.router, prefix=PREFIX, tags=["Jyotish"])
 app.include_router(prashna.router,      prefix=PREFIX, tags=["Jyotish"])
 app.include_router(varshphal.router,    prefix=PREFIX, tags=["Jyotish"])
 app.include_router(kp.router,           prefix=PREFIX, tags=["Jyotish"])
+app.include_router(admin.router,        prefix=PREFIX, tags=["Admin"])
+app.include_router(auth.router,         prefix=PREFIX, tags=["Auth"])
 
 
 @app.get("/health")

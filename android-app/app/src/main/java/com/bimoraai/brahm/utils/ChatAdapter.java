@@ -160,7 +160,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.VH> {
         LinearLayout.LayoutParams bubbleLp = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT);
-        bubbleLp.maxWidth = (int) (ctx.getResources().getDisplayMetrics().widthPixels * 0.75f);
+        bubbleLp.width = (int) (ctx.getResources().getDisplayMetrics().widthPixels * 0.75f);
         bubble.setLayoutParams(bubbleLp);
 
         // Background

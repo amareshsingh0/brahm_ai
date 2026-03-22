@@ -99,7 +99,7 @@ public class OnboardingActivity extends AppCompatActivity {
                         double cityLat = c.has("lat")     ? c.get("lat").getAsDouble()     : 0;
                         double cityLon = c.has("lon")     ? c.get("lon").getAsDouble()     : 0;
                         double cityTz  = c.has("tz")      ? c.get("tz").getAsDouble()      : 5.5;
-                        cities.add(new City(name, cityLat, cityLon, cityTz));
+                        cities.add(new City(name, "", "", cityLat, cityLon, cityTz));
                     }
                     cityAdapter.updateList(cities);
                     b.rvCities.setVisibility(cities.isEmpty() ? View.GONE : View.VISIBLE);

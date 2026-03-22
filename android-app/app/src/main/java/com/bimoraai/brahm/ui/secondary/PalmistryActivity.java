@@ -94,7 +94,6 @@ public class PalmistryActivity extends AppCompatActivity {
     // ── Setup ─────────────────────────────────────────────────────────────────
 
     private void setupToolbar() {
-        if (b.btnBack != null) b.btnBack.setOnClickListener(v -> finish());
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }

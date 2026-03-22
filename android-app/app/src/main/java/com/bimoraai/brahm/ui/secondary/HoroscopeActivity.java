@@ -51,7 +51,6 @@ public class HoroscopeActivity extends AppCompatActivity {
     }
 
     private void setupToolbar() {
-        if (b.btnBack != null) b.btnBack.setOnClickListener(v -> finish());
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }

@@ -44,6 +44,7 @@ const KPPage = lazy(() => import("./pages/KPPage"));
 const DoshaPage = lazy(() => import("./pages/DoshaPage"));
 const SadeSatiPage = lazy(() => import("./pages/SadeSatiPage"));
 const GemstoneRecommendationsPage = lazy(() => import("./pages/GemstoneRecommendationsPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -329,6 +330,7 @@ const App = () => {
                     }
                   />
                 </Route>
+                <Route path="/admin" element={<AdminPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

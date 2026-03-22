@@ -1,0 +1,366 @@
+[
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_fragment_kundali.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_kundali.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_login.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-mdpi_ic_launcher.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-mdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_warning.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_warning.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_fragment_chat.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_chat.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_circle_gold_faint.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_circle_gold_faint.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_star.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_star.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_item_planet_row.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_planet_row.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_refresh.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_refresh.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_badge_primary.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_badge_primary.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_warning_banner.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_warning_banner.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_surface_rounded.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_surface_rounded.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_camera_dashed_border.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_camera_dashed_border.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_item_chat_ai.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_chat_ai.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_badge_gold.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_badge_gold.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_rectification.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_rectification.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/xml_file_paths.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/xml/file_paths.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_send.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_send.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_bell.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_bell.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_arrow_right.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_arrow_right.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_muhurta.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_muhurta.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_badge_muted.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_badge_muted.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_person.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_person.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_compatibility.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_compatibility.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-hdpi_ic_launcher_round.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-hdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_today.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_today.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_retake_badge.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_retake_badge.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-xhdpi_ic_launcher.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-xhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_item_quick_access.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_quick_access.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_share.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_share.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_question.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_question.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_info_banner.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_info_banner.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_card.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_card.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_trash.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_trash.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_fragment_home.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_home.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-xxxhdpi_ic_launcher.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-xxxhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_brahm_logo.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_brahm_logo.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_home.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_home.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_main.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_chip_primary.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_chip_primary.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_sade_sati.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_sade_sati.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_gemstone.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_gemstone.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_badge_green.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_badge_green.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_search.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_search.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_chip_error.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_chip_error.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-hdpi_ic_launcher.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-hdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-xxhdpi_ic_launcher.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-xxhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_sunset.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_sunset.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_heart.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_heart.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_sunrise.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_sunrise.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_onboarding.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_onboarding.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_gochar.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_gochar.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_ai_star.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_ai_star.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/color_bottom_nav_icon_tint.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/color/bottom_nav_icon_tint.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_download.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_download.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_circle_primary_faint.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_circle_primary_faint.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_fragment_profile.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_profile.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_table_header.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_table_header.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_item_gemstone.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_gemstone.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_fragment_today.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/fragment_today.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-mdpi_ic_launcher_round.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-mdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_primary_button.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_primary_button.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/menu_bottom_nav_menu.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/menu/bottom_nav_menu.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_item_city.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_city.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/navigation_nav_graph.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/navigation/nav_graph.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-xhdpi_ic_launcher_round.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-xhdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_chat.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_chat.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_grid.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_grid.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_horoscope.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_horoscope.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_kundali.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_kundali.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_hand.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_hand.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_item_muhurta.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_muhurta.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_planet.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_planet.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_dosha.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_dosha.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_icon_btn.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_icon_btn.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_kp.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_kp.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-xxhdpi_ic_launcher_round.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-xxhdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_lucky_color.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_lucky_color.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/mipmap-xxxhdpi_ic_launcher_round.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/mipmap-xxxhdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_saturn.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_saturn.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_dashed_border.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_dashed_border.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_otp_box.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_otp_box.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_palmistry.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_palmistry.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_calendar.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_calendar.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_item_chat_user.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/item_chat_user.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_varshpal.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_varshpal.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_clock.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_clock.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/layout_activity_prashna.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/activity_prashna.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_profile.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_profile.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_bg_circle_gold_border.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/bg_circle_gold_border.xml"
+    },
+    {
+        "merged": "com.bimoraai.brahm.app-debug-52:/drawable_ic_location.xml.flat",
+        "source": "com.bimoraai.brahm.app-main-54:/drawable/ic_location.xml"
+    }
+]
