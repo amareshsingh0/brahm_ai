@@ -150,7 +150,7 @@ function DashboardTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    adminFetch("/admin/stats")
+    adminFetch("/api/admin/stats")
       .then(setStats)
       .finally(() => setLoading(false));
   }, []);
@@ -212,7 +212,7 @@ function EditPlanModal({
   const save = async () => {
     setSaving(true);
     try {
-      const updated = await adminFetch(`/admin/users/${user.session_id}`, {
+      const updated = await adminFetch(`/api/admin/users/${user.session_id}`, {
         method: "PUT",
         body: JSON.stringify({ plan, name }),
       });
@@ -284,7 +284,7 @@ function UsersTab() {
     setLoading(true);
     try {
       const data = await adminFetch(
-        `/admin/users?page=${p}&limit=20&search=${encodeURIComponent(q)}`
+        `/api/admin/users?page=${p}&limit=20&search=${encodeURIComponent(q)}`
       );
       setUsers(data.users);
       setTotal(data.total);
@@ -306,7 +306,7 @@ function UsersTab() {
     if (!window.confirm("Delete this user? This cannot be undone.")) return;
     setDeleting(sid);
     try {
-      await adminFetch(`/admin/users/${sid}`, { method: "DELETE" });
+      await adminFetch(`/api/admin/users/${sid}`, { method: "DELETE" });
       setUsers((u) => u.filter((x) => x.session_id !== sid));
       setTotal((t) => t - 1);
     } finally {
@@ -440,7 +440,7 @@ function LogsTab() {
     setLoading(true);
     try {
       const data = await adminFetch(
-        `/admin/logs?page=${p}&limit=50&endpoint_filter=${encodeURIComponent(q)}`
+        `/api/admin/logs?page=${p}&limit=50&endpoint_filter=${encodeURIComponent(q)}`
       );
       setLogs(data.logs);
       setTotal(data.total);
@@ -457,7 +457,7 @@ function LogsTab() {
     if (!window.confirm("Clear ALL activity logs? This cannot be undone.")) return;
     setClearing(true);
     try {
-      await adminFetch("/admin/logs", { method: "DELETE" });
+      await adminFetch("/api/admin/logs", { method: "DELETE" });
       setLogs([]);
       setTotal(0);
       setPages(1);
@@ -567,10 +567,11 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setLoading(true);
     sessionStorage.setItem("admin-key", key);
     try {
-      await adminFetch("/admin/stats");
+      await adminFetch("/api/admin/stats");
       onLogin();
-    } catch {
-      setError("Wrong admin key. Try again.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Error: ${msg}`);
       sessionStorage.removeItem("admin-key");
     } finally {
       setLoading(false);
@@ -626,7 +627,7 @@ export default function AdminPage() {
   useEffect(() => {
     const key = sessionStorage.getItem("admin-key");
     if (key) {
-      adminFetch("/admin/stats")
+      adminFetch("/api/admin/stats")
         .then(() => setAuthed(true))
         .catch(() => sessionStorage.removeItem("admin-key"));
     }
