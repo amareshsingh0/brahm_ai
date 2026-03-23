@@ -889,7 +889,7 @@ export default function KundliPage() {
   const handleVargaSelectR = (div: number) => { setSelectedVargaR(div); loadVarga(div, "R"); };
 
   return (
-    <div className="space-y-3 w-full max-w-full overflow-x-hidden">
+    <div className="space-y-3 w-full max-w-full" style={{ overflowX: "clip" }}>
       {/* Header — always shown */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-1.5">
         <div className="flex items-start justify-between gap-2 min-w-0">

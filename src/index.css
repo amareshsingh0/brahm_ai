@@ -90,15 +90,21 @@
 
   html {
     color-scheme: light;
-    font-size: 15.5px;  /* slightly larger base — fixes tiny text globally */
+    font-size: 15.5px;
     overflow-x: hidden;
+    scrollbar-width: none;
   }
+
+  html::-webkit-scrollbar { display: none; }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', sans-serif;
     overflow-x: hidden;
+    scrollbar-width: none;
   }
+
+  body::-webkit-scrollbar { display: none; }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cinzel', serif;
