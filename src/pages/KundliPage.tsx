@@ -889,58 +889,61 @@ export default function KundliPage() {
   const handleVargaSelectR = (div: number) => { setSelectedVargaR(div); loadVarga(div, "R"); };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 w-full max-w-full overflow-x-hidden">
       {/* Header — always shown */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="font-display text-2xl text-foreground text-glow-gold mb-0.5">
-            {view === "result" && kundaliData?.name ? `${kundaliData.name}'s ${t("kundli.title")}` : t("kundli.janam_kundali", { defaultValue: "Janam Kundali" })}
-          </h1>
-          {view === "result" && kundaliData ? (
-            <p className="text-xs text-muted-foreground">
-              {kundaliData.place} · {kundaliData.birth_date} · {kundaliData.ayanamsha_label ?? "Lahiri"} {kundaliData.ayanamsha}°
-              {kundaliData.rahu_mode === "true" ? " · True Rahu" : ""}
-            </p>
-          ) : (
-            <p className="text-xs text-muted-foreground">{t("kundli.form_subtitle", { defaultValue: "Vedic birth chart · Divisional charts · Dasha · Yogas" })}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {view === "result" && (
-            <button onClick={() => setView("input")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/20 hover:border-border/40 transition-colors">
-              <Edit2 className="h-3 w-3" /> {t("kundli.new_edit", { defaultValue: "New / Edit" })}
-            </button>
-          )}
-          {view === "result" && kundaliData && birthDetails && (
-            <button
-              onClick={() => {
-                const bd = birthDetails as any;
-                const p = new URLSearchParams({
-                  name: bd.name ?? bd.dateOfBirth?.split(" ")[0] ?? "",
-                  dob:  bd.dob ?? bd.dateOfBirth ?? "",
-                  tob:  bd.tob ?? bd.timeOfBirth ?? "12:00",
-                  place: bd.place ?? bd.birthPlace ?? "",
-                  lat:  String(bd.lat ?? 28.6139),
-                  lon:  String(bd.lon ?? 77.209),
-                  tz:   String(bd.tz ?? 5.5),
-                });
-                const url = `${window.location.origin}/kundli?${p.toString()}`;
-                navigator.clipboard.writeText(url).then(() => {
-                  setShareCopied(true);
-                  setTimeout(() => setShareCopied(false), 2500);
-                });
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors border border-border/20">
-              {shareCopied ? <><Check className="h-3.5 w-3.5 text-emerald-400" /> Copied!</> : <><Share2 className="h-3.5 w-3.5" /> {t('common.share')}</>}
-            </button>
-          )}
-          {view === "result" && kundaliData && (
-            <button onClick={() => generateKundaliPDF(kundaliData)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 hover:bg-primary/30 text-primary transition-colors border border-primary/20">
-              <FileDown className="h-3.5 w-3.5" /> PDF
-            </button>
-          )}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-1.5">
+        <div className="flex items-start justify-between gap-2 min-w-0">
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-xl sm:text-2xl text-foreground text-glow-gold mb-0.5 truncate">
+              {view === "result" && kundaliData?.name ? `${kundaliData.name}'s ${t("kundli.title")}` : t("kundli.janam_kundali", { defaultValue: "Janam Kundali" })}
+            </h1>
+            {view === "result" && kundaliData ? (
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {kundaliData.place} · {kundaliData.birth_date}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("kundli.form_subtitle", { defaultValue: "Vedic birth chart · Dasha · Yogas" })}</p>
+            )}
+          </div>
+          {/* Action buttons — icon-only on mobile */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {view === "result" && (
+              <button onClick={() => setView("input")}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/20 hover:border-border/40 transition-colors">
+                <Edit2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{t("kundli.new_edit", { defaultValue: "Edit" })}</span>
+              </button>
+            )}
+            {view === "result" && kundaliData && birthDetails && (
+              <button
+                onClick={() => {
+                  const bd = birthDetails as any;
+                  const p = new URLSearchParams({
+                    name: bd.name ?? bd.dateOfBirth?.split(" ")[0] ?? "",
+                    dob:  bd.dob ?? bd.dateOfBirth ?? "",
+                    tob:  bd.tob ?? bd.timeOfBirth ?? "12:00",
+                    place: bd.place ?? bd.birthPlace ?? "",
+                    lat:  String(bd.lat ?? 28.6139),
+                    lon:  String(bd.lon ?? 77.209),
+                    tz:   String(bd.tz ?? 5.5),
+                  });
+                  const url = `${window.location.origin}/kundli?${p.toString()}`;
+                  navigator.clipboard.writeText(url).then(() => {
+                    setShareCopied(true);
+                    setTimeout(() => setShareCopied(false), 2500);
+                  });
+                }}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors border border-border/20">
+                {shareCopied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Share2 className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">{shareCopied ? "Copied!" : t('common.share')}</span>
+              </button>
+            )}
+            {view === "result" && kundaliData && (
+              <button onClick={() => generateKundaliPDF(kundaliData)}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium bg-primary/20 hover:bg-primary/30 text-primary transition-colors border border-primary/20">
+                <FileDown className="h-3.5 w-3.5" /> <span className="hidden sm:inline">PDF</span>
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -964,7 +967,7 @@ export default function KundliPage() {
 
       {/* Inline Settings Strip */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
-        className="cosmic-card rounded-xl p-3 flex flex-wrap gap-4 items-start">
+        className="cosmic-card rounded-xl p-3 flex flex-col sm:flex-row flex-wrap gap-3 items-start">
         {/* Ayanamsha */}
         <div className="flex-1 min-w-0">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 font-medium">Ayanamsha</p>
@@ -1031,21 +1034,23 @@ export default function KundliPage() {
       {/* Current Mahadasha strip */}
       {currentDasha && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
-          className="cosmic-card rounded-xl p-3 flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: DASHA_COLORS[currentDasha.lord] ?? "#888" }} />
-          <div className="flex-1">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('sky.mahadasha')} · </span>
-            <span className="text-sm font-semibold text-foreground">{currentDasha.lord} ({GRAHA_EN[currentDasha.lord]})</span>
-            <span className="text-xs text-muted-foreground ml-2">{formatDate(currentDasha.start)} → {formatDate(currentDasha.end)}</span>
+          className="cosmic-card rounded-xl p-3 flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{ background: DASHA_COLORS[currentDasha.lord] ?? "#888" }} />
+            <div className="min-w-0">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('sky.mahadasha')} · </span>
+              <span className="text-sm font-semibold text-foreground">{currentDasha.lord} ({GRAHA_EN[currentDasha.lord]})</span>
+              <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">{formatDate(currentDasha.start)} → {formatDate(currentDasha.end)}</span>
+            </div>
           </div>
-          {/* Find current antardasha */}
           {currentDasha.antardashas && (() => {
             const curAntar = currentDasha.antardashas.find(a => isCurrentDasha(a.start, a.end));
             if (!curAntar) return null;
             return (
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground uppercase">{t('kundli.dashas')}</p>
-                <p className="text-xs font-medium text-foreground">{curAntar.lord} <span className="text-muted-foreground">({formatDate(curAntar.start)} → {formatDate(curAntar.end)})</span></p>
+              <div className="flex items-center gap-1.5 pl-4 sm:pl-0 sm:text-right border-l border-border/20 sm:border-l-0">
+                <span className="text-xs text-muted-foreground uppercase shrink-0">{t('kundli.dashas')}:</span>
+                <span className="text-xs font-medium text-foreground">{curAntar.lord}</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">({formatDate(curAntar.start)} → {formatDate(curAntar.end)})</span>
               </div>
             );
           })()}
@@ -1056,7 +1061,7 @@ export default function KundliPage() {
       <div>
 
         {/* Charts + Tabs — full width */}
-        <div className="cosmic-card rounded-xl p-3 md:p-4 min-w-0 overflow-hidden">
+        <div className="cosmic-card rounded-xl p-2 md:p-4 min-w-0 overflow-hidden w-full">
           {/* Tab bar — scrollable within card, no page overflow */}
           <div className="flex gap-1 mb-3 border-b border-border/30 pb-2 overflow-x-auto scrollbar-none">
             {[
@@ -1073,7 +1078,7 @@ export default function KundliPage() {
             ].map(tab => (
               <button key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
+                className={`shrink-0 flex items-center gap-1 text-xs px-2 py-1.5 rounded-full transition-colors whitespace-nowrap ${
                   activeTab === tab.id ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -1105,7 +1110,7 @@ export default function KundliPage() {
             {/* Dual Charts Tab */}
             {activeTab === "charts" && (
               <motion.div key="charts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-w-0">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start w-full min-w-0">
                   {([
                     { div: selectedVargaL, setDiv: handleVargaSelectL, tab: chartTabL, setTab: setChartTabL, loading: loadingVargaL, side: "L" as const },
                     { div: selectedVargaR, setDiv: handleVargaSelectR, tab: chartTabR, setTab: setChartTabR, loading: loadingVargaR, side: "R" as const },
@@ -1140,27 +1145,27 @@ export default function KundliPage() {
                     }).filter(Boolean) : [];
 
                     return (
-                      <div key={side} className={`rounded-xl border bg-card/30 backdrop-blur-sm overflow-hidden ${
+                      <div key={side} className={`rounded-xl border bg-card/30 backdrop-blur-sm overflow-hidden w-full min-w-0 ${
                         selectedVargaL === selectedVargaR ? "border-amber-500/30" : "border-border/20"
                       }`}>
                         {/* Chart header — label + selector + lagna */}
-                        <div className="flex items-center gap-2 p-2 border-b border-border/15 bg-muted/10">
+                        <div className="flex items-center gap-1.5 p-2 border-b border-border/15 bg-muted/10">
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
                             side === "L"
                               ? "bg-primary/20 text-primary"
                               : "bg-amber-500/20 text-amber-400"
-                          }`}>{side === "L" ? t("kundli.chart_a", { defaultValue: "Chart A" }) : t("kundli.chart_b", { defaultValue: "Chart B" })}</span>
+                          }`}>{side === "L" ? "A" : "B"}</span>
                           <select
                             value={div}
                             onChange={e => setDiv(Number(e.target.value))}
-                            className="flex-1 bg-background/60 border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary/50 cursor-pointer"
+                            className="flex-1 min-w-0 bg-background/60 border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary/50 cursor-pointer"
                           >
                             {VARGA_QUICK.map(v => (
                               <option key={v.div} value={v.div}>{v.code} — {v.name}</option>
                             ))}
                           </select>
                           <div className="text-xs text-muted-foreground shrink-0">
-                            {t("kundli.lagna")}: <span className="text-amber-400 font-medium">{chartLagna}</span>
+                            <span className="text-amber-400 font-medium">{chartLagna}</span>
                           </div>
                         </div>
 
@@ -1174,7 +1179,7 @@ export default function KundliPage() {
                         </div>
 
                         {/* Chart */}
-                        <div className="p-1">
+                        <div className="w-full overflow-hidden">
                           {loading ? (
                             <div className="flex items-center justify-center py-16 text-muted-foreground text-xs gap-2">
                               <Loader2 className="h-4 w-4 animate-spin" /> Loading chart…
@@ -1376,7 +1381,7 @@ export default function KundliPage() {
                                     })}
                                   </tbody>
                                 </table>
-                                <p className="text-[10px] text-muted-foreground/60 px-2 py-1.5">Click any row to expand full details · Q = Kendra (angular house)</p>
+                                <p className="text-[10px] text-muted-foreground/60 px-2 py-1.5 break-words">Click any row to expand · Q = Kendra</p>
                               </div>
                             )}
 

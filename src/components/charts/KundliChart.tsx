@@ -461,9 +461,9 @@ export function KundliChart({
   ];
 
   return (
-    <div>
+    <div className="w-full overflow-hidden">
       {showStyleToggle && (
-        <div className="flex gap-1.5 mb-3 flex-wrap">
+        <div className="flex gap-1.5 mb-2 flex-wrap px-2 pt-2">
           {STYLES.map(s => (
             <button key={s.key} onClick={() => setSettings({ chartStyle: s.key })}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${

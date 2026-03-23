@@ -46,7 +46,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* Language switcher in header — hide on mobile (available in drawer) */}
             <LanguageSwitcher variant="full" />
           </header>
-          <main className="flex-1 overflow-x-hidden overflow-y-auto pb-6 px-3 sm:px-5 lg:px-7 pt-5">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto pb-6 px-3 sm:px-5 lg:px-7 pt-5" style={{ maxWidth: "100vw" }}>
             {children}
           </main>
         </div>
