@@ -378,7 +378,7 @@ function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn 
               textAnchor="middle" fontSize="9" fill={NUM_TEXT}>{houseId}</text>
             <text x={C + rH * Math.cos(mid)} y={C - rH * Math.sin(mid) + 15}
               textAnchor="middle" fontSize="7.5" fill={LABEL_SUB} fontFamily="serif">
-              {RASHI_ABBR[rn]}
+              {rashiLabel(rn)}
             </text>
             {(() => {
               const n = planetsHere.length;
@@ -407,7 +407,7 @@ function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn 
                 const ppY = C - r * Math.sin(mid) - tang * Math.sin(perpAngle);
                 const color = PLANET_COLORS[p.name] ?? "#64748b";
                 const isSel = selectedPlanet?.name === p.name;
-                const lbl = p.sanskritName?.slice(0, 3) ?? p.name.slice(0, 3);
+                const lbl = tFn ? tFn(`planet.${p.name}`, { defaultValue: p.sanskritName ?? p.name }) : (p.sanskritName ?? p.name);
                 return (
                   <motion.g key={p.name} onClick={() => onPlanetClick?.(p)}
                     className="cursor-pointer"
@@ -433,8 +433,8 @@ function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn 
         );
       })}
 
-      <text x={C} y={C - 8} textAnchor="middle" fill={GOLD_DIM} fontSize="10" fontFamily="serif">{lagnaRashi}</text>
-      <text x={C} y={C + 6} textAnchor="middle" fill={LABEL_SUB} fontSize="8.5" fontFamily="serif">Lagna</text>
+      <text x={C} y={C - 8} textAnchor="middle" fill={GOLD_DIM} fontSize="10" fontFamily="serif">{rashiLabel(lagnaRashi)}</text>
+      <text x={C} y={C + 6} textAnchor="middle" fill={LABEL_SUB} fontSize="8.5" fontFamily="serif">{lagnaLabel}</text>
     </svg>
   );
 }
@@ -451,6 +451,8 @@ export function KundliChart({
   const style = styleProp ?? storeStyle;
 
   const { t } = useTranslation();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tFn = (key: string, opts?: object) => t(key, opts as any);
   const STYLES: { key: ChartStyle; label: string }[] = [
     { key: "north", label: t("chart.north", { defaultValue: "North" }) },
     { key: "south", label: t("chart.south", { defaultValue: "South" }) },
@@ -476,13 +478,13 @@ export function KundliChart({
       )}
       <motion.div key={style} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
         {style === "north" ? (
-          <NorthIndianChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} />
+          <NorthIndianChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} tFn={tFn} />
         ) : style === "south" ? (
-          <SouthIndianChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} />
+          <SouthIndianChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} tFn={tFn} />
         ) : style === "east" ? (
-          <EastIndianChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} />
+          <EastIndianChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} tFn={tFn} />
         ) : (
-          <WesternChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} />
+          <WesternChart planets={displayPlanets} lagnaRashi={lagna} onPlanetClick={onPlanetClick} selectedPlanet={selectedPlanet} tFn={tFn} />
         )}
       </motion.div>
     </div>

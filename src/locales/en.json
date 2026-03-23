@@ -4,7 +4,9 @@
     "north": "North",
     "south": "South",
     "east": "East",
-    "west": "West"
+    "west": "West",
+    "lagna": "Lagna",
+    "lag": "Lag"
   },
   "planet": {
     "Sun": "Sun",

@@ -76,7 +76,14 @@ function fmtCountdown(secs: number): string {
 
 // ── Zodiac Wheel SVG ──────────────────────────────────────────────────────────
 
+const RASHI_TO_KEY: Record<string, string> = {
+  Mesha:"mesha", Vrishabha:"vrishabha", Mithuna:"mithuna", Karka:"karka",
+  Simha:"simha", Kanya:"kanya", Tula:"tula", Vrischika:"vrischika",
+  Dhanu:"dhanu", Makara:"makara", Kumbha:"kumbha", Meena:"meena",
+};
+
 const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState<string | null>(null);
   const cx = 200, cy = 200, R = 180;
   const planetR = 130;
@@ -135,7 +142,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
                 fontFamily="Inter, sans-serif"
                 fontWeight={hasplanet ? "700" : "500"}
               >
-                {RASHI_SHORT[i]}
+                {t(`data.rashi.${RASHI_TO_KEY[name] ?? name.toLowerCase()}.name`, { defaultValue: name })}
               </text>
             </g>
           );
@@ -205,7 +212,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
                   <rect x={px - 28} y={py + 14} width={56} height={22} rx={4}
                     fill="hsl(0 0% 100%)" stroke={`${glow}88`} strokeWidth="0.8" />
                   <text x={px} y={py + 22} textAnchor="middle" fontSize="7" fill={glow}>
-                    {p.rashi} {p.dms}
+                    {t(`data.rashi.${RASHI_TO_KEY[p.rashi] ?? p.rashi.toLowerCase()}.name`, { defaultValue: p.rashi })} {p.dms}
                   </text>
                   <text x={px} y={py + 30} textAnchor="middle" fontSize="6" fill="hsl(215 15% 45%)">
                     {p.nakshatra}
@@ -240,6 +247,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
 // ── Planet Table ──────────────────────────────────────────────────────────────
 
 function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
+  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -281,7 +289,7 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                     )}
                   </div>
                 </td>
-                <td className="py-2 px-2 text-foreground">{p.rashi}</td>
+                <td className="py-2 px-2 text-foreground">{t(`data.rashi.${RASHI_TO_KEY[p.rashi] ?? p.rashi.toLowerCase()}.name`, { defaultValue: p.rashi })}</td>
                 <td className="py-2 px-2 text-foreground font-mono hidden sm:table-cell">{p.dms}</td>
                 <td className="py-2 px-2 text-muted-foreground hidden md:table-cell">
                   {p.nakshatra} <span className="text-xs opacity-70">Pada {p.pada}</span>
@@ -315,6 +323,7 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
 // ── Planet Cards (replaces table) ─────────────────────────────────────────────
 
 function PlanetCards({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-3 gap-2">
       {ORDER.map((name) => {
@@ -373,7 +382,7 @@ function PlanetCards({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
               className="self-start text-xs px-1.5 py-0.5 rounded-full border leading-none font-medium"
               style={{ borderColor: color + "66", color, backgroundColor: color + "18" }}
             >
-              {p.rashi}
+              {t(`data.rashi.${RASHI_TO_KEY[p.rashi] ?? p.rashi.toLowerCase()}.name`, { defaultValue: p.rashi })}
             </span>
 
             {/* Plain-language effect */}
@@ -451,6 +460,7 @@ function CosmicSummary({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
 // ── 24h Movement Tab ──────────────────────────────────────────────────────────
 
 function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
+  const { t } = useTranslation();
   const track = use24hTrack(snapshot);
   const now   = snapshot.localTime;
   const currentHour  = now.getHours() + now.getMinutes() / 60;
@@ -556,7 +566,7 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                   <div key={h} className={`text-center rounded p-1 ${h === Math.floor(now.getHours() / 4) * 4 ? "bg-primary/10" : "bg-muted/10"}`}>
                     <p className="text-xs text-muted-foreground">{String(h).padStart(2,"0")}:00</p>
                     <p className="text-xs text-foreground font-mono">{pos.dms.split("°")[0]}°</p>
-                    <p className="text-xs text-muted-foreground truncate">{pos.rashi.slice(0,4)}</p>
+                    <p className="text-xs text-muted-foreground truncate">{t(`data.rashi.${RASHI_TO_KEY[pos.rashi] ?? pos.rashi.toLowerCase()}.name`, { defaultValue: pos.rashi })}</p>
                   </div>
                 );
               })}
@@ -602,7 +612,7 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                 </div>
               </div>
               <div className="text-right min-w-0">
-                <p className="text-xs font-mono text-foreground">{p.rashi.slice(0,4)} {toDMS(p.degInRashi)}</p>
+                <p className="text-xs font-mono text-foreground">{t(`data.rashi.${RASHI_TO_KEY[p.rashi] ?? p.rashi.toLowerCase()}.name`, { defaultValue: p.rashi })} {toDMS(p.degInRashi)}</p>
               </div>
             </div>
           );
@@ -944,7 +954,7 @@ export default function SkyPage() {
             <Globe className="h-3.5 w-3.5 text-primary" />
             <span className="text-xs text-muted-foreground">{t('sky.lagna')}</span>
           </div>
-          <p className="font-display text-sm text-primary">{snapshot.lagna?.rashi ?? "—"}</p>
+          <p className="font-display text-sm text-primary">{snapshot.lagna?.rashi ? t(`data.rashi.${RASHI_TO_KEY[snapshot.lagna.rashi] ?? snapshot.lagna.rashi.toLowerCase()}.name`, { defaultValue: snapshot.lagna.rashi }) : "—"}</p>
           <p className="text-xs text-muted-foreground font-mono">{snapshot.lagna?.dms ?? "—"}</p>
         </div>
       </div>
