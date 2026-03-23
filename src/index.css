@@ -91,11 +91,13 @@
   html {
     color-scheme: light;
     font-size: 15.5px;  /* slightly larger base — fixes tiny text globally */
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {

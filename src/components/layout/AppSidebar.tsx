@@ -1,144 +1,142 @@
-﻿import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Star, Globe, Clock, Sparkles, BookOpen, Moon, Heart, Gem, Sun, Compass, User, Zap, Hand, Eclipse, Calendar, Bot, Library, Music, TreePine, Database, LogOut, CreditCard, HelpCircle, ShieldAlert, Activity } from "lucide-react";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { NavLink } from "@/components/NavLink";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
+  LayoutDashboard, Star, Globe, Clock, Sparkles, BookOpen, Moon, Heart,
+  Gem, Sun, Compass, Zap, Hand, Eclipse, Calendar, Bot, Library,
+  Music, TreePine, Database, HelpCircle, ShieldAlert, Activity, ChevronUp,
+} from "lucide-react";
+import { NavLink } from "@/components/NavLink";
+import {
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/authStore";
+import { AnimatePresence } from "framer-motion";
+import { Avatar, ProfilePopup } from "./ProfilePopup";
 
 const mainNavItems = [
   { key: "dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { key: "chat", url: "/chat", icon: Bot },
-  { key: "kundli", url: "/kundli", icon: Star },
-  { key: "sky", url: "/sky", icon: Globe },
-  { key: "timeline", url: "/timeline", icon: Clock },
+  { key: "chat",      url: "/chat",      icon: Bot },
+  { key: "kundli",    url: "/kundli",    icon: Star },
+  { key: "sky",       url: "/sky",       icon: Globe },
+  { key: "timeline",  url: "/timeline",  icon: Clock },
   { key: "horoscope", url: "/horoscope", icon: Sun },
 ];
 
 const exploreNavItems = [
-  { key: "rashi", url: "/rashi", icon: Sparkles },
-  { key: "nakshatra", url: "/nakshatra", icon: Compass },
-  { key: "yogas", url: "/yogas", icon: Zap },
-  { key: "remedies", url: "/remedies", icon: Gem },
-  { key: "gemstones", url: "/gemstones", icon: Gem },
-  { key: "compatibility", url: "/compatibility", icon: Heart },
-  { key: "palmistry", url: "/palmistry", icon: Hand },
-  { key: "gochar", url: "/gochar", icon: Moon },
-  { key: "rectification", url: "/rectification", icon: Clock },
-  { key: "prashna",       url: "/prashna",       icon: HelpCircle },
-  { key: "varshphal",     url: "/varshphal",     icon: Sun },
-  { key: "kp",            url: "/kp",            icon: Star },
-  { key: "dosha",         url: "/dosha",         icon: ShieldAlert },
-  { key: "sade_sati",     url: "/sade-sati",     icon: Activity },
-  { key: "today", url: "/today", icon: Calendar },
-  { key: "panchang", url: "/panchang", icon: Eclipse },
-  { key: "library", url: "/library", icon: Library },
-  { key: "mantras", url: "/mantras", icon: Music },
-  { key: "gotra", url: "/gotra", icon: TreePine },
-  { key: "knowledge", url: "/knowledge", icon: Database },
-  { key: "stories", url: "/stories", icon: BookOpen },
+  { key: "rashi",         url: "/rashi",         icon: Sparkles },
+  { key: "nakshatra",     url: "/nakshatra",      icon: Compass },
+  { key: "yogas",         url: "/yogas",          icon: Zap },
+  { key: "remedies",      url: "/remedies",       icon: Gem },
+  { key: "gemstones",     url: "/gemstones",      icon: Gem },
+  { key: "compatibility", url: "/compatibility",  icon: Heart },
+  { key: "palmistry",     url: "/palmistry",      icon: Hand },
+  { key: "gochar",        url: "/gochar",         icon: Moon },
+  { key: "rectification", url: "/rectification",  icon: Clock },
+  { key: "prashna",       url: "/prashna",        icon: HelpCircle },
+  { key: "varshphal",     url: "/varshphal",      icon: Sun },
+  { key: "kp",            url: "/kp",             icon: Star },
+  { key: "dosha",         url: "/dosha",          icon: ShieldAlert },
+  { key: "sade_sati",     url: "/sade-sati",      icon: Activity },
+  { key: "today",         url: "/today",          icon: Calendar },
+  { key: "panchang",      url: "/panchang",       icon: Eclipse },
+  { key: "library",       url: "/library",        icon: Library },
+  { key: "mantras",       url: "/mantras",        icon: Music },
+  { key: "gotra",         url: "/gotra",          icon: TreePine },
+  { key: "knowledge",     url: "/knowledge",      icon: Database },
+  { key: "stories",       url: "/stories",        icon: BookOpen },
 ];
 
-const accountNavItems = [
-  { key: "profile", url: "/profile", icon: User },
-  { key: "subscription", url: "/subscription", icon: CreditCard },
-];
-
-const PLAN_BADGE: Record<string, { label: string; className: string }> = {
-  free:     { label: "Free",      className: "bg-muted/40 text-muted-foreground" },
-  jyotishi: { label: "Jyotishi",  className: "bg-amber-500/20 text-amber-400" },
-  acharya:  { label: "Acharya",   className: "bg-purple-500/20 text-purple-400" },
+const PLAN_BADGE: Record<string, { label: string; cls: string }> = {
+  free:     { label: "Free",     cls: "bg-muted/40 text-muted-foreground" },
+  jyotishi: { label: "Jyotishi", cls: "bg-amber-500/20 text-amber-400" },
+  acharya:  { label: "Acharya",  cls: "bg-purple-500/20 text-purple-400" },
 };
 
 export function AppSidebar() {
   const { t } = useTranslation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const plan = useAuthStore((s) => s.plan);
-  const name = useAuthStore((s) => s.name);
+  const plan  = useAuthStore((s) => s.plan);
+  const name  = useAuthStore((s) => s.name) ?? "";
   const badge = PLAN_BADGE[plan] ?? PLAN_BADGE.free;
+  const [popup, setPopup] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  const mainNav = mainNavItems.map(i => ({ ...i, title: t(`nav.${i.key}`) }));
+  const mainNav    = mainNavItems.map(i => ({ ...i, title: t(`nav.${i.key}`) }));
   const exploreNav = exploreNavItems.map(i => ({ ...i, title: t(`nav.${i.key}`) }));
-  const accountNav = accountNavItems.map(i => ({ ...i, title: t(`nav.${i.key}`) }));
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
-      <SidebarContent className="star-field">
+      <SidebarContent className="star-field flex flex-col h-full">
+
         {/* Logo */}
-        <div className="flex items-center gap-3 px-4 py-6">
+        <div className="flex items-center gap-3 px-4 py-6 shrink-0">
           <Moon className="h-8 w-8 text-primary zodiac-glow" />
           {!collapsed && (
             <span className="font-display text-lg text-primary text-glow-gold">{t('appTitle')}</span>
           )}
         </div>
 
-        {/* User + plan badge */}
-        {!collapsed && name && (
-          <div className="mx-4 mb-2 px-3 py-2 rounded-lg bg-muted/10 border border-border/20 flex items-center justify-between">
-            <p className="text-xs text-foreground truncate max-w-[110px]">{name}</p>
-            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${badge.className}`}>
-              {badge.label}
-            </span>
-          </div>
-        )}
+        {/* Scrollable nav */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <NavGroup label={t('nav_group.main')}    items={mainNav}    collapsed={collapsed} />
+          <NavGroup label={t('nav_group.explore')} items={exploreNav} collapsed={collapsed} />
+        </div>
 
-        <NavGroup label={t('nav_group.main')} items={mainNav} collapsed={collapsed} />
-        <NavGroup label={t('nav_group.explore')} items={exploreNav} collapsed={collapsed} />
-        <NavGroup label={t('nav_group.account')} items={accountNav} collapsed={collapsed} />
+        {/* ── Fixed profile card at bottom ── */}
+        <div className="shrink-0 border-t border-border/30 px-2 py-2 relative">
 
-        {/* Language + Logout footer */}
-        <SidebarGroup className="mt-auto pb-4">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* Language switcher */}
-              <SidebarMenuItem>
-                <div className="flex items-center gap-2 px-3 py-1">
-                  <LanguageSwitcher variant={collapsed ? "icon" : "full"} />
-                  {!collapsed && (
-                    <span className="text-xs text-muted-foreground">Language</span>
-                  )}
-                </div>
-              </SidebarMenuItem>
-              {/* Logout */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-destructive transition-colors rounded-md"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    {!collapsed && <span>{t('nav.logout')}</span>}
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+          {/* Click-outside */}
+          {popup && (
+            <div className="fixed inset-0 z-40" onClick={() => setPopup(false)} />
+          )}
+
+          {/* Popup */}
+          <AnimatePresence>
+            {popup && (
+              <ProfilePopup
+                className="absolute bottom-full left-1 right-1 mb-1 z-50"
+                onClose={() => setPopup(false)}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Profile card button */}
+          {collapsed ? (
+            <button
+              onClick={() => setPopup((v) => !v)}
+              className="w-full flex items-center justify-center py-2 rounded-xl hover:bg-muted/60 transition-colors"
+            >
+              <Avatar name={name} size={30} />
+            </button>
+          ) : (
+            <button
+              onClick={() => setPopup((v) => !v)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/60 transition-colors"
+            >
+              <Avatar name={name} size={30} />
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[13px] font-medium text-foreground truncate leading-tight">{name || "—"}</p>
+                <p className="text-[11px] text-muted-foreground">{badge.label}</p>
+              </div>
+              <ChevronUp
+                className={`h-4 w-4 text-muted-foreground/60 transition-transform duration-200 ${popup ? "" : "rotate-180"}`}
+              />
+            </button>
+          )}
+        </div>
       </SidebarContent>
     </Sidebar>
   );
 }
 
-function NavGroup({ label, items, collapsed }: { label: string; items: { title: string; url: string; icon: React.ElementType }[]; collapsed: boolean }) {
+function NavGroup({
+  label, items, collapsed,
+}: {
+  label: string;
+  items: { title: string; url: string; icon: React.ElementType }[];
+  collapsed: boolean;
+}) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-muted-foreground/60 text-xs uppercase tracking-widest">
@@ -166,4 +164,3 @@ function NavGroup({ label, items, collapsed }: { label: string; items: { title: 
     </SidebarGroup>
   );
 }
-
