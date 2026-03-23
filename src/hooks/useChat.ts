@@ -96,7 +96,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
-    const history = messages.map((m) => ({ role: m.role, content: m.content }));
+    // Keep last 8 messages only — prevents 413 on large histories
+    const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }));
 
     api.streamChat(
       {

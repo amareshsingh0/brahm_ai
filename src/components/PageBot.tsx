@@ -93,7 +93,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-[340px] sm:w-[380px] h-[520px] flex flex-col cosmic-card rounded-2xl border border-border/40 shadow-2xl overflow-hidden"
+            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-[340px] sm:w-[380px] h-[520px] flex flex-col rounded-2xl border border-border/40 shadow-2xl overflow-hidden bg-background"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/30 bg-muted/20">

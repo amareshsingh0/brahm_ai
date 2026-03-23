@@ -504,7 +504,7 @@ function generateKundaliPDF(data: KundaliResponse) {
 function AntardashaList({ antardashas }: { antardashas: AntardashaData[] }) {
   const [expandedAntar, setExpandedAntar] = useState<string | null>(null);
   return (
-    <div className="ml-6 mt-1 space-y-0.5 border-l border-border/20 pl-3">
+    <div className="ml-4 mt-1 space-y-0.5 border-l border-border/20 pl-2 overflow-x-auto scrollbar-none">
       {antardashas.map((a, i) => {
         const cur = isCurrentDasha(a.start, a.end);
         const hasPratyantar = a.pratyantardashas && a.pratyantardashas.length > 0;
@@ -516,11 +516,11 @@ function AntardashaList({ antardashas }: { antardashas: AntardashaData[] }) {
               className={`flex items-center gap-2 text-xs py-0.5 px-1.5 rounded ${cur ? "bg-amber-500/10 text-amber-300" : "text-muted-foreground"} ${hasPratyantar ? "cursor-pointer hover:bg-muted/20" : ""}`}
             >
               <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: DASHA_COLORS[a.lord] ?? "#888" }} />
-              <span className="font-medium w-14">{a.lord}</span>
-              <span>{formatDate(a.start)} → {formatDate(a.end)}</span>
-              <span className="text-muted-foreground/60">{a.years}y</span>
-              {cur && <span className="text-xs text-amber-400 font-medium">★ Active</span>}
-              {hasPratyantar && <span className="ml-auto text-xs opacity-70">{isExp ? "▲" : "▼"}</span>}
+              <span className="font-medium shrink-0" style={{minWidth:"4rem"}}>{a.lord}</span>
+              <span className="shrink-0 text-[11px]">{formatDate(a.start)} → {formatDate(a.end)}</span>
+              <span className="text-muted-foreground/60 shrink-0 ml-1">{a.years}y</span>
+              {cur && <span className="text-xs text-amber-400 font-medium shrink-0 ml-1">★</span>}
+              {hasPratyantar && <span className="ml-auto text-xs opacity-70 shrink-0">{isExp ? "▲" : "▼"}</span>}
             </div>
             {isExp && hasPratyantar && (
               <PratyantarList pratyantardashas={a.pratyantardashas!} />
@@ -548,11 +548,11 @@ function PratyantarList({ pratyantardashas }: { pratyantardashas: PratyantarData
               className={`flex items-center gap-1.5 text-xs py-0.5 px-1 rounded ${pCur ? "bg-amber-500/10 text-amber-300" : "text-muted-foreground/70"} ${hasSukshma ? "cursor-pointer hover:bg-muted/10" : ""}`}
             >
               <div className="w-1 h-1 rounded-full shrink-0" style={{ background: DASHA_COLORS[p.lord] ?? "#888" }} />
-              <span className="font-medium w-12">{p.lord}</span>
-              <span>{formatDate(p.start)} → {formatDate(p.end)}</span>
-              <span className="opacity-60">{p.days}d</span>
-              {pCur && <span className="text-amber-400">★</span>}
-              {hasSukshma && <span className="ml-auto opacity-60">{isPExp ? "▲" : "▼"}</span>}
+              <span className="font-medium shrink-0" style={{minWidth:"3.8rem"}}>{p.lord}</span>
+              <span className="shrink-0 text-[11px]">{formatDate(p.start)} → {formatDate(p.end)}</span>
+              <span className="opacity-60 shrink-0 ml-1">{p.days}d</span>
+              {pCur && <span className="text-amber-400 shrink-0 ml-1">★</span>}
+              {hasSukshma && <span className="ml-auto opacity-60 shrink-0">{isPExp ? "▲" : "▼"}</span>}
             </div>
             {isPExp && hasSukshma && (
               <div className="ml-3 mt-0.5 space-y-0.5 border-l border-border/10 pl-2">
@@ -561,10 +561,10 @@ function PratyantarList({ pratyantardashas }: { pratyantardashas: PratyantarData
                   return (
                     <div key={k} className={`flex items-center gap-1.5 text-xs py-0.5 px-1 rounded ${sCur ? "text-amber-300" : "text-muted-foreground/70"}`}>
                       <div className="w-0.5 h-0.5 rounded-full shrink-0 opacity-60" style={{ background: DASHA_COLORS[s.lord] ?? "#888" }} />
-                      <span className="font-medium w-10">{s.lord}</span>
-                      <span>{s.start.slice(0,10)}</span>
-                      <span className="opacity-60">{s.hours}h</span>
-                      {sCur && <span className="text-amber-400">★</span>}
+                      <span className="font-medium shrink-0" style={{minWidth:"3.5rem"}}>{s.lord}</span>
+                      <span className="shrink-0 text-[10px]">{s.start.slice(0,10)}</span>
+                      <span className="opacity-60 shrink-0 ml-1">{s.hours}h</span>
+                      {sCur && <span className="text-amber-400 shrink-0 ml-1">★</span>}
                     </div>
                   );
                 })}

@@ -72,7 +72,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground max-w-[260px] sm:max-w-md mb-4">{t("dashboard.subtitle")}</p>
           {!birthDetails && (
             <Link
-              to="/onboarding"
+              to="/kundli"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               {t("dashboard.generate_cta")} <ArrowRight className="h-4 w-4" />
