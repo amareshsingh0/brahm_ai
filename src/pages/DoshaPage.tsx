@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
+import { useTranslation } from "react-i18next";
 
 // ── Rashi index map ─────────────────────────────────────────────────────────
 const RASHI_IDX: Record<string, number> = {
@@ -269,6 +270,7 @@ function SeverityBadge({ severity }: { severity: "Strong" | "Moderate" | "Absent
 }
 
 function RemediesPanel({ remedies }: { remedies: string[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <div className="mt-4">
@@ -277,7 +279,7 @@ function RemediesPanel({ remedies }: { remedies: string[] }) {
         className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
       >
         {open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-        Remedies &amp; Suggestions
+        {t("dosha.remedies")}
       </button>
       {open && (
         <motion.ul
@@ -334,6 +336,7 @@ const CARD_REMEDIES = {
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 export default function DoshaPage() {
+  const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
 
   if (!kundaliData) {
@@ -346,16 +349,16 @@ export default function DoshaPage() {
         >
           <ShieldAlert className="w-12 h-12 text-muted-foreground/40" />
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-1">No Kundali Found</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-1">{t("dosha.no_kundali")}</h2>
             <p className="text-sm text-muted-foreground">
-              Generate your birth chart first to run the Dosha analysis.
+              {t("dosha.no_kundali_desc")}
             </p>
           </div>
           <Link
             to="/kundli"
             className="mt-2 px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           >
-            Generate Kundali
+            {t("dosha.generate_btn")}
           </Link>
         </motion.div>
       </div>
@@ -393,10 +396,8 @@ export default function DoshaPage() {
     <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">
       {/* Page header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl text-foreground text-glow-gold">Dosha Analysis</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Computed from your birth chart — Mangal, Kaal Sarp, Pitra, and Grahan Yoga
-        </p>
+        <h1 className="font-display text-2xl text-foreground text-glow-gold">{t("dosha.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t("dosha.subtitle")}</p>
       </motion.div>
 
       {/* ── Mangal Dosha ─────────────────────────────────────────────── */}
@@ -416,8 +417,8 @@ export default function DoshaPage() {
           <div className="flex items-center gap-2">
             <span className="text-xl text-red-400">♂︎</span>
             <div>
-              <h2 className="text-base font-semibold text-foreground">Mangal Dosha</h2>
-              <p className="text-xs text-muted-foreground">Kuja Dosha / Bhauma Dosha</p>
+              <h2 className="text-base font-semibold text-foreground">{t("dosha.mangal_dosha")}</h2>
+              <p className="text-xs text-muted-foreground">{t("dosha.mangal_desc")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -430,7 +431,7 @@ export default function DoshaPage() {
           {mangalResult.present ? (
             <>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="text-red-400 font-medium">Mars in House {mangalResult.house}</span>
+                <span className="text-red-400 font-medium">{t("dosha.mars_in_house", { n: mangalResult.house })}</span>
                 {grahas["Mangal"]?.rashi && (
                   <span className="text-xs text-star-gold">
                     {RASHI_SYMBOLS[grahas["Mangal"].rashi]} {grahas["Mangal"].rashi}
@@ -439,12 +440,12 @@ export default function DoshaPage() {
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {mangalResult.severity === "Strong"
-                  ? `Mars in H${mangalResult.house} is a strong placement for Mangal Dosha, affecting marriage (H7) or longevity (H8) directly.`
-                  : `Mars in H${mangalResult.house} creates a moderate Mangal Dosha affecting domestic harmony and relationships.`}
+                  ? t("dosha.mangal_strong_desc", { n: mangalResult.house })
+                  : t("dosha.mangal_moderate_desc", { n: mangalResult.house })}
               </p>
               {mangalResult.cancelled && (
                 <div className="mt-2 rounded-lg bg-amber-500/8 border border-amber-500/20 p-3 space-y-1">
-                  <p className="text-xs font-medium text-amber-400 mb-1">Cancellation Factors</p>
+                  <p className="text-xs font-medium text-amber-400 mb-1">{t("dosha.cancellation_factors")}</p>
                   {mangalResult.cancellationReasons.map((r, i) => (
                     <p key={i} className="text-xs text-amber-300/80 leading-relaxed pl-2 border-l border-amber-500/30">
                       {r}
@@ -455,7 +456,7 @@ export default function DoshaPage() {
             </>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Mars is in H{mangalResult.house} — not one of the Dosha-causing houses (1, 4, 7, 8, 12). No Mangal Dosha in this chart.
+              {t("dosha.no_mangal", { n: mangalResult.house })}
             </p>
           )}
         </div>
@@ -476,8 +477,8 @@ export default function DoshaPage() {
           <div className="flex items-center gap-2">
             <span className="text-xl text-[#6366f1]">☊︎</span>
             <div>
-              <h2 className="text-base font-semibold text-foreground">Kaal Sarp Dosha</h2>
-              <p className="text-xs text-muted-foreground">All planets between Rahu–Ketu axis</p>
+              <h2 className="text-base font-semibold text-foreground">{t("dosha.kaal_sarp")}</h2>
+              <p className="text-xs text-muted-foreground">{t("dosha.kaal_sarp_desc")}</p>
             </div>
           </div>
           <StatusBadge present={kaalsarpActive} />
@@ -488,7 +489,7 @@ export default function DoshaPage() {
             <>
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5 text-sm">
-                  <span className="text-muted-foreground text-xs">Type:</span>
+                  <span className="text-muted-foreground text-xs">{t("dosha.type_label")}:</span>
                   <span className="text-red-400 font-semibold">{ksType?.name}</span>
                   <span className="text-xs text-muted-foreground">Kaal Sarp</span>
                 </div>
@@ -515,9 +516,7 @@ export default function DoshaPage() {
               )}
             </>
           ) : (
-            <p className="text-xs text-muted-foreground">
-              Planets are distributed on both sides of the Rahu–Ketu axis. No Kaal Sarp Dosha present.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("dosha.no_kaal_sarp")}</p>
           )}
         </div>
 
@@ -537,8 +536,8 @@ export default function DoshaPage() {
           <div className="flex items-center gap-2">
             <span className="text-xl" style={{ color: "#D97706" }}>☉︎</span>
             <div>
-              <h2 className="text-base font-semibold text-foreground">Pitra Dosha</h2>
-              <p className="text-xs text-muted-foreground">Ancestral affliction — Pitru Rin</p>
+              <h2 className="text-base font-semibold text-foreground">{t("dosha.pitra_dosha")}</h2>
+              <p className="text-xs text-muted-foreground">{t("dosha.pitra_desc")}</p>
             </div>
           </div>
           <StatusBadge present={pitraResult.present} />
@@ -547,9 +546,7 @@ export default function DoshaPage() {
         <div className="mt-4 space-y-2">
           {pitraResult.present ? (
             <>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Pitra Dosha indicates unresolved ancestral karma. The following afflictions were found:
-              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{t("dosha.pitra_present_desc")}</p>
               <ul className="space-y-1.5 mt-1">
                 {pitraResult.causes.map((c, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-amber-300/90 leading-relaxed pl-2 border-l-2 border-amber-500/30">
@@ -560,9 +557,7 @@ export default function DoshaPage() {
               </ul>
             </>
           ) : (
-            <p className="text-xs text-muted-foreground">
-              No significant affliction to the Sun or 9th house lord detected. Pitra Dosha is absent in this chart.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("dosha.pitra_absent")}</p>
           )}
         </div>
 
@@ -582,8 +577,8 @@ export default function DoshaPage() {
           <div className="flex items-center gap-2">
             <Moon className="w-5 h-5 text-purple-400" />
             <div>
-              <h2 className="text-base font-semibold text-foreground">Grahan Yoga</h2>
-              <p className="text-xs text-muted-foreground">Eclipse yoga — Sun/Moon with Rahu/Ketu</p>
+              <h2 className="text-base font-semibold text-foreground">{t("dosha.grahan_yoga")}</h2>
+              <p className="text-xs text-muted-foreground">{t("dosha.grahan_desc")}</p>
             </div>
           </div>
           <StatusBadge present={grahanResult.present} />

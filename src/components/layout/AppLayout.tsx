@@ -1,9 +1,10 @@
-﻿import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { CosmicSky } from "@/components/CosmicSky";
-import { Moon, Languages } from "lucide-react";
-import { useLanguageStore, LANG_LABELS } from "@/store/languageStore";
+import { Moon } from "lucide-react";
+import { useLanguageStore } from "@/store/languageStore";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 
@@ -12,7 +13,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { lang, cycleLang } = useLanguageStore();
+  const { lang } = useLanguageStore();
   const { t, i18n } = useTranslation();
 
   useEffect(() => {
@@ -37,14 +38,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </h1>
               </div>
             </div>
-            <button
-              onClick={cycleLang}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors"
-              title={`Language: ${LANG_LABELS[lang]}`}
-            >
-              <Languages className="h-3.5 w-3.5 text-primary" />
-              <span>{LANG_LABELS[lang]}</span>
-            </button>
+            {/* Language switcher in header */}
+            <LanguageSwitcher variant="full" />
           </header>
           <main className="flex-1 overflow-x-hidden overflow-y-auto pb-20 md:pb-6 px-3 sm:px-5 lg:px-7 pt-5">
             {children}
@@ -55,5 +50,3 @@ export function AppLayout({ children }: AppLayoutProps) {
     </SidebarProvider>
   );
 }
-
-

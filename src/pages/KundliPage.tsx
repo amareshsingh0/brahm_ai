@@ -13,6 +13,7 @@ import {
 import PageBot from "@/components/PageBot";
 import { searchCities, getCities, type City } from "@/lib/cities";
 import type { KundaliResponse, VargaChartData, AntardashaData, UpagrahaEntry, ShadbalaPlanet, PratyantarData } from "@/types/api";
+import { useTranslation } from "react-i18next";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -73,18 +74,20 @@ const RASHI_SYMBOLS: Record<string, string> = {
   Simha:"♌︎", Kanya:"♍︎", Tula:"♎︎", Vrischika:"♏︎",
   Dhanu:"♐︎", Makara:"♑︎", Kumbha:"♒︎", Meena:"♓︎",
 };
-const STATUS_BADGE: Record<string, { cls: string; label: string }> = {
-  "Uchcha (Exalted)":       { cls:"bg-emerald-500/20 text-emerald-400 border-emerald-500/30", label:"Exalted" },
-  "Neecha (Debilitated)":   { cls:"bg-red-500/20 text-red-400 border-red-500/30",             label:"Debilitated" },
-  "Svakshetra (Own)":       { cls:"bg-amber-500/20 text-amber-400 border-amber-500/30",       label:"Own Sign" },
-  "Normal":                 { cls:"bg-muted/20 text-muted-foreground border-border/20",       label:"Normal" },
+const STATUS_BADGE_CLS: Record<string, { cls: string; tKey: string }> = {
+  "Uchcha (Exalted)":       { cls:"bg-emerald-500/20 text-emerald-400 border-emerald-500/30", tKey:"data.kundli.status_exalted" },
+  "Neecha (Debilitated)":   { cls:"bg-red-500/20 text-red-400 border-red-500/30",             tKey:"data.kundli.status_debilitated" },
+  "Svakshetra (Own)":       { cls:"bg-amber-500/20 text-amber-400 border-amber-500/30",       tKey:"data.kundli.status_own" },
+  "Normal":                 { cls:"bg-muted/20 text-muted-foreground border-border/20",       tKey:"data.kundli.status_normal" },
 };
-const RELATIONSHIP_BADGE: Record<string, { cls: string; label: string }> = {
-  "Own":     { cls:"bg-amber-500/20 text-amber-400", label:"Own" },
-  "Friend":  { cls:"bg-emerald-500/15 text-emerald-400", label:"Friend's House" },
-  "Enemy":   { cls:"bg-red-500/15 text-red-400", label:"Enemy's House" },
-  "Neutral": { cls:"bg-muted/15 text-muted-foreground", label:"Neutral" },
+const STATUS_BADGE = STATUS_BADGE_CLS; // alias kept for compat
+const RELATIONSHIP_BADGE_CLS: Record<string, { cls: string; tKey: string }> = {
+  "Own":     { cls:"bg-amber-500/20 text-amber-400", tKey:"data.kundli.rel_own" },
+  "Friend":  { cls:"bg-emerald-500/15 text-emerald-400", tKey:"data.kundli.rel_friend" },
+  "Enemy":   { cls:"bg-red-500/15 text-red-400", tKey:"data.kundli.rel_enemy" },
+  "Neutral": { cls:"bg-muted/15 text-muted-foreground", tKey:"data.kundli.rel_neutral" },
 };
+const RELATIONSHIP_BADGE = RELATIONSHIP_BADGE_CLS;
 const DASHA_COLORS: Record<string, string> = {
   Ketu:"#f97316", Shukra:"#a855f7", Surya:"#f59e0b", Chandra:"#94a3b8",
   Mangal:"#ef4444", Rahu:"#6366f1", Guru:"#eab308", Shani:"#64748b", Budh:"#22c55e",
@@ -695,6 +698,7 @@ function KundaliBirthForm({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function KundliPage() {
+  const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
   const birthDetails = useKundliStore((s) => s.birthDetails);
   const setBirthDetails = useKundliStore((s) => s.setBirthDetails);
@@ -927,7 +931,7 @@ export default function KundliPage() {
                 });
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors border border-border/20">
-              {shareCopied ? <><Check className="h-3.5 w-3.5 text-emerald-400" /> Copied!</> : <><Share2 className="h-3.5 w-3.5" /> Share</>}
+              {shareCopied ? <><Check className="h-3.5 w-3.5 text-emerald-400" /> Copied!</> : <><Share2 className="h-3.5 w-3.5" /> {t('common.share')}</>}
             </button>
           )}
           {view === "result" && kundaliData && (
@@ -1006,10 +1010,10 @@ export default function KundliPage() {
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
-            { label: "Lagna", value: kundaliData.lagna.rashi, sub: `${kundaliData.lagna.nakshatra} P${kundaliData.lagna.pada ?? ""}`, color: "text-primary", icon: RASHI_SYMBOLS[kundaliData.lagna.rashi] },
-            { label: "Moon", value: kundaliData.grahas["Chandra"]?.rashi ?? "—", sub: kundaliData.grahas["Chandra"]?.nakshatra ?? "", color: "text-blue-400", icon: "☽︎" },
-            { label: "Sun", value: kundaliData.grahas["Surya"]?.rashi ?? "—", sub: kundaliData.grahas["Surya"]?.status?.split(" ")[0] ?? "", color: "text-amber-400", icon: "☉︎" },
-            { label: "Jupiter", value: kundaliData.grahas["Guru"]?.rashi ?? "—", sub: `H${kundaliData.grahas["Guru"]?.house} · ${kundaliData.grahas["Guru"]?.status?.split(" ")[0] ?? ""}`, color: "text-yellow-400", icon: "♃︎" },
+            { label: t('kundli.lagna'), value: kundaliData.lagna.rashi, sub: `${kundaliData.lagna.nakshatra} P${kundaliData.lagna.pada ?? ""}`, color: "text-primary", icon: RASHI_SYMBOLS[kundaliData.lagna.rashi] },
+            { label: t('onboarding.moon_chandra'), value: kundaliData.grahas["Chandra"]?.rashi ?? "—", sub: kundaliData.grahas["Chandra"]?.nakshatra ?? "", color: "text-blue-400", icon: "☽︎" },
+            { label: t('onboarding.sun_surya'), value: kundaliData.grahas["Surya"]?.rashi ?? "—", sub: kundaliData.grahas["Surya"]?.status?.split(" ")[0] ?? "", color: "text-amber-400", icon: "☉︎" },
+            { label: t('onboarding.jupiter_guru'), value: kundaliData.grahas["Guru"]?.rashi ?? "—", sub: `H${kundaliData.grahas["Guru"]?.house} · ${kundaliData.grahas["Guru"]?.status?.split(" ")[0] ?? ""}`, color: "text-yellow-400", icon: "♃︎" },
           ].map(item => (
             <div key={item.label} className="cosmic-card rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-0.5">
@@ -1029,7 +1033,7 @@ export default function KundliPage() {
           className="cosmic-card rounded-xl p-3 flex items-center gap-3">
           <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: DASHA_COLORS[currentDasha.lord] ?? "#888" }} />
           <div className="flex-1">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Current Mahadasha · </span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('sky.mahadasha')} · </span>
             <span className="text-sm font-semibold text-foreground">{currentDasha.lord} ({GRAHA_EN[currentDasha.lord]})</span>
             <span className="text-xs text-muted-foreground ml-2">{formatDate(currentDasha.start)} → {formatDate(currentDasha.end)}</span>
           </div>
@@ -1039,7 +1043,7 @@ export default function KundliPage() {
             if (!curAntar) return null;
             return (
               <div className="text-right">
-                <p className="text-xs text-muted-foreground uppercase">Antardasha</p>
+                <p className="text-xs text-muted-foreground uppercase">{t('kundli.dashas')}</p>
                 <p className="text-xs font-medium text-foreground">{curAntar.lord} <span className="text-muted-foreground">({formatDate(curAntar.start)} → {formatDate(curAntar.end)})</span></p>
               </div>
             );
@@ -1055,16 +1059,16 @@ export default function KundliPage() {
           {/* Tab bar — scrollable within card, no page overflow */}
           <div className="flex gap-1 mb-3 border-b border-border/30 pb-2 overflow-x-auto scrollbar-none">
             {[
-              { id:"charts",   label:"Charts",       icon: <Layers className="h-3 w-3" /> },
-              { id:"grahas",   label:"Grahas",       icon: <Star className="h-3 w-3" /> },
-              { id:"dasha",    label:"Dashas",       icon: <Calendar className="h-3 w-3" /> },
-              { id:"houses",   label:"Bhavas",       icon: <Home className="h-3 w-3" /> },
-              { id:"chalit",   label:"Chalit",       icon: <Layers className="h-3 w-3" /> },
-              { id:"strength", label:"Shadbala",     icon: <Zap className="h-3 w-3" /> },
-              { id:"ashtaka",  label:"Ashtakavarga", icon: <Star className="h-3 w-3" /> },
-              { id:"upagraha", label:"Upagraha",     icon: <Star className="h-3 w-3" /> },
-              { id:"yogas",    label:"Yogas",        icon: <Zap className="h-3 w-3" /> },
-              { id:"lagna",    label:"Lagna",        icon: <Home className="h-3 w-3" /> },
+              { id:"charts",   label: t("kundli.tab_charts"),       icon: <Layers className="h-3 w-3" /> },
+              { id:"grahas",   label: t("kundli.tab_grahas"),       icon: <Star className="h-3 w-3" /> },
+              { id:"dasha",    label: t("kundli.tab_dashas"),       icon: <Calendar className="h-3 w-3" /> },
+              { id:"houses",   label: t("kundli.tab_bhavas"),       icon: <Home className="h-3 w-3" /> },
+              { id:"chalit",   label: t("kundli.tab_chalit"),       icon: <Layers className="h-3 w-3" /> },
+              { id:"strength", label: t("kundli.tab_shadbala"),     icon: <Zap className="h-3 w-3" /> },
+              { id:"ashtaka",  label: t("kundli.tab_ashtakavarga"), icon: <Star className="h-3 w-3" /> },
+              { id:"upagraha", label: t("kundli.tab_upagraha"),     icon: <Star className="h-3 w-3" /> },
+              { id:"yogas",    label: t("kundli.tab_yogas_tab"),    icon: <Zap className="h-3 w-3" /> },
+              { id:"lagna",    label: t("kundli.tab_lagna"),        icon: <Home className="h-3 w-3" /> },
             ].map(tab => (
               <button key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
@@ -1161,10 +1165,10 @@ export default function KundliPage() {
 
                         {/* Chart desc + same-chart warning */}
                         <div className="px-3 py-1 text-[10px] text-muted-foreground/70 border-b border-border/10 flex items-center gap-2">
-                          <span>{isBc ? "Placidus house positions — planets may shift houses vs Whole Sign" : meta?.desc}</span>
-                          {isBc && <span className="text-amber-400/80">Bhav Chalit</span>}
+                          <span>{isBc ? t("data.kundli.placidus_desc") : meta?.desc}</span>
+                          {isBc && <span className="text-amber-400/80">{t("data.kundli.bhav_chalit")}</span>}
                           {selectedVargaL === selectedVargaR && (
-                            <span className="ml-auto text-amber-500/80">⚠ Same chart on both sides</span>
+                            <span className="ml-auto text-amber-500/80">{t("data.kundli.same_chart_warn")}</span>
                           )}
                         </div>
 
@@ -1275,7 +1279,7 @@ export default function KundliPage() {
                                               <span className="font-medium text-foreground">H{r.house}</span>
                                               {r.isD1 && bcDiff && <span className="ml-0.5 text-amber-400 text-[9px]">→H{r.bcHouse}</span>}
                                               <br />
-                                              <span className={`text-[9px] px-1 py-0.5 rounded border ${sb.cls}`}>{sb.label}</span>
+                                              <span className={`text-[9px] px-1 py-0.5 rounded border ${sb.cls}`}>{t(sb.tKey)}</span>
                                             </td>
                                           </tr>
                                           {/* Expanded detail row */}
@@ -1302,12 +1306,12 @@ export default function KundliPage() {
                                                         <p className="text-foreground font-medium mt-0.5">{fullG.nakshatra_lord ?? "—"}</p>
                                                       </div>
                                                       <div className={`rounded-lg p-2 border ${(STATUS_BADGE[fullG.status] ?? STATUS_BADGE["Normal"]).cls}`}>
-                                                        <p className="text-[9px] uppercase tracking-wide opacity-70">Dignity</p>
+                                                        <p className="text-[9px] uppercase tracking-wide opacity-70">{t("data.kundli.dignity_label")}</p>
                                                         <p className="font-medium text-xs mt-0.5">{fullG.status}</p>
                                                       </div>
                                                       <div className={`rounded-lg p-2 ${(RELATIONSHIP_BADGE[fullG.relationship ?? "Neutral"] ?? RELATIONSHIP_BADGE["Neutral"]).cls}`}>
-                                                        <p className="text-[9px] uppercase tracking-wide opacity-70">Relationship</p>
-                                                        <p className="font-medium text-xs mt-0.5">{(RELATIONSHIP_BADGE[fullG.relationship ?? "Neutral"] ?? RELATIONSHIP_BADGE["Neutral"]).label}</p>
+                                                        <p className="text-[9px] uppercase tracking-wide opacity-70">{t("data.kundli.relationship_label")}</p>
+                                                        <p className="font-medium text-xs mt-0.5">{t((RELATIONSHIP_BADGE[fullG.relationship ?? "Neutral"] ?? RELATIONSHIP_BADGE["Neutral"]).tKey)}</p>
                                                       </div>
                                                       <div className="bg-muted/30 rounded-lg p-2">
                                                         <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Speed / Lat</p>
@@ -1498,21 +1502,23 @@ export default function KundliPage() {
                           {cur && (() => {
                             const pred = _DP[d.lord]?.[lagnaRashi];
                             if (!pred) return null;
+                            const pk = d.lord.toLowerCase();
+                            const rk = lagnaRashi.toLowerCase();
                             return (
                               <div className="mt-1.5 mx-0.5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 space-y-2">
-                                <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide">{pred.theme}</p>
+                                <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide">{t(`data.dp.${pk}_${rk}_theme`, { defaultValue: pred.theme })}</p>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                                   <div>
-                                    <p className="text-emerald-400 font-medium mb-0.5">✦ Positive</p>
-                                    <p className="text-muted-foreground">{pred.positive}</p>
+                                    <p className="text-emerald-400 font-medium mb-0.5">{t("data.kundli.dp_positive")}</p>
+                                    <p className="text-muted-foreground">{t(`data.dp.${pk}_${rk}_pos`, { defaultValue: pred.positive })}</p>
                                   </div>
                                   <div>
-                                    <p className="text-red-400 font-medium mb-0.5">⚠ Challenge</p>
-                                    <p className="text-muted-foreground">{pred.challenge}</p>
+                                    <p className="text-red-400 font-medium mb-0.5">{t("data.kundli.dp_challenge")}</p>
+                                    <p className="text-muted-foreground">{t(`data.dp.${pk}_${rk}_cha`, { defaultValue: pred.challenge })}</p>
                                   </div>
                                   <div>
-                                    <p className="text-primary font-medium mb-0.5">🕉 Remedy</p>
-                                    <p className="text-muted-foreground">{pred.tip}</p>
+                                    <p className="text-primary font-medium mb-0.5">{t("data.kundli.dp_remedy")}</p>
+                                    <p className="text-muted-foreground">{t(`data.dp.${pk}_${rk}_tip`, { defaultValue: pred.tip })}</p>
                                   </div>
                                 </div>
                               </div>
@@ -1691,7 +1697,7 @@ export default function KundliPage() {
                               <td className="text-center px-1 text-muted-foreground">{g.ra?.toFixed(2) ?? "—"}</td>
                               <td className="text-center px-1 text-muted-foreground">{g.dec?.toFixed(2) ?? "—"}</td>
                               <td className="text-center px-1 text-muted-foreground">{g.speed?.toFixed(2) ?? "—"}</td>
-                              <td className="px-2"><span className={`px-1.5 py-0.5 rounded border text-xs ${sb.cls}`}>{sb.label}</span></td>
+                              <td className="px-2"><span className={`px-1.5 py-0.5 rounded border text-xs ${sb.cls}`}>{t(sb.tKey)}</span></td>
                             </tr>
                           );
                         })}

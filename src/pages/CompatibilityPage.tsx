@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from "framer-motion";
 import PageBot from '@/components/PageBot';
 import { Input } from "@/components/ui/input";
@@ -1108,6 +1109,7 @@ function PersonForm({ label, person, selectedCity, onChange, onCitySelect }: {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function CompatibilityPage() {
+  const { t } = useTranslation();
   const [personA, setPersonA] = useState<PersonState>({ name: "", dob: "", time: "", place: "" });
   const [personB, setPersonB] = useState<PersonState>({ name: "", dob: "", time: "", place: "" });
   const [cityA, setCityA] = useState<City | null>(null);
@@ -1142,7 +1144,7 @@ export default function CompatibilityPage() {
   return (
     <div className="p-6 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Kundali Milan</h1>
+        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">{t('compatibility.title')}</h1>
         <p className="text-sm text-muted-foreground">
           Ashtakoot 36-Guna matching · Life-area analysis · Radar visualization · PDF report
         </p>
@@ -1157,9 +1159,9 @@ export default function CompatibilityPage() {
       ) : (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl">
           <div className="grid md:grid-cols-2 gap-5">
-            <PersonForm label="Person A (Groom / Partner 1)" person={personA} selectedCity={cityA}
+            <PersonForm label={t('compatibility.person_a')} person={personA} selectedCity={cityA}
               onChange={p => { setPersonA(p); if (!p.place) setCityA(null); }} onCitySelect={setCityA} />
-            <PersonForm label="Person B (Bride / Partner 2)" person={personB} selectedCity={cityB}
+            <PersonForm label={t('compatibility.person_b')} person={personB} selectedCity={cityB}
               onChange={p => { setPersonB(p); if (!p.place) setCityB(null); }} onCitySelect={setCityB} />
           </div>
 
@@ -1189,7 +1191,7 @@ export default function CompatibilityPage() {
           >
             {compatibility.isPending
               ? <><Loader2 className="h-4 w-4 animate-spin" /> Calculating Kundali Milan…</>
-              : <><Heart className="h-4 w-4" /> Calculate Compatibility</>}
+              : <><Heart className="h-4 w-4" /> {t('compatibility.check_btn')}</>}
           </button>
 
           <p className="mt-3 text-xs text-muted-foreground text-center">

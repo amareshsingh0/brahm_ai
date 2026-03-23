@@ -17,6 +17,7 @@ import {
 } from "@/hooks/useLivePlanets";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from '@/components/PageBot';
+import { useTranslation } from 'react-i18next';
 
 // ── Planet meta ───────────────────────────────────────────────────────────────
 
@@ -223,7 +224,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
       {/* Live pulse indicator */}
       <div className="absolute top-2 right-2 flex items-center gap-1">
         <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-        <span className="text-xs text-green-400">LIVE</span>
+        <span className="text-xs text-green-400">{t('sky.live_label')}</span>
       </div>
     </div>
   );
@@ -244,8 +245,8 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="text-muted-foreground border-b border-border/20">
-            <th className="text-left py-2 px-2 font-normal">Graha</th>
-            <th className="text-left py-2 px-2 font-normal">Rashi</th>
+            <th className="text-left py-2 px-2 font-normal">{t('sky.graha_col')}</th>
+            <th className="text-left py-2 px-2 font-normal">{t('sky.rashi_col')}</th>
             <th className="text-left py-2 px-2 font-normal hidden sm:table-cell">Degree</th>
             <th className="text-left py-2 px-2 font-normal hidden md:table-cell">Nakshatra</th>
             <th className="text-center py-2 px-2 font-normal">Sky</th>
@@ -287,7 +288,7 @@ function PlanetTable({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
                 </td>
                 <td className="py-2 px-2 text-center">
                   {name === "Rahu" || name === "Ketu" ? (
-                    <span className="text-xs text-muted-foreground">Shadow</span>
+                    <span className="text-xs text-muted-foreground">{t('sky.shadow')}</span>
                   ) : p.combust ? (
                     <span title="Combust — too close to Sun">
                       <EyeOff className="h-3.5 w-3.5 text-muted-foreground/60 mx-auto" />
@@ -881,6 +882,7 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function SkyPage() {
+  const { t } = useTranslation();
   const snapshot = useLivePlanets();
 
   const visibleCount = useMemo(() => {
@@ -893,7 +895,7 @@ export default function SkyPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center space-y-3">
           <RefreshCw className="h-6 w-6 text-primary mx-auto animate-spin" />
-          <p className="text-xs text-muted-foreground">Loading planetary positions…</p>
+          <p className="text-xs text-muted-foreground">{t('sky.loading')}</p>
         </div>
       </div>
     );
@@ -904,7 +906,7 @@ export default function SkyPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-2xl text-foreground text-glow-gold">Live Sky</h1>
+          <h1 className="font-display text-2xl text-foreground text-glow-gold">{t('sky.title')}</h1>
           <p className="text-sm text-muted-foreground">
             Real-time sidereal positions · Updates every second
           </p>
@@ -922,7 +924,7 @@ export default function SkyPage() {
         <div className="cosmic-card rounded-xl p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Eye className="h-3.5 w-3.5 text-green-400" />
-            <span className="text-xs text-muted-foreground">Visible</span>
+            <span className="text-xs text-muted-foreground">{t('sky.visible')}</span>
           </div>
           <p className="font-display text-xl text-green-400">{visibleCount}</p>
           <p className="text-xs text-muted-foreground">planets in sky</p>
@@ -930,7 +932,7 @@ export default function SkyPage() {
         <div className="cosmic-card rounded-xl p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <TrendingDown className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-xs text-muted-foreground">Retrograde</span>
+            <span className="text-xs text-muted-foreground">{t('sky.retro')}</span>
           </div>
           <p className="font-display text-xl text-amber-400">
             {ORDER.filter((n) => snapshot.grahas[n]?.retro).length}
@@ -940,7 +942,7 @@ export default function SkyPage() {
         <div className="cosmic-card rounded-xl p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Globe className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs text-muted-foreground">Lagna</span>
+            <span className="text-xs text-muted-foreground">{t('sky.lagna')}</span>
           </div>
           <p className="font-display text-sm text-primary">{snapshot.lagna?.rashi ?? "—"}</p>
           <p className="text-xs text-muted-foreground font-mono">{snapshot.lagna?.dms ?? "—"}</p>
@@ -951,13 +953,13 @@ export default function SkyPage() {
       <Tabs defaultValue="live">
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="live" className="gap-1.5 text-xs">
-            <Globe className="h-3.5 w-3.5" /> Live Sky
+            <Globe className="h-3.5 w-3.5" /> {t('sky.tab_live')}
           </TabsTrigger>
           <TabsTrigger value="track" className="gap-1.5 text-xs">
-            <Clock className="h-3.5 w-3.5" /> 24h Track
+            <Clock className="h-3.5 w-3.5" /> {t('sky.tab_track')}
           </TabsTrigger>
           <TabsTrigger value="today" className="gap-1.5 text-xs">
-            <User className="h-3.5 w-3.5" /> Today for You
+            <User className="h-3.5 w-3.5" /> {t('sky.tab_today')}
           </TabsTrigger>
         </TabsList>
 

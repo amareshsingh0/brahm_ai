@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useKundliStore } from "@/store/kundliStore";
 import { searchCities, getCities, type City } from "@/lib/cities";
 import PageBot from "@/components/PageBot";
+import { useTranslation } from "react-i18next";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface LifeEvent {
@@ -33,24 +34,7 @@ interface RectResult {
   event_count: number;
 }
 
-// ── Event type options ─────────────────────────────────────────────────────────
-const EVENT_TYPES = [
-  { value: "marriage",       label: "Marriage / Relationship" },
-  { value: "child",          label: "Child Birth" },
-  { value: "career_start",   label: "Career Start / First Job" },
-  { value: "career_change",  label: "Career Change / Promotion" },
-  { value: "property",       label: "Property / Home Purchase" },
-  { value: "health",         label: "Major Health Issue" },
-  { value: "accident",       label: "Accident / Surgery" },
-  { value: "foreign",        label: "Foreign Travel / Relocation" },
-  { value: "loss",           label: "Death in Family / Major Loss" },
-  { value: "success",        label: "Major Success / Award" },
-  { value: "education",      label: "Education / Degree" },
-  { value: "spiritual",      label: "Spiritual Awakening" },
-  { value: "separation",     label: "Separation / Divorce" },
-  { value: "financial_loss", label: "Financial Loss" },
-  { value: "financial_gain", label: "Financial Gain / Windfall" },
-];
+// EVENT_TYPES moved inside component to use t()
 
 const UNCERTAINTY_OPTIONS = [
   { value: 30,  label: "±30 minutes" },
@@ -77,7 +61,26 @@ function scoreBar(score: number) {
 }
 
 export default function RectificationPage() {
+  const { t } = useTranslation();
   const birthDetails = useKundliStore(s => s.birthDetails);
+
+  const EVENT_TYPES = [
+    { value: "marriage",       label: t("rectification.evt_marriage") },
+    { value: "child",          label: t("rectification.evt_child") },
+    { value: "career_start",   label: t("rectification.evt_career_start") },
+    { value: "career_change",  label: t("rectification.evt_career_change") },
+    { value: "property",       label: t("rectification.evt_property") },
+    { value: "health",         label: t("rectification.evt_health") },
+    { value: "accident",       label: t("rectification.evt_accident") },
+    { value: "foreign",        label: t("rectification.evt_foreign") },
+    { value: "loss",           label: t("rectification.evt_loss") },
+    { value: "success",        label: t("rectification.evt_success") },
+    { value: "education",      label: t("rectification.evt_education") },
+    { value: "spiritual",      label: t("rectification.evt_spiritual") },
+    { value: "separation",     label: t("rectification.evt_separation") },
+    { value: "financial_loss", label: t("rectification.evt_financial_loss") },
+    { value: "financial_gain", label: t("rectification.evt_financial_gain") },
+  ];
   const settings = useKundliStore(s => s.kundaliSettings);
 
   // Form state — pre-fill from kundali store if available
@@ -124,8 +127,8 @@ export default function RectificationPage() {
 
   // ── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!date || !approxTime) { setError("Birth date and approximate time are required."); return; }
-    if (!lat || !lon) { setError("Please select a birth place from the suggestions."); return; }
+    if (!date || !approxTime) { setError(t("rectification.error_fields")); return; }
+    if (!lat || !lon) { setError(t("rectification.error_location")); return; }
     const validEvents = events.filter(e => e.date && e.type);
     setLoading(true); setError(""); setResult(null);
     try {
@@ -137,7 +140,7 @@ export default function RectificationPage() {
       setResult(data);
       setExpandedIdx(0);
     } catch (e: any) {
-      setError(e?.message ?? "Calculation failed. Please try again.");
+      setError(e?.message ?? t("rectification.error_failed"));
     } finally {
       setLoading(false);
     }
@@ -151,25 +154,25 @@ export default function RectificationPage() {
           <Clock className="h-4.5 w-4.5 text-primary" />
         </div>
         <div>
-          <h1 className="text-lg font-display text-foreground">Birth Time Rectification</h1>
-          <p className="text-xs text-muted-foreground">Narrow down your exact birth time using life events & Vimshottari Dasha alignment</p>
+          <h1 className="text-lg font-display text-foreground">{t("rectification.title")}</h1>
+          <p className="text-xs text-muted-foreground">{t("rectification.subtitle")}</p>
         </div>
       </div>
 
       {/* Form */}
       <div className="cosmic-card rounded-xl p-4 space-y-4">
         <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
-          <Clock className="h-3.5 w-3.5 text-primary" /> Birth Details
+          <Clock className="h-3.5 w-3.5 text-primary" /> {t("rectification.birth_details")}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <Label className="text-xs text-muted-foreground mb-1">Date of Birth</Label>
+            <Label className="text-xs text-muted-foreground mb-1">{t("rectification.date_of_birth")}</Label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)}
               className="text-xs h-9" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground mb-1">Approximate Birth Time</Label>
+            <Label className="text-xs text-muted-foreground mb-1">{t("rectification.approx_time")}</Label>
             <Input type="time" value={approxTime} onChange={e => setApproxTime(e.target.value)}
               className="text-xs h-9" />
           </div>
@@ -177,12 +180,12 @@ export default function RectificationPage() {
 
         {/* Place */}
         <div className="relative">
-          <Label className="text-xs text-muted-foreground mb-1">Birth Place</Label>
+          <Label className="text-xs text-muted-foreground mb-1">{t("rectification.birth_place")}</Label>
           <div className="relative">
             <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input value={place} onChange={e => handlePlaceInput(e.target.value)}
               onFocus={() => citySuggestions.length > 0 && setShowSuggestions(true)}
-              placeholder="Search city…" className="pl-8 text-xs h-9" />
+              placeholder={t("rectification.search_city")} className="pl-8 text-xs h-9" />
           </div>
           {showSuggestions && citySuggestions.length > 0 && (
             <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
@@ -202,7 +205,7 @@ export default function RectificationPage() {
 
         {/* Uncertainty */}
         <div>
-          <Label className="text-xs text-muted-foreground mb-1">Time Uncertainty Range</Label>
+          <Label className="text-xs text-muted-foreground mb-1">{t("rectification.uncertainty")}</Label>
           <div className="flex flex-wrap gap-2">
             {UNCERTAINTY_OPTIONS.map(o => (
               <button key={o.value} onClick={() => setUncertainty(o.value)}
@@ -222,12 +225,12 @@ export default function RectificationPage() {
       <div className="cosmic-card rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
-            <Star className="h-3.5 w-3.5 text-primary" /> Known Life Events
-            <span className="text-muted-foreground/60 font-normal">(add at least 2 for best accuracy)</span>
+            <Star className="h-3.5 w-3.5 text-primary" /> {t("rectification.life_events")}
+            <span className="text-muted-foreground/60 font-normal">{t("rectification.events_hint")}</span>
           </p>
           <button onClick={addEvent}
             className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
-            <Plus className="h-3.5 w-3.5" /> Add Event
+            <Plus className="h-3.5 w-3.5" /> {t("rectification.add_event")}
           </button>
         </div>
 
@@ -236,12 +239,12 @@ export default function RectificationPage() {
             <motion.div key={i} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 p-3 bg-muted/10 rounded-lg border border-border/20">
               <div>
-                <Label className="text-[10px] text-muted-foreground mb-1">Event Date</Label>
+                <Label className="text-[10px] text-muted-foreground mb-1">{t("rectification.event_date")}</Label>
                 <Input type="date" value={ev.date} onChange={e => updateEvent(i, "date", e.target.value)}
                   className="text-xs h-8" />
               </div>
               <div>
-                <Label className="text-[10px] text-muted-foreground mb-1">Event Type</Label>
+                <Label className="text-[10px] text-muted-foreground mb-1">{t("rectification.event_type")}</Label>
                 <select value={ev.type} onChange={e => updateEvent(i, "type", e.target.value)}
                   className="w-full h-8 bg-background border border-border/40 rounded-md px-2 text-xs text-foreground focus:outline-none focus:border-primary/50">
                   {EVENT_TYPES.map(t => (
@@ -265,7 +268,7 @@ export default function RectificationPage() {
 
         <button onClick={handleSubmit} disabled={loading}
           className="w-full py-2.5 rounded-xl btn-saffron text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Calculating…</> : <><Clock className="h-4 w-4" /> Rectify Birth Time</>}
+          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("common.loading")}</> : <><Clock className="h-4 w-4" /> {t("rectification.rectify_btn")}</>}
         </button>
       </div>
 
@@ -276,7 +279,7 @@ export default function RectificationPage() {
             <div className="cosmic-card rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-primary" /> Rectification Results
+                  <Clock className="h-3.5 w-3.5 text-primary" /> {t("rectification.results_title")}
                 </p>
                 <span className="text-[10px] text-muted-foreground">
                   {result.candidates.length} candidates · {result.event_count} events analyzed
@@ -308,7 +311,7 @@ export default function RectificationPage() {
                               ({c.delta_minutes > 0 ? "+" : ""}{c.delta_minutes} min)
                             </span>
                           )}
-                          {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium">Best Match</span>}
+                          {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium">{t("rectification.top_match")}</span>}
                           {c.lagna_changed && <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary">Lagna: {c.lagna_rashi}</span>}
                         </div>
                         {/* Score bar */}
@@ -334,7 +337,7 @@ export default function RectificationPage() {
                               <p className="font-medium text-foreground mt-0.5">{c.lagna_rashi}</p>
                             </div>
                             <div className="bg-muted/20 rounded-lg p-2">
-                              <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Moon Nakshatra</p>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-wide">{t("rectification.moon_nakshatra")}</p>
                               <p className="font-medium text-foreground mt-0.5">{c.moon_nakshatra}</p>
                             </div>
                             {c.sample_maha && (

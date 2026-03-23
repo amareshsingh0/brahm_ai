@@ -818,9 +818,9 @@ function ScanTab() {
                     <CardContent className="pt-3 pb-3">
                       <img src={image} alt="Your palm" className="w-full rounded-lg object-contain max-h-48 mb-2" />
                       <div className="rounded-lg p-2.5 border border-border/20 bg-muted/10 space-y-1">
-                        <p className="text-xs font-semibold" style={{ color: q.color }}>{q.line}</p>
-                        <p className="text-xs text-muted-foreground">{q.instruction}</p>
-                        <p className="text-xs text-muted-foreground/60 italic">{q.hint}</p>
+                        <p className="text-xs font-semibold" style={{ color: q.color }}>{t(`data.palmistry.questions.${q.id}_line`, { defaultValue: q.line })}</p>
+                        <p className="text-xs text-muted-foreground">{t(`data.palmistry.questions.${q.id}_instruction`, { defaultValue: q.instruction })}</p>
+                        <p className="text-xs text-muted-foreground/60 italic">{t(`data.palmistry.questions.${q.id}_hint`, { defaultValue: q.hint })}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -830,8 +830,8 @@ function ScanTab() {
               {/* Options */}
               <div className={`${image ? "lg:col-span-3" : "lg:col-span-5"} space-y-2`}>
                 <div className="mb-3">
-                  <h2 className="font-display text-lg text-glow-gold" style={{ color: q.color }}>{q.line}</h2>
-                  <p className="text-xs text-muted-foreground">{q.sanskrit} · {q.instruction}</p>
+                  <h2 className="font-display text-lg text-glow-gold" style={{ color: q.color }}>{t(`data.palmistry.questions.${q.id}_line`, { defaultValue: q.line })}</h2>
+                  <p className="text-xs text-muted-foreground">{q.sanskrit} · {t(`data.palmistry.questions.${q.id}_instruction`, { defaultValue: q.instruction })}</p>
                 </div>
                 {q.options.map(opt => (
                   <button

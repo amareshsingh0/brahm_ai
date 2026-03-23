@@ -5,127 +5,78 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Volume2, ChevronDown, ChevronUp } from "lucide-react";
 import { useSearch } from "@/hooks/useSearch";
+import { useTranslation } from "react-i18next";
 
-const mantras = [
+const MANTRA_STATIC = [
   {
-    id: 1,
-    name: "Gayatri Mantra",
-    deity: "Savitri (Sun)",
-    source: "Rig Veda 3.62.10",
+    id: 1, name: "Gayatri Mantra", deity: "Savitri (Sun)", source: "Rig Veda 3.62.10",
     sanskrit: "ॐ भूर्भुवः स्वः\nतत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि\nधियो यो नः प्रचोदयात्॥",
     transliteration: "Om Bhur Bhuvah Svah\nTat Savitur Varenyam\nBhargo Devasya Dhimahi\nDhiyo Yo Nah Prachodayat",
-    meaning: "We meditate upon the glorious radiance of the Divine Sun. May that Supreme Light illuminate our intellect and guide our path.",
-    benefits: ["Enhances intellect and wisdom", "Purifies mind and aura", "Brings spiritual growth", "Chant at dawn, noon, dusk"],
-    chantCount: 108,
-    category: "Universal",
+    meaningKey: "data.mantras.gayatri_meaning", benefitsKey: "data.mantras.gayatri_benefits",
+    chantCount: 108, category: "Universal",
   },
   {
-    id: 2,
-    name: "Mahamrityunjaya Mantra",
-    deity: "Lord Shiva",
-    source: "Rig Veda 7.59.12",
+    id: 2, name: "Mahamrityunjaya Mantra", deity: "Lord Shiva", source: "Rig Veda 7.59.12",
     sanskrit: "ॐ त्र्यम्बकं यजामहे\nसुगन्धिं पुष्टिवर्धनम्।\nउर्वारुकमिव बन्धनान्\nमृत्योर्मुक्षीय मामृतात्॥",
     transliteration: "Om Tryambakam Yajamahe\nSugandhim Pushtivardhanam\nUrvarukamiva Bandhanan\nMrityor Mukshiya Maamritat",
-    meaning: "We worship the three-eyed Lord Shiva, who nourishes all beings and is fragrant with spiritual perfection. May He liberate us from death, as a cucumber is freed from its vine, granting immortality.",
-    benefits: ["Protection from untimely death", "Healing and recovery", "Removes fear and anxiety", "Grants longevity"],
-    chantCount: 108,
-    category: "Protection",
+    meaningKey: "data.mantras.mahamrityunjaya_meaning", benefitsKey: "data.mantras.mahamrityunjaya_benefits",
+    chantCount: 108, category: "Protection",
   },
   {
-    id: 3,
-    name: "Om Namah Shivaya",
-    deity: "Lord Shiva",
-    source: "Krishna Yajur Veda (Shri Rudram)",
+    id: 3, name: "Om Namah Shivaya", deity: "Lord Shiva", source: "Krishna Yajur Veda (Shri Rudram)",
     sanskrit: "ॐ नमः शिवाय",
     transliteration: "Om Namah Shivaya",
-    meaning: "I bow to Lord Shiva — the auspicious one, the supreme consciousness, the inner Self. The five syllables (Na-Ma-Shi-Va-Ya) represent the five elements: earth, water, fire, air, ether.",
-    benefits: ["Purifies the five elements in body", "Destroys negativity", "Brings inner peace", "Path to self-realization"],
-    chantCount: 108,
-    category: "Devotion",
+    meaningKey: "data.mantras.om_namah_shivaya_meaning", benefitsKey: "data.mantras.om_namah_shivaya_benefits",
+    chantCount: 108, category: "Devotion",
   },
   {
-    id: 4,
-    name: "Vishnu Sahasranama",
-    deity: "Lord Vishnu",
-    source: "Mahabharata - Anushasana Parva",
+    id: 4, name: "Vishnu Sahasranama", deity: "Lord Vishnu", source: "Mahabharata - Anushasana Parva",
     sanskrit: "ॐ विश्वं विष्णुर्वषट्कारो\nभूतभव्यभवत्प्रभुः।\nभूतकृद्भूतभृद्भावो\nभूतात्मा भूतभावनः॥",
     transliteration: "Om Vishvam Vishnur Vashatkaro\nBhuta-Bhavya-Bhavat-Prabhuh\nBhutakrid Bhutabhrid Bhavo\nBhutatma Bhutabhavanah",
-    meaning: "The thousand names of Lord Vishnu, the all-pervading preserver. Each name describes a divine attribute — from 'Vishvam' (the universe itself) to 'Sarvapraharanayudhah' (armed with all weapons).",
-    benefits: ["Removes all sins", "Grants peace and prosperity", "Protection from evil", "Fulfills all desires"],
-    chantCount: 1,
-    category: "Devotion",
+    meaningKey: "data.mantras.vishnu_sahasranama_meaning", benefitsKey: "data.mantras.vishnu_sahasranama_benefits",
+    chantCount: 1, category: "Devotion",
   },
   {
-    id: 5,
-    name: "Hanuman Chalisa",
-    deity: "Lord Hanuman",
-    source: "Tulsidas (16th century)",
+    id: 5, name: "Hanuman Chalisa", deity: "Lord Hanuman", source: "Tulsidas (16th century)",
     sanskrit: "श्रीगुरु चरन सरोज रज\nनिज मनु मुकुरु सुधारि।\nबरनउँ रघुबर बिमल जसु\nजो दायकु फल चारि॥",
     transliteration: "Shri Guru Charan Saroj Raj\nNij Manu Mukuru Sudhari\nBaranau Raghubar Bimal Jasu\nJo Dayaku Phal Chari",
-    meaning: "Cleansing the mirror of my mind with the dust of my Guru's lotus feet, I describe the pure glory of Sri Rama, who grants all four fruits of life: Dharma, Artha, Kama, and Moksha.",
-    benefits: ["Removes fear and obstacles", "Grants courage and strength", "Protection from evil spirits", "Fulfills wishes"],
-    chantCount: 7,
-    category: "Protection",
+    meaningKey: "data.mantras.hanuman_chalisa_meaning", benefitsKey: "data.mantras.hanuman_chalisa_benefits",
+    chantCount: 7, category: "Protection",
   },
   {
-    id: 6,
-    name: "Lakshmi Mantra",
-    deity: "Goddess Lakshmi",
-    source: "Sri Sukta (Rig Veda)",
+    id: 6, name: "Lakshmi Mantra", deity: "Goddess Lakshmi", source: "Sri Sukta (Rig Veda)",
     sanskrit: "ॐ श्रीं ह्रीं श्रीं\nकमले कमलालये\nप्रसीद प्रसीद\nॐ श्रीं ह्रीं श्रीं\nमहालक्ष्म्यै नमः॥",
     transliteration: "Om Shreem Hreem Shreem\nKamale Kamalalaye\nPrasida Prasida\nOm Shreem Hreem Shreem\nMahalakshmyai Namah",
-    meaning: "O Goddess Lakshmi, who resides in the lotus, who is the embodiment of all prosperity — please be gracious to us. We bow to the great Goddess Lakshmi.",
-    benefits: ["Attracts wealth and abundance", "Removes financial obstacles", "Brings prosperity to home", "Best chanted on Fridays"],
-    chantCount: 108,
-    category: "Prosperity",
+    meaningKey: "data.mantras.lakshmi_meaning", benefitsKey: "data.mantras.lakshmi_benefits",
+    chantCount: 108, category: "Prosperity",
   },
   {
-    id: 7,
-    name: "Saraswati Mantra",
-    deity: "Goddess Saraswati",
-    source: "Saraswati Stotram",
+    id: 7, name: "Saraswati Mantra", deity: "Goddess Saraswati", source: "Saraswati Stotram",
     sanskrit: "ॐ ऐं सरस्वत्यै नमः\n\nया कुन्देन्दुतुषारहारधवला\nया शुभ्रवस्त्रावृता।\nया वीणावरदण्डमण्डितकरा\nया श्वेतपद्मासना॥",
     transliteration: "Om Aim Saraswatyai Namah\n\nYa Kundendu Tushara Hara Dhavala\nYa Shubhra Vastravruta\nYa Veena Vara Danda Mandita Kara\nYa Shveta Padmasana",
-    meaning: "Salutations to Goddess Saraswati — She who is white as jasmine, moonlight, and snow; who wears pure white garments; whose hands are adorned with the Veena; who is seated upon a white lotus.",
-    benefits: ["Enhances learning and memory", "Bestows wisdom and creativity", "Helps in examinations", "Best chanted before study"],
-    chantCount: 108,
-    category: "Knowledge",
+    meaningKey: "data.mantras.saraswati_meaning", benefitsKey: "data.mantras.saraswati_benefits",
+    chantCount: 108, category: "Knowledge",
   },
   {
-    id: 8,
-    name: "Ganesh Mantra",
-    deity: "Lord Ganesha",
-    source: "Ganapati Atharvashirsha",
+    id: 8, name: "Ganesh Mantra", deity: "Lord Ganesha", source: "Ganapati Atharvashirsha",
     sanskrit: "ॐ गं गणपतये नमः\n\nवक्रतुण्ड महाकाय\nसूर्यकोटि समप्रभ।\nनिर्विघ्नं कुरु मे देव\nसर्वकार्येषु सर्वदा॥",
     transliteration: "Om Gam Ganapataye Namah\n\nVakratunda Mahakaya\nSuryakoti Samaprabha\nNirvighnam Kuru Me Deva\nSarvakaryeshu Sarvada",
-    meaning: "O Lord with the curved trunk and massive body, whose brilliance equals a billion suns — please remove all obstacles from all my endeavors, always.",
-    benefits: ["Removes all obstacles", "Auspicious beginning for new work", "Grants success and wisdom", "Chant before any new venture"],
-    chantCount: 108,
-    category: "Universal",
+    meaningKey: "data.mantras.ganesh_meaning", benefitsKey: "data.mantras.ganesh_benefits",
+    chantCount: 108, category: "Universal",
   },
   {
-    id: 9,
-    name: "Navgraha Mantra",
-    deity: "Nine Planets",
-    source: "Navagraha Stotram",
+    id: 9, name: "Navgraha Mantra", deity: "Nine Planets", source: "Navagraha Stotram",
     sanskrit: "ॐ सूर्याय नमः। ॐ चन्द्राय नमः।\nॐ मङ्गलाय नमः। ॐ बुधाय नमः।\nॐ बृहस्पतये नमः। ॐ शुक्राय नमः।\nॐ शनैश्चराय नमः।\nॐ राहवे नमः। ॐ केतवे नमः।",
     transliteration: "Om Suryaya Namah. Om Chandraya Namah.\nOm Mangalaya Namah. Om Budhaya Namah.\nOm Brihaspataye Namah. Om Shukraya Namah.\nOm Shanaischaraya Namah.\nOm Rahave Namah. Om Ketave Namah.",
-    meaning: "Salutations to all nine celestial bodies — Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu. This mantra balances the planetary influences in your horoscope.",
-    benefits: ["Balances all planetary doshas", "Reduces malefic effects", "Strengthens weak planets", "Best chanted on respective days"],
-    chantCount: 9,
-    category: "Astrology",
+    meaningKey: "data.mantras.navgraha_meaning", benefitsKey: "data.mantras.navgraha_benefits",
+    chantCount: 9, category: "Astrology",
   },
   {
-    id: 10,
-    name: "Shanti Mantra",
-    deity: "Universal Peace",
-    source: "Brihadaranyaka Upanishad",
+    id: 10, name: "Shanti Mantra", deity: "Universal Peace", source: "Brihadaranyaka Upanishad",
     sanskrit: "ॐ सह नाववतु। सह नौ भुनक्तु।\nसह वीर्यं करवावहै।\nतेजस्वि नावधीतमस्तु\nमा विद्विषावहै।\nॐ शान्तिः शान्तिः शान्तिः॥",
     transliteration: "Om Saha Navavatu. Saha Nau Bhunaktu.\nSaha Viryam Karavavahai.\nTejasvi Navadhitamastu\nMa Vidvishavahai.\nOm Shantih Shantih Shantih",
-    meaning: "May we be protected together. May we be nourished together. May we work together with great energy. May our study be brilliant. May we never quarrel. Om Peace, Peace, Peace.",
-    benefits: ["Brings harmony in relationships", "Ideal for starting any study", "Creates peaceful environment", "Teacher-student blessing"],
-    chantCount: 3,
-    category: "Universal",
+    meaningKey: "data.mantras.shanti_meaning", benefitsKey: "data.mantras.shanti_benefits",
+    chantCount: 3, category: "Universal",
   },
 ];
 
@@ -139,10 +90,18 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function MantraDictionaryPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const { data: ragResults } = useSearch(search);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
+
+  // Resolve translations at render time
+  const mantras = MANTRA_STATIC.map((m) => ({
+    ...m,
+    meaning: t(m.meaningKey),
+    benefits: t(m.benefitsKey).split(", "),
+  }));
 
   const allCategories = [...new Set(mantras.map((m) => m.category))];
 
@@ -159,10 +118,8 @@ export default function MantraDictionaryPage() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-3xl text-primary text-glow-gold">Mantra Dictionary</h1>
-        <p className="text-muted-foreground mt-1">
-          Sacred mantras with Sanskrit text, transliteration, meaning & chanting guidance
-        </p>
+        <h1 className="font-display text-3xl text-primary text-glow-gold">{t("mantras.title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("mantras.subtitle")}</p>
       </motion.div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -171,7 +128,7 @@ export default function MantraDictionaryPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search mantras, deities, meanings..."
+            placeholder={t("mantras.search_placeholder")}
             className="pl-9 bg-muted/30 border-border/40"
           />
         </div>
@@ -181,7 +138,7 @@ export default function MantraDictionaryPage() {
             className="cursor-pointer text-xs"
             onClick={() => setFilter(null)}
           >
-            All
+            {t("mantras.all")}
           </Badge>
           {allCategories.map((cat) => (
             <Badge
@@ -248,19 +205,19 @@ export default function MantraDictionaryPage() {
 
                         {/* Transliteration */}
                         <div className="bg-muted/20 rounded-lg p-4">
-                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Transliteration</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t("mantras.transliteration")}</p>
                           <p className="text-sm italic whitespace-pre-line">{mantra.transliteration}</p>
                         </div>
 
                         {/* Meaning */}
                         <div>
-                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Meaning</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t("mantras.meaning")}</p>
                           <p className="text-sm text-muted-foreground leading-relaxed">{mantra.meaning}</p>
                         </div>
 
                         {/* Benefits */}
                         <div>
-                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Benefits & Guidance</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t("mantras.benefits")}</p>
                           <div className="grid sm:grid-cols-2 gap-1.5">
                             {mantra.benefits.map((b) => (
                               <div key={b} className="flex items-center gap-2 text-xs">

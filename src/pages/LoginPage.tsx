@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Moon, ArrowLeft, RefreshCw, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [phone, setPhone] = useState("");
   const [otpDigits, setOtpDigits] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [otpSent, setOtpSent] = useState(false);
@@ -90,7 +92,7 @@ export default function LoginPage() {
     try {
       const result = await verifyOtp(phone.trim(), otp);
       if (result.token) {
-        toast({ title: "Welcome to Brahm AI 🙏" });
+        toast({ title: t('login.welcome_toast') });
         navigate("/dashboard");
       } else {
         toast({ title: "Invalid OTP", description: "Please check and try again.", variant: "destructive" });
@@ -141,7 +143,7 @@ export default function LoginPage() {
         to="/"
         className="absolute top-5 left-5 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back
+        <ArrowLeft className="h-3.5 w-3.5" /> {t('login.back')}
       </Link>
 
       <motion.div
@@ -153,8 +155,8 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Moon className="h-10 w-10 text-primary zodiac-glow mx-auto mb-3" />
-          <h1 className="font-display text-3xl text-primary text-glow-gold">Brahm AI</h1>
-          <p className="text-xs text-muted-foreground mt-1">Your Personal Vedic Guide</p>
+          <h1 className="font-display text-3xl text-primary text-glow-gold">{t('chat.title')}</h1>
+          <p className="text-xs text-muted-foreground mt-1">{t('login.personal_guide')}</p>
         </div>
 
         <div className="cosmic-card rounded-2xl p-6 space-y-6">
@@ -169,9 +171,9 @@ export default function LoginPage() {
                 transition={{ duration: 0.25 }}
               >
                 <div className="text-center mb-5">
-                  <h2 className="font-display text-xl text-foreground">Sign In</h2>
+                  <h2 className="font-display text-xl text-foreground">{t('login.sign_in')}</h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Enter your mobile number to receive an OTP
+                    {t('login.sign_in_desc')}
                   </p>
                 </div>
 
@@ -195,12 +197,12 @@ export default function LoginPage() {
                   </div>
 
                   <Button type="submit" className="w-full" disabled={loading || phone.length < 10}>
-                    {loading ? "Sending…" : "Send OTP"}
+                    {loading ? t('login.sending') : t('login.send_otp')}
                   </Button>
                 </form>
 
                 <p className="text-xs text-center text-muted-foreground/50 mt-4">
-                  New users are automatically registered on first login.
+                  {t('login.new_users')}
                 </p>
               </motion.div>
             ) : (
@@ -213,9 +215,9 @@ export default function LoginPage() {
                 transition={{ duration: 0.25 }}
               >
                 <div className="text-center mb-5">
-                  <h2 className="font-display text-xl text-foreground">Enter OTP</h2>
+                  <h2 className="font-display text-xl text-foreground">{t('login.enter_otp')}</h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Sent to <span className="text-foreground">+91 {phone}</span>
+                    {t('login.otp_sent_to')} <span className="text-foreground">+91 {phone}</span>
                   </p>
                 </div>
 
@@ -247,7 +249,7 @@ export default function LoginPage() {
                     className="w-full"
                     disabled={loading || otpDigits.some((d) => !d)}
                   >
-                    {loading ? "Verifying…" : "Verify & Continue"}
+                    {loading ? t('login.verifying') : t('login.verify')}
                   </Button>
                 </form>
 
@@ -260,11 +262,11 @@ export default function LoginPage() {
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary disabled:opacity-60 transition-colors"
                   >
                     <RefreshCw className="h-3 w-3" />
-                    {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
+                    {countdown > 0 ? t('login.resend_in', { sec: countdown }) : t('login.resend')}
                   </button>
                 </div>
 
-                {/* Change number */}
+                {/* {t('login.change_number')} */}
                 <button
                   type="button"
                   onClick={() => { setOtpSent(false); setOtpDigits(Array(OTP_LENGTH).fill("")); }}
@@ -278,7 +280,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-xs text-center text-muted-foreground/60 mt-6">
-          By continuing you agree to our Terms of Service and Privacy Policy.
+          {t('login.terms')}
         </p>
       </motion.div>
     </div>

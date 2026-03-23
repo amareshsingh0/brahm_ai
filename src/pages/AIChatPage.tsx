@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User, Sparkles, BookOpen, Loader2 } from "lucide-react";
 import { useChat } from "@/hooks/useChat";
+import { useTranslation } from "react-i18next";
 
 interface Message {
   id: string;
@@ -99,6 +100,7 @@ function getResponse(query: string) {
 }
 
 export default function AIChatPage() {
+  const { t } = useTranslation();
   const { messages: chatMessages, sources, streaming, sendMessage: sendChatMessage } = useChat();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -107,7 +109,7 @@ export default function AIChatPage() {
   const welcomeMsg: Message = {
     id: "welcome",
     role: "assistant",
-    content: "Namaste! I am Brahm AI — your guide to Vedic wisdom.\nAsk me about Dharma, Karma, Mantras, Jyotish, Upanishads, and more.",
+    content: t('chat.welcome'),
     timestamp: new Date(),
   };
   const messages: Message[] = [
@@ -141,14 +143,14 @@ export default function AIChatPage() {
             <Bot className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-2xl text-primary text-glow-gold">Brahm AI</h1>
+            <h1 className="font-display text-2xl text-primary text-glow-gold">{t('chat.title')}</h1>
             <p className="text-xs text-muted-foreground">
               {/* GPU RAG Engine — Sanskrit / Hindi / English Knowledge Base */}
 
             </p>
           </div>
           <Badge variant="secondary" className="ml-auto text-xs">
-            Vedic Assistant
+            {t('chat.badge')}
           </Badge>
         </div>
       </motion.div>
@@ -210,7 +212,7 @@ export default function AIChatPage() {
             <Card className="glass border-border/30">
               <CardContent className="p-4 flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground">Searching knowledge base...</span>
+                <span className="text-sm text-muted-foreground">{t('chat.searching')}</span>
               </CardContent>
             </Card>
           </motion.div>
@@ -220,7 +222,7 @@ export default function AIChatPage() {
       {/* Suggestions */}
       {messages.length <= 1 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex-shrink-0 pb-3">
-          <p className="text-xs text-muted-foreground mb-2">Try asking about:</p>
+          <p className="text-xs text-muted-foreground mb-2">{t('chat.try_asking')}</p>
           <div className="flex flex-wrap gap-2">
             {suggestedQueries.map((sq) => (
               <Button
@@ -249,7 +251,7 @@ export default function AIChatPage() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about Vedic wisdom, Jyotish, Mantras, Dharma..."
+            placeholder={t('chat.placeholder_alt')}
             className="flex-1 bg-muted/30 border-border/40"
             disabled={isTyping}
           />

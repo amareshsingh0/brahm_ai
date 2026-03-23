@@ -15,6 +15,7 @@ import {
 import { api } from "@/lib/api";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
+import { useTranslation } from "react-i18next";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -131,6 +132,7 @@ interface GocharPositions {
 }
 
 export default function SadeSatiPage() {
+  const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
 
   // Auto-fill Moon rashi from store
@@ -238,10 +240,8 @@ export default function SadeSatiPage() {
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl text-foreground text-glow-gold">Sade Sati</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Saturn's 7.5-year transit cycle — know your current phase
-            </p>
+            <h1 className="font-display text-2xl text-foreground text-glow-gold">{t("sade_sati.title")}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{t("sade_sati.subtitle")}</p>
           </div>
           <button
             onClick={fetchPositions}
@@ -264,7 +264,7 @@ export default function SadeSatiPage() {
         <div className="flex items-center gap-3">
           <span className="text-2xl" style={{ color: "#64748b" }}>♄︎</span>
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">Saturn Today</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("sade_sati.saturn_today")}</p>
             {loading ? (
               <div className="h-5 w-28 bg-muted/30 rounded animate-pulse mt-1" />
             ) : error ? (
@@ -277,12 +277,12 @@ export default function SadeSatiPage() {
                 </span>
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground mt-1">Not available</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("sade_sati.not_available")}</p>
             )}
           </div>
         </div>
         <div className="text-xs text-muted-foreground/60">
-          Spends ~2.5 yrs per rashi · 7.5 yrs total per cycle
+          {t("sade_sati.saturn_period")}
         </div>
       </motion.div>
 
@@ -295,7 +295,7 @@ export default function SadeSatiPage() {
       >
         <div className="flex items-center gap-2">
           <span className="text-base" style={{ color: "#4F46E5" }}>☽︎</span>
-          <p className="text-sm font-medium text-foreground">Your Moon Rashi (Janma Rashi)</p>
+          <p className="text-sm font-medium text-foreground">{t("sade_sati.select_moon")}</p>
           {storeMoonRashi && (
             <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
               From kundali
@@ -348,34 +348,34 @@ export default function SadeSatiPage() {
           transition={{ delay: 0.15 }}
           className="cosmic-card rounded-xl p-5 space-y-4 border border-red-500/15"
         >
-          <h3 className="text-sm font-semibold text-foreground">Sade Sati Lifecycle</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("data.sade_sati.lifecycle_heading")}</h3>
 
           <div className="space-y-3">
             {(
               [
                 {
-                  label: "Phase 1 — Rising",
+                  label: t("data.sade_sati.phase1_label"),
                   rashi: phaseInfo.risingRashi,
                   active: analysis.sadeSatiPhase === "Rising",
                   color: "text-amber-400",
                   activeBg: "bg-amber-500/10 border-amber-500/25",
-                  desc: "First 2.5 years — new challenges begin. Change of circumstances, restlessness, and unexpected shifts in surroundings or living situation. The native starts to feel Shani's presence.",
+                  desc: t("data.sade_sati.phase1_desc"),
                 },
                 {
-                  label: "Phase 2 — Peak",
+                  label: t("data.sade_sati.phase2_label"),
                   rashi: phaseInfo.peakRashi,
                   active: analysis.sadeSatiPhase === "Peak",
                   color: "text-red-400",
                   activeBg: "bg-red-500/10 border-red-500/25",
-                  desc: "Middle 2.5 years — most intense phase. Tests of dharma and karma are at their strongest. Emotional pressures, health tests, and major life changes are common. This is Shani's direct gaze on the mind.",
+                  desc: t("data.sade_sati.phase2_desc"),
                 },
                 {
-                  label: "Phase 3 — Setting",
+                  label: t("data.sade_sati.phase3_label"),
                   rashi: phaseInfo.settingRashi,
                   active: analysis.sadeSatiPhase === "Setting",
                   color: "text-emerald-400",
                   activeBg: "bg-emerald-500/10 border-emerald-500/25",
-                  desc: "Final 2.5 years — gradual relief. Karma begins to resolve. Results of past efforts materialise. Discipline adopted during Sade Sati starts yielding rewards.",
+                  desc: t("data.sade_sati.phase3_desc"),
                 },
               ] as const
             ).map((phase, i) => (
@@ -419,12 +419,12 @@ export default function SadeSatiPage() {
           transition={{ delay: 0.15 }}
           className="cosmic-card rounded-xl p-5 space-y-2 border border-orange-500/20"
         >
-          <h3 className="text-sm font-semibold text-orange-400">Ashtama Shani</h3>
+          <h3 className="text-sm font-semibold text-orange-400">{t("data.sade_sati.ashtama_heading")}</h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Saturn is transiting the 8th sign from your Moon rashi. The 8th house signifies sudden events, hidden challenges, chronic health issues, and transformation. This is considered one of the more difficult Shani transits, though less prolonged than Sade Sati (Saturn passes through in ~2.5 years).
+            {t("data.sade_sati.ashtama_desc")}
           </p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Recommended: Avoid rash decisions, prioritise health, and perform Shani puja on Saturdays.
+            {t("data.sade_sati.ashtama_advice")}
           </p>
         </motion.div>
       )}
@@ -437,10 +437,10 @@ export default function SadeSatiPage() {
           className="cosmic-card rounded-xl p-5 space-y-2 border border-amber-500/20"
         >
           <h3 className="text-sm font-semibold text-amber-400">
-            Kantaka Shani — H{analysis.shaniFromLagna} from Lagna ({lagnaRashi})
+            {t("data.sade_sati.kantaka_heading")} — H{analysis.shaniFromLagna} from Lagna ({lagnaRashi})
           </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Saturn in a Kantaka position (1st, 4th, 7th, or 10th from lagna) creates friction in life's pillars — self, home, partnerships, and career. Effects are moderate and transit-dependent (2.5 years). Discipline and remedial measures can significantly reduce the impact.
+            {t("data.sade_sati.kantaka_desc")}
           </p>
         </motion.div>
       )}
@@ -456,7 +456,7 @@ export default function SadeSatiPage() {
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-xs font-medium text-foreground">Next Sade Sati</p>
+              <p className="text-xs font-medium text-foreground">{t("data.sade_sati.next_sade_sati_title")}</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Your next Sade Sati begins when Saturn enters{" "}
                 <span className="text-star-gold font-medium">
@@ -483,19 +483,19 @@ export default function SadeSatiPage() {
         >
           <div className="px-4 py-2.5 bg-muted/10 border-b border-border/20">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Shani Position Summary
+              {t("data.sade_sati.shani_summary_heading")}
             </p>
           </div>
           <div className="divide-y divide-border/15">
             {[
-              { label: "Moon Rashi (Janma)", value: `${RASHI_SYMBOLS[selectedMoon]} ${selectedMoon}` },
-              { label: "Saturn Current Rashi", value: shaniRashi ? `${RASHI_SYMBOLS[shaniRashi]} ${shaniRashi}` : "—" },
-              { label: "Saturn from Moon", value: `${analysis.shaniFromMoon}th house` },
+              { label: t("data.sade_sati.moon_rashi_label"), value: `${RASHI_SYMBOLS[selectedMoon]} ${selectedMoon}` },
+              { label: t("data.sade_sati.saturn_current_label"), value: shaniRashi ? `${RASHI_SYMBOLS[shaniRashi]} ${shaniRashi}` : "—" },
+              { label: t("data.sade_sati.saturn_from_moon_label"), value: `${analysis.shaniFromMoon}th house` },
               ...(lagnaRashi && analysis.shaniFromLagna
-                ? [{ label: "Saturn from Lagna", value: `${analysis.shaniFromLagna}th house` }]
+                ? [{ label: t("data.sade_sati.saturn_from_lagna_label"), value: `${analysis.shaniFromLagna}th house` }]
                 : []),
               {
-                label: "Sade Sati Status",
+                label: t("data.sade_sati.sade_sati_status_label"),
                 value:
                   analysis.sadeSatiPhase
                     ? `Active — ${analysis.sadeSatiPhase} Phase`
@@ -528,7 +528,7 @@ export default function SadeSatiPage() {
         >
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-star-gold" />
-            <h3 className="text-sm font-semibold text-foreground">Shani Remedies</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("data.sade_sati.remedies_heading")}</h3>
           </div>
           {remediesOpen ? (
             <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -544,16 +544,16 @@ export default function SadeSatiPage() {
             className="mt-4 space-y-2"
           >
             {[
-              "Perform Shani puja every Saturday — light sesame oil lamp before Shani idol",
-              "Recite Hanuman Chalisa daily — Hanumanji is considered a protector against Shani's difficult transits",
-              "Observe Saturday fast — eat only once, avoid meat, alcohol, and oil-heavy food",
-              "Donate black sesame seeds, black cloth, mustard oil, or iron to the needy on Saturdays",
-              "Wear an iron ring on the middle finger of the right hand (from Shanivar puja)",
-              "Recite Shani mantra: ॐ शं शनैश्चराय नमः — 108 times on Saturdays",
-              "Blue Sapphire (Neelam) can be worn only after careful horoscope analysis by a qualified Jyotishi — never self-prescribe",
-              "Visit Shani Shingnapur, Thirunallar, or Kukke Subramanya during Sade Sati for remedial pujas",
-              "Be disciplined, patient, and honest — Shani rewards sincerity and punishes shortcuts",
-              "Recite Shri Shani Chalisa and Shani Stotra during the Sade Sati period",
+              t("data.sade_sati.remedy1"),
+              t("data.sade_sati.remedy2"),
+              t("data.sade_sati.remedy3"),
+              t("data.sade_sati.remedy4"),
+              t("data.sade_sati.remedy5"),
+              t("data.sade_sati.remedy6"),
+              t("data.sade_sati.remedy7"),
+              t("data.sade_sati.remedy8"),
+              t("data.sade_sati.remedy9"),
+              t("data.sade_sati.remedy10"),
             ].map((r, i) => (
               <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed">
                 <Star className="w-3 h-3 text-star-gold shrink-0 mt-0.5" />
@@ -571,15 +571,15 @@ export default function SadeSatiPage() {
         transition={{ delay: 0.25 }}
         className="cosmic-card rounded-xl p-5 space-y-3 border border-border/15"
       >
-        <h3 className="text-sm font-semibold text-foreground">About Sade Sati</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("data.sade_sati.about_heading")}</h3>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Sade Sati (साढ़े साती) means "seven and a half" in Hindi — referring to the 7.5 years Saturn spends transiting through three consecutive rashis: the 12th from your natal Moon, the Moon's own rashi, and the 2nd from it. Since Saturn spends approximately 2.5 years in each rashi, the entire cycle lasts 7.5 years.
+          {t("data.sade_sati.about_p1")}
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Sade Sati is not always negative. Saturn is the planet of discipline, karma, and long-term reward. Many people experience profound personal growth, career restructuring, and spiritual deepening during this period. The effects depend heavily on Saturn's placement and strength in the natal chart.
+          {t("data.sade_sati.about_p2")}
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          A person experiences Sade Sati approximately two to three times in a lifetime. It recurs every ~29.5 years (one full Saturn orbit).
+          {t("data.sade_sati.about_p3")}
         </p>
       </motion.div>
 

@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import { usePlans, useCheckout } from "@/hooks/useSubscription";
 import { useToast } from "@/hooks/use-toast";
 import type { AuthPlan } from "@/store/authStore";
+import { useTranslation } from 'react-i18next';
 
 type Period = "monthly" | "yearly";
 
@@ -45,6 +46,7 @@ const FAQ = [
 ];
 
 export default function SubscriptionPage() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const currentPlan = useAuthStore((s) => s.plan);
@@ -77,19 +79,19 @@ export default function SubscriptionPage() {
   };
 
   const getButtonLabel = (planId: AuthPlan) => {
-    if (planId === currentPlan) return "Current Plan";
-    if (planId === "free") return "Downgrade to Free";
-    return `Upgrade to ${plans.find((p) => p.id === planId)?.name ?? planId}`;
+    if (planId === currentPlan) return t('subscription.current_plan');
+    if (planId === "free") return t('subscription.downgrade_free');
+    return t('subscription.upgrade_to', { plan: plans.find((p) => p.id === planId)?.name ?? planId });
   };
 
   return (
     <div className="p-4 sm:p-6 space-y-8 sm:space-y-10 max-w-5xl mx-auto w-full">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
-        <p className="text-xs uppercase tracking-widest text-primary/60">Brahm AI Plans</p>
-        <h1 className="font-display text-3xl text-foreground text-glow-gold">Choose Your Journey</h1>
+        <p className="text-xs uppercase tracking-widest text-primary/60">{t('subscription.plans_label')}</p>
+        <h1 className="font-display text-3xl text-foreground text-glow-gold">{t('subscription.journey_title')}</h1>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Start free. Upgrade when you're ready for deeper cosmic insight.
+          {t('subscription.journey_subtitle')}
         </p>
       </motion.div>
 
@@ -104,7 +106,7 @@ export default function SubscriptionPage() {
                 period === p ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {p === "yearly" ? "Yearly (save up to 37%)" : "Monthly"}
+              {p === "yearly" ? t('subscription.yearly_save') : t('subscription.monthly')}
             </button>
           ))}
         </div>
@@ -132,13 +134,13 @@ export default function SubscriptionPage() {
             >
               {isHighlight && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-medium uppercase tracking-wide shadow">
-                  Most Popular
+                  {t('subscription.most_popular')}
                 </div>
               )}
 
               {isCurrent && (
                 <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-medium border border-green-500/30">
-                  Current Plan
+                  {t('subscription.current_plan')}
                 </div>
               )}
 
@@ -159,7 +161,7 @@ export default function SubscriptionPage() {
                     {price === 0 ? "₹0" : `₹${price}`}
                   </span>
                   {price > 0 && (
-                    <span className="text-sm text-muted-foreground pb-1">/month</span>
+                    <span className="text-sm text-muted-foreground pb-1">{t('subscription.per_month_label')}</span>
                   )}
                 </div>
 
@@ -170,7 +172,7 @@ export default function SubscriptionPage() {
                 )}
                 {period === "monthly" && plan.price_monthly > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    billed monthly · cancel anytime
+                    {t('subscription.billed_monthly')}
                   </p>
                 )}
               </div>
@@ -194,7 +196,7 @@ export default function SubscriptionPage() {
                   isCurrent ? "opacity-50 cursor-not-allowed" : ""
                 } ${plan.id === "free" ? "border-border/30 text-muted-foreground" : ""}`}
               >
-                {checkout.isPending ? "Processing…" : getButtonLabel(plan.id as AuthPlan)}
+                {checkout.isPending ? t('common.processing') : getButtonLabel(plan.id as AuthPlan)}
                 {!isCurrent && plan.id !== "free" && <ChevronRight className="h-4 w-4" />}
               </Button>
             </motion.div>
@@ -210,10 +212,10 @@ export default function SubscriptionPage() {
         className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground"
       >
         {[
-          "🔒 Secured by Cashfree",
-          "📱 UPI · Cards · Wallets",
-          "↩️ Cancel anytime",
-          "🇮🇳 Made for India",
+          t('subscription.trust_cashfree'),
+          t('subscription.trust_upi'),
+          t('subscription.trust_cancel'),
+          t('subscription.trust_india'),
         ].map((badge) => (
           <span key={badge} className="flex items-center gap-1">{badge}</span>
         ))}
@@ -221,7 +223,7 @@ export default function SubscriptionPage() {
 
       {/* FAQ */}
       <div className="max-w-2xl mx-auto space-y-3">
-        <h2 className="font-display text-xl text-foreground text-center mb-6">Frequently Asked Questions</h2>
+        <h2 className="font-display text-xl text-foreground text-center mb-6">{t('subscription.faq_title')}</h2>
         {FAQ.map((item, i) => (
           <motion.div
             key={i}

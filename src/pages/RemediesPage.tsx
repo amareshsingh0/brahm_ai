@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 import { remediesData, samplePlanets } from "@/store/kundliStore";
 import { useState } from "react";
 import { Gem, Music, Calendar, Palette, Gift, Moon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function RemediesPage() {
+  const { t } = useTranslation();
   const [selectedPlanet, setSelectedPlanet] = useState("Sun");
   const remedy = remediesData.find((r) => r.planet === selectedPlanet)!;
   const planet = samplePlanets.find((p) => p.name === selectedPlanet);
@@ -11,8 +13,8 @@ export default function RemediesPage() {
   return (
     <div className="p-6 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Remedies</h1>
-        <p className="text-sm text-muted-foreground">Vedic remedies for planetary balance</p>
+        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">{t("remedies.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("remedies.subtitle")}</p>
       </motion.div>
 
       {/* Planet selector */}
@@ -53,12 +55,12 @@ export default function RemediesPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          <RemedyCard icon={<Music className="h-5 w-5 text-primary" />} title="Mantra" content={remedy.mantra} sub="Chant 108 times daily" />
-          <RemedyCard icon={<Gem className="h-5 w-5 text-nebula" />} title="Gemstone" content={remedy.gemstone} sub="Wear on the correct finger" />
-          <RemedyCard icon={<Calendar className="h-5 w-5 text-gold" />} title="Fasting Day" content={remedy.fasting} sub="Observe fast for spiritual merit" />
-          <RemedyCard icon={<Palette className="h-5 w-5 text-foreground" />} title="Favorable Color" content={remedy.color} sub="Wear on auspicious days" />
-          <RemedyCard icon={<Gift className="h-5 w-5 text-primary" />} title="Donations" content={remedy.donation} sub={`Donate on ${remedy.day}`} />
-          <RemedyCard icon={<Moon className="h-5 w-5 text-muted-foreground" />} title="Sacred Day" content={remedy.day} sub="Most effective day for worship" />
+          <RemedyCard icon={<Music className="h-5 w-5 text-primary" />} title={t("remedies.mantra")} content={remedy.mantra} sub={t("remedies.chant_desc")} />
+          <RemedyCard icon={<Gem className="h-5 w-5 text-nebula" />} title={t("remedies.gemstone")} content={remedy.gemstone} sub={t("remedies.wear_desc")} />
+          <RemedyCard icon={<Calendar className="h-5 w-5 text-gold" />} title={t("remedies.fasting_day")} content={remedy.fasting} sub={t("remedies.fast_desc")} />
+          <RemedyCard icon={<Palette className="h-5 w-5 text-foreground" />} title={t("remedies.color")} content={remedy.color} sub={t("remedies.color_desc")} />
+          <RemedyCard icon={<Gift className="h-5 w-5 text-primary" />} title={t("remedies.donations")} content={remedy.donation} sub={t("remedies.donate_desc", { day: remedy.day })} />
+          <RemedyCard icon={<Moon className="h-5 w-5 text-muted-foreground" />} title={t("remedies.sacred_day")} content={remedy.day} sub={t("remedies.day_desc")} />
         </div>
       </motion.div>
     </div>

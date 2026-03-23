@@ -13,6 +13,7 @@ import { useKundliStore } from "@/store/kundliStore";
 import { KundliChart } from "@/components/charts/KundliChart";
 import PageBot from "@/components/PageBot";
 import type { KundaliResponse } from "@/types/api";
+import { useTranslation } from "react-i18next";
 
 interface VarshpalResult extends KundaliResponse {
   varshphal_year: number;
@@ -32,6 +33,7 @@ const GRAHA_COLOR: Record<string, string> = {
 const ORDER = ["Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani","Rahu","Ketu"];
 
 export default function VarshpalPage() {
+  const { t } = useTranslation();
   const birthDetails = useKundliStore(s => s.birthDetails);
   const year = new Date().getFullYear();
 
@@ -82,7 +84,7 @@ export default function VarshpalPage() {
   };
 
   const calculate = async () => {
-    if (!bDate || !bTime || !bLat || !bLon) { setError("Please enter birth date, time, and location."); return; }
+    if (!bDate || !bTime || !bLat || !bLon) { setError(t("varshphal.error_fields")); return; }
     setLoading(true); setError(null); setResult(null);
     try {
       const body: Record<string, unknown> = {
@@ -98,7 +100,7 @@ export default function VarshpalPage() {
       const data = await api.post<VarshpalResult>("/api/varshphal", body);
       setResult(data);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Calculation failed.");
+      setError(e instanceof Error ? e.message : t("varshphal.error_failed"));
     } finally {
       setLoading(false);
     }
@@ -116,8 +118,8 @@ export default function VarshpalPage() {
         <div className="flex items-center gap-3">
           <Sun className="w-5 h-5 text-star-gold" />
           <div>
-            <h1 className="font-display text-2xl text-foreground text-glow-gold">Varshphal</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Annual Solar Return Chart — themes and predictions for the year</p>
+            <h1 className="font-display text-2xl text-foreground text-glow-gold">{t("varshphal.title")}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{t("varshphal.subtitle")}</p>
           </div>
         </div>
       </motion.div>
@@ -126,22 +128,22 @@ export default function VarshpalPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.1 } }}
         className="cosmic-card rounded-xl p-5 space-y-4">
 
-        <p className="text-xs font-semibold text-foreground">Birth Details</p>
+        <p className="text-xs font-semibold text-foreground">{t("varshphal.birth_details")}</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">Date of Birth</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">{t("varshphal.date_of_birth")}</Label>
             <Input type="date" className="h-9 text-xs" value={bDate} onChange={e => setBDate(e.target.value)} />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">Time of Birth</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">{t("varshphal.time_of_birth")}</Label>
             <Input type="time" className="h-9 text-xs" value={bTime} onChange={e => setBTime(e.target.value)} />
           </div>
         </div>
 
         {/* Birth location */}
         <div className="relative">
-          <Label className="text-xs text-muted-foreground mb-1 block">Birth City</Label>
+          <Label className="text-xs text-muted-foreground mb-1 block">{t("varshphal.birth_city")}</Label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -166,7 +168,7 @@ export default function VarshpalPage() {
 
         {/* Year selector */}
         <div>
-          <Label className="text-xs text-muted-foreground mb-1 block">Target Year</Label>
+          <Label className="text-xs text-muted-foreground mb-1 block">{t("varshphal.target_year")}</Label>
           <div className="flex gap-2 items-center">
             <button onClick={() => setTargetYear(y => y - 1)}
               className="w-8 h-9 rounded border border-border/40 text-muted-foreground hover:text-foreground text-lg transition-colors">−</button>
@@ -174,7 +176,7 @@ export default function VarshpalPage() {
             <button onClick={() => setTargetYear(y => y + 1)}
               className="w-8 h-9 rounded border border-border/40 text-muted-foreground hover:text-foreground text-lg transition-colors">+</button>
             <CalendarDays className="w-4 h-4 text-muted-foreground ml-2" />
-            <span className="text-xs text-muted-foreground">Solar return for age {targetYear - parseInt(bDate.slice(0, 4)) || "—"}</span>
+            <span className="text-xs text-muted-foreground">{t("varshphal.solar_return_age", { age: targetYear - parseInt(bDate.slice(0, 4)) || "—" })}</span>
           </div>
         </div>
 
@@ -182,7 +184,7 @@ export default function VarshpalPage() {
         <div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={useCurrent} onChange={e => setUseCurrent(e.target.checked)} className="accent-primary" />
-            <span className="text-xs text-muted-foreground">Use different current location (where you'll be in {targetYear})</span>
+            <span className="text-xs text-muted-foreground">{t("varshphal.use_current_location", { year: targetYear })}</span>
           </label>
           {useCurrent && (
             <div className="relative mt-2">
@@ -213,8 +215,8 @@ export default function VarshpalPage() {
         <button onClick={calculate} disabled={loading || !bDate || !bTime || !bLat || !bLon}
           className="w-full h-9 rounded-lg bg-primary/80 hover:bg-primary text-primary-foreground text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
           {loading
-            ? <><Loader2 className="w-4 h-4 animate-spin" /> Computing Solar Return…</>
-            : <><Sun className="w-4 h-4" /> Calculate Varshphal {targetYear}</>}
+            ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("varshphal.computing")}</>
+            : <><Sun className="w-4 h-4" /> {t("varshphal.calculate_btn", { year: targetYear })}</>}
         </button>
 
         {error && <p className="text-xs text-destructive">{error}</p>}
@@ -228,16 +230,16 @@ export default function VarshpalPage() {
           <div className="cosmic-card rounded-xl p-5 border border-star-gold/20">
             <div className="flex items-center gap-2 mb-1">
               <Sun className="w-4 h-4 text-star-gold" />
-              <p className="text-sm font-bold text-star-gold">Varshphal {result.varshphal_year}</p>
+              <p className="text-sm font-bold text-star-gold">{t("varshphal.title")} {result.varshphal_year}</p>
             </div>
-            <p className="text-xs text-muted-foreground">Solar Return: <span className="text-foreground font-medium">{result.solar_return_datetime}</span></p>
-            <p className="text-xs text-muted-foreground mt-0.5">Natal Sun: <span className="text-foreground">{result.natal_sun_longitude.toFixed(2)}°</span> · Varshphal Lagna: <span className="text-foreground">{result.lagna.rashi}</span></p>
+            <p className="text-xs text-muted-foreground">{t("varshphal.solar_return")}: <span className="text-foreground font-medium">{result.solar_return_datetime}</span></p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("varshphal.natal_sun")}: <span className="text-foreground">{result.natal_sun_longitude.toFixed(2)}°</span> · {t("varshphal.varshphal_lagna")}: <span className="text-foreground">{result.lagna.rashi}</span></p>
           </div>
 
           {/* Year themes */}
           {result.year_themes.length > 0 && (
             <div className="cosmic-card rounded-xl p-4 space-y-2 border border-primary/20">
-              <p className="text-xs font-semibold text-foreground mb-2">Year {result.varshphal_year} — Key Themes</p>
+              <p className="text-xs font-semibold text-foreground mb-2">{t("varshphal.year_themes", { year: result.varshphal_year })}</p>
               {result.year_themes.map((t, i) => (
                 <div key={i} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
                   <span className="text-star-gold shrink-0">✦</span>
@@ -252,7 +254,7 @@ export default function VarshpalPage() {
             <button onClick={() => setShowGrahas(g => !g)}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors">
               {showGrahas ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              {showGrahas ? "Hide" : "Show"} Planet Positions
+              {showGrahas ? t("varshphal.hide_grahas") : t("varshphal.show_grahas")}
             </button>
             {showGrahas && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">

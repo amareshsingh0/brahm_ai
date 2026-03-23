@@ -13,19 +13,8 @@ import { useKundliStore } from "@/store/kundliStore";
 import { KundliChart } from "@/components/charts/KundliChart";
 import PageBot from "@/components/PageBot";
 import type { KundaliResponse } from "@/types/api";
+import { useTranslation } from "react-i18next";
 
-const QUESTION_TYPES = [
-  { value: "general",      label: "General" },
-  { value: "wealth",       label: "Wealth & Finance" },
-  { value: "career",       label: "Career & Work" },
-  { value: "relationship", label: "Relationship & Marriage" },
-  { value: "health",       label: "Health" },
-  { value: "property",     label: "Property & Home" },
-  { value: "travel",       label: "Travel & Foreign" },
-  { value: "education",    label: "Education" },
-  { value: "children",     label: "Children" },
-  { value: "spiritual",    label: "Spiritual & Dharma" },
-];
 
 interface PrashnaResult extends KundaliResponse {
   prashna_question: string;
@@ -52,7 +41,21 @@ function verdictStyle(v: string) {
 }
 
 export default function PrashnaPage() {
+  const { t } = useTranslation();
   const birthDetails = useKundliStore(s => s.birthDetails);
+
+  const QUESTION_TYPES = [
+    { value: "general",      label: t("prashna.qt_general") },
+    { value: "wealth",       label: t("prashna.qt_wealth") },
+    { value: "career",       label: t("prashna.qt_career") },
+    { value: "relationship", label: t("prashna.qt_relationship") },
+    { value: "health",       label: t("prashna.qt_health") },
+    { value: "property",     label: t("prashna.qt_property") },
+    { value: "travel",       label: t("prashna.qt_travel") },
+    { value: "education",    label: t("prashna.qt_education") },
+    { value: "children",     label: t("prashna.qt_children") },
+    { value: "spiritual",    label: t("prashna.qt_spiritual") },
+  ];
 
   const [question,     setQuestion]     = useState("");
   const [qType,        setQType]        = useState("general");
@@ -84,7 +87,7 @@ export default function PrashnaPage() {
   };
 
   const askNow = async () => {
-    if (!lat || !lon) { setError("Please select a location."); return; }
+    if (!lat || !lon) { setError(t("prashna.error_location")); return; }
     setLoading(true);
     setError(null);
     setResult(null);
@@ -95,7 +98,7 @@ export default function PrashnaPage() {
       });
       setResult(data);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to cast Prashna chart.");
+      setError(e instanceof Error ? e.message : t("prashna.error_failed"));
     } finally {
       setLoading(false);
     }
@@ -118,10 +121,8 @@ export default function PrashnaPage() {
         <div className="flex items-center gap-3">
           <HelpCircle className="w-5 h-5 text-star-gold" />
           <div>
-            <h1 className="font-display text-2xl text-foreground text-glow-gold">Prashna Kundali</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Horary astrology — chart cast at the moment of your question
-            </p>
+            <h1 className="font-display text-2xl text-foreground text-glow-gold">{t("prashna.title")}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{t("prashna.subtitle")}</p>
           </div>
         </div>
       </motion.div>
@@ -132,13 +133,13 @@ export default function PrashnaPage() {
 
         {/* Location */}
         <div className="relative">
-          <Label className="text-xs text-muted-foreground mb-1 block">Your Current Location</Label>
+          <Label className="text-xs text-muted-foreground mb-1 block">{t("prashna.location_label")}</Label>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 className="pl-9 h-9 text-xs"
-                placeholder="City name…"
+                placeholder={t("prashna.city_placeholder")}
                 value={cityQuery}
                 onChange={e => handleCitySearch(e.target.value)}
               />
@@ -161,7 +162,7 @@ export default function PrashnaPage() {
 
         {/* Question type */}
         <div>
-          <Label className="text-xs text-muted-foreground mb-1 block">Question Domain</Label>
+          <Label className="text-xs text-muted-foreground mb-1 block">{t("prashna.question_domain")}</Label>
           <div className="flex flex-wrap gap-1.5">
             {QUESTION_TYPES.map(qt => (
               <button key={qt.value}
@@ -180,10 +181,10 @@ export default function PrashnaPage() {
 
         {/* Question text */}
         <div>
-          <Label className="text-xs text-muted-foreground mb-1 block">Your Question (optional)</Label>
+          <Label className="text-xs text-muted-foreground mb-1 block">{t("prashna.question_label")}</Label>
           <Input
             className="h-9 text-xs"
-            placeholder="What would you like to know?"
+            placeholder={t("prashna.question_placeholder")}
             value={question}
             onChange={e => setQuestion(e.target.value)}
           />
@@ -194,7 +195,7 @@ export default function PrashnaPage() {
           disabled={loading || !lat || !lon}
           className="w-full h-9 rounded-lg bg-primary/80 hover:bg-primary text-primary-foreground text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Casting Prashna Chart…</> : <><RefreshCw className="w-4 h-4" /> Ask Now — Cast Chart for This Moment</>}
+          {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("prashna.casting")}</> : <><RefreshCw className="w-4 h-4" /> {t("prashna.ask_btn")}</>}
         </button>
 
         {error && <p className="text-xs text-destructive">{error}</p>}
@@ -206,9 +207,9 @@ export default function PrashnaPage() {
 
           {/* Verdict banner */}
           <div className={`rounded-xl p-5 border text-center ${verdictStyle(result.prashna_verdict)}`}>
-            <p className="text-[11px] uppercase tracking-widest mb-1 opacity-70">Prashna Verdict</p>
+            <p className="text-[11px] uppercase tracking-widest mb-1 opacity-70">{t("prashna.verdict_label")}</p>
             <p className="text-4xl font-bold">{result.prashna_verdict}</p>
-            <p className="text-xs mt-2 opacity-80">{result.prashna_datetime} · Hora Lord: <strong>{GRAHA_EN[result.hora_lord] ?? result.hora_lord}</strong> {GRAHA_SYMBOL[result.hora_lord]}</p>
+            <p className="text-xs mt-2 opacity-80">{result.prashna_datetime} · {t("prashna.hora_lord")}: <strong>{GRAHA_EN[result.hora_lord] ?? result.hora_lord}</strong> {GRAHA_SYMBOL[result.hora_lord]}</p>
             {result.prashna_question && (
               <p className="text-xs mt-1 opacity-70 italic">"{result.prashna_question}"</p>
             )}
@@ -217,7 +218,7 @@ export default function PrashnaPage() {
           {/* Factors */}
           {result.prashna_factors.length > 0 && (
             <div className="cosmic-card rounded-xl p-4 space-y-2">
-              <p className="text-xs font-semibold text-foreground mb-2">Chart Indicators</p>
+              <p className="text-xs font-semibold text-foreground mb-2">{t("prashna.chart_indicators")}</p>
               {result.prashna_factors.map((f, i) => (
                 <p key={i} className="text-xs text-muted-foreground leading-relaxed pl-3 border-l-2 border-primary/30">{f}</p>
               ))}
@@ -226,7 +227,7 @@ export default function PrashnaPage() {
 
           {/* Chart */}
           <div className="cosmic-card rounded-xl p-4">
-            <p className="text-xs font-semibold text-foreground mb-3">Prashna Chart — {result.prashna_datetime}</p>
+            <p className="text-xs font-semibold text-foreground mb-3">{t("prashna.prashna_chart")} — {result.prashna_datetime}</p>
             <KundliChart
               planets={planets}
               lagnaRashi={result.lagna.rashi}
@@ -237,10 +238,10 @@ export default function PrashnaPage() {
           {/* Chart summary */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Lagna", val: `${result.lagna.rashi} ${result.lagna.degree}°` },
-              { label: "Moon", val: `${result.grahas.Chandra?.rashi ?? "—"} H${result.grahas.Chandra?.house ?? "—"}` },
-              { label: "Hora Lord", val: `${GRAHA_EN[result.hora_lord] ?? result.hora_lord} ${GRAHA_SYMBOL[result.hora_lord] ?? ""}` },
-              { label: "Question", val: QUESTION_TYPES.find(q => q.value === result.prashna_type)?.label ?? result.prashna_type },
+              { label: t("prashna.lagna_label"), val: `${result.lagna.rashi} ${result.lagna.degree}°` },
+              { label: t("prashna.moon_label"), val: `${result.grahas.Chandra?.rashi ?? "—"} H${result.grahas.Chandra?.house ?? "—"}` },
+              { label: t("prashna.hora_lord_label"), val: `${GRAHA_EN[result.hora_lord] ?? result.hora_lord} ${GRAHA_SYMBOL[result.hora_lord] ?? ""}` },
+              { label: t("prashna.question_label2"), val: QUESTION_TYPES.find(q => q.value === result.prashna_type)?.label ?? result.prashna_type },
             ].map(item => (
               <div key={item.label} className="cosmic-card rounded-lg p-3 text-center">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{item.label}</p>

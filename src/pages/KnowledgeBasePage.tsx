@@ -22,6 +22,7 @@ import {
   Languages,
   Cpu,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface BookEntry {
   id: number;
@@ -58,12 +59,6 @@ const systemStats = {
   searchLatency: "~25ms",
 };
 
-const statusIcons = {
-  indexed: <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
-  processing: <RefreshCw className="h-3.5 w-3.5 text-yellow-500 animate-spin" />,
-  pending: <Clock className="h-3.5 w-3.5 text-muted-foreground" />,
-};
-
 const statusColors = {
   indexed: "bg-green-500/10 text-green-400 border-green-500/30",
   processing: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
@@ -71,9 +66,16 @@ const statusColors = {
 };
 
 export default function KnowledgeBasePage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const { data: ragResults } = useSearch(search);
+
+  const statusIcons = {
+    indexed: <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
+    processing: <RefreshCw className="h-3.5 w-3.5 text-yellow-500 animate-spin" />,
+    pending: <Clock className="h-3.5 w-3.5 text-muted-foreground" />,
+  };
 
   const filtered = sampleBooks.filter(
     (b) => !search || b.name.toLowerCase().includes(search.toLowerCase()) || b.language.toLowerCase().includes(search.toLowerCase()),
@@ -84,9 +86,9 @@ export default function KnowledgeBasePage() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-3xl text-primary text-glow-gold">Knowledge Base</h1>
+        <h1 className="font-display text-3xl text-primary text-glow-gold">{t("knowledge.title")}</h1>
         <p className="text-muted-foreground mt-1">
-          Manage the RAG knowledge base — Upload, index, and search across 100k+ texts
+          {t("knowledge.subtitle")}
         </p>
       </motion.div>
 
@@ -94,15 +96,15 @@ export default function KnowledgeBasePage() {
         <TabsList>
           <TabsTrigger value="library" className="gap-1.5">
             <BookOpen className="h-3.5 w-3.5" />
-            Library
+            {t("knowledge.tab_library")}
           </TabsTrigger>
           <TabsTrigger value="upload" className="gap-1.5">
             <Upload className="h-3.5 w-3.5" />
-            Upload
+            {t("knowledge.tab_upload")}
           </TabsTrigger>
           <TabsTrigger value="system" className="gap-1.5">
             <Database className="h-3.5 w-3.5" />
-            System
+            {t("knowledge.tab_system")}
           </TabsTrigger>
         </TabsList>
 
@@ -114,11 +116,11 @@ export default function KnowledgeBasePage() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search books..."
+                placeholder={t("knowledge.search_placeholder")}
                 className="pl-9 bg-muted/30 border-border/40"
               />
             </div>
-            <Badge variant="secondary">{indexedCount}/{sampleBooks.length} indexed</Badge>
+            <Badge variant="secondary">{indexedCount}/{sampleBooks.length} {t("knowledge.indexed")}</Badge>
           </div>
 
           <div className="space-y-2">
@@ -139,11 +141,11 @@ export default function KnowledgeBasePage() {
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       {book.chunks > 0 && (
-                        <span className="text-xs text-muted-foreground">{book.chunks.toLocaleString()} chunks</span>
+                        <span className="text-xs text-muted-foreground">{book.chunks.toLocaleString()} {t("knowledge.chunks")}</span>
                       )}
                       <Badge variant="outline" className={`text-xs gap-1 ${statusColors[book.status]}`}>
                         {statusIcons[book.status]}
-                        {book.status}
+                        {t(`knowledge.status_${book.status}`)}
                       </Badge>
                       <Button variant="ghost" size="icon" className="h-7 w-7">
                         <Trash2 className="h-3 w-3 text-muted-foreground" />
@@ -166,9 +168,9 @@ export default function KnowledgeBasePage() {
           >
             <CardContent className="p-12 text-center">
               <Upload className={`h-12 w-12 mx-auto mb-4 ${dragOver ? "text-primary" : "text-muted-foreground"}`} />
-              <h3 className="font-display text-lg mb-1">Upload Books & Texts</h3>
+              <h3 className="font-display text-lg mb-1">{t("knowledge.upload_title")}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Drag & drop files or click to browse
+                {t("knowledge.upload_desc")}
               </p>
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {["PDF", "TXT", "JSON", "JSONL", "CSV", "EPUB", "MD", "HTML"].map((f) => (
@@ -177,22 +179,22 @@ export default function KnowledgeBasePage() {
               </div>
               <Button variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
-                Choose Files
+                {t("knowledge.choose_files")}
               </Button>
             </CardContent>
           </Card>
 
           <Card className="glass border-border/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Processing Pipeline</CardTitle>
+              <CardTitle className="text-base">{t("knowledge.pipeline_title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { step: "1. File Parsing", desc: "Extract text from PDF/EPUB/HTML using pypdf, ebooklib, BeautifulSoup", progress: 100 },
-                { step: "2. Text Cleaning", desc: "Remove headers, footers, page numbers. Normalize Unicode for Sanskrit", progress: 100 },
-                { step: "3. Chunking", desc: "Split into 400-token chunks with 50-token overlap for context continuity", progress: 75 },
-                { step: "4. Embedding", desc: "Generate vectors using MiniLM-L12 multilingual model (384 dim)", progress: 50 },
-                { step: "5. FAISS Indexing", desc: "Add to HNSW index with metadata (book, chapter, page, verse)", progress: 0 },
+                { step: t("knowledge.pipeline_step1"), desc: t("knowledge.pipeline_step1_desc"), progress: 100 },
+                { step: t("knowledge.pipeline_step2"), desc: t("knowledge.pipeline_step2_desc"), progress: 100 },
+                { step: t("knowledge.pipeline_step3"), desc: t("knowledge.pipeline_step3_desc"), progress: 75 },
+                { step: t("knowledge.pipeline_step4"), desc: t("knowledge.pipeline_step4_desc"), progress: 50 },
+                { step: t("knowledge.pipeline_step5"), desc: t("knowledge.pipeline_step5_desc"), progress: 0 },
               ].map((s) => (
                 <div key={s.step}>
                   <div className="flex items-center justify-between mb-1">
@@ -211,10 +213,10 @@ export default function KnowledgeBasePage() {
         <TabsContent value="system" className="space-y-4 mt-4">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { icon: BookOpen, label: "Total Books", value: systemStats.totalBooks.toLocaleString() },
-              { icon: Database, label: "Total Chunks", value: systemStats.totalChunks.toLocaleString() },
-              { icon: HardDrive, label: "Index Size", value: systemStats.indexSize },
-              { icon: Cpu, label: "Search Latency", value: systemStats.searchLatency },
+              { icon: BookOpen, label: t("knowledge.stat_total_books"), value: systemStats.totalBooks.toLocaleString() },
+              { icon: Database, label: t("knowledge.stat_total_chunks"), value: systemStats.totalChunks.toLocaleString() },
+              { icon: HardDrive, label: t("knowledge.stat_index_size"), value: systemStats.indexSize },
+              { icon: Cpu, label: t("knowledge.stat_search_latency"), value: systemStats.searchLatency },
             ].map((stat) => (
               <Card key={stat.label} className="glass border-border/30">
                 <CardContent className="p-4 flex items-center gap-3">
@@ -234,20 +236,20 @@ export default function KnowledgeBasePage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Database className="h-4 w-4 text-primary" />
-                System Configuration
+                {t("knowledge.system_config")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid sm:grid-cols-2 gap-3">
                 {[
-                  { label: "Embedding Model", value: systemStats.embeddingModel },
-                  { label: "Vector Database", value: systemStats.vectorDB },
-                  { label: "LLM", value: "Qwen 2.5-7B-Instruct (4-bit)" },
-                  { label: "Search", value: "Hybrid (FAISS + BM25 + Rerank)" },
-                  { label: "Cache", value: "Redis Semantic Cache" },
-                  { label: "GPU", value: "NVIDIA L4 24GB VRAM" },
-                  { label: "Platform", value: "Google Cloud VM" },
-                  { label: "Last Updated", value: systemStats.lastUpdated },
+                  { label: t("knowledge.cfg_embedding_model"), value: systemStats.embeddingModel },
+                  { label: t("knowledge.cfg_vector_db"), value: systemStats.vectorDB },
+                  { label: t("knowledge.cfg_llm"), value: "Qwen 2.5-7B-Instruct (4-bit)" },
+                  { label: t("knowledge.cfg_search"), value: "Hybrid (FAISS + BM25 + Rerank)" },
+                  { label: t("knowledge.cfg_cache"), value: "Redis Semantic Cache" },
+                  { label: t("knowledge.cfg_gpu"), value: "NVIDIA L4 24GB VRAM" },
+                  { label: t("knowledge.cfg_platform"), value: "Google Cloud VM" },
+                  { label: t("knowledge.cfg_last_updated"), value: systemStats.lastUpdated },
                 ].map((item) => (
                   <div key={item.label} className="flex justify-between bg-muted/20 rounded-lg p-3">
                     <span className="text-xs text-muted-foreground">{item.label}</span>
@@ -262,20 +264,20 @@ export default function KnowledgeBasePage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Languages className="h-4 w-4 text-primary" />
-                Language Support
+                {t("knowledge.language_support")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { lang: "Sanskrit", script: "संस्कृतम्", books: "45,000+", status: "Primary" },
-                  { lang: "Hindi", script: "हिन्दी", books: "32,000+", status: "Primary" },
-                  { lang: "English", script: "English", books: "23,000+", status: "Primary" },
+                  { lang: "Sanskrit", script: "संस्कृतम्", books: "45,000+", status: t("knowledge.lang_status_primary") },
+                  { lang: "Hindi", script: "हिन्दी", books: "32,000+", status: t("knowledge.lang_status_primary") },
+                  { lang: "English", script: "English", books: "23,000+", status: t("knowledge.lang_status_primary") },
                 ].map((l) => (
                   <div key={l.lang} className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
                     <p className="text-lg font-serif">{l.script}</p>
                     <p className="text-xs font-medium mt-1">{l.lang}</p>
-                    <p className="text-xs text-muted-foreground">{l.books} texts</p>
+                    <p className="text-xs text-muted-foreground">{l.books} {t("knowledge.texts")}</p>
                     <Badge variant="secondary" className="text-xs mt-1">{l.status}</Badge>
                   </div>
                 ))}
@@ -288,10 +290,9 @@ export default function KnowledgeBasePage() {
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-yellow-400">Backend Connection</p>
+                  <p className="text-sm font-medium text-yellow-400">{t("knowledge.backend_title")}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    The RAG backend (FastAPI + Qwen + FAISS) is configured to run on Google Cloud GPU VM.
-                    Start the VM and run the API server to enable live AI chat and search functionality.
+                    {t("knowledge.backend_desc")}
                   </p>
                 </div>
               </div>

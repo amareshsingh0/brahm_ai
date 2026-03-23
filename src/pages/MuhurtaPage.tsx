@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { usePanchang } from "@/hooks/usePanchang";
 import { api } from "@/lib/api";
 import { useKundliStore } from "@/store/kundliStore";
+import { useTranslation } from "react-i18next";
 
 interface Muhurta {
   event: string;
@@ -144,6 +145,7 @@ const QUALITY_CLS: Record<string, string> = {
 };
 
 export default function MuhurtaPage() {
+  const { t } = useTranslation();
   const d = new Date();
   const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const { data: panchang } = usePanchang({ date: today });
@@ -179,8 +181,8 @@ export default function MuhurtaPage() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-3xl text-primary text-glow-gold">🕉️ Shubh Muhurta</h1>
-        <p className="text-muted-foreground mt-1">Auspicious times for important life events — based on Vedic Panchang</p>
+        <h1 className="font-display text-3xl text-primary text-glow-gold">🕉️ {t("muhurta.title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("muhurta.subtitle")}</p>
       </motion.div>
 
       {/* Today's live muhurta */}
@@ -189,20 +191,20 @@ export default function MuhurtaPage() {
           <Card className="glass border-primary/30 bg-primary/5">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
-                <span>⚡</span> Today's Muhurta — {panchang.vara.name}
+                <span>⚡</span> {t("muhurta.todays_muhurta", { vara: panchang.vara.name })}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">✨ Abhijit Muhurta</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">✨ {t("muhurta.abhijit")}</p>
                   <p className="font-mono font-bold text-emerald-400">{panchang.abhijit_muhurta.start} – {panchang.abhijit_muhurta.end}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Best daily muhurta</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("muhurta.abhijit_desc")}</p>
                 </div>
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">⚠️ Rahu Kaal</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">⚠️ {t("muhurta.rahu_kaal")}</p>
                   <p className="font-mono font-bold text-red-400">{panchang.rahukaal.start} – {panchang.rahukaal.end}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Avoid new beginnings</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("muhurta.rahu_kaal_desc")}</p>
                 </div>
                 <div className="bg-muted/20 border border-border/30 rounded-xl p-3 text-center">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">📅 Tithi</p>
@@ -220,22 +222,22 @@ export default function MuhurtaPage() {
 
       <Tabs defaultValue="finder" className="w-full">
         <TabsList className="glass flex overflow-x-auto w-full sm:w-auto scrollbar-none">
-          <TabsTrigger value="finder">Activity Finder</TabsTrigger>
-          <TabsTrigger value="muhurta">General Guide</TabsTrigger>
-          <TabsTrigger value="panchang">Panchang Elements</TabsTrigger>
-          <TabsTrigger value="rahukaal">Rahu Kaal</TabsTrigger>
+          <TabsTrigger value="finder">{t("muhurta.tab_finder")}</TabsTrigger>
+          <TabsTrigger value="muhurta">{t("muhurta.tab_guide")}</TabsTrigger>
+          <TabsTrigger value="panchang">{t("muhurta.tab_panchang")}</TabsTrigger>
+          <TabsTrigger value="rahukaal">{t("muhurta.tab_rahukaal")}</TabsTrigger>
         </TabsList>
 
         {/* ── Activity Finder tab ────────────────────────────────────────── */}
         <TabsContent value="finder" className="mt-4 space-y-4">
           <Card className="glass border-border/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Find Best Time for Your Activity</CardTitle>
+              <CardTitle className="text-base">{t("muhurta.finder_title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Activity chips */}
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Select Activity</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("muhurta.select_activity")}</p>
                 <div className="flex flex-wrap gap-2">
                   {ACTIVITIES.map(a => (
                     <button key={a.value} onClick={() => setActivity(a.value)}
@@ -250,13 +252,13 @@ export default function MuhurtaPage() {
               {/* Date range */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Start Date</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("muhurta.start_date")}</p>
                   <input type="date" value={startDate}
                     onChange={e => setStartDate(e.target.value)}
                     className="w-full h-9 rounded-lg border border-border/40 bg-background px-3 text-sm focus:outline-none focus:border-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Days to scan (max 14)</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("muhurta.days_to_scan")}</p>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setDays(d => Math.max(1, d - 1))}
                       className="h-9 w-9 rounded-lg border border-border/40 text-foreground hover:bg-muted/30 text-sm">−</button>
@@ -272,7 +274,7 @@ export default function MuhurtaPage() {
               {searchErr && <p className="text-xs text-destructive">{searchErr}</p>}
               <button onClick={findMuhurta} disabled={searching}
                 className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50 flex items-center justify-center gap-2">
-                {searching ? <><Loader2 className="h-4 w-4 animate-spin" /> Scanning {days} days...</> : `Find Best ${ACTIVITIES.find(a => a.value === activity)?.label ?? "Time"} Muhurtas`}
+                {searching ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("muhurta.scanning", { days })}</> : t("muhurta.find_btn", { label: ACTIVITIES.find(a => a.value === activity)?.label ?? t("muhurta.title") })}
               </button>
             </CardContent>
           </Card>
@@ -281,7 +283,7 @@ export default function MuhurtaPage() {
           {slots !== null && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium">
-                {slots.length > 0 ? `${slots.length} auspicious slots found — sorted by score` : "No auspicious slots found for this period"}
+                {slots.length > 0 ? t("muhurta.slots_found", { count: slots.length }) : t("muhurta.no_slots")}
               </p>
               {slots.map((s, i) => (
                 <div key={i} className={`rounded-xl border p-3 ${QUALITY_CLS[s.quality] ?? "border-border/30"}`}>
@@ -322,19 +324,19 @@ export default function MuhurtaPage() {
                 <CardContent className="space-y-3">
                   <div className="grid sm:grid-cols-2 gap-3 text-sm">
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Best Months</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("muhurta.best_months")}</p>
                       <p>{m.bestMonths}</p>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Best Days</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("muhurta.best_days")}</p>
                       <p>{m.bestDays}</p>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Best Nakshatras</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("muhurta.best_nakshatras")}</p>
                       <p>{m.bestNakshatra}</p>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Avoid Tithis</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("muhurta.avoid_tithis")}</p>
                       <p>{m.avoidTithi}</p>
                     </div>
                   </div>

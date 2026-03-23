@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from "framer-motion";
 import PageBot from '@/components/PageBot';
 import { Card, CardContent } from "@/components/ui/card";
@@ -320,6 +321,7 @@ function ChogCard({ p, expanded, onToggle }: {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function PanchangPage() {
+  const { t } = useTranslation();
   const [cityInput, setCityInput] = useState("New Delhi");
   const [suggestions, setSuggestions] = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState<City>({ name: "New Delhi", lat: 28.6139, lon: 77.209, tz: 5.5 });
@@ -389,8 +391,8 @@ export default function PanchangPage() {
   return (
     <Tabs defaultValue="panchang" className="w-full">
       <TabsList className="glass flex-wrap h-auto gap-1 p-1 mb-4">
-        <TabsTrigger value="panchang" className="text-xs sm:text-sm">📅 Today's Panchang</TabsTrigger>
-        <TabsTrigger value="muhurta" className="text-xs sm:text-sm">⭐ Muhurta</TabsTrigger>
+        <TabsTrigger value="panchang" className="text-xs sm:text-sm">📅 {t('panchang.tab_panchang')}</TabsTrigger>
+        <TabsTrigger value="muhurta" className="text-xs sm:text-sm">⭐ {t('panchang.tab_muhurta')}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="panchang">
@@ -398,7 +400,7 @@ export default function PanchangPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-display text-2xl sm:text-3xl text-primary text-glow-gold">📅 Today's Panchang</h1>
+          <h1 className="font-display text-2xl sm:text-3xl text-primary text-glow-gold">📅 {t('panchang.title')}</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">{todayLabel}</p>
           <p className="text-xs text-primary/60 font-mono">{timeLabel} · {selectedCity.name}</p>
         </div>
@@ -409,7 +411,7 @@ export default function PanchangPage() {
           <button onClick={() => refetch()} disabled={isFetching}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
-            {isFetching ? "Updating..." : "Refresh"}
+            {isFetching ? t('common.loading') : t('common.refresh')}
           </button>
         </div>
       </motion.div>
@@ -418,7 +420,7 @@ export default function PanchangPage() {
       <div className="relative max-w-xs">
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input value={cityInput} onChange={e => handleCityInput(e.target.value)}
-          placeholder="Search city..." className="pl-8 bg-muted/20 border-border/30 text-sm h-9" autoComplete="off" />
+          placeholder={t('onboarding.place_placeholder')} className="pl-8 bg-muted/20 border-border/30 text-sm h-9" autoComplete="off" />
         {suggestions.length > 0 && (
           <div className="absolute z-50 w-full mt-1 cosmic-card rounded-xl border border-border/40 overflow-hidden shadow-lg">
             {suggestions.map(city => (
@@ -435,12 +437,12 @@ export default function PanchangPage() {
       {isLoading && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-          <span className="text-sm text-muted-foreground">Calculating from stars...</span>
+          <span className="text-sm text-muted-foreground">{t('panchang.loading')}</span>
         </div>
       )}
       {isError && (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-center text-sm text-muted-foreground">
-          Could not load Panchang. Please ensure the API server is running.
+          {t('panchang.error')}
         </div>
       )}
 
@@ -508,11 +510,11 @@ export default function PanchangPage() {
                     setNotifPerm(p);
                   }}
                   className="text-[10px] px-2 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition flex items-center gap-1">
-                  🔔 Alert before Rahu Kaal
+                  🔔 {t('panchang.enable_notifications')}
                 </button>
               )}
               {notifPerm === "granted" && (
-                <span className="text-[10px] text-emerald-400 flex items-center gap-1">🔔 Rahu Kaal alerts on</span>
+                <span className="text-[10px] text-emerald-400 flex items-center gap-1">🔔 {t('panchang.notifications_on')}</span>
               )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -534,11 +536,11 @@ export default function PanchangPage() {
                 <div className="flex rounded-lg overflow-hidden border border-border/30 text-xs">
                   <button onClick={() => setChogTab("day")}
                     className={`flex items-center gap-1 px-3 py-1 transition-colors ${chogTab === "day" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                    <Sun className="h-3 w-3" /> Day
+                    <Sun className="h-3 w-3" /> {t('panchang.day_choghadiya')}
                   </button>
                   <button onClick={() => setChogTab("night")}
                     className={`flex items-center gap-1 px-3 py-1 transition-colors ${chogTab === "night" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                    <Moon className="h-3 w-3" /> Night
+                    <Moon className="h-3 w-3" /> {t('panchang.night_choghadiya')}
                   </button>
                 </div>
               </div>

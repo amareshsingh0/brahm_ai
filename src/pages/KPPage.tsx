@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { searchCities, type City } from "@/lib/cities";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
+import { useTranslation } from "react-i18next";
 
 interface KPPlanet {
   longitude: number;
@@ -55,6 +56,7 @@ const GRAHA_COLOR: Record<string, string> = {
 };
 
 export default function KPPage() {
+  const { t } = useTranslation();
   const { birthDetails } = useKundliStore();
 
   const [date, setDate]     = useState(birthDetails?.dob ?? "");
@@ -84,7 +86,7 @@ export default function KPPage() {
   }
 
   async function generate() {
-    if (!date || !time) { setError("Please enter date and time"); return; }
+    if (!date || !time) { setError(t("kp.error_fields")); return; }
     setError("");
     setLoading(true);
     try {
@@ -92,7 +94,7 @@ export default function KPPage() {
       const res = await api.post("/api/kp", { date, time, lat, lon, tz, name: "KP Chart" });
       setResult(res.data as KPResult);
     } catch (e: any) {
-      setError(e.response?.data?.detail ?? "Error generating KP chart");
+      setError(e.response?.data?.detail ?? t("kp.error_chart"));
     } finally {
       setLoading(false);
     }
@@ -114,40 +116,36 @@ export default function KPPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Star className="h-6 w-6 text-primary" />
-          KP System
+          {t("kp.title")}
         </h1>
-        <p className="text-muted-foreground text-sm mt-1">Krishnamurti Paddhati — Sub-Lord Analysis (Placidus cusps, KP Ayanamsha)</p>
+        <p className="text-muted-foreground text-sm mt-1">{t("kp.subtitle")}</p>
       </div>
 
       {/* Info card */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex gap-3">
         <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <p className="text-xs text-muted-foreground">
-          KP system divides each nakshatra (13°20') into 9 sub-periods proportional to Vimshottari dasha years.
-          The <strong className="text-foreground">Sub-Lord</strong> of a planet/cusp reveals the actual event signified.
-          The <strong className="text-foreground">Star Lord</strong> indicates the source (which planet's house significations).
-        </p>
+        <p className="text-xs text-muted-foreground">{t("kp.info")}</p>
       </div>
 
       {/* Input form */}
       <div className="rounded-xl border border-border/30 bg-card p-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">Date of Birth</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">{t("kp.date_of_birth")}</Label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-9 text-sm" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">Time of Birth</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">{t("kp.time_of_birth")}</Label>
             <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="h-9 text-sm" />
           </div>
         </div>
         <div className="relative">
-          <Label className="text-xs text-muted-foreground mb-1 block">Birth Place</Label>
+          <Label className="text-xs text-muted-foreground mb-1 block">{t("kp.birth_place")}</Label>
           <div className="relative">
             <MapPin className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               className="pl-8 h-9 text-sm"
-              placeholder="Search city..."
+              placeholder={t("kp.search_city")}
               value={cityQ}
               onChange={e => handleCitySearch(e.target.value)}
             />
@@ -173,7 +171,7 @@ export default function KPPage() {
           onClick={generate}
           disabled={loading}
           className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50 flex items-center justify-center gap-2">
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Calculating...</> : "Generate KP Chart"}
+          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("kp.calculating")}</> : t("kp.generate_btn")}
         </button>
       </div>
 
@@ -182,19 +180,19 @@ export default function KPPage() {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Lagna summary */}
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
-            <p className="text-xs text-muted-foreground uppercase mb-2 font-medium tracking-wide">KP Lagna</p>
+            <p className="text-xs text-muted-foreground uppercase mb-2 font-medium tracking-wide">{t("kp.kp_lagna")}</p>
             <div className="flex flex-wrap gap-3 items-center">
               <span className="text-lg font-bold text-foreground">{result.lagna.rashi}</span>
               <span className="text-xs text-muted-foreground">{result.lagna.longitude.toFixed(2)}°</span>
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-muted-foreground">Star:</span>
+                <span className="text-muted-foreground">{t("kp.star")}:</span>
                 <SubLordBadge lord={result.lagna.star_lord} />
-                <span className="text-muted-foreground">Sub:</span>
+                <span className="text-muted-foreground">{t("kp.sub")}:</span>
                 <SubLordBadge lord={result.lagna.sub_lord} />
-                <span className="text-muted-foreground">Sub-sub:</span>
+                <span className="text-muted-foreground">{t("kp.sub_sub")}:</span>
                 <SubLordBadge lord={result.lagna.sub_sub_lord} size="xs" />
               </div>
-              <span className="text-xs text-muted-foreground ml-auto">Ayanamsha: {result.ayanamsha.toFixed(4)}°</span>
+              <span className="text-xs text-muted-foreground ml-auto">{t("kp.ayanamsha")}: {result.ayanamsha.toFixed(4)}°</span>
             </div>
           </div>
 
@@ -203,7 +201,7 @@ export default function KPPage() {
             {(["planets","cusps"] as const).map(s => (
               <button key={s} onClick={() => setActiveSection(s)}
                 className={`px-4 py-1.5 text-sm capitalize transition ${activeSection === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/30"}`}>
-                {s === "planets" ? "Planet Sub-Lords" : "Cusp Sub-Lords"}
+                {s === "planets" ? t("kp.planet_sub_lords") : t("kp.cusp_sub_lords")}
               </button>
             ))}
           </div>
@@ -216,7 +214,7 @@ export default function KPPage() {
               <table className="w-full text-xs min-w-[600px]">
                 <thead>
                   <tr className="border-b border-border/30 bg-muted/20">
-                    {["Planet","Rashi","Nak°","Star Lord","Sub Lord","Sub-Sub","Sig. Houses","R"].map(h => (
+                    {[t("kp.planet_col"),t("kp.rashi_col"),t("kp.degree_col"),t("kp.star_lord_col"),t("kp.sub_lord_col"),t("kp.sub_sub_col"),t("kp.sig_houses_col"),t("kp.retro_col")].map(h => (
                       <th key={h} className="text-left px-3 py-2 text-muted-foreground font-medium">{h}</th>
                     ))}
                   </tr>
@@ -257,7 +255,7 @@ export default function KPPage() {
               <table className="w-full text-xs min-w-[480px]">
                 <thead>
                   <tr className="border-b border-border/30 bg-muted/20">
-                    {["House","Rashi","Degree","Star Lord","Sub Lord","Sub-Sub Lord"].map(h => (
+                    {[t("kp.house_col"),t("kp.rashi_col"),t("kp.degree_col2"),t("kp.star_lord_col"),t("kp.sub_lord_col"),t("kp.sub_sub_lord_col")].map(h => (
                       <th key={h} className="text-left px-3 py-2 text-muted-foreground font-medium">{h}</th>
                     ))}
                   </tr>
@@ -281,11 +279,11 @@ export default function KPPage() {
 
           {/* KP Interpretation guide */}
           <div className="rounded-xl border border-border/30 bg-muted/10 p-4">
-            <p className="text-xs font-medium text-foreground mb-2">How to Read KP Sub-Lords</p>
+            <p className="text-xs font-medium text-foreground mb-2">{t("kp.how_to_read")}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-muted-foreground">
-              <div><span className="text-foreground font-medium">Star Lord</span> — Indicates the source nakshatra lord. Shows what area of life is activated.</div>
-              <div><span className="text-foreground font-medium">Sub Lord</span> — The key significator. Determines if the matter promised by the cusp/planet will fructify.</div>
-              <div><span className="text-foreground font-medium">Significators</span> — Houses signified by each planet (occupation + ownership). Used to time events.</div>
+              <div><span className="text-foreground font-medium">{t("kp.star_lord_col")}</span> — {t("kp.star_lord_desc")}</div>
+              <div><span className="text-foreground font-medium">{t("kp.sub_lord_col")}</span> — {t("kp.sub_lord_desc")}</div>
+              <div><span className="text-foreground font-medium">Significators</span> — {t("kp.significators_desc")}</div>
             </div>
           </div>
         </motion.div>

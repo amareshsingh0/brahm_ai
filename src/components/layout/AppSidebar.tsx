@@ -1,5 +1,6 @@
 ﻿import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Star, Globe, Clock, Sparkles, BookOpen, Moon, Heart, Gem, Sun, Compass, User, Zap, Hand, Eclipse, Calendar, Bot, Library, Music, TreePine, Database, LogOut, CreditCard, HelpCircle, ShieldAlert, Activity } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -104,10 +105,20 @@ export function AppSidebar() {
         <NavGroup label={t('nav_group.explore')} items={exploreNav} collapsed={collapsed} />
         <NavGroup label={t('nav_group.account')} items={accountNav} collapsed={collapsed} />
 
-        {/* Logout */}
+        {/* Language + Logout footer */}
         <SidebarGroup className="mt-auto pb-4">
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* Language switcher */}
+              <SidebarMenuItem>
+                <div className="flex items-center gap-2 px-3 py-1">
+                  <LanguageSwitcher variant={collapsed ? "icon" : "full"} />
+                  {!collapsed && (
+                    <span className="text-xs text-muted-foreground">Language</span>
+                  )}
+                </div>
+              </SidebarMenuItem>
+              {/* Logout */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <button

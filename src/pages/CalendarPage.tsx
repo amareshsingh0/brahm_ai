@@ -13,8 +13,12 @@ import { useCalendar } from "@/hooks/useCalendar";
 import { useGrahan } from "@/hooks/useGrahan";
 import { getCities, type City } from "@/lib/cities";
 import type { CalendarDayData, FestivalEntry, Eclipse } from "@/types/api";
+import { useTranslation } from "react-i18next";
 
 // ── Constants ────────────────────────────────────────────────────────────────
+// Week headers and month names are used in static contexts (sub-components without t()).
+// They are kept as English constants; translations for the main UI labels are done
+// via useTranslation() inside each component that renders user-facing strings.
 const WEEK_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -162,6 +166,7 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
       {hasGrahan && (
         <div className="mt-2 space-y-1">
           <p className="text-xs font-semibold text-red-400">🌑 Eclipse Conflict &amp; Shift Reason</p>
+          {/* Note: "Eclipse Conflict & Shift Reason" is a technical label kept in English */}
           {grahanNotes.map((n, i) => (
             <div key={i} className="rounded bg-red-500/8 border border-red-500/20 p-2">
               <p className="text-xs text-red-300/90 leading-relaxed">{n}</p>
@@ -323,6 +328,7 @@ function DayDetailSheet({
   onClose: () => void;
   eclipse?: Eclipse;
 }) {
+  const { t } = useTranslation();
   if (!day) return null;
 
   const specialBadges = [
@@ -364,23 +370,23 @@ function DayDetailSheet({
           {/* Panchang grid */}
           <div className="rounded-xl border border-border/30 bg-card/50 p-4 space-y-0">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">
-              Panchang
+              {t("panchang.title")}
             </p>
-            <InfoRow label="Vara (Day)"    value={day.vara} />
-            <InfoRow label="Tithi"         value={`${day.paksha} ${day.tithi} (${day.paksha_short}${day.tithi_num})`} />
-            <InfoRow label="Nakshatra"     value={day.nakshatra} />
-            <InfoRow label="Yoga"          value={day.yoga} />
-            <InfoRow label="Lunar Month"   value={day.lunar_month} />
-            <InfoRow label="🌅 Sunrise"    value={day.sunrise} />
-            <InfoRow label="🌇 Sunset"     value={day.sunset} />
-            <InfoRow label="☢ Rahu Kaal"   value={day.rahu_kaal} highlight />
+            <InfoRow label={t("calendar.vara_day")}     value={day.vara} />
+            <InfoRow label={t("panchang.tithi")}        value={`${day.paksha} ${day.tithi} (${day.paksha_short}${day.tithi_num})`} />
+            <InfoRow label={t("panchang.nakshatra")}    value={day.nakshatra} />
+            <InfoRow label={t("panchang.yoga")}         value={day.yoga} />
+            <InfoRow label={t("calendar.lunar_month_label")} value={day.lunar_month} />
+            <InfoRow label={`🌅 ${t("panchang.sunrise")}`}   value={day.sunrise} />
+            <InfoRow label={`🌇 ${t("panchang.sunset")}`}    value={day.sunset} />
+            <InfoRow label={`☢ ${t("panchang.rahukaal")}`}   value={day.rahu_kaal} highlight />
           </div>
 
           {/* Eclipse — shown before festivals if present */}
           {eclipse && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-red-400/80 uppercase tracking-widest">
-                Grahan (Eclipse)
+                {t("calendar.grahan_eclipse")}
               </p>
               <EclipseSection eclipse={eclipse} />
             </div>
@@ -390,7 +396,7 @@ function DayDetailSheet({
           {day.festivals.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                Festivals & Observances
+                {t("calendar.festivals_observances")}
               </p>
               {day.festivals.map((f, i) => (
                 <FestivalCard key={i} f={f as FestivalEntry} />
@@ -400,7 +406,7 @@ function DayDetailSheet({
 
           {day.festivals.length === 0 && (
             <div className="rounded-lg border border-dashed border-border/30 p-4 text-center">
-              <p className="text-xs text-muted-foreground">No major festivals today</p>
+              <p className="text-xs text-muted-foreground">{t("calendar.no_festivals_today")}</p>
             </div>
           )}
 
@@ -520,6 +526,7 @@ function DayListRow({ day, onClick, eclipse }: { day: CalendarDayData; onClick: 
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CalendarPage() {
+  const { t } = useTranslation();
   const now = new Date();
   const [year,       setYear]       = useState(now.getFullYear());
   const [month,      setMonth]      = useState(now.getMonth() + 1);
@@ -598,10 +605,10 @@ export default function CalendarPage() {
       {/* ── Header ── */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <p className="text-xs text-muted-foreground/70">Any year · Any city · 1800–2200</p>
+          <p className="text-xs text-muted-foreground/70">{t("calendar.any_year_city")}</p>
           {vikramSamvat && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Vikram Samvat</span>
+              <span className="text-xs text-muted-foreground">{t("calendar.vikram_samvat")}</span>
               <span className="text-sm font-bold text-primary/80">{vikramSamvat}</span>
             </div>
           )}
@@ -610,7 +617,7 @@ export default function CalendarPage() {
         {/* Lunar month names banner */}
         {lunarMonths.length > 0 && (
           <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className="text-xs text-muted-foreground/70">🌙 Lunar month{lunarMonths.length > 1 ? "s" : ""}:</span>
+            <span className="text-xs text-muted-foreground/70">🌙 {t("calendar.lunar_month", { count: lunarMonths.length })}:</span>
             {lunarMonths.map(m => (
               <Badge key={m} variant="outline" className="text-xs text-primary/80 border-primary/20">{m}</Badge>
             ))}
@@ -624,7 +631,7 @@ export default function CalendarPage() {
             className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-4 py-2 text-xs text-amber-300 flex items-center gap-2"
           >
             <Star className="h-3.5 w-3.5 shrink-0" />
-            <span><strong>Adhik Maas {year}:</strong> {adhikNote}</span>
+            <span><strong>{t("calendar.adhik_maas")} {year}:</strong> {adhikNote}</span>
           </motion.div>
         )}
         {kshayaNote && (
@@ -633,7 +640,7 @@ export default function CalendarPage() {
             className="mt-1 rounded-lg border border-rose-500/30 bg-rose-500/8 px-4 py-2 text-xs text-rose-300 flex items-center gap-2"
           >
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-            <span><strong>Kshaya Maas {year}:</strong> {kshayaNote}</span>
+            <span><strong>{t("calendar.kshaya_maas")} {year}:</strong> {kshayaNote}</span>
           </motion.div>
         )}
       </motion.div>
@@ -670,7 +677,7 @@ export default function CalendarPage() {
 
         {/* Today */}
         <Button variant="outline" size="sm" onClick={goToday} className="h-9 text-xs">
-          Today
+          {t("calendar.today")}
         </Button>
 
         <Separator orientation="vertical" className="h-8 hidden sm:block" />
@@ -682,7 +689,7 @@ export default function CalendarPage() {
             <input
               className="bg-transparent text-sm w-32 focus:outline-none"
               value={citySearch}
-              placeholder="City..."
+              placeholder={t("calendar.city_placeholder")}
               onChange={e => handleCitySearch(e.target.value)}
             />
           </div>
@@ -723,8 +730,8 @@ export default function CalendarPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="amanta" className="text-xs">Amanta (South/Deccan)</SelectItem>
-            <SelectItem value="purnimanta" className="text-xs">Purnimanta (North India)</SelectItem>
+            <SelectItem value="amanta" className="text-xs">{t("calendar.amanta")}</SelectItem>
+            <SelectItem value="purnimanta" className="text-xs">{t("calendar.purnimanta")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -762,7 +769,7 @@ export default function CalendarPage() {
         {isLoading && (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
-            <p className="ml-3 text-sm text-muted-foreground">Calculating panchang...</p>
+            <p className="ml-3 text-sm text-muted-foreground">{t("calendar.loading")}</p>
           </div>
         )}
 
@@ -770,8 +777,8 @@ export default function CalendarPage() {
         {isError && (
           <div className="flex items-center justify-center py-16 text-center">
             <div>
-              <p className="text-muted-foreground text-sm">Could not load calendar</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">Check API server connection</p>
+              <p className="text-muted-foreground text-sm">{t("calendar.error")}</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">{t("calendar.error_hint")}</p>
             </div>
           </div>
         )}
@@ -826,11 +833,11 @@ export default function CalendarPage() {
         >
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded bg-red-950/60 border-2 border-red-500/50 inline-block" />
-            🌑 Grahan
+            🌑 {t("calendar.legend_grahan")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded bg-amber-500/30 border border-amber-500/40 inline-block" />
-            Festival
+            {t("calendar.legend_festival")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded bg-blue-500/30 border border-blue-500/40 inline-block" />
@@ -850,7 +857,7 @@ export default function CalendarPage() {
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded ring-2 ring-primary inline-block" />
-            Today
+            {t("calendar.legend_today")}
           </span>
         </motion.div>
       )}
@@ -864,10 +871,10 @@ export default function CalendarPage() {
           className="flex flex-wrap gap-2"
         >
           {[
-            { icon: <CalendarDays className="h-3.5 w-3.5" />, label: "Tradition",    value: data.tradition },
-            { icon: <Moon className="h-3.5 w-3.5" />,         label: "System",       value: data.lunar_system === "amanta" ? "Amanta" : "Purnimanta" },
-            { icon: <Star className="h-3.5 w-3.5" />,         label: "Festivals",    value: `${data.days.filter(d => d.has_festival).length} days` },
-            { icon: <Sun className="h-3.5 w-3.5" />,          label: "Purnima",      value: (() => { const p = data.days.find(d => d.is_purnima); return p ? `${p.day}th` : "—"; })() },
+            { icon: <CalendarDays className="h-3.5 w-3.5" />, label: t("calendar.stat_tradition"),  value: data.tradition },
+            { icon: <Moon className="h-3.5 w-3.5" />,         label: t("calendar.stat_system"),     value: data.lunar_system === "amanta" ? "Amanta" : "Purnimanta" },
+            { icon: <Star className="h-3.5 w-3.5" />,         label: t("calendar.stat_festivals"),  value: `${data.days.filter(d => d.has_festival).length} ${t("calendar.days")}` },
+            { icon: <Sun className="h-3.5 w-3.5" />,          label: "Purnima",                     value: (() => { const p = data.days.find(d => d.is_purnima); return p ? `${p.day}th` : "—"; })() },
             ...(vikramSamvat ? [{ icon: <Star className="h-3.5 w-3.5" />, label: "V.S.", value: String(vikramSamvat) }] : []),
           ].map(item => (
             <div

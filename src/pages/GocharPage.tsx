@@ -12,6 +12,7 @@ import { TrendingUp, AlertTriangle, RefreshCw, User } from "lucide-react";
 import { api } from "@/lib/api";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
+import { useTranslation } from 'react-i18next';
 
 const GRAHA_SYMBOL: Record<string, string> = {
   Surya: "☉︎", Chandra: "☽︎", Mangal: "♂︎", Budh: "☿︎",
@@ -53,6 +54,7 @@ interface AnalysisResult {
 }
 
 export default function GocharPage() {
+  const { t } = useTranslation();
   const kundaliData  = useKundliStore((s) => s.kundaliData);
   const birthDetails = useKundliStore((s) => s.birthDetails);
 
@@ -73,7 +75,7 @@ export default function GocharPage() {
         setLastFetch(new Date());
       }
     } catch {
-      setError("Could not load planet positions. Please check your connection.");
+      setError(t('gochar.error'));
     } finally {
       setLoading(false);
     }
@@ -123,9 +125,9 @@ export default function GocharPage() {
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl text-foreground text-glow-gold">Gochar</h1>
+            <h1 className="font-display text-2xl text-foreground text-glow-gold">{t('gochar.title')}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Current planetary transits — where each planet is in the sky today
+              {t('gochar.subtitle')}
             </p>
           </div>
           <button
@@ -138,7 +140,7 @@ export default function GocharPage() {
         </div>
         {lastFetch && (
           <p className="text-xs text-muted-foreground/60 mt-1">
-            Updated: {lastFetch.toLocaleTimeString()}
+            {t('gochar.updated', { time: lastFetch.toLocaleTimeString() })}
           </p>
         )}
       </motion.div>
@@ -190,10 +192,9 @@ export default function GocharPage() {
         >
           <User className="w-8 h-8 text-muted-foreground/60 shrink-0" />
           <div>
-            <p className="text-sm text-foreground font-medium">Personal Transit Analysis</p>
+            <p className="text-sm text-foreground font-medium">{t('gochar.personal_analysis')}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Generate your birth chart to see how today's transits affect you personally —
-              which planet is moving through which house in your natal chart.
+              {t('gochar.personal_analysis_desc')}
             </p>
           </div>
         </motion.div>
@@ -250,9 +251,9 @@ export default function GocharPage() {
           {/* Personal positions table */}
           <div className="cosmic-card rounded-xl overflow-hidden">
             <div className="px-4 py-2 border-b border-border/30 bg-muted/10 flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">Transit positions relative to your natal chart</p>
+              <p className="text-xs text-muted-foreground">{t('gochar.transit_relative')}</p>
               {analysis.av_scores && Object.keys(analysis.av_scores).length > 0 && (
-                <p className="text-[10px] text-muted-foreground/60">AV = Ashtakavarga bindus</p>
+                <p className="text-[10px] text-muted-foreground/60">{t('gochar.av_label')}</p>
               )}
             </div>
             <div className="divide-y divide-border/20">
@@ -284,7 +285,7 @@ export default function GocharPage() {
             <div className="cosmic-card rounded-xl p-4 space-y-2 border border-green-500/20">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-green-400" />
-                <h3 className="text-sm font-semibold text-green-400">Opportunities</h3>
+                <h3 className="text-sm font-semibold text-green-400">{t('gochar.opportunities')}</h3>
               </div>
               {analysis.opportunities.map((o, i) => (
                 <p key={i} className="text-xs text-muted-foreground leading-relaxed pl-1 border-l-2 border-green-500/30">
@@ -299,7 +300,7 @@ export default function GocharPage() {
             <div className="cosmic-card rounded-xl p-4 space-y-2 border border-amber-500/20">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <h3 className="text-sm font-semibold text-amber-400">Cautions</h3>
+                <h3 className="text-sm font-semibold text-amber-400">{t('gochar.cautions')}</h3>
               </div>
               {analysis.cautions.map((c, i) => (
                 <p key={i} className="text-xs text-muted-foreground leading-relaxed pl-1 border-l-2 border-amber-500/30">

@@ -10,6 +10,7 @@ import { useFestivals } from "@/hooks/useFestivals";
 import { useKundliStore } from "@/store/kundliStore";
 import type { FestivalEntry, Eclipse } from "@/types/api";
 import CalendarPage from "./CalendarPage";
+import { useTranslation } from "react-i18next";
 
 // ── Rules reference modal content ────────────────────────────────────────────
 const SUTAK_RULES = [
@@ -161,6 +162,7 @@ function TithiTypeBadge({ type }: { type: string }) {
 
 // ── Festival Card ─────────────────────────────────────────────────────────────
 function FestivalCard({ festival, index }: { festival: FestivalEntry; index: number }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const hasNotes   = festival.dosh_notes && festival.dosh_notes.length > 0;
   const grahanNotes = hasNotes ? festival.dosh_notes.filter(n => n.includes("Grahan") || n.includes("grahan") || n.includes("eclipse") || n.includes("Eclipse")) : [];
@@ -253,7 +255,7 @@ function FestivalCard({ festival, index }: { festival: FestivalEntry; index: num
                 onClick={() => setExpanded(v => !v)}
               >
                 <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
-                {expanded ? "hide" : "show"} Vedic notes
+                {expanded ? t("grahan.hide") : t("grahan.show")} {t("grahan.vedic_notes")}
               </button>
               {expanded && (
                 <div className="space-y-1">
@@ -285,6 +287,7 @@ function FestivalCard({ festival, index }: { festival: FestivalEntry; index: num
 
 // ── Eclipse Inline Card (shown in festival grid on eclipse date) ───────────────
 function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const isSolar = eclipse.type.includes("Solar");
   const hasConflict = eclipse.festival_conflict && eclipse.festival_conflict.length > 0;
@@ -306,11 +309,11 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
             <span className="text-3xl">{isSolar ? "☀️" : "🌕"}</span>
             <div className="flex items-center gap-1 flex-wrap justify-end">
               {isSolar
-                ? <Badge className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">Solar Eclipse</Badge>
-                : <Badge className="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30">Lunar Eclipse</Badge>
+                ? <Badge className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">{t("grahan.solar_eclipse")}</Badge>
+                : <Badge className="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30">{t("grahan.lunar_eclipse")}</Badge>
               }
               {hasConflict && (
-                <Badge className="text-xs bg-red-500/15 text-red-400 border border-red-500/30">Festival Alert</Badge>
+                <Badge className="text-xs bg-red-500/15 text-red-400 border border-red-500/30">{t("grahan.festival_alert")}</Badge>
               )}
             </div>
           </div>
@@ -347,22 +350,22 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
           {/* Sutak strip */}
           {hasSutak ? (
             <div className="bg-red-500/5 border border-red-500/20 rounded-lg px-2.5 py-2 text-xs text-red-300">
-              <span className="font-semibold">⏳ Sutak:</span>{" "}
+              <span className="font-semibold">⏳ {t("grahan.sutak")}:</span>{" "}
               <span className="font-mono">{eclipse.sutak_start}</span>
               <span className="text-muted-foreground mx-1">→</span>
               <span className="font-mono">{eclipse.sparsha}</span>
-              <span className="text-muted-foreground ml-1">({eclipse.sutak_hours}h before)</span>
+              <span className="text-muted-foreground ml-1">({eclipse.sutak_hours}h {t("grahan.before")})</span>
             </div>
           ) : (
             <p className="text-xs text-muted-foreground bg-muted/10 rounded-lg px-2 py-1.5">
-              ℹ️ No Sutak — penumbral eclipse
+              ℹ️ {t("grahan.no_sutak_penumbral")}
             </p>
           )}
 
           {/* Festival conflicts — always visible */}
           {hasConflict && (
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-amber-400">🎪 Nearby Festival Impact</p>
+              <p className="text-xs font-semibold text-amber-400">🎪 {t("grahan.nearby_festival_impact")}</p>
               {eclipse.festival_conflict!.map((msg, i) => (
                 <div key={i} className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2 text-xs text-amber-300 leading-relaxed">
                   {msg}
@@ -377,12 +380,12 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
             onClick={() => setExpanded(v => !v)}
           >
             <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
-            {expanded ? "hide" : "show"} spiritual guidance
+            {expanded ? t("grahan.hide") : t("grahan.show")} {t("grahan.spiritual_guidance")}
           </button>
           {expanded && (
             <div className="space-y-2">
               <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5">
-                <p className="text-xs text-primary/80 mb-1">🔮 Spiritual Significance</p>
+                <p className="text-xs text-primary/80 mb-1">🔮 {t("grahan.spiritual_significance")}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{eclipse.spiritual_effect}</p>
               </div>
               <div className="flex flex-wrap gap-1">
@@ -400,17 +403,18 @@ function EclipseInlineCard({ eclipse, index }: { eclipse: Eclipse; index: number
 
 // ── Rules Modal ───────────────────────────────────────────────────────────────
 function RulesModal() {
+  const { t } = useTranslation();
   return (
     <Dialog>
       <DialogTrigger asChild>
         <button className="flex items-center gap-1.5 text-xs text-primary/70 hover:text-primary border border-primary/20 hover:border-primary/40 rounded-lg px-3 py-1.5 transition-colors">
           <Info className="h-3 w-3" />
-          Grahan Rules & Sutak Guide
+          {t("grahan.rules_guide")}
         </button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto glass border-border/40">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg text-primary">🌑 Grahan Niyam (Eclipse Rules)</DialogTitle>
+          <DialogTitle className="font-display text-lg text-primary">🌑 {t("grahan.rules_title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-5 text-sm mt-2">
           {SUTAK_RULES.map(section => (
@@ -428,7 +432,7 @@ function RulesModal() {
             </div>
           ))}
           <div className="text-xs text-muted-foreground/50 border-t border-border/20 pt-3">
-            Source: Dharmasindhu, Nirnaya Sindhu, Muhurta Chintamani. Times shown in IST (UTC+5:30).
+            {t("grahan.rules_source")}
           </div>
         </div>
       </DialogContent>
@@ -457,6 +461,7 @@ function TimingGrid({ eclipse }: { eclipse: Eclipse }) {
 
 // ── Eclipse Card ──────────────────────────────────────────────────────────────
 function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
+  const { t } = useTranslation();
   const [showDetails, setShowDetails] = useState(false);
   const isSolar = eclipse.type.includes("Solar");
   const hasConflict = eclipse.festival_conflict && eclipse.festival_conflict.length > 0;
@@ -480,10 +485,10 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
             </CardTitle>
             <div className="flex items-center gap-1.5 flex-wrap justify-end">
               {isSolar
-                ? <Badge className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Solar</Badge>
-                : <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Lunar</Badge>
+                ? <Badge className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">{t("grahan.solar")}</Badge>
+                : <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">{t("grahan.lunar")}</Badge>
               }
-              {hasConflict && <Badge className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">Festival Alert</Badge>}
+              {hasConflict && <Badge className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">{t("grahan.festival_alert")}</Badge>}
             </div>
           </div>
         </CardHeader>
@@ -496,7 +501,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
           <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/10 rounded-lg px-3 py-2">
             <div className="flex items-center gap-1.5">
               <Clock className="h-3 w-3" />
-              <span>Duration: <span className="text-foreground font-medium">{eclipse.duration_minutes} min</span></span>
+              <span>{t("grahan.duration")}: <span className="text-foreground font-medium">{eclipse.duration_minutes} {t("grahan.min")}</span></span>
             </div>
             <div className="flex items-center gap-1.5">
               {isSolar ? <Sun className="h-3 w-3" /> : <Moon className="h-3 w-3" />}
@@ -507,25 +512,25 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
           {/* Sutak period */}
           {hasSutak ? (
             <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
-              <p className="text-xs font-semibold text-red-400 mb-1">⏳ Sutak Kaal</p>
+              <p className="text-xs font-semibold text-red-400 mb-1">⏳ {t("grahan.sutak_kaal")}</p>
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground">Starts:</span>
+                <span className="text-muted-foreground">{t("grahan.starts")}:</span>
                 <span className="font-mono text-red-300">{eclipse.sutak_start}</span>
                 <span className="text-muted-foreground">→</span>
                 <span className="font-mono text-yellow-300">{eclipse.sparsha}</span>
                 <span className="text-muted-foreground">(Sparsha)</span>
                 <Badge className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 ml-auto">
-                  {eclipse.sutak_hours}h before
+                  {eclipse.sutak_hours}h {t("grahan.before")}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground/60 mt-1">
-                Avoid cooking, eating, major activities during Sutak. Temples remain closed.
+                {t("grahan.sutak_note")}
               </p>
             </div>
           ) : (
             <div className="bg-muted/10 border border-border/20 rounded-lg px-3 py-2">
               <p className="text-xs text-muted-foreground">
-                ℹ️ <span className="font-medium text-foreground">No Sutak</span> — Penumbral eclipses are not observed with Sutak in most traditions.
+                ℹ️ <span className="font-medium text-foreground">{t("grahan.no_sutak")}</span> — {t("grahan.no_sutak_desc")}
               </p>
             </div>
           )}
@@ -533,7 +538,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
           {/* Festival conflict */}
           {hasConflict && (
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-amber-400">🎪 Festival Conflicts</p>
+              <p className="text-xs font-semibold text-amber-400">🎪 {t("grahan.festival_conflicts")}</p>
               {eclipse.festival_conflict!.map((msg, i) => (
                 <div key={i} className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 text-xs text-amber-300 leading-relaxed">
                   {msg}
@@ -544,7 +549,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
 
           {/* Spiritual effect */}
           <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
-            <p className="text-xs text-primary/80 mb-1">🔮 Spiritual Significance</p>
+            <p className="text-xs text-primary/80 mb-1">🔮 {t("grahan.spiritual_significance")}</p>
             <p className="text-xs text-muted-foreground leading-relaxed">{eclipse.spiritual_effect}</p>
           </div>
 
@@ -553,7 +558,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
             className="text-xs text-muted-foreground/60 hover:text-muted-foreground flex items-center gap-1"
             onClick={() => setShowDetails(v => !v)}
           >
-            {showDetails ? "▲ hide" : "▼ show"} Vedic Do's &amp; Don'ts
+            {showDetails ? `▲ ${t("grahan.hide")}` : `▼ ${t("grahan.show")}`} {t("grahan.dos_donts")}
           </button>
           {showDetails && (
             <div className="flex flex-wrap gap-1.5">
@@ -570,6 +575,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function GrahanPage() {
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
   const { birthDetails } = useKundliStore();
 
@@ -589,19 +595,19 @@ export default function GrahanPage() {
   return (
     <div className="space-y-4 pb-2">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl sm:text-3xl text-primary text-glow-gold">🗓️ Panchang</h1>
+        <h1 className="font-display text-2xl sm:text-3xl text-primary text-glow-gold">🗓️ {t("grahan.page_title")}</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Hindu calendar, festivals & eclipses — {year} ·{" "}
+          {t("grahan.page_subtitle", { year })} ·{" "}
           <span className="text-primary/70">📍 {loc}</span>
         </p>
       </motion.div>
 
       <Tabs defaultValue="calendar" className="w-full">
         <TabsList className="glass flex-wrap h-auto gap-1 p-1">
-          <TabsTrigger value="calendar" className="text-xs sm:text-sm">📅 Panchang</TabsTrigger>
-          <TabsTrigger value="festivals" className="text-xs sm:text-sm">🎉 Festivals</TabsTrigger>
+          <TabsTrigger value="calendar" className="text-xs sm:text-sm">📅 {t("grahan.tab_panchang")}</TabsTrigger>
+          <TabsTrigger value="festivals" className="text-xs sm:text-sm">🎉 {t("grahan.tab_festivals")}</TabsTrigger>
           <TabsTrigger value="eclipses" className="text-xs sm:text-sm">
-            🌑 Eclipses
+            🌑 {t("grahan.tab_eclipses")}
             {conflictCount > 0 && (
               <Badge className="ml-1.5 text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30">
                 {conflictCount}
@@ -620,13 +626,13 @@ export default function GrahanPage() {
           {(fLoading || gLoading) && (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
-              <span className="text-sm text-muted-foreground">Calculating from lunar calendar…</span>
+              <span className="text-sm text-muted-foreground">{t("grahan.loading_festivals")}</span>
             </div>
           )}
           {fError && (
             <Card className="glass border-destructive/30">
               <CardContent className="pt-5 text-sm text-muted-foreground text-center">
-                Could not load festival data. API server may be down.
+                {t("grahan.error_festivals")}
               </CardContent>
             </Card>
           )}
@@ -652,12 +658,12 @@ export default function GrahanPage() {
                 return (
                   <>
                     <p className="text-xs text-muted-foreground">
-                      {festData.festivals.length} festivals
+                      {festData.festivals.length} {t("grahan.festivals_label")}
                       {eclipseCount > 0 && (
-                        <> + <span className="text-red-400">{eclipseCount} eclipse{eclipseCount > 1 ? "s" : ""}</span></>
+                        <> + <span className="text-red-400">{eclipseCount} {t("grahan.eclipse_label", { count: eclipseCount })}</span></>
                       )}{" "}
-                      · sorted by date · eclipse cards shown on their exact date ·{" "}
-                      <span className="text-red-400/80">red border = Grahan conflict</span>
+                      · {t("grahan.sorted_by_date")} ·{" "}
+                      <span className="text-red-400/80">{t("grahan.red_border_note")}</span>
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       {items.map((item, i) =>
@@ -680,7 +686,7 @@ export default function GrahanPage() {
           {/* Info bar */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-xs text-muted-foreground">
-              All timings in IST · Sparsha = first contact · Madhya = maximum · Moksha = last contact
+              {t("grahan.eclipse_timings_note")}
             </p>
             <RulesModal />
           </div>
@@ -688,20 +694,20 @@ export default function GrahanPage() {
           {gLoading && (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
-              <span className="text-sm text-muted-foreground">Calculating eclipses from pyswisseph…</span>
+              <span className="text-sm text-muted-foreground">{t("grahan.loading_eclipses")}</span>
             </div>
           )}
           {gError && (
             <Card className="glass border-destructive/30">
               <CardContent className="pt-5 text-sm text-muted-foreground text-center">
-                Could not load eclipse data. API server may be down.
+                {t("grahan.error_eclipses")}
               </CardContent>
             </Card>
           )}
           {grahanData && grahanData.eclipses.length === 0 && (
             <Card className="glass border-border/30">
               <CardContent className="pt-5 text-sm text-muted-foreground text-center">
-                No eclipses found for {grahanData.year}.
+                {t("grahan.no_eclipses", { year: grahanData.year })}
               </CardContent>
             </Card>
           )}

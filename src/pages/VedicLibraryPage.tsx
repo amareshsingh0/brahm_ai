@@ -6,13 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, BookOpen, ScrollText, Flame, Feather, Loader2 } from "lucide-react";
 import { useSearch } from "@/hooks/useSearch";
+import { useTranslation } from "react-i18next";
 
-const categories = [
+// Categories are defined as a function so they can use translations
+function getCategories(t: (key: string) => string) {
+  return [
   {
     id: "vedas",
-    label: "Vedas",
+    label: t("data.library.vedas_label"),
     icon: Flame,
-    description: "The foundational scriptures of Sanatan Dharma — Shruti (that which is heard)",
+    description: t("data.library.vedas_desc"),
     texts: [
       {
         name: "Rig Veda",
@@ -20,9 +23,8 @@ const categories = [
         books: 10,
         hymns: 1028,
         language: "Vedic Sanskrit",
-        description:
-          "The oldest and most important Veda. Contains hymns (Suktas) praising Agni, Indra, Varuna, and other deities. The Gayatri Mantra originates from Mandala 3. Foundation of all Vedic knowledge.",
-        keyTopics: ["Cosmology", "Agni Sukta", "Purusha Sukta", "Nasadiya Sukta", "Gayatri Mantra"],
+        description: t("data.library.rig_veda_desc"),
+        keyTopics: t("data.library.rig_veda_topics").split(", "),
       },
       {
         name: "Yajur Veda",
@@ -30,9 +32,8 @@ const categories = [
         books: 40,
         hymns: 1975,
         language: "Vedic Sanskrit",
-        description:
-          "The Veda of rituals and liturgy. Divided into Shukla (White) and Krishna (Black) recensions. Contains mantras and instructions for performing Yajnas (fire rituals). Includes the famous Isha Upanishad.",
-        keyTopics: ["Yajna Vidhi", "Rudram", "Chamakam", "Shatarudriya", "Ritual Formulas"],
+        description: t("data.library.yajur_veda_desc"),
+        keyTopics: t("data.library.yajur_veda_topics").split(", "),
       },
       {
         name: "Sama Veda",
@@ -40,9 +41,8 @@ const categories = [
         books: 2,
         hymns: 1549,
         language: "Vedic Sanskrit",
-        description:
-          "The Veda of melodies and chants. Most verses derived from Rig Veda but set to musical notation (Saman). Krishna in the Gita says: 'Among the Vedas, I am the Sama Veda.' Origin of Indian classical music.",
-        keyTopics: ["Musical Notation", "Udgitha", "Jaiminiya Sama", "Kauthuma", "Ranayaniya"],
+        description: t("data.library.sama_veda_desc"),
+        keyTopics: t("data.library.sama_veda_topics").split(", "),
       },
       {
         name: "Atharva Veda",
@@ -50,205 +50,187 @@ const categories = [
         books: 20,
         hymns: 730,
         language: "Vedic Sanskrit",
-        description:
-          "The Veda of everyday knowledge. Contains hymns for healing, protection, and daily life. Covers medicine (Ayurveda roots), architecture, mathematics, and philosophical speculation. Named after sage Atharvan.",
-        keyTopics: ["Healing Mantras", "Prithvi Sukta", "Marriage Hymns", "Ayurveda Origins", "Protection Mantras"],
+        description: t("data.library.atharva_veda_desc"),
+        keyTopics: t("data.library.atharva_veda_topics").split(", "),
       },
     ],
   },
   {
     id: "upanishads",
-    label: "Upanishads",
+    label: t("data.library.upanishads_label"),
     icon: ScrollText,
-    description: "Philosophical texts exploring Brahman, Atman, and the nature of reality — Vedanta",
+    description: t("data.library.upanishads_desc"),
     texts: [
       {
         name: "Isha Upanishad",
         sanskrit: "ईशोपनिषद्",
         verses: 18,
         veda: "Shukla Yajur Veda",
-        description:
-          "The shortest yet most profound Upanishad. Opens with 'Ishavasyam idam sarvam' — All this is pervaded by the Lord. Teaches the unity of action and knowledge, and the nature of the Self.",
-        keyTopics: ["Ishvara", "Karma-Jnana Synthesis", "Vidya-Avidya"],
+        description: t("data.library.isha_upanishad_desc"),
+        keyTopics: t("data.library.isha_upanishad_topics").split(", "),
       },
       {
         name: "Kena Upanishad",
         sanskrit: "केनोपनिषद्",
         verses: 35,
         veda: "Sama Veda",
-        description:
-          "Asks 'By whom (Kena) is the mind directed?' Explores the power behind all senses and cognition. Contains the story of Brahman humbling the Devas — showing that true power is beyond the gods.",
-        keyTopics: ["Source of Consciousness", "Uma Haimavati", "Beyond the Senses"],
+        description: t("data.library.kena_upanishad_desc"),
+        keyTopics: t("data.library.kena_upanishad_topics").split(", "),
       },
       {
         name: "Katha Upanishad",
         sanskrit: "कठोपनिषद्",
         verses: 119,
         veda: "Krishna Yajur Veda",
-        description:
-          "The dialogue between young Nachiketa and Yama (Death). Teaches about the Self (Atman) that is beyond death. Contains the chariot metaphor — body is chariot, intellect is charioteer, mind is reins.",
-        keyTopics: ["Nachiketa", "Atman", "Chariot Metaphor", "Shreyas vs Preyas"],
+        description: t("data.library.katha_upanishad_desc"),
+        keyTopics: t("data.library.katha_upanishad_topics").split(", "),
       },
       {
         name: "Mandukya Upanishad",
         sanskrit: "माण्डूक्योपनिषद्",
         verses: 12,
         veda: "Atharva Veda",
-        description:
-          "Only 12 verses but considered sufficient for liberation. Analyzes Om (AUM) and the four states of consciousness: Waking, Dream, Deep Sleep, and Turiya (the transcendent Fourth).",
-        keyTopics: ["AUM Analysis", "Four States", "Turiya", "Consciousness"],
+        description: t("data.library.mandukya_upanishad_desc"),
+        keyTopics: t("data.library.mandukya_upanishad_topics").split(", "),
       },
       {
         name: "Chandogya Upanishad",
         sanskrit: "छान्दोग्योपनिषद्",
         chapters: 8,
         veda: "Sama Veda",
-        description:
-          "One of the largest Upanishads. Contains the famous teaching 'Tat Tvam Asi' (Thou art That) — Uddalaka teaching his son Shvetaketu. Also covers Udgitha meditation and the Panchagni Vidya.",
-        keyTopics: ["Tat Tvam Asi", "Udgitha", "Panchagni Vidya", "Bhuma Vidya"],
+        description: t("data.library.chandogya_upanishad_desc"),
+        keyTopics: t("data.library.chandogya_upanishad_topics").split(", "),
       },
       {
         name: "Brihadaranyaka Upanishad",
         sanskrit: "बृहदारण्यकोपनिषद्",
         chapters: 6,
         veda: "Shukla Yajur Veda",
-        description:
-          "The largest and oldest Upanishad. Contains Yajnavalkya's teachings to Maitreyi and King Janaka. Introduces 'Neti Neti' (not this, not this) as the method to know Brahman.",
-        keyTopics: ["Neti Neti", "Yajnavalkya-Maitreyi", "Madhu Vidya", "Karma Theory"],
+        description: t("data.library.brihadaranyaka_upanishad_desc"),
+        keyTopics: t("data.library.brihadaranyaka_upanishad_topics").split(", "),
       },
     ],
   },
   {
     id: "gita",
-    label: "Bhagavad Gita",
+    label: t("data.library.gita_label"),
     icon: Feather,
-    description: "The Song of God — Krishna's 700 verses of wisdom to Arjuna on the battlefield",
+    description: t("data.library.gita_desc"),
     texts: [
       {
         name: "Ch 1-3: The Crisis & Karma Yoga",
         sanskrit: "अर्जुनविषादयोग / सांख्ययोग / कर्मयोग",
         verses: 126,
-        description:
-          "Arjuna's despair on the battlefield. Krishna's teaching on the eternal Self, the distinction between body and soul, and the path of selfless action (Nishkama Karma).",
-        keyTopics: ["Arjuna's Despair", "Immortality of Atman", "Nishkama Karma", "Svadharma"],
+        description: t("data.library.gita_ch1_3_desc"),
+        keyTopics: t("data.library.gita_ch1_3_topics").split(", "),
       },
       {
         name: "Ch 4-6: Knowledge & Meditation",
         sanskrit: "ज्ञानकर्मसन्यासयोग / कर्मसन्यासयोग / ध्यानयोग",
         verses: 131,
-        description:
-          "The yoga of knowledge and renunciation. Krishna reveals He incarnates in every age. Teaches meditation technique, equanimity, and the nature of a true Yogi.",
-        keyTopics: ["Divine Incarnation", "Jnana Yoga", "Dhyana Technique", "Sthitaprajna"],
+        description: t("data.library.gita_ch4_6_desc"),
+        keyTopics: t("data.library.gita_ch4_6_topics").split(", "),
       },
       {
         name: "Ch 7-9: Divine Knowledge & Royal Secret",
         sanskrit: "ज्ञानविज्ञानयोग / अक्षरब्रह्मयोग / राजविद्याराजगुह्ययोग",
         verses: 101,
-        description:
-          "Krishna reveals His divine nature as the source of all existence. The supreme secret: total devotion. 'Whatever you do, offer it to Me.'",
-        keyTopics: ["Prakriti & Purusha", "Akshara Brahman", "Bhakti", "Raja Vidya"],
+        description: t("data.library.gita_ch7_9_desc"),
+        keyTopics: t("data.library.gita_ch7_9_topics").split(", "),
       },
       {
         name: "Ch 10-12: Divine Glory & Devotion",
         sanskrit: "विभूतियोग / विश्वरूपदर्शनयोग / भक्तियोग",
         verses: 117,
-        description:
-          "Krishna's divine manifestations (Vibhuti). The cosmic vision (Vishvarupa) — Arjuna sees the entire universe within Krishna. The path of pure devotion declared supreme.",
-        keyTopics: ["Vibhuti", "Vishvarupa Darshan", "Bhakti Yoga", "The Cosmic Form"],
+        description: t("data.library.gita_ch10_12_desc"),
+        keyTopics: t("data.library.gita_ch10_12_topics").split(", "),
       },
       {
         name: "Ch 13-15: Field, Gunas & Supreme Self",
         sanskrit: "क्षेत्रक्षेत्रज्ञविभागयोग / गुणत्रयविभागयोग / पुरुषोत्तमयोग",
         verses: 100,
-        description:
-          "The body as Field and the Self as Knower. The three Gunas (Sattva, Rajas, Tamas) and how to transcend them. The metaphor of the inverted Ashvattha tree.",
-        keyTopics: ["Kshetra-Kshetrajna", "Three Gunas", "Purushottama", "Ashvattha Tree"],
+        description: t("data.library.gita_ch13_15_desc"),
+        keyTopics: t("data.library.gita_ch13_15_topics").split(", "),
       },
       {
         name: "Ch 16-18: Liberation & Surrender",
         sanskrit: "दैवासुरसम्पद्विभागयोग / श्रद्धात्रयविभागयोग / मोक्षसन्यासयोग",
         verses: 125,
-        description:
-          "Divine vs demoniac qualities. Three types of faith, food, and worship. The grand conclusion: 'Abandon all dharmas and surrender to Me alone. I shall liberate you from all sins.'",
-        keyTopics: ["Daivi-Asuri Sampad", "Shraddha Traya", "Moksha", "Sarva-dharman Parityajya"],
+        description: t("data.library.gita_ch16_18_desc"),
+        keyTopics: t("data.library.gita_ch16_18_topics").split(", "),
       },
     ],
   },
   {
     id: "dharma",
-    label: "Dharma Texts",
+    label: t("data.library.dharma_label"),
     icon: BookOpen,
-    description: "Smriti texts — Itihasas, Puranas, Dharma Shastras, and philosophical treatises",
+    description: t("data.library.dharma_desc"),
     texts: [
       {
         name: "Mahabharata",
         sanskrit: "महाभारत",
         verses: 100000,
         author: "Vyasa",
-        description:
-          "The world's longest epic. Contains the Bhagavad Gita, the story of the Kuru dynasty, and the great war at Kurukshetra. 'What is found here may be found elsewhere; what is not here is nowhere.'",
-        keyTopics: ["Kurukshetra War", "Dharma", "Bhishma's Teachings", "Vidura Niti"],
+        description: t("data.library.mahabharata_desc"),
+        keyTopics: t("data.library.mahabharata_topics").split(", "),
       },
       {
         name: "Ramayana",
         sanskrit: "रामायण",
         verses: 24000,
         author: "Valmiki",
-        description:
-          "The epic of Lord Rama — the ideal king, son, husband, and warrior. Teaches Maryada (righteousness through example). Seven Kandas from Bala to Uttara.",
-        keyTopics: ["Rama's Exile", "Sita's Devotion", "Hanuman's Service", "Dharma Rajya"],
+        description: t("data.library.ramayana_desc"),
+        keyTopics: t("data.library.ramayana_topics").split(", "),
       },
       {
         name: "Yoga Sutras",
         sanskrit: "योगसूत्राणि",
         verses: 196,
         author: "Patanjali",
-        description:
-          "The definitive text on Yoga philosophy and practice. 'Yogash Chitta Vritti Nirodhah' — Yoga is the cessation of mind fluctuations. Covers Ashtanga (8 limbs) system.",
-        keyTopics: ["Ashtanga Yoga", "Samadhi", "Klesha", "Ishvara Pranidhana", "Kaivalya"],
+        description: t("data.library.yoga_sutras_desc"),
+        keyTopics: t("data.library.yoga_sutras_topics").split(", "),
       },
       {
         name: "Brahma Sutras",
         sanskrit: "ब्रह्मसूत्राणि",
         verses: 555,
         author: "Badarayana",
-        description:
-          "Systematic philosophical treatise analyzing Upanishadic teachings. One of the Prasthana Traya (triple foundation) along with Upanishads and Gita. Basis of all Vedanta schools.",
-        keyTopics: ["Brahman", "Jiva", "Maya", "Moksha", "Vedanta Schools"],
+        description: t("data.library.brahma_sutras_desc"),
+        keyTopics: t("data.library.brahma_sutras_topics").split(", "),
       },
       {
         name: "Arthashastra",
         sanskrit: "अर्थशास्त्र",
         chapters: 150,
         author: "Kautilya (Chanakya)",
-        description:
-          "Ancient treatise on statecraft, economic policy, and military strategy. Covers governance, law, taxation, diplomacy, and espionage. Practical wisdom for leadership.",
-        keyTopics: ["Rajya Shastra", "Danda Niti", "Kosha", "Foreign Policy", "Administration"],
+        description: t("data.library.arthashastra_desc"),
+        keyTopics: t("data.library.arthashastra_topics").split(", "),
       },
       {
         name: "Manusmriti",
         sanskrit: "मनुस्मृति",
         verses: 2685,
         author: "Manu",
-        description:
-          "Dharma Shastra covering law, duty, and social conduct. Discusses Varnashrama Dharma, Samskaras (life rituals), and moral codes. Must be read in historical-philosophical context.",
-        keyTopics: ["Dharma", "Samskaras", "Raja Dharma", "Prayaschitta", "Achara"],
+        description: t("data.library.manusmriti_desc"),
+        keyTopics: t("data.library.manusmriti_topics").split(", "),
       },
     ],
   },
 ];
+}
 
 export default function VedicLibraryPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const { data: ragResults, isFetching: ragLoading } = useSearch(search);
+  const categories = getCategories(t);
 
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-3xl text-primary text-glow-gold">Vedic Library</h1>
-        <p className="text-muted-foreground mt-1">
-          Explore the complete repository of Vedic & Sanskrit texts — Shruti, Smriti, Itihasas & Shastras
-        </p>
+        <h1 className="font-display text-3xl text-primary text-glow-gold">{t("library.title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("library.subtitle")}</p>
       </motion.div>
 
       <div className="relative">
@@ -256,7 +238,7 @@ export default function VedicLibraryPage() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search texts, topics, or keywords..."
+          placeholder={t("library.search_placeholder")}
           className="pl-9 bg-muted/30 border-border/40"
         />
       </div>
@@ -266,7 +248,7 @@ export default function VedicLibraryPage() {
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             {ragLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
-            Knowledge base results for "{search}"
+            {t("library.kb_results", { q: search })}
           </p>
           {ragResults?.results.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}>

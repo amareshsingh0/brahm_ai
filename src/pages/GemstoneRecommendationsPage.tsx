@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Gem, Info, AlertTriangle, Star, ChevronDown, ChevronUp } from "lucide-react";
 import { useKundliStore } from "@/store/kundliStore";
+import { useTranslation } from "react-i18next";
 
 // ── Data tables ───────────────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ function StoneCard({
   remedyFor?: string;
   delay?: number;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const wear = STONE_WEAR[entry.planet];
   const isCaution = entry.planet === "Shani";
@@ -119,7 +121,7 @@ function StoneCard({
       )}
       {isCaution && (
         <span className="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-medium flex items-center gap-1">
-          <AlertTriangle className="h-3 w-3" /> Caution
+          <AlertTriangle className="h-3 w-3" /> {t("gemstones.caution")}
         </span>
       )}
 
@@ -135,10 +137,10 @@ function StoneCard({
 
       <div className="flex flex-wrap gap-2 text-xs">
         <span className="px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-          Planet: <span className="text-foreground font-medium">{entry.planet}</span>
+          {t("gemstones.planet_label")}: <span className="text-foreground font-medium">{entry.planet}</span>
         </span>
         <span className="px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-          Color: <span className="text-foreground font-medium">{entry.color}</span>
+          {t("gemstones.color_label")}: <span className="text-foreground font-medium">{entry.color}</span>
         </span>
       </div>
 
@@ -146,7 +148,7 @@ function StoneCard({
 
       {remedyFor && (
         <p className="text-xs text-amber-400/90 leading-relaxed">
-          Remedy for: {remedyFor} planet weakness
+          {t("gemstones.remedy_for", { planet: remedyFor })}
         </p>
       )}
 
@@ -157,7 +159,7 @@ function StoneCard({
             className="flex items-center gap-1.5 text-xs text-primary/80 hover:text-primary transition-colors pt-0.5"
           >
             <Info className="h-3 w-3" />
-            How to wear
+            {t("gemstones.how_to_wear")}
             {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </button>
           <AnimatePresence>
@@ -170,19 +172,19 @@ function StoneCard({
               >
                 <div className="pt-2 border-t border-border/20 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                   <div>
-                    <span className="text-muted-foreground">Metal:</span>{" "}
+                    <span className="text-muted-foreground">{t("gemstones.metal")}:</span>{" "}
                     <span className="text-foreground font-medium">{wear.metal}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Finger:</span>{" "}
+                    <span className="text-muted-foreground">{t("gemstones.finger")}:</span>{" "}
                     <span className="text-foreground font-medium">{wear.finger}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Day:</span>{" "}
+                    <span className="text-muted-foreground">{t("gemstones.day")}:</span>{" "}
                     <span className="text-foreground font-medium">{wear.day}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-muted-foreground">Mantra:</span>{" "}
+                    <span className="text-muted-foreground">{t("gemstones.mantra")}:</span>{" "}
                     <span className="text-foreground font-medium select-all">{wear.mantra}</span>
                   </div>
                 </div>
@@ -197,24 +199,24 @@ function StoneCard({
 
 // ── General guide (no kundali) ────────────────────────────────────────────────
 function GeneralGuide() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div className="cosmic-card rounded-xl p-4 flex items-start gap-3">
         <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-medium text-foreground mb-1">No Kundali loaded</p>
+          <p className="text-sm font-medium text-foreground mb-1">{t("gemstones.no_kundali")}</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Generate your kundali first to get personalized gemstone recommendations based on your
-            lagna, moon sign, and planetary strengths.{" "}
+            {t("gemstones.no_kundali_desc")}{" "}
             <Link to="/kundli" className="text-primary hover:underline">
-              Go to My Kundali
+              {t("gemstones.go_to_kundali")}
             </Link>
           </p>
         </div>
       </div>
 
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide pt-2">
-        General Guide — Gemstone by Rashi
+        {t("gemstones.general_title")}
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -233,6 +235,7 @@ function GeneralGuide() {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function GemstoneRecommendationsPage() {
+  const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
 
   if (!kundaliData) {
@@ -241,11 +244,9 @@ export default function GemstoneRecommendationsPage() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="flex items-center gap-2.5 mb-1">
             <Gem className="h-6 w-6 text-primary" />
-            <h1 className="font-display text-2xl text-foreground text-glow-gold">Gemstone Recommendations</h1>
+            <h1 className="font-display text-2xl text-foreground text-glow-gold">{t("gemstones.title")}</h1>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Vedic ratna shastra · Personalized by lagna, moon sign &amp; planetary status
-          </p>
+          <p className="text-sm text-muted-foreground">{t("gemstones.subtitle")}</p>
         </motion.div>
         <GeneralGuide />
       </div>
@@ -262,9 +263,9 @@ export default function GemstoneRecommendationsPage() {
 
   // Benefic house lords: 4th, 9th, 10th from lagna
   const beneficHouses = [
-    { label: "4th Lord (Home & Happiness)", house: 3 },
-    { label: "9th Lord (Fortune & Dharma)", house: 8 },
-    { label: "10th Lord (Career & Karma)", house: 9 },
+    { label: t("gemstones.house_4th"), house: 3 },
+    { label: t("gemstones.house_9th"), house: 8 },
+    { label: t("gemstones.house_10th"), house: 9 },
   ];
 
   const beneficEntries = beneficHouses
@@ -329,10 +330,10 @@ export default function GemstoneRecommendationsPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="flex items-center gap-2.5 mb-1">
           <Gem className="h-6 w-6 text-primary" />
-          <h1 className="font-display text-2xl text-foreground text-glow-gold">Gemstone Recommendations</h1>
+          <h1 className="font-display text-2xl text-foreground text-glow-gold">{t("gemstones.title")}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Vedic ratna shastra · Personalized for{" "}
+          {t("gemstones.subtitle")} —{" "}
           <span className="text-foreground font-medium">{lagnaRashi} lagna</span> ·{" "}
           <span className="text-foreground font-medium">{moonRashi} moon</span>
         </p>
@@ -344,7 +345,7 @@ export default function GemstoneRecommendationsPage() {
           <div className="flex items-center gap-2">
             <Star className="h-4 w-4 text-amber-400" />
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-              Primary Gemstone — {lagnaRashi} Lagna
+              {t("gemstones.primary_gem")} — {lagnaRashi}
             </h2>
           </div>
           <StoneCard
@@ -363,7 +364,7 @@ export default function GemstoneRecommendationsPage() {
           <div className="flex items-center gap-2">
             <span className="text-base">☽︎</span>
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-              Secondary Gemstone — {moonRashi} Moon (Emotional Stability)
+              {t("gemstones.secondary_gem")} — {moonRashi}
             </h2>
           </div>
           <StoneCard
@@ -381,7 +382,7 @@ export default function GemstoneRecommendationsPage() {
           <div className="flex items-center gap-2">
             <span className="text-base">✦</span>
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-              Supportive Gemstones — 4th, 9th &amp; 10th Lords
+              {t("gemstones.benefic_gems")}
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -403,11 +404,11 @@ export default function GemstoneRecommendationsPage() {
           <div className="flex items-center gap-2">
             <span className="text-base text-emerald-400">↑</span>
             <h2 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide">
-              Fortify Strength — Exalted Planets
+              {t("gemstones.exalted_title")}
             </h2>
           </div>
           <p className="text-xs text-muted-foreground -mt-1">
-            These planets are exalted in your chart. Wearing their stone amplifies their positive energy.
+            {t("gemstones.exalted_desc")}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {exaltedPlanets.map((e, i) => (
@@ -429,11 +430,11 @@ export default function GemstoneRecommendationsPage() {
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-400" />
             <h2 className="text-sm font-semibold text-amber-400 uppercase tracking-wide">
-              Remedy Gemstones — Debilitated Planets
+              {t("gemstones.debilitated_title")}
             </h2>
           </div>
           <p className="text-xs text-muted-foreground -mt-1">
-            These planets are debilitated (Neecha) in your chart. Wearing their stone can mitigate weakness — consult a Jyotishi before wearing.
+            {t("gemstones.debilitated_desc")}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {debilitatedPlanets.map((d, i) => (

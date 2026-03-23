@@ -1,35 +1,38 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const stories = [
-  {
-    title: "The Legend of Ashwini Kumar",
-    slides: [
-      { heading: "Origin", text: "Twin divine horsemen, sons of Surya, the Sun God. They embody speed, healing, and the dawn of new beginnings.", emoji: "🐎" },
-      { heading: "The Healing Touch", text: "Known as the physicians of the Devas, they restored youth to the aged sage Chyavana and healed countless celestial beings.", emoji: "✨" },
-      { heading: "Astrological Meaning", text: "Ashwini Nakshatra grants its natives initiative, healing abilities, and swift action. Those born under it are pioneers.", emoji: "⭐" },
-    ],
-  },
-  {
-    title: "Saturn's Discipline",
-    slides: [
-      { heading: "The Taskmaster", text: "Saturn, son of Surya, carries the weight of karma. His slow orbit teaches patience and rewards perseverance.", emoji: "🪐" },
-      { heading: "Shani's Justice", text: "Legend says even the Gods feared Shani's gaze. His lessons are harsh but fair — building character through challenge.", emoji: "⚖️" },
-      { heading: "Sade Sati", text: "The 7.5-year transit of Saturn over your Moon sign. A transformative period of growth through endurance.", emoji: "🔄" },
-    ],
-  },
-  {
-    title: "Rahu & Ketu: The Shadow",
-    slides: [
-      { heading: "The Churning", text: "During Samudra Manthan, a demon disguised as a Deva drank the nectar of immortality. Vishnu severed his head.", emoji: "🌑" },
-      { heading: "Eternal Eclipse", text: "The head became Rahu, the tail became Ketu. They chase the Sun and Moon, causing eclipses when they catch them.", emoji: "🌒" },
-      { heading: "Karmic Axis", text: "Rahu represents worldly desires and obsession. Ketu represents spiritual liberation and past-life wisdom.", emoji: "🔮" },
-    ],
-  },
-];
+import { useTranslation } from "react-i18next";
 
 export default function StoriesPage() {
+  const { t } = useTranslation();
+
+  const stories = [
+    {
+      title: t("stories.ashwini_title"),
+      slides: [
+        { heading: t("stories.ashwini_s1_heading"), text: t("stories.ashwini_s1_text"), emoji: "🐎" },
+        { heading: t("stories.ashwini_s2_heading"), text: t("stories.ashwini_s2_text"), emoji: "✨" },
+        { heading: t("stories.ashwini_s3_heading"), text: t("stories.ashwini_s3_text"), emoji: "⭐" },
+      ],
+    },
+    {
+      title: t("stories.saturn_title"),
+      slides: [
+        { heading: t("stories.saturn_s1_heading"), text: t("stories.saturn_s1_text"), emoji: "🪐" },
+        { heading: t("stories.saturn_s2_heading"), text: t("stories.saturn_s2_text"), emoji: "⚖️" },
+        { heading: t("stories.saturn_s3_heading"), text: t("stories.saturn_s3_text"), emoji: "🔄" },
+      ],
+    },
+    {
+      title: t("stories.rahu_ketu_title"),
+      slides: [
+        { heading: t("stories.rahu_ketu_s1_heading"), text: t("stories.rahu_ketu_s1_text"), emoji: "🌑" },
+        { heading: t("stories.rahu_ketu_s2_heading"), text: t("stories.rahu_ketu_s2_text"), emoji: "🌒" },
+        { heading: t("stories.rahu_ketu_s3_heading"), text: t("stories.rahu_ketu_s3_text"), emoji: "🔮" },
+      ],
+    },
+  ];
+
   const [storyIndex, setStoryIndex] = useState(0);
   const [slideIndex, setSlideIndex] = useState(0);
 
@@ -57,8 +60,8 @@ export default function StoriesPage() {
   return (
     <div className="p-6 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Cosmic Stories</h1>
-        <p className="text-sm text-muted-foreground">Ancient tales behind the stars</p>
+        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">{t("stories.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("stories.subtitle")}</p>
       </motion.div>
 
       {/* Story viewer */}
@@ -103,7 +106,7 @@ export default function StoriesPage() {
               onClick={prevSlide}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ChevronLeft className="h-4 w-4" /> Previous
+              <ChevronLeft className="h-4 w-4" /> {t("stories.previous")}
             </button>
             <span className="text-xs text-muted-foreground">
               {slideIndex + 1} / {story.slides.length}
@@ -112,7 +115,7 @@ export default function StoriesPage() {
               onClick={nextSlide}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Next <ChevronRight className="h-4 w-4" />
+              {t("stories.next")} <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
