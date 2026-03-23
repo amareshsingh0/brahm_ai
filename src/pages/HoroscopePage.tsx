@@ -3,16 +3,18 @@ import { rashiData } from "@/store/kundliStore";
 import { useState } from "react";
 import { useHoroscope } from "@/hooks/useHoroscope";
 import PageBot from '@/components/PageBot';
+import { useTranslation } from "react-i18next";
 
 export default function HoroscopePage() {
+  const { t } = useTranslation();
   const [selectedRashi, setSelectedRashi] = useState("Aries");
   const { data: horoscope } = useHoroscope(selectedRashi);
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Daily Horoscope</h1>
-        <p className="text-sm text-muted-foreground">Your cosmic guidance for today</p>
+        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">{t('horoscope.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('horoscope.subtitle')}</p>
       </motion.div>
 
       {/* Rashi selector */}
@@ -54,19 +56,19 @@ export default function HoroscopePage() {
 
           <div className="space-y-4">
             <div className="bg-muted/20 rounded-lg p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Today's Prediction</p>
-              <p className="text-sm text-foreground leading-relaxed">{horoscope?.prediction ?? "Loading..."}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t('horoscope.todays_prediction')}</p>
+              <p className="text-sm text-foreground leading-relaxed">{horoscope?.prediction ?? t(`data.horoscope.${selectedRashi.toLowerCase()}.prediction`, { defaultValue: t('horoscope.loading') })}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-muted/20 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground mb-1">Lucky</p>
+                <p className="text-xs text-muted-foreground mb-1">{t('horoscope.lucky')}</p>
                 <p className="text-sm text-primary font-medium">
                   {horoscope ? `${horoscope.lucky_color} · ${horoscope.lucky_number}` : "—"}
                 </p>
               </div>
               <div className="bg-muted/20 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground mb-1">Nakshatra Lord</p>
+                <p className="text-xs text-muted-foreground mb-1">{t('horoscope.nakshatra_lord')}</p>
                 <p className="text-sm text-foreground">{rashiData.find((r) => r.name === selectedRashi)?.ruler ?? "—"}</p>
               </div>
             </div>

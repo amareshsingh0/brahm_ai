@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface RashiCardProps {
   name: string;
@@ -18,6 +19,11 @@ const elementColors: Record<string, string> = {
 };
 
 export function RashiCard({ name, symbol, element, ruler, traits, index, sanskritName }: RashiCardProps) {
+  const { t } = useTranslation();
+  // Build i18n key from sanskritName (lowercase, used as rashi data key)
+  const key = sanskritName?.toLowerCase().replace(/\s+/g, "_") ?? "";
+  const translatedElement = key ? t(`data.rashi.${key}.element`, { defaultValue: element }) : element;
+  const translatedTraits = key ? t(`data.rashi.${key}.traits`, { defaultValue: traits }) : traits;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -32,10 +38,10 @@ export function RashiCard({ name, symbol, element, ruler, traits, index, sanskri
       <h3 className="font-display text-lg text-foreground mb-0.5">{name}</h3>
       {sanskritName && <p className="text-xs text-primary/60 mb-1">{sanskritName}</p>}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs text-primary/80 bg-primary/10 px-2 py-0.5 rounded-full">{element}</span>
+        <span className="text-xs text-primary/80 bg-primary/10 px-2 py-0.5 rounded-full">{translatedElement}</span>
         <span className="text-xs text-muted-foreground">♦ {ruler}</span>
       </div>
-      <p className="text-xs text-muted-foreground leading-relaxed">{traits}</p>
+      <p className="text-xs text-muted-foreground leading-relaxed">{translatedTraits}</p>
     </motion.div>
   );
 }

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { yogasData, useKundliStore } from "@/store/kundliStore";
+import { useTranslation } from "react-i18next";
 
 const effectStyles = {
   benefic: { badge: "bg-emerald-500/20 text-emerald-400", border: "border-emerald-500/20" },
@@ -8,6 +9,7 @@ const effectStyles = {
 };
 
 export default function YogasPage() {
+  const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
 
   // Use real yogas if kundali is calculated, else fallback to sample
@@ -22,13 +24,13 @@ export default function YogasPage() {
   return (
     <div className="p-6 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Yogas</h1>
-        <p className="text-sm text-muted-foreground">Special planetary combinations in your chart</p>
+        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">{t("yogas.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("yogas.subtitle")}</p>
       </motion.div>
 
       {/* Present yogas */}
       <div>
-        <h2 className="font-display text-sm text-primary mb-3 uppercase tracking-wider">Present in Your Chart</h2>
+        <h2 className="font-display text-sm text-primary mb-3 uppercase tracking-wider">{t("yogas.present_heading")}</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {presentYogas.map((yoga, i) => (
             <YogaCard key={yoga.name} yoga={yoga} index={i} />
@@ -38,7 +40,7 @@ export default function YogasPage() {
 
       {/* Absent yogas */}
       <div>
-        <h2 className="font-display text-sm text-muted-foreground mb-3 uppercase tracking-wider">Not Present</h2>
+        <h2 className="font-display text-sm text-muted-foreground mb-3 uppercase tracking-wider">{t("yogas.absent_heading")}</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {absentYogas.map((yoga, i) => (
             <YogaCard key={yoga.name} yoga={yoga} index={i} dimmed />
@@ -50,7 +52,9 @@ export default function YogasPage() {
 }
 
 function YogaCard({ yoga, index, dimmed = false }: { yoga: typeof yogasData[0]; index: number; dimmed?: boolean }) {
+  const { t } = useTranslation();
   const styles = effectStyles[yoga.effect];
+  const yogaKey = yoga.name.toLowerCase().replace(/ /g, "_");
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -67,7 +71,7 @@ function YogaCard({ yoga, index, dimmed = false }: { yoga: typeof yogasData[0]; 
           {yoga.effect}
         </span>
       </div>
-      <p className="text-xs text-muted-foreground leading-relaxed mb-3">{yoga.description}</p>
+      <p className="text-xs text-muted-foreground leading-relaxed mb-3">{t(`data.yoga.${yogaKey}.desc`, { defaultValue: yoga.description })}</p>
       <div className="flex gap-1.5">
         {yoga.planets.map((p) => (
           <span key={p} className="text-xs px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">

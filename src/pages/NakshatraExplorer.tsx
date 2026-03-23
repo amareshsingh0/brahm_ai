@@ -2,15 +2,17 @@ import { motion } from "framer-motion";
 import { nakshatraData } from "@/store/kundliStore";
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function NakshatraExplorer() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<typeof nakshatraData[0] | null>(null);
 
   return (
     <div className="p-6 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">Nakshatra Explorer</h1>
-        <p className="text-sm text-muted-foreground">The 27 lunar mansions of Vedic astrology</p>
+        <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">{t("nakshatra_explorer.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("nakshatra_explorer.subtitle")}</p>
       </motion.div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -28,7 +30,7 @@ export default function NakshatraExplorer() {
             <span className="text-2xl mb-2 block">{n.symbol}</span>
             <p className="font-display text-sm text-foreground">{n.name}</p>
             <p className="text-xs text-primary/70">#{n.number} · {n.ruler}</p>
-            <p className="text-xs text-muted-foreground mt-1">{n.nature}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t(`data.nakshatra.${n.name.toLowerCase().replace(/ /g, "_")}.nature`, { defaultValue: n.nature })}</p>
           </motion.button>
         ))}
       </div>
@@ -54,25 +56,25 @@ export default function NakshatraExplorer() {
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="bg-muted/20 rounded-lg p-3">
-              <span className="text-muted-foreground text-xs block">Deity</span>
+              <span className="text-muted-foreground text-xs block">{t("nakshatra_explorer.deity")}</span>
               <span className="text-foreground">{selected.deity}</span>
             </div>
             <div className="bg-muted/20 rounded-lg p-3">
-              <span className="text-muted-foreground text-xs block">Ruler</span>
+              <span className="text-muted-foreground text-xs block">{t("nakshatra_explorer.ruler")}</span>
               <span className="text-foreground">{selected.ruler}</span>
             </div>
             <div className="bg-muted/20 rounded-lg p-3">
-              <span className="text-muted-foreground text-xs block">Nature</span>
-              <span className="text-foreground">{selected.nature}</span>
+              <span className="text-muted-foreground text-xs block">{t("nakshatra_explorer.nature")}</span>
+              <span className="text-foreground">{t(`data.nakshatra.${selected.name.toLowerCase().replace(/ /g, "_")}.nature`, { defaultValue: selected.nature })}</span>
             </div>
             <div className="bg-muted/20 rounded-lg p-3">
-              <span className="text-muted-foreground text-xs block">Rashi</span>
+              <span className="text-muted-foreground text-xs block">{t("nakshatra_explorer.rashi")}</span>
               <span className="text-foreground">{selected.pada}</span>
             </div>
           </div>
           <div className="mt-4 bg-muted/20 rounded-lg p-3">
-            <span className="text-muted-foreground text-xs block mb-1">Key Traits</span>
-            <span className="text-sm text-foreground">{selected.traits}</span>
+            <span className="text-muted-foreground text-xs block mb-1">{t("nakshatra_explorer.key_traits")}</span>
+            <span className="text-sm text-foreground">{t(`data.nakshatra.${selected.name.toLowerCase().replace(/ /g, "_")}.traits`, { defaultValue: selected.traits })}</span>
           </div>
         </motion.div>
       )}

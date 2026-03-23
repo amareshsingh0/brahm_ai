@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageBot from '@/components/PageBot';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -465,6 +466,7 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 function ScanTab() {
+  const { t } = useTranslation();
   const [image, setImage] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string>("");
   const [dragOver, setDragOver] = useState(false);
@@ -752,14 +754,14 @@ function ScanTab() {
                 <span className="text-3xl">{ht.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold text-foreground">{ht.label}</span>
+                    <span className="text-sm font-semibold text-foreground">{t(`data.palmistry.${ht.id}_hand.label`, { defaultValue: ht.label })}</span>
                     {handTypeId === ht.id && <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />}
                   </div>
                   <p className="text-xs text-muted-foreground">{ht.shape}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{ht.element}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t(`data.palmistry.${ht.id}_hand.element`, { defaultValue: ht.element })}</p>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {ht.traits.slice(0, 3).map(t => (
-                      <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">{t}</span>
+                    {t(`data.palmistry.${ht.id}_hand.traits`, { defaultValue: ht.traits.join(", ") }).split(", ").slice(0, 3).map((tr: string) => (
+                      <span key={tr} className="text-xs px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">{tr}</span>
                     ))}
                   </div>
                 </div>
@@ -897,9 +899,9 @@ function ScanTab() {
                     <h2 className="font-display text-xl text-glow-gold">Your Hasta Shastra Reading</h2>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">{report.handType.label}</Badge>
+                    <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">{t(`data.palmistry.${report.handType.id}_hand.label`, { defaultValue: report.handType.label })}</Badge>
                     <Badge variant="outline" className="border-border/30 text-xs">{report.handType.vedic}</Badge>
-                    <Badge variant="outline" className="border-border/30 text-xs">{report.handType.element}</Badge>
+                    <Badge variant="outline" className="border-border/30 text-xs">{t(`data.palmistry.${report.handType.id}_hand.element`, { defaultValue: report.handType.element })}</Badge>
                   </div>
                 </div>
               </div>
@@ -913,7 +915,7 @@ function ScanTab() {
               </div>
             </div>
             <div className="mt-3 rounded-lg p-3 bg-primary/5 border border-primary/15">
-              <p className="text-xs text-muted-foreground italic leading-relaxed">{report.handType.vedic_note}</p>
+              <p className="text-xs text-muted-foreground italic leading-relaxed">{t(`data.palmistry.${report.handType.id}_hand.vedic_note`, { defaultValue: report.handType.vedic_note })}</p>
             </div>
           </CardContent>
         </Card>
@@ -928,21 +930,21 @@ function ScanTab() {
         <div className="grid lg:grid-cols-5 gap-5">
           <Card className="cosmic-card border-border/30 lg:col-span-3">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Hand Type — {report.handType.label}</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">Hand Type — {t(`data.palmistry.${report.handType.id}_hand.label`, { defaultValue: report.handType.label })}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                {report.handType.traits.map(t => (
-                  <div key={t} className="flex items-center gap-1.5 text-xs text-foreground">
-                    <span className="text-primary">◆</span> {t}
+                {t(`data.palmistry.${report.handType.id}_hand.traits`, { defaultValue: report.handType.traits.join(", ") }).split(", ").map((tr: string) => (
+                  <div key={tr} className="flex items-center gap-1.5 text-xs text-foreground">
+                    <span className="text-primary">◆</span> {tr}
                   </div>
                 ))}
               </div>
               <div className="gold-divider" />
               <div className="space-y-1.5 text-xs text-muted-foreground">
-                <div><span className="text-primary font-medium">Careers: </span>{report.handType.careers}</div>
-                <div><span className="text-primary font-medium">Constitution: </span>{report.handType.constitution}</div>
-                <div><span className="text-secondary font-medium">Shadow: </span>{report.handType.shadow}</div>
+                <div><span className="text-primary font-medium">Careers: </span>{t(`data.palmistry.${report.handType.id}_hand.careers`, { defaultValue: report.handType.careers })}</div>
+                <div><span className="text-primary font-medium">Constitution: </span>{t(`data.palmistry.${report.handType.id}_hand.constitution`, { defaultValue: report.handType.constitution })}</div>
+                <div><span className="text-secondary font-medium">Shadow: </span>{t(`data.palmistry.${report.handType.id}_hand.shadow`, { defaultValue: report.handType.shadow })}</div>
               </div>
             </CardContent>
           </Card>
@@ -1456,31 +1458,32 @@ function HandTypeTab() {
 // ─────────────────────────────────────────────────────────────────
 
 export default function PalmistryPage() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3 mb-1">
           <Hand className="h-7 w-7 text-primary zodiac-glow" />
-          <h1 className="font-display text-3xl text-glow-gold">Hasta Samudrika Shastra</h1>
+          <h1 className="font-display text-3xl text-glow-gold">{t("palmistry.title")}</h1>
         </div>
         <p className="text-muted-foreground text-sm ml-10">
-          हस्त सामुद्रिक शास्त्र — Upload your palm, answer guided questions, receive your complete Vedic reading
+          {t("palmistry.subtitle")}
         </p>
       </motion.div>
 
       <Tabs defaultValue="scan" className="w-full">
         <TabsList className="glass grid grid-cols-4 w-full">
           <TabsTrigger value="scan" className="flex items-center gap-1.5 text-xs sm:text-sm">
-            <Scan className="h-3.5 w-3.5" /> <span>Scan Palm</span>
+            <Scan className="h-3.5 w-3.5" /> <span>{t("palmistry.tab_scan_palm")}</span>
           </TabsTrigger>
           <TabsTrigger value="lines" className="flex items-center gap-1.5 text-xs sm:text-sm">
-            <Hand className="h-3.5 w-3.5" /> <span>Lines</span>
+            <Hand className="h-3.5 w-3.5" /> <span>{t("palmistry.tab_lines")}</span>
           </TabsTrigger>
           <TabsTrigger value="mounts" className="flex items-center gap-1.5 text-xs sm:text-sm">
-            <Star className="h-3.5 w-3.5" /> <span>Mounts</span>
+            <Star className="h-3.5 w-3.5" /> <span>{t("palmistry.tab_mounts")}</span>
           </TabsTrigger>
           <TabsTrigger value="hand" className="flex items-center gap-1.5 text-xs sm:text-sm">
-            <BookOpen className="h-3.5 w-3.5" /> <span>Hand Type</span>
+            <BookOpen className="h-3.5 w-3.5" /> <span>{t("palmistry.tab_hand_type")}</span>
           </TabsTrigger>
         </TabsList>
 
