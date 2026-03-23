@@ -5,21 +5,66 @@
         <item>@array/com_google_android_gms_fonts_certs_prod</item>
     </array>
     <string-array name="com_google_android_gms_fonts_certs_dev">
-        <item>MIIEqDCCA5CgAwIBAgIJANWFuGx90071MA0GCSqGSIb3DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZyYW5jaXNjbzETMBEGA1UEChMKR29vZ2xlIEluYzEVMBMGA1UECxMMR29vZ2xlIE1vYmlsZTEcMBoGA1UEAxMTR29vZ2xlIEluZGlyZWN0IENBMB4XDTE3MDgyMzE4MDcwMFoXDTE4MDgyMzE4MDcwMFowgYExCzAJBgNVBAYTAlVTMRMwEQYDVQQIMApDYWxpZm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMQ8wDQYDVQQKDAZHb29nbGUxFTATBgNVBAsMDEdvb2dsZSBGb250czEdMBsGA1UEAwwUR29vZ2xlIEZvbnRzIERldiBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMn3lWuPtEFUU+/TGpVpSXBjEMsTWjJKbSVGpK3RLTF3/H//MFuJ1p7x72e6VV/PdX3ksrXJEBEOXvqVDHDqHZGjkzEsKW9wQ6k/i9YUPOM3Q6I9b6O0c8Zy17VzqLqGLOCyUJi9SNCM+5CmkBzxYoT7uJh9T0gvh1QMvjFfJKGaDJZ8SEUu4xhqXmTPvxQ6ZPZwuFlHPFzR2BDZd4JD/Uh5uh3w1YeH5TZWCM/v+38T5Xn5p3BFX+lXUDLuVpvLWMhLCr5E3S4T+VHU8MIeVhXFJpJ2UXXpKF2cYzBVBhIkFWP3xZjn5OKCJWMpVlnlV3oR0CAwEAAaOCAWMwggFfMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFAMz6U+oGLPP2OZ1Ic5pJNy6I3kIMB8GA1UdIwQYMBaAFMd9jzkuAmIaxmeFQFsIvUohRyeqME8GA1UdIARIMEYwOAYKKwYBBAHWeQIFAzAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5hcHBsZS5jb20vbGVnYWwvMA0GCisGAQQB1nkCBQEwTwYDVR0fBEgwRjBEoEKgQIY+aHR0cHM6Ly93d3cuZ3N0YXRpYy5jb20vYW5kcm9pZC9yZXBvcy9jZXJ0cy9kZXYtY2VydC1zaGEyNTYuY3JsMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQQFAAOCAQEAbkGTz8yEbHOgjXBB7jbKxm7o1LGw7q+oUiEMiZ+gUnGBr3p0dXnhDvVGkGD4zVl6kkFEFJhsXKXy9p8oLI08f7GF0Y3z5T4oBjkp5/3ByHE5O0FtL7fA9jTqaIHDh5zovUm72S0NMJDg4s1YmVnA3Q2Q9Q9lB0j6sZSqoA4j9rEQJvjYY4YxSTaHSaHIz1c9g7HGHbMf7dMPzTIFuFHTRcV9d7mxdRMCUJbFKwjZaDBuyCr0HjnRblJSO6aMRvMlP1pPvPU4gS7WMBqlKZWYXUTVlSg==</item>
+        <item>
+            MIIEqDCCA5CgAwIBAgIJANWFuGx90071MA0GCSqGSIb3DQEBBAUAMIGUMQswCQYD
+            VQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZyYW5j
+            aXNjbzETMBEGA1UEChMKR29vZ2xlIEluYzEVMBMGA1UECxMMR29vZ2xlIE1vYmls
+            ZTEUMBIGA1UEAxMLR29vZ2xlIEluYzAeFw0xMzAzMDYxNzMyMzdaFw00MzAyMjYx
+            NzMyMzdaMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQG
+            A1UEBxMNU2FuIEZyYW5jaXNjbzETMBEGA1UEChMKR29vZ2xlIEluYzEVMBMGA1UE
+            CxMMR29vZ2xlIE1vYmlsZTEUMBIGA1UEAxMLR29vZ2xlIEluYzCCASAwDQYJKoZI
+            hvcNAQEBBQADggENADCCAQgCggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW0I9Y4syp
+            EwPpt1TTcvZApxsdyxMJiutfd2Q0B6coJTEyVALqUG0gMu03lE8f4j2ZD5U5sU/U
+            XITFkRFaGXwVF0AoRN4ECSH3HE7Tl6ZrjAXxwBBGYHe6YPZmAWHnTf6UNBq+iJJz
+            uvQ7YZlmFo+JaUfIFzMjMFoqklyPEHuN/LkgI/dVGBbdR4yIEzgHOkubS5g1I8KA
+            EQ4VBi62fMFvv7sPf4SoCC+bigCggEAK6lnEJaBBAjU4gQJa7u/WpBE0qZESmXh6C
+            0k5M9ZNBZV0pMpJ30cHIkBoWMw1TZRG43fqHT91jxqhZ0cEpC3AeOVf0gcaqhbGv
+            qhNSS1I5tnBL7xBX/kYRdtBHKl5VaYHK+NWiZGPl9mNa2jP1C6A9QhYS4PfP8Gjb
+            AtGTqH9h1f+LRZt7H8UPBlWxPAZf8FWyCIFBTFelzR+lmpS==
+        </item>
     </string-array>
     <string-array name="com_google_android_gms_fonts_certs_prod">
-        <item>MIIEQzCCAyugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDAeFw0wODA4MjEyMzEzMzRaFw0zNjAxMDcyMzEzMzRaMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW0I9Y4sypEwPpt1TTcvZApxsdyxMJiutfd2Q0B6coJTEyVALqUG0gMu03lE8f4j2ZD5U5sU/UXITFkRFaGXwVF0AoRN4ECSH3HE7Tl6ZrjAXxwBBGYHe6YPZmAWHnTf6UNBq+iJJzuvQ7YZlmFo+JaUfIFzMjMFoqklyPEHuN/LkgI/dVGBbdR4yIEzgHOkubS5g1I8KAEQ4VBi62fMFvv7sPf4SoCCBigCggEAK6lnEJaBBAjU4gQJa7u/WpBE0qZESmXh6C0k5M9ZNBZV0pMpJ30cHIkBoWMw1TZRG43fqHT91jxqhZ0cEpC3AeOVf0gcaqhbGvqhNSS1I5tnBL7xBX/kYRdtBHKl5VaYHK+NWiZGPl9mNa2jP1C6A9QhYS4PfP8GjbAtGTqH9h1f+LRZt7H8UPBlWxPAZf8FWyCIFBTFelzR+lmpSggCggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW0I9Y4sypEwPpt1TTcvZApxsdyxMJiutfd2Q0B6coJTEyVALqUG0gMu03lE8f4j2ZD5U5sU/UXITFkRFaGXwVF0AoRN4ECSH3HE7Tl6ZrjAXxwBBGYHe6YPZmAWHnTf6UNBq+iJJzuvQ7YZlmFo+JaUfIFzMjMFoqklyPEHuN/LkgI/dVGBbdR4yIEzgHOkubS5g1I8KAEQ4VBi62fMFvv7sPf4SoCCBigCggEAK6lnEJaBBAjU4gQJa7u/WpBE0qZESmXh6C0k5M9ZNBZV0pMpJ30cHIkBoWMw1TZRG43fqHT91jxqhZ0cEpC3AeOVf0gcaqhbGvqhNSS1I5tnBL7xBX/kYRdtBHKl5VaYHK+NWiZGPl9mNa2jP1C6A9QhYS4PfP8GjbAtGTqH9h1f+LRZt7H8UPBlWxPAZf8FWyCIFBTFelzR+lmpSgg==</item>
+        <item>
+            MIIEQzCCAyugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMHQxCzAJBgNV
+            BAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBW
+            aWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4G
+            A1UEAxMHQW5kcm9pZDAeFw0wODA4MjEyMzEzMzRaFw0zNjAxMDcyMzEzMzRaMHQx
+            CzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3Vu
+            dGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9p
+            ZDEQMA4GA1UEAxMHQW5kcm9pZDCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgC
+            ggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW0I9Y4sypEwPpt1TTcvZApxsdyxMJiutf
+            d2Q0B6coJTEyVALqUG0gMu03lE8f4j2ZD5U5sU/UXITFkRFaGXwVF0AoRN4ECSH3
+            HE7Tl6ZrjAXxwBBGYHe6YPZmAWHnTf6UNBq+iJJzuvQ7YZlmFo+JaUfIFzMjMFoq
+            klyPEHuN/LkgI/dVGBbdR4yIEzgHOkubS5g1I8KAEQ4VBi62fMFvv7sPf4SoCC+b
+            igCggEAK6lnEJaBBAjU4gQJa7u/WpBE0qZESmXh6C0k5M9ZNBZV0pMpJ30cHIkBo
+            WMw1TZRG43fqHT91jxqhZ0cEpC3AeOVf0gcaqhbGvqhNSS1I5tnBL7xBX/kYRdtB
+            HKl5VaYHK+NWiZGPl9mNa2jP1C6A9QhYS4PfP8GjbAtGTqH9h1f+LRZt7H8UPBlW
+            xPAZf8FWyCIFBTFelzR+lmpS==
+        </item>
     </string-array>
     <attr format="color" name="bottomNavIconTint"/>
-    <color name="accent_gold">#FFF59E0B</color>
-    <color name="accent_gold_dim">#26F59E0B</color>
+    <color name="accent_gold">#FFD4A017</color>
+    <color name="accent_gold_dim">#26D4A017</color>
+    <color name="accent_saffron">#FFE8682A</color>
+    <color name="accent_saffron_end">#FFD4540A</color>
     <color name="bg_border">#FF3F3F46</color>
     <color name="bg_primary">#FF09090B</color>
     <color name="bg_surface">#FF18181B</color>
     <color name="bg_surface_2">#FF27272A</color>
-    <color name="bottom_nav_bg">#FF18181B</color>
-    <color name="bottom_nav_indicator">#267C3AED</color>
+    <color name="bg_surface_3">#1A1A24</color>
+    <color name="bg_surface_4">#13131E</color>
+    <color name="bottom_nav_bg">#FF13131A</color>
+    <color name="bottom_nav_indicator">#307C3AED</color>
+    <color name="bubble_ai_bg">#1E1E28</color>
+    <color name="bubble_ai_border">#2D2D3E</color>
+    <color name="bubble_user_end">#FFD4540A</color>
+    <color name="bubble_user_start">#FFE8682A</color>
     <color name="error">#FFF87171</color>
+    <color name="hero_bg_end">#100A04</color>
+    <color name="hero_bg_start">#201408</color>
+    <color name="hero_border">#4A2A0A</color>
+    <color name="input_bar_bg">#1C1C24</color>
+    <color name="input_bar_border">#35354A</color>
     <color name="nav_bar">#FF09090B</color>
     <color name="planet_jupiter">#FFEAB308</color>
     <color name="planet_ketu">#FFF97316</color>
@@ -28,7 +73,7 @@
     <color name="planet_moon">#FF94A3B8</color>
     <color name="planet_rahu">#FF6366F1</color>
     <color name="planet_saturn">#FF64748B</color>
-    <color name="planet_sun">#FFF59E0B</color>
+    <color name="planet_sun">#FFD4A017</color>
     <color name="planet_venus">#FFA855F7</color>
     <color name="primary">#FF7C3AED</color>
     <color name="primary_dim">#267C3AED</color>
@@ -137,6 +182,11 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <style name="TextAppearance.BrahmAI.NavItem" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
     <style name="Theme.BrahmAI" parent="Theme.Material3.Dark">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_light</item>
@@ -152,8 +202,11 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:letterSpacing">0.01</item>
         <item name="materialButtonStyle">@style/Widget.BrahmAI.Button</item>
         <item name="bottomNavigationStyle">@style/Widget.BrahmAI.BottomNav</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
     </style>
     <style name="Theme.BrahmAI.NoBar" parent="Theme.BrahmAI">
         <item name="windowActionBar">false</item>
@@ -174,29 +227,34 @@
         <item name="android:color">@color/bottom_nav_indicator</item>
     </style>
     <style name="Widget.BrahmAI.Button" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/primary</item>
+        <item name="android:background">@drawable/bg_primary_button</item>
+        <item name="backgroundTint">@null</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textSize">15sp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
     <style name="Widget.BrahmAI.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
         <item name="strokeColor">@color/primary</item>
         <item name="android:textColor">@color/primary</item>
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="android:textAllCaps">false</item>
     </style>
     <style name="Widget.BrahmAI.ButtonOutlined" parent="Widget.Material3.Button.OutlinedButton">
         <item name="strokeColor">@color/primary</item>
         <item name="android:textColor">@color/primary</item>
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="android:textAllCaps">false</item>
     </style>
     <style name="Widget.BrahmAI.Card" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardBackgroundColor">@color/bg_surface</item>
-        <item name="cardCornerRadius">12dp</item>
+        <item name="cardBackgroundColor">@color/bg_surface_3</item>
+        <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
-        <item name="strokeColor">@color/bg_border</item>
+        <item name="strokeColor">@color/input_bar_border</item>
         <item name="strokeWidth">1dp</item>
     </style>
     <style name="Widget.BrahmAI.Chip" parent="Widget.Material3.Chip.Filter">
@@ -214,13 +272,21 @@
         <item name="chipCornerRadius">20dp</item>
     </style>
     <style name="Widget.BrahmAI.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
-        <item name="boxStrokeColor">@color/bg_border</item>
-        <item name="boxBackgroundColor">@color/bg_surface</item>
+        <item name="boxStrokeColor">@color/input_bar_border</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">1.5dp</item>
+        <item name="boxBackgroundColor">@color/input_bar_bg</item>
         <item name="hintTextColor">@color/text_muted</item>
         <item name="android:textColorHint">@color/text_muted</item>
-        <item name="boxCornerRadiusTopStart">12dp</item>
-        <item name="boxCornerRadiusTopEnd">12dp</item>
-        <item name="boxCornerRadiusBottomStart">12dp</item>
-        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+    </style>
+    <style name="Widget.BrahmAI.TextInput.Chat" parent="Widget.BrahmAI.TextInput">
+        <item name="boxCornerRadiusTopStart">22dp</item>
+        <item name="boxCornerRadiusTopEnd">22dp</item>
+        <item name="boxCornerRadiusBottomStart">22dp</item>
+        <item name="boxCornerRadiusBottomEnd">22dp</item>
     </style>
 </resources>

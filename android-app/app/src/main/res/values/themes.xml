@@ -15,8 +15,11 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:letterSpacing">0.01</item>
         <item name="materialButtonStyle">@style/Widget.BrahmAI.Button</item>
         <item name="bottomNavigationStyle">@style/Widget.BrahmAI.BottomNav</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
     </style>
 
     <!-- Splash screen -->
@@ -34,18 +37,23 @@
 
     <!-- Primary button -->
     <style name="Widget.BrahmAI.Button" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/primary</item>
+        <item name="android:background">@drawable/bg_primary_button</item>
+        <item name="backgroundTint">@null</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textSize">15sp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <!-- Outlined button (alias used in layouts) -->
     <style name="Widget.BrahmAI.ButtonOutlined" parent="Widget.Material3.Button.OutlinedButton">
         <item name="strokeColor">@color/primary</item>
         <item name="android:textColor">@color/primary</item>
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
@@ -53,7 +61,7 @@
     <style name="Widget.BrahmAI.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
         <item name="strokeColor">@color/primary</item>
         <item name="android:textColor">@color/primary</item>
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
@@ -71,10 +79,10 @@
 
     <!-- Card style -->
     <style name="Widget.BrahmAI.Card" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardBackgroundColor">@color/bg_surface</item>
-        <item name="cardCornerRadius">12dp</item>
+        <item name="cardBackgroundColor">@color/bg_surface_3</item>
+        <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
-        <item name="strokeColor">@color/bg_border</item>
+        <item name="strokeColor">@color/input_bar_border</item>
         <item name="strokeWidth">1dp</item>
     </style>
 
@@ -98,13 +106,31 @@
 
     <!-- Input field -->
     <style name="Widget.BrahmAI.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
-        <item name="boxStrokeColor">@color/bg_border</item>
-        <item name="boxBackgroundColor">@color/bg_surface</item>
+        <item name="boxStrokeColor">@color/input_bar_border</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">1.5dp</item>
+        <item name="boxBackgroundColor">@color/input_bar_bg</item>
         <item name="hintTextColor">@color/text_muted</item>
         <item name="android:textColorHint">@color/text_muted</item>
-        <item name="boxCornerRadiusTopStart">12dp</item>
-        <item name="boxCornerRadiusTopEnd">12dp</item>
-        <item name="boxCornerRadiusBottomStart">12dp</item>
-        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
     </style>
+
+    <!-- Chat input field (pill style) -->
+    <style name="Widget.BrahmAI.TextInput.Chat" parent="Widget.BrahmAI.TextInput">
+        <item name="boxCornerRadiusTopStart">22dp</item>
+        <item name="boxCornerRadiusTopEnd">22dp</item>
+        <item name="boxCornerRadiusBottomStart">22dp</item>
+        <item name="boxCornerRadiusBottomEnd">22dp</item>
+    </style>
+
+    <!-- Nav drawer item text appearance -->
+    <style name="TextAppearance.BrahmAI.NavItem" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
 </resources>

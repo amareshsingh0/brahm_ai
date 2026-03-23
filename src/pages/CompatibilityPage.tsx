@@ -171,6 +171,7 @@ function NakshatraTab({ result, nameA, nameB }: {
   nameA: string;
   nameB: string;
 }) {
+  const { t } = useTranslation();
   const gana    = ganaCompatibility(result.gana_a, result.gana_b);
   const yoni    = yoniCompatibility(result.yoni_a ?? "", result.yoni_b ?? "");
   const varna   = varnaCompatibility(result.varna_a, result.varna_b);
@@ -183,7 +184,7 @@ function NakshatraTab({ result, nameA, nameB }: {
       {/* Nakshatra pair header */}
       <div className="cosmic-card rounded-xl p-4">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-          Nakshatra Pair
+          {t("compatibility.nakshatra_pair")}
         </h3>
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -377,7 +378,7 @@ function NakshatraTab({ result, nameA, nameB }: {
       </div>
 
       <p className="text-xs text-muted-foreground/60 leading-relaxed pb-2">
-        Lahiri Ayanamsha · Nakshatra analysis is a supplementary layer — consult a qualified Jyotishi for complete guidance.
+        {t("compatibility.nakshatra_disclaimer")}
       </p>
     </motion.div>
   );
@@ -1028,7 +1029,7 @@ function ResultView({ result, nameA, nameB, personA, personB, onEdit }: {
           )}
 
           <p className="text-xs text-muted-foreground/60 leading-relaxed pb-2">
-            Lahiri Ayanamsha · pyswisseph DE431 · Ashtakoot is one of many factors — consult a qualified Jyotishi.
+            {t("compatibility.ashtakoot_disclaimer")}
           </p>
         </div>
       </div>
@@ -1045,6 +1046,7 @@ function PersonForm({ label, person, selectedCity, onChange, onCitySelect }: {
   onChange: (p: PersonState) => void;
   onCitySelect: (city: City) => void;
 }) {
+  const { t } = useTranslation();
   const [suggestions, setSuggestions] = useState<City[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -1069,21 +1071,21 @@ function PersonForm({ label, person, selectedCity, onChange, onCitySelect }: {
         <span className="font-display text-sm text-foreground">{label}</span>
       </div>
       <div>
-        <Label className="text-xs text-muted-foreground">Name</Label>
-        <Input value={person.name} onChange={e => onChange({ ...person, name: e.target.value })} placeholder="Full name" className="bg-muted/20 border-border/30 mt-1" />
+        <Label className="text-xs text-muted-foreground">{t("compatibility.name_label")}</Label>
+        <Input value={person.name} onChange={e => onChange({ ...person, name: e.target.value })} placeholder={t("compatibility.name_placeholder")} className="bg-muted/20 border-border/30 mt-1" />
       </div>
       <div>
-        <Label className="text-xs text-muted-foreground">Date of Birth</Label>
+        <Label className="text-xs text-muted-foreground">{t("compatibility.dob_label")}</Label>
         <Input type="date" value={person.dob} onChange={e => onChange({ ...person, dob: e.target.value })} className="bg-muted/20 border-border/30 mt-1" />
       </div>
       <div>
-        <Label className="text-xs text-muted-foreground">Time of Birth</Label>
+        <Label className="text-xs text-muted-foreground">{t("compatibility.tob_label")}</Label>
         <Input type="time" value={person.time} onChange={e => onChange({ ...person, time: e.target.value })} className="bg-muted/20 border-border/30 mt-1" />
       </div>
       <div ref={wrapperRef} className="relative">
-        <Label className="text-xs text-muted-foreground">Birth Place</Label>
+        <Label className="text-xs text-muted-foreground">{t("compatibility.place_label")}</Label>
         <div className="relative mt-1">
-          <Input value={person.place} onChange={e => handleCityInput(e.target.value)} placeholder="Search city..." autoComplete="off"
+          <Input value={person.place} onChange={e => handleCityInput(e.target.value)} placeholder={t("compatibility.place_placeholder")} autoComplete="off"
             className={`bg-muted/20 border-border/30 ${selectedCity ? "border-primary/50" : ""}`} />
           {selectedCity && (
             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-primary/70">
@@ -1146,7 +1148,7 @@ export default function CompatibilityPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1 className="font-display text-2xl text-foreground text-glow-gold mb-1">{t('compatibility.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Ashtakoot 36-Guna matching · Life-area analysis · Radar visualization · PDF report
+          {t("compatibility.subtitle")}
         </p>
       </motion.div>
 
@@ -1166,19 +1168,19 @@ export default function CompatibilityPage() {
           </div>
 
           <div className="mt-4 cosmic-card rounded-xl p-3 flex flex-col gap-2">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Varna System</p>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t("compatibility.varna_system", { defaultValue: "Varna System" })}</p>
             <div className="flex gap-2 flex-wrap">
               {(["both", "nakshatra", "rashi"] as const).map(sys => (
                 <button key={sys} onClick={() => setVarnaSystem(sys)}
                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${varnaSystem === sys ? "bg-primary text-primary-foreground" : "bg-muted/30 text-muted-foreground hover:text-foreground"}`}>
-                  {sys === "both" ? "Both" : sys === "nakshatra" ? "Nakshatra (Classical)" : "Rashi (Drik Ganita)"}
+                  {sys === "both" ? t("compatibility.system_both") : sys === "nakshatra" ? t("compatibility.system_nakshatra") : t("compatibility.system_rashi")}
                 </button>
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              {varnaSystem === "nakshatra" && "Parashari — Varna by birth Nakshatra"}
-              {varnaSystem === "rashi" && "Modern Drik Ganita — Varna by Moon sign element"}
-              {varnaSystem === "both" && "Shows Nakshatra score; Rashi alternative shown if different"}
+              {varnaSystem === "nakshatra" && t("compatibility.system_nakshatra_desc", { defaultValue: "Parashari — Varna by birth Nakshatra" })}
+              {varnaSystem === "rashi" && t("compatibility.system_rashi_desc", { defaultValue: "Modern Drik Ganita — Varna by Moon sign element" })}
+              {varnaSystem === "both" && t("compatibility.system_both_desc", { defaultValue: "Shows Nakshatra score; Rashi alternative shown if different" })}
             </p>
           </div>
 
@@ -1195,7 +1197,7 @@ export default function CompatibilityPage() {
           </button>
 
           <p className="mt-3 text-xs text-muted-foreground text-center">
-            Lahiri Ayanamsha · Moon Nakshatra · pyswisseph · Rajju &amp; Vedha included · PDF export
+            {t("compatibility.system_info", { defaultValue: "Lahiri Ayanamsha · Moon Nakshatra · pyswisseph · Rajju & Vedha included · PDF export" })}
           </p>
         </motion.div>
       )}

@@ -28,8 +28,8 @@ export default function NakshatraExplorer() {
             aria-label={`${n.name} nakshatra, ruled by ${n.ruler}`}
           >
             <span className="text-2xl mb-2 block">{n.symbol}</span>
-            <p className="font-display text-sm text-foreground">{n.name}</p>
-            <p className="text-xs text-primary/70">#{n.number} · {n.ruler}</p>
+            <p className="font-display text-sm text-foreground">{t(`data.nakshatra.${n.name.toLowerCase().replace(/ /g, "_")}.name`, { defaultValue: n.name })}</p>
+            <p className="text-xs text-primary/70">#{n.number} · {t(`planet.${n.ruler}`, { defaultValue: n.ruler })}</p>
             <p className="text-xs text-muted-foreground mt-1">{t(`data.nakshatra.${n.name.toLowerCase().replace(/ /g, "_")}.nature`, { defaultValue: n.nature })}</p>
           </motion.button>
         ))}
@@ -46,8 +46,8 @@ export default function NakshatraExplorer() {
             <div className="flex items-center gap-3">
               <span className="text-4xl">{selected.symbol}</span>
               <div>
-                <h3 className="font-display text-xl text-foreground">{selected.name}</h3>
-                <p className="text-xs text-primary">Nakshatra #{selected.number}</p>
+                <h3 className="font-display text-xl text-foreground">{t(`data.nakshatra.${selected.name.toLowerCase().replace(/ /g, "_")}.name`, { defaultValue: selected.name })}</h3>
+                <p className="text-xs text-primary">{t("nakshatra_explorer.nakshatra_no", { n: selected.number })}</p>
               </div>
             </div>
             <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground">
@@ -61,7 +61,7 @@ export default function NakshatraExplorer() {
             </div>
             <div className="bg-muted/20 rounded-lg p-3">
               <span className="text-muted-foreground text-xs block">{t("nakshatra_explorer.ruler")}</span>
-              <span className="text-foreground">{selected.ruler}</span>
+              <span className="text-foreground">{t(`planet.${selected.ruler}`, { defaultValue: selected.ruler })}</span>
             </div>
             <div className="bg-muted/20 rounded-lg p-3">
               <span className="text-muted-foreground text-xs block">{t("nakshatra_explorer.nature")}</span>

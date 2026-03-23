@@ -9,13 +9,36 @@ import cosmicBg from "@/assets/cosmic-bg.jpg";
 export default function Dashboard() {
   const { t } = useTranslation();
   const birthDetails = useKundliStore((s) => s.birthDetails);
-  const userName = birthDetails?.name || "Seeker";
+  const kundaliData = useKundliStore((s) => s.kundaliData);
+  const userName = birthDetails?.name || t("dashboard.seeker", { defaultValue: "Seeker" });
+
+  const currentDasha = kundaliData?.dashas?.find(d => {
+    const now = new Date();
+    return new Date(d.start) <= now && new Date(d.end) >= now;
+  });
+  const dashaEnd = currentDasha ? new Date(currentDasha.end).getFullYear().toString() : null;
 
   const quickStats = [
-    { icon: Moon, label: t("dashboard.moon_rashi"), value: "Cancer", sub: "Ashlesha Nakshatra" },
-    { icon: Sun, label: t("dashboard.sun_sign"), value: "Leo", sub: "Magha Nakshatra" },
-    { icon: Sparkles, label: t("dashboard.ascendant"), value: "Aries", sub: "Ashwini Nakshatra" },
-    { icon: Clock, label: t("dashboard.current_dasha"), value: "Rahu", sub: "Until 2033" },
+    {
+      icon: Moon, label: t("dashboard.moon_rashi"),
+      value: kundaliData?.grahas?.["Chandra"]?.rashi ?? "—",
+      sub: kundaliData?.grahas?.["Chandra"]?.nakshatra ? `${kundaliData.grahas["Chandra"].nakshatra} ${t("kundli.nakshatra")}` : "—",
+    },
+    {
+      icon: Sun, label: t("dashboard.sun_sign"),
+      value: kundaliData?.grahas?.["Surya"]?.rashi ?? "—",
+      sub: kundaliData?.grahas?.["Surya"]?.nakshatra ? `${kundaliData.grahas["Surya"].nakshatra} ${t("kundli.nakshatra")}` : "—",
+    },
+    {
+      icon: Sparkles, label: t("dashboard.ascendant"),
+      value: kundaliData?.lagna?.rashi ?? "—",
+      sub: kundaliData?.lagna?.nakshatra ? `${kundaliData.lagna.nakshatra} ${t("kundli.nakshatra")}` : "—",
+    },
+    {
+      icon: Clock, label: t("dashboard.current_dasha"),
+      value: currentDasha?.lord ?? "—",
+      sub: dashaEnd ? t("dashboard.until_year", { year: dashaEnd, defaultValue: `Until ${dashaEnd}` }) : "—",
+    },
   ];
 
   const guidance = [

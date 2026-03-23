@@ -1,5 +1,29 @@
 {
   "appTitle": "Brahm AI",
+  "chart": {
+    "north": "North",
+    "south": "South",
+    "east": "East",
+    "west": "West"
+  },
+  "planet": {
+    "Sun": "Sun",
+    "Moon": "Moon",
+    "Mars": "Mars",
+    "Mercury": "Mercury",
+    "Jupiter": "Jupiter",
+    "Venus": "Venus",
+    "Saturn": "Saturn",
+    "Rahu": "Rahu",
+    "Ketu": "Ketu",
+    "Surya": "Sun",
+    "Chandra": "Moon",
+    "Mangal": "Mars",
+    "Budh": "Mercury",
+    "Guru": "Jupiter",
+    "Shukra": "Venus",
+    "Shani": "Saturn"
+  },
   "nav_group": {
     "main": "Main",
     "explore": "Explore",
@@ -74,7 +98,9 @@
     "quick_links": "Quick Links",
     "today_panchang": "Today's Panchang",
     "compatibility": "Compatibility",
-    "vedic_library": "Vedic Library"
+    "vedic_library": "Vedic Library",
+    "seeker": "Seeker",
+    "until_year": "Until {{year}}"
   },
   "onboarding": {
     "title": "Your Cosmic Journey Begins",
@@ -119,7 +145,13 @@
     "searching": "Searching knowledge base...",
     "welcome": "Namaste! I am Brahm AI — your guide to Vedic wisdom.\nAsk me about Dharma, Karma, Mantras, Jyotish, Upanishads, and more.",
     "badge": "Vedic Assistant",
-    "try_asking": "Try asking about:"
+    "try_asking": "Try asking about:",
+    "topic_gita": "Bhagavad Gita",
+    "topic_astro": "Vedic Astrology",
+    "topic_karma": "Karma Theory",
+    "topic_meditation": "Meditation",
+    "topic_yoga": "Kundali Yoga",
+    "topic_mantras": "Sanskrit Mantras"
   },
   "kundli": {
     "title": "My Kundali",
@@ -152,7 +184,38 @@
     "share_copied": "Copied!",
     "no_birth_title": "No Birth Details",
     "no_birth_desc": "Enter your birth details to generate your Vedic chart",
-    "generate_btn": "Generate Kundali"
+    "generate_btn": "Generate Kundali",
+    "janam_kundali": "Janam Kundali",
+    "form_subtitle": "Vedic birth chart · Divisional charts · Dasha · Yogas",
+    "birth_details": "Birth Details",
+    "name_label": "Name",
+    "optional": "optional",
+    "name_placeholder": "Your name",
+    "city_hint": "Select a city from the dropdown for accurate coordinates.",
+    "system_info": "Lahiri Ayanamsha · Whole Sign Houses · pyswisseph DE431",
+    "calculating": "Calculating...",
+    "new_edit": "New / Edit",
+    "chart_a": "Chart A",
+    "chart_b": "Chart B",
+    "pada": "Pada",
+    "navamsha_lagna": "Navamsha Lagna",
+    "ayanamsha": "Ayanamsha",
+    "rahu_ketu_mode": "Rahu/Ketu Mode",
+    "place": "Place",
+    "birth_panchang": "Birth Panchang",
+    "personal_chars": "Personal Characteristics",
+    "tithi": "Tithi",
+    "vara": "Vara",
+    "yoga_panchang": "Yoga",
+    "karana": "Karana",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "moon_sign": "Moon Sign",
+    "sun_sign": "Sun Sign",
+    "surya_nak": "Surya Nak.",
+    "no_yogas": "No major yogas detected",
+    "gen_yogas": "Generate Kundali to see Yogas",
+    "gen_lagna": "Generate Kundali to see Lagna details"
   },
   "panchang": {
     "title": "Today's Panchang",
@@ -266,7 +329,13 @@
   },
   "compatibility": {
     "title": "Kundali Compatibility",
-    "subtitle": "Check Ashtakoot Guna Milan",
+    "subtitle": "Ashtakoot 36-Guna matching · Life-area analysis · Radar visualization · PDF report",
+    "nakshatra_disclaimer": "Lahiri Ayanamsha · Nakshatra analysis is a supplementary layer — consult a qualified Jyotishi for complete guidance.",
+    "ashtakoot_disclaimer": "Lahiri Ayanamsha · pyswisseph DE431 · Ashtakoot is one of many factors — consult a qualified Jyotishi.",
+    "system_nakshatra_desc": "Parashari — Varna by birth Nakshatra",
+    "system_rashi_desc": "Modern Drik Ganita — Varna by Moon sign element",
+    "system_both_desc": "Shows Nakshatra score; Rashi alternative shown if different",
+    "system_info": "Lahiri Ayanamsha · Moon Nakshatra · pyswisseph · Rajju & Vedha included · PDF export",
     "person_a": "Person A",
     "person_b": "Person B",
     "check_btn": "Check Compatibility",
@@ -282,7 +351,17 @@
     "gana_match": "Gana (Nature Match)",
     "nadi_dosha": "Nadi Dosha",
     "factor": "Factor",
-    "result_col": "Result"
+    "result_col": "Result",
+    "name_label": "Name",
+    "dob_label": "Date of Birth",
+    "tob_label": "Time of Birth",
+    "place_label": "Birth Place",
+    "name_placeholder": "Full name",
+    "place_placeholder": "Search city...",
+    "varna_system": "Varna System",
+    "system_both": "Both",
+    "system_nakshatra": "Nakshatra (Classical)",
+    "system_rashi": "Rashi (Drik Ganita)"
   },
   "horoscope": {
     "title": "Daily Horoscope",
@@ -578,7 +657,15 @@
     "ashtama_title": "Ashtama Shani",
     "kantaka_title": "Kantaka Shani",
     "remedies_title": "Shani Remedies",
-    "about": "About Sade Sati"
+    "about": "About Sade Sati",
+    "now": "Now",
+    "saturn_in_rashi": "Saturn in {{rashi}}",
+    "next_begins_when": "Your next Sade Sati begins when Saturn enters {{triggerRashi}} (the 12th sign from your Moon rashi {{moonRashi}}). Saturn is currently in {{currentRashi}}.",
+    "next_cycle_span": "Once it begins, the full 7.5-year cycle spans {{r1}} → {{r2}} → {{r3}}.",
+    "phase_rising": "Rising",
+    "phase_peak": "Peak",
+    "phase_setting": "Setting",
+    "active": "Sade Sati Active — {{phase}} Phase"
   },
   "gemstones": {
     "title": "Gemstone Guide",
@@ -609,7 +696,52 @@
     "disclaimer": "Gemstones are a complementary Vedic remedy. Always consult a qualified Jyotishi before wearing any gemstone — especially Blue Sapphire (Neelam) and Hessonite (Gomed), which can have strong effects. Quality, weight, and the specific planetary period (dasha) matter greatly.",
     "house_4th": "4th Lord (Home & Happiness)",
     "house_9th": "9th Lord (Fortune & Dharma)",
-    "house_10th": "10th Lord (Career & Karma)"
+    "house_10th": "10th Lord (Career & Karma)",
+    "badge_primary": "Primary",
+    "badge_secondary": "Secondary",
+    "badge_exalted": "Exalted",
+    "lagna_stone_label": "{{rashi}} lagna stone · ruled by {{lord}}",
+    "moon_stone_label": "{{rashi}} moon stone · ruled by {{lord}}",
+    "exalted_planet_label": "{{planet}} — Exalted (Uchcha)",
+    "remedy_label": "Remedy for {{planet}} weakness",
+    "caution_title": "Caution & Important Notes",
+    "caution_1": "Never wear Blue Sapphire (Neelam) without a 3-day trial on the body first — observe dreams, mood, and events.",
+    "caution_2": "Do not combine Red Coral (Moonga) with Emerald (Panna) — Mars and Mercury are natural enemies.",
+    "caution_3": "Do not wear Pearl and Blue Sapphire together without expert guidance.",
+    "caution_4": "Yellow Sapphire and Diamond are generally compatible but consult a Jyotishi for your specific chart.",
+    "caution_5": "Wear gemstones only in the prescribed metal, finger, and day for maximum effect.",
+    "caution_6": "Minimum weight: Ruby 3 ratti, Pearl 5 ratti, Emerald 3 ratti, Yellow Sapphire 3 ratti, Blue Sapphire 2 ratti.",
+    "metal_gold": "Gold",
+    "metal_silver": "Silver",
+    "metal_gold_copper": "Gold or Copper",
+    "metal_gold_silver": "Gold or Silver",
+    "metal_iron_silver": "Iron or Silver",
+    "finger_ring": "Ring finger",
+    "finger_middle": "Middle finger",
+    "finger_little": "Little finger",
+    "finger_index": "Index finger",
+    "day_monday": "Monday",
+    "day_tuesday": "Tuesday",
+    "day_wednesday": "Wednesday",
+    "day_thursday": "Thursday",
+    "day_friday": "Friday",
+    "day_saturday": "Saturday",
+    "day_sunday": "Sunday",
+    "ratna_disclaimer": "Ratna Shastra recommendations are based on classical Vedic astrology texts (Brihat Parashara Hora Shastra). Always consult a qualified Jyotishi before wearing gemstones — individual chart combinations vary significantly.",
+    "purpose_mesha": "Courage, Energy, Health",
+    "purpose_vrishabha": "Love, Wealth, Beauty",
+    "purpose_mithuna": "Intellect, Communication, Business",
+    "purpose_karka": "Emotions, Home, Mother",
+    "purpose_simha": "Authority, Career, Health",
+    "purpose_kanya": "Analysis, Health, Service",
+    "purpose_tula": "Relationships, Harmony, Wealth",
+    "purpose_vrischika": "Power, Research, Transformation",
+    "purpose_dhanu": "Fortune, Wisdom, Expansion",
+    "purpose_makara": "Discipline, Career, Karma",
+    "purpose_kumbha": "Humanitarian work, Innovation",
+    "purpose_meena": "Spirituality, Fortune, Compassion",
+    "stone_diamond_ws": "Diamond (Heera) or White Sapphire",
+    "stone_ruby": "Ruby (Manik)"
   },
   "nakshatra_explorer": {
     "title": "Nakshatra Explorer",
@@ -629,7 +761,10 @@
     "title": "Yogas",
     "subtitle": "Special planetary combinations in your chart",
     "present_heading": "Present in Your Chart",
-    "absent_heading": "Not Present"
+    "absent_heading": "Not Present",
+    "effect_benefic": "Benefic",
+    "effect_malefic": "Malefic",
+    "effect_mixed": "Mixed"
   },
   "remedies": {
     "title": "Remedies",
@@ -645,7 +780,42 @@
     "fast_desc": "Observe fast for spiritual merit",
     "color_desc": "Wear on auspicious days",
     "donate_desc": "Donate on {{day}}",
-    "day_desc": "Most effective day for worship"
+    "day_desc": "Most effective day for worship",
+    "house_n": "House {{n}}",
+    "gem_sun": "Ruby (Manikya)",
+    "gem_moon": "Pearl (Moti)",
+    "gem_mars": "Red Coral (Moonga)",
+    "gem_mercury": "Emerald (Panna)",
+    "gem_jupiter": "Yellow Sapphire (Pukhraj)",
+    "gem_venus": "Diamond (Heera)",
+    "gem_saturn": "Blue Sapphire (Neelam)",
+    "gem_rahu": "Hessonite (Gomed)",
+    "gem_ketu": "Cat's Eye (Lehsunia)",
+    "day_sunday": "Sunday",
+    "day_monday": "Monday",
+    "day_tuesday": "Tuesday",
+    "day_wednesday": "Wednesday",
+    "day_thursday": "Thursday",
+    "day_friday": "Friday",
+    "day_saturday": "Saturday",
+    "color_sun": "Red / Copper",
+    "color_moon": "White / Silver",
+    "color_mars": "Red / Scarlet",
+    "color_mercury": "Green",
+    "color_jupiter": "Yellow / Gold",
+    "color_venus": "White / Pink",
+    "color_saturn": "Black / Blue",
+    "color_rahu": "Dark Blue / Smoky",
+    "color_ketu": "Grey / Brown",
+    "donation_sun": "Wheat, Jaggery, Copper",
+    "donation_moon": "Rice, Milk, Silver",
+    "donation_mars": "Red Lentils, Jaggery",
+    "donation_mercury": "Green Moong Dal, Green Cloth",
+    "donation_jupiter": "Chana Dal, Turmeric, Gold",
+    "donation_venus": "Rice, Sugar, White Cloth",
+    "donation_saturn": "Black Sesame, Mustard Oil",
+    "donation_rahu": "Coconut, Black Blanket",
+    "donation_ketu": "Blanket, Dog Food"
   },
   "gotra": {
     "title": "Gotra Finder",
@@ -666,7 +836,31 @@
     "source": "Source",
     "meaning": "Meaning",
     "benefits": "Benefits",
-    "transliteration": "Transliteration"
+    "transliteration": "Transliteration",
+    "cat_universal": "Universal",
+    "cat_protection": "Protection",
+    "cat_devotion": "Devotion",
+    "cat_prosperity": "Prosperity",
+    "cat_knowledge": "Knowledge",
+    "cat_astrology": "Astrology",
+    "deity_savitri": "Savitri (Sun)",
+    "deity_shiva": "Lord Shiva",
+    "deity_vishnu": "Lord Vishnu",
+    "deity_hanuman": "Lord Hanuman",
+    "deity_lakshmi": "Goddess Lakshmi",
+    "deity_saraswati": "Goddess Saraswati",
+    "deity_ganesha": "Lord Ganesha",
+    "deity_navagraha": "Nine Planets",
+    "deity_universal_peace": "Universal Peace",
+    "sanskrit_label": "Sanskrit"
+  },
+  "colors": {
+    "Red": "Red",
+    "White": "White",
+    "White/Clear": "White/Clear",
+    "Green": "Green",
+    "Yellow": "Yellow",
+    "Blue": "Blue"
   },
   "library": {
     "title": "Vedic Library",
@@ -708,7 +902,92 @@
     "tab_lines": "Lines",
     "tab_mounts": "Mounts",
     "tab_hand_type": "Hand Type",
-    "subtitle": "Vedic hand reading — discover your karmic blueprint"
+    "subtitle": "Vedic hand reading — discover your karmic blueprint",
+    "upload_section_title": "Upload Your Palm",
+    "hand_hint": "Right hand for males · Left hand for females",
+    "drop_hint": "Drop palm image here",
+    "or": "or",
+    "use_camera": "Use Camera",
+    "photo_tips_title": "Photo Tips",
+    "tip_lighting_title": "Good lighting",
+    "tip_lighting_desc": "Natural or bright indoor light. Avoid shadows on the palm.",
+    "tip_open_title": "Open palm flat",
+    "tip_open_desc": "Extend fingers naturally — don't press them together.",
+    "tip_topdown_title": "Top-down shot",
+    "tip_topdown_desc": "Camera directly above palm, perpendicular to the hand.",
+    "tip_frame_title": "Fill the frame",
+    "tip_frame_desc": "Palm should fill most of the image so lines are visible.",
+    "tip_hand_title": "Which hand?",
+    "tip_hand_desc": "Right (dominant) = active karma. Left = inherited karma.",
+    "tip_how_title": "How it works",
+    "tip_how_desc": "Upload your palm, then answer simple guided questions about what you see. We generate your full Vedic reading instantly.",
+    "mount_well": "Well Developed",
+    "mount_flat": "Flat / Absent",
+    "mount_over": "Overdeveloped",
+    "full_reading": "Full reading",
+    "collapse": "Collapse",
+    "careers_label": "Careers",
+    "constitution_label": "Constitution",
+    "shadow_label": "Shadow",
+    "finger_jupiter": "Below Index Finger",
+    "finger_saturn": "Below Middle Finger",
+    "finger_apollo": "Below Ring Finger",
+    "finger_mercury": "Below Little Finger",
+    "finger_venus": "Base of Thumb",
+    "finger_moon": "Outer Base (opposite thumb)",
+    "finger_mars": "Upper & Lower Inner Edge",
+    "hand_earth_label": "Earth Hand",
+    "hand_earth_vedic": "Prithvi Hasta",
+    "hand_earth_shape": "Square palm + Short fingers",
+    "hand_earth_element": "Earth (Prithvi)",
+    "hand_earth_careers": "Builder, surgeon, chef, craftsman, athlete, engineer",
+    "hand_earth_constitution": "Kapha (Ayurveda) — stable, grounding, enduring",
+    "hand_earth_shadow": "Stubbornness, resistance to change, overattachment to the material",
+    "hand_earth_note": "Bhu-Tattva dominant. Deeply connected to the material plane. The karmic path involves mastery through physical effort and grounded wisdom.",
+    "hand_earth_trait1": "Practical & reliable",
+    "hand_earth_trait2": "Hardworking",
+    "hand_earth_trait3": "Strong physical constitution",
+    "hand_earth_trait4": "Prefers routine",
+    "hand_earth_trait5": "Hands-on learner",
+    "hand_air_label": "Air Hand",
+    "hand_air_vedic": "Vayu Hasta",
+    "hand_air_shape": "Square palm + Long fingers",
+    "hand_air_element": "Air (Vayu)",
+    "hand_air_careers": "Writer, journalist, teacher, scientist, lawyer, philosopher",
+    "hand_air_constitution": "Vata (Ayurveda) — swift, mercurial, adaptive",
+    "hand_air_shadow": "Anxiety, restlessness, difficulty grounding ideas into reality",
+    "hand_air_note": "Vayu-Tattva dominant. Ruled by Budha (Mercury). The karmic path involves using the gift of communication to serve truth and uplift others.",
+    "hand_air_trait1": "Intellectual",
+    "hand_air_trait2": "Curious & versatile",
+    "hand_air_trait3": "Excellent communicator",
+    "hand_air_trait4": "Social",
+    "hand_air_trait5": "Ideas-driven",
+    "hand_water_label": "Water Hand",
+    "hand_water_vedic": "Jala Hasta",
+    "hand_water_shape": "Long oval palm + Long fine fingers",
+    "hand_water_element": "Water (Jala)",
+    "hand_water_careers": "Healer, astrologer, artist, psychologist, poet, musician",
+    "hand_water_constitution": "Kapha-Pitta (Ayurveda) — fluid, receptive, emotionally rich",
+    "hand_water_shadow": "Over-sensitivity, poor boundaries, escapism, emotional overwhelm",
+    "hand_water_note": "Jala-Tattva dominant. Ruled by Chandra (Moon). The karmic path involves learning to channel deep sensitivity into healing and creative gifts without losing self.",
+    "hand_water_trait1": "Deeply intuitive",
+    "hand_water_trait2": "Empathetic",
+    "hand_water_trait3": "Creative & artistic",
+    "hand_water_trait4": "Psychically sensitive",
+    "hand_water_trait5": "Absorbs others' energies",
+    "hand_fire_label": "Fire Hand",
+    "hand_fire_vedic": "Agni Hasta",
+    "hand_fire_shape": "Long palm + Short fingers",
+    "hand_fire_element": "Fire (Agni)",
+    "hand_fire_careers": "Entrepreneur, military leader, performer, athlete, politician, pioneer",
+    "hand_fire_constitution": "Pitta (Ayurveda) — radiant, forceful, transforming",
+    "hand_fire_shadow": "Arrogance, burnout, aggression, inability to rest or surrender",
+    "hand_fire_note": "Agni-Tattva dominant. Ruled by Surya + Mangal. The karmic path involves tempering the fire of ambition with humility and compassion, so the flame uplifts rather than burns.",
+    "hand_fire_trait1": "Passionate & energetic",
+    "hand_fire_trait2": "Natural leader",
+    "hand_fire_trait3": "Charismatic & inspiring",
+    "hand_fire_trait4": "Ambitious",
+    "hand_fire_trait5": "Impatient"
   },
   "muhurta": {
     "title": "Shubh Muhurta",
@@ -851,160 +1130,199 @@
   "data": {
     "rashi": {
       "mesha": {
+        "name": "Aries",
         "element": "Fire",
         "traits": "Bold, Ambitious, Energetic"
       },
       "vrishabha": {
+        "name": "Taurus",
         "element": "Earth",
         "traits": "Reliable, Patient, Devoted"
       },
       "mithuna": {
+        "name": "Gemini",
         "element": "Air",
         "traits": "Curious, Adaptable, Communicative"
       },
       "karka": {
+        "name": "Cancer",
         "element": "Water",
         "traits": "Intuitive, Emotional, Protective"
       },
       "simha": {
+        "name": "Leo",
         "element": "Fire",
         "traits": "Creative, Passionate, Generous"
       },
       "kanya": {
+        "name": "Virgo",
         "element": "Earth",
         "traits": "Analytical, Practical, Kind"
       },
       "tula": {
+        "name": "Libra",
         "element": "Air",
         "traits": "Diplomatic, Gracious, Fair"
       },
       "vrishchika": {
+        "name": "Scorpio",
         "element": "Water",
         "traits": "Resourceful, Powerful, Brave"
       },
       "dhanu": {
+        "name": "Sagittarius",
         "element": "Fire",
         "traits": "Optimistic, Adventurous, Free"
       },
       "makara": {
+        "name": "Capricorn",
         "element": "Earth",
         "traits": "Disciplined, Responsible, Patient"
       },
       "kumbha": {
+        "name": "Aquarius",
         "element": "Air",
         "traits": "Progressive, Original, Humanitarian"
       },
       "meena": {
+        "name": "Pisces",
         "element": "Water",
         "traits": "Compassionate, Artistic, Wise"
       }
     },
     "nakshatra": {
       "ashwini": {
+        "name": "Ashwini",
         "nature": "Swift (Kshipra)",
         "traits": "Energetic, Healing, Pioneering"
       },
       "bharani": {
+        "name": "Bharani",
         "nature": "Fierce (Ugra)",
         "traits": "Transformative, Creative, Intense"
       },
       "krittika": {
+        "name": "Krittika",
         "nature": "Mixed (Mishra)",
         "traits": "Sharp, Purifying, Determined"
       },
       "rohini": {
+        "name": "Rohini",
         "nature": "Fixed (Dhruva)",
         "traits": "Beautiful, Fertile, Charming"
       },
       "mrigashira": {
+        "name": "Mrigashira",
         "nature": "Soft (Mridu)",
         "traits": "Searching, Gentle, Curious"
       },
       "ardra": {
+        "name": "Ardra",
         "nature": "Sharp (Tikshna)",
         "traits": "Stormy, Transformative, Intellectual"
       },
       "punarvasu": {
+        "name": "Punarvasu",
         "nature": "Movable (Chara)",
         "traits": "Renewal, Optimistic, Wise"
       },
       "pushya": {
+        "name": "Pushya",
         "nature": "Light (Laghu)",
         "traits": "Nourishing, Auspicious, Protective"
       },
       "ashlesha": {
+        "name": "Ashlesha",
         "nature": "Sharp (Tikshna)",
         "traits": "Mystical, Cunning, Perceptive"
       },
       "magha": {
+        "name": "Magha",
         "nature": "Fierce (Ugra)",
         "traits": "Royal, Ancestral, Authoritative"
       },
       "purva_phalguni": {
+        "name": "Purva Phalguni",
         "nature": "Fierce (Ugra)",
         "traits": "Creative, Romantic, Joyful"
       },
       "uttara_phalguni": {
+        "name": "Uttara Phalguni",
         "nature": "Fixed (Dhruva)",
         "traits": "Generous, Kind, Prosperous"
       },
       "hasta": {
+        "name": "Hasta",
         "nature": "Light (Laghu)",
         "traits": "Skilled, Crafty, Humorous"
       },
       "chitra": {
+        "name": "Chitra",
         "nature": "Soft (Mridu)",
         "traits": "Artistic, Brilliant, Beautiful"
       },
       "swati": {
+        "name": "Swati",
         "nature": "Movable (Chara)",
         "traits": "Independent, Flexible, Diplomatic"
       },
       "vishakha": {
+        "name": "Vishakha",
         "nature": "Mixed (Mishra)",
         "traits": "Determined, Goal-oriented, Powerful"
       },
       "anuradha": {
+        "name": "Anuradha",
         "nature": "Soft (Mridu)",
         "traits": "Devoted, Friendly, Successful"
       },
       "jyeshtha": {
+        "name": "Jyeshtha",
         "nature": "Sharp (Tikshna)",
         "traits": "Protective, Senior, Courageous"
       },
       "mula": {
+        "name": "Mula",
         "nature": "Sharp (Tikshna)",
         "traits": "Root-seeking, Transformative, Deep"
       },
       "purva_ashadha": {
+        "name": "Purva Ashadha",
         "nature": "Fierce (Ugra)",
         "traits": "Invincible, Purifying, Proud"
       },
       "uttara_ashadha": {
+        "name": "Uttara Ashadha",
         "nature": "Fixed (Dhruva)",
         "traits": "Victorious, Enduring, Universal"
       },
       "shravana": {
+        "name": "Shravana",
         "nature": "Movable (Chara)",
         "traits": "Listening, Learning, Connected"
       },
       "dhanishta": {
+        "name": "Dhanishta",
         "nature": "Movable (Chara)",
         "traits": "Musical, Wealthy, Generous"
       },
       "shatabhisha": {
+        "name": "Shatabhisha",
         "nature": "Movable (Chara)",
         "traits": "Healer, Mystical, Secretive"
       },
       "purva_bhadrapada": {
+        "name": "Purva Bhadrapada",
         "nature": "Fierce (Ugra)",
         "traits": "Intense, Spiritual, Fiery"
       },
       "uttara_bhadrapada": {
+        "name": "Uttara Bhadrapada",
         "nature": "Fixed (Dhruva)",
         "traits": "Deep, Wise, Controlled"
       },
       "revati": {
+        "name": "Revati",
         "nature": "Soft (Mridu)",
         "traits": "Nurturing, Prosperous, Final"
       }
@@ -1146,7 +1464,51 @@
         "sun_hint": "It runs upward toward your ring (Apollo) finger, parallel to the fate line. Many people have a faint version of this.",
         "mount_venus_instruction": "Look at the fleshy area at the BASE of your THUMB.",
         "mount_venus_hint": "Press your thumb gently to your palm — the padded area that rises is the Venus mount.",
-        "mount_venus_line": "Mount of Venus"
+        "mount_venus_line": "Mount of Venus",
+        "mount_jupiter_line": "Mount of Jupiter",
+        "mount_jupiter_instruction": "Look at the base of your INDEX finger.",
+        "mount_jupiter_hint": "The padded area directly below the index finger — when developed, it creates a visible fullness at the finger's base."
+      },
+      "opt": {
+        "heart_long_curved_label": "Long & Deeply Curved", "heart_long_curved_desc": "Sweeps up toward the index/middle finger in a strong arc", "heart_long_curved_meaning": "Warm, expressive, deeply romantic. You love unconditionally and wear your heart on your sleeve. Relationships are central to your life purpose.", "heart_long_curved_vedic": "Strong Shukra (Venus) influence — blessings in love, partnership, and devotion. The heart is your greatest teacher.",
+        "heart_straight_short_label": "Straight & Short", "heart_straight_short_desc": "Relatively straight, doesn't reach as far across the palm", "heart_straight_short_meaning": "Practical and measured in emotion. You love deeply but express it through loyal actions rather than grand gestures. Reliability is your love language.", "heart_straight_short_vedic": "Balanced Chandra (Moon) — emotional intelligence without overwhelm. Disciplined heart.",
+        "heart_forked_label": "Forked at End", "heart_forked_desc": "The line splits into two branches near the end", "heart_forked_meaning": "Rare and auspicious. You balance heart and mind beautifully — empathetic yet rational. Natural counselor or mediator. You see both sides of every relationship.", "heart_forked_vedic": "Budha-Chandra yoga — harmonious mind-heart communication. The fork indicates the Viveka (discernment) to choose wisely in love.",
+        "heart_high_index_label": "Ends Below Index Finger", "heart_high_index_desc": "The line curves up and ends near the base of your index finger", "heart_high_index_meaning": "Idealistic in love. You seek nothing less than a divine, soulmate-level connection. High standards — and you deserve them. Can feel perpetually unsatisfied until you find true union.", "heart_high_index_vedic": "Guru (Jupiter) sub-influence on the heart — seeks Prema (divine love). Marriage as spiritual sadhana.",
+        "heart_broken_label": "Broken or Chained", "heart_broken_desc": "Has gaps, islands, or chain-like appearance", "heart_broken_meaning": "Significant emotional journey. Past heartbreaks have shaped you deeply. These scars are also sources of immense compassion and wisdom. Growth through vulnerability.", "heart_broken_vedic": "Rahu/Ketu axis — karmic relationship lessons carried across lifetimes. The break is a portal to transformation.",
+        "head_long_straight_label": "Long & Straight", "head_long_straight_desc": "Extends nearly across the full width of the palm in a straight line", "head_long_straight_meaning": "Razor-sharp analytical mind. You excel at logic, mathematics, science, law, and strategic thinking. You see patterns others miss. Your intellect is your greatest asset.", "head_long_straight_vedic": "Strong Budha (Mercury) — exceptional intellectual capacity. Saraswati's grace on the mind.",
+        "head_curved_down_label": "Deeply Curved Downward", "head_curved_down_desc": "Curves noticeably downward toward the base of the palm", "head_curved_down_meaning": "Highly creative and imaginative. You think in images, metaphors, and stories. Writer, artist, visionary — the world of ideas is your natural home. Intuition over logic.", "head_curved_down_vedic": "Chandra dominance on Buddhi — imaginative intelligence. Saraswati as Vak Shakti (power of creative expression).",
+        "head_fork_end_label": "Forked at End (Writer's Fork)", "head_fork_end_desc": "Splits into two branches — one straight, one curved — near the end", "head_fork_end_meaning": "The most auspicious head line. You hold both analytical and creative intelligence simultaneously. Exceptional in communication, law, literature, philosophy, and teaching.", "head_fork_end_vedic": "Saraswati blessing — dual vision, the gift of eloquence. Can translate complex ideas into beautiful language.",
+        "head_short_label": "Short", "head_short_desc": "Doesn't extend very far across the palm", "head_short_meaning": "Decisive and action-oriented. You trust your instincts over lengthy analysis. Quick thinking, entrepreneurial spirit. Sometimes seen as impulsive — but often you're simply operating on a different level of knowing.", "head_short_vedic": "Mangal (Mars) influence on intellect — courage of thought. The instinct IS the intelligence.",
+        "head_chained_label": "Wavy or Chained", "head_chained_desc": "Appears uneven, wavy, or has chain-like links along it", "head_chained_meaning": "Sensitive, creative, and deeply perceptive. Your mind picks up subtle energies others miss. This comes with mental sensitivity — meditation and regular mental rest are essential.", "head_chained_vedic": "Ketu influence on Manas — a mind that perceives across dimensions. Highly psychic but needs grounding.",
+        "life_wide_deep_label": "Wide Arc & Deep", "life_wide_deep_desc": "Makes a large, sweeping arc around the thumb — goes far into the palm", "life_wide_deep_meaning": "Abundant Prana (life force). You have robust vitality, strong physical resilience, and a genuine love of life. Physical activity comes naturally. You recover quickly from setbacks.", "life_wide_deep_vedic": "Surya-Mangal blessings — solar vitality and warrior constitution. Strong Ojas (immunity). Dhanvantari's grace.",
+        "life_long_clear_label": "Long & Unbroken", "life_long_clear_desc": "Extends far down the palm with no breaks or islands", "life_long_clear_meaning": "Steady, sustained vitality throughout life. Few major health crises. Your energy is reliable and consistent. Others draw strength from your presence.", "life_long_clear_vedic": "Dhanvantari grace — blessed health karma from prior lifetimes of righteous living. Prana is protected.",
+        "life_double_label": "Double Life Line", "life_double_desc": "A parallel line runs alongside the main life line", "life_double_meaning": "Extraordinary — this is the Kavach Rekha (protective mark). You carry divine protection. Strong spiritual guidance from ancestors or Ishta Devata. Remarkable resilience and recovery from any situation.", "life_double_vedic": "Pitru Kavach and Ishta Devata's active blessing. One of the most auspicious marks in all of Samudrika Shastra.",
+        "life_close_thumb_label": "Close to Thumb (Tight Arc)", "life_close_thumb_desc": "Stays close to the thumb, doesn't sweep far out", "life_close_thumb_meaning": "More introverted energy. You conserve and channel your vitality with precision rather than broadcasting it widely. Quality over quantity in all things — relationships, work, energy expenditure.", "life_close_thumb_vedic": "Shani influence on Prana — teaches conservation and mastery. The monk archetype — disciplined and focused.",
+        "life_broken_label": "Broken or Has Islands", "life_broken_desc": "Has visible gaps, breaks, or island shapes along it", "life_broken_meaning": "Life has involved (or will involve) major transformations. A break is not an ending — it is a rebirth. Each transition you navigate builds extraordinary wisdom. You are a survivor and a transformer.", "life_broken_vedic": "Rahu transit marker — radical life pivots that serve divine redirection. The phoenix pattern.",
+        "fate_deep_clear_label": "Deep & Clear from Wrist", "fate_deep_clear_desc": "A strong, clear vertical line running from near the wrist upward", "fate_deep_clear_meaning": "Powerful dharmic purpose. Your life path is clear and purposeful from an early age. Career feels like a calling. Success comes through disciplined, long-term commitment to your path.", "fate_deep_clear_vedic": "Shani yoga strong — disciplined effort is magnificently rewarded. Prarabdha karma is guiding you firmly toward a specific destiny.",
+        "fate_starts_late_label": "Starts in Middle of Palm", "fate_starts_late_desc": "The fate line only begins halfway up the palm, not from the base", "fate_starts_late_meaning": "A late bloomer — and that's your superpower. Life clarity and career success come after age 30-35. You're building foundations others don't see. Your greatest achievements are still ahead.", "fate_starts_late_vedic": "Shani dasha activation — Saturn's gifts come after his tests. The deepest roots take longest to grow.",
+        "fate_broken_shifting_label": "Broken or Shifts Direction", "fate_broken_shifting_desc": "Has breaks, or noticeably changes direction midway", "fate_broken_shifting_meaning": "Multiple life chapters and career pivots. Each phase is complete in itself. You're not inconsistent — you're evolving. Each break represents a conscious or divinely-led reinvention.", "fate_broken_shifting_vedic": "Rahu-Shani interaction — disruption precedes breakthrough. The snake sheds its skin.",
+        "fate_absent_label": "Not Visible / Absent", "fate_absent_desc": "No clear vertical line in the center of the palm", "fate_absent_meaning": "Complete free will. You are not bound by a predetermined destiny — you are the author of your own story in the most literal sense. Self-made in every way.", "fate_absent_vedic": "Moksha marker — free from karma's direct grip. Pure agency. A life of Kriyamana karma (self-created karma).",
+        "fate_double_label": "Double Fate Line", "fate_double_desc": "Two parallel vertical lines running up the palm", "fate_double_meaning": "Extraordinarily rare and auspicious. You are gifted with dual dharma — two parallel callings that you pursue simultaneously. A blessed multi-dimensional life.", "fate_double_vedic": "Double Shani Rekha — blessed with dual purpose. The ancient texts describe this as a rare mark of those who serve two roles in society.",
+        "sun_strong_clear_label": "Strong & Clear", "sun_strong_clear_desc": "A noticeable vertical line clearly approaching the ring finger", "sun_strong_clear_meaning": "Fame, recognition, and creative success are yours. You have a natural public presence — people notice you. Your creative or professional achievements will be recognized widely.", "sun_strong_clear_vedic": "Surya strong — solar radiance, fame as the result of dharmic action in past lives. Kirti (fame) is your birthright.",
+        "sun_multiple_short_label": "Multiple Short Lines", "sun_multiple_short_desc": "Several small lines near the ring finger rather than one clear line", "sun_multiple_short_meaning": "Many talents and creative gifts — but scattered across too many directions. You shine in bursts. Focusing your energy on one core creative path will unlock sustained recognition.", "sun_multiple_short_vedic": "Surya dispersed across multiple Rashis — needs a single dharmic focus to crystallize into fame.",
+        "sun_starts_heart_label": "Starts from Heart Line", "sun_starts_heart_desc": "The sun line appears to begin from where the heart line is", "sun_starts_heart_meaning": "Recognition comes through authentic passion and love. Your fame is earned through genuine creative expression, not calculation. Success arrives in mid-to-late life — permanent and deeply fulfilling.", "sun_starts_heart_vedic": "Delayed Surya grace — but when it comes, it is the most enduring kind. Built on devotion rather than ambition.",
+        "sun_absent_label": "Absent / Not Visible", "sun_absent_desc": "No clear line near the ring finger", "sun_absent_meaning": "Success without public fame. You achieve significantly — but prefer to work behind the scenes. Inner satisfaction matters more to you than recognition. A powerful, private achiever.", "sun_absent_vedic": "Inner Surya — the light shines inward rather than outward. Spiritual achievement over worldly recognition.",
+        "venus_large_full_label": "Large & Well Developed", "venus_large_full_desc": "Full, firm, and prominent — noticeably raised", "venus_large_full_meaning": "Abundant capacity for love, pleasure, beauty, and sensuality. You give generously in relationships. Naturally creative, with an appreciation for art, music, and beauty in all forms.", "venus_large_full_vedic": "Shukra strong — Kama (desire) is healthy and abundant. Great blessings in love, partnerships, and artistic pursuits.",
+        "venus_medium_label": "Medium / Moderate", "venus_medium_desc": "Present but not especially prominent or flat", "venus_medium_meaning": "Balanced approach to love and pleasure. You enjoy life's sensory gifts without being controlled by them. Healthy relationships, moderate creative expression.", "venus_medium_vedic": "Shukra in balance — the middle path of Kama. Healthy desire without attachment.",
+        "venus_flat_label": "Flat or Barely Visible", "venus_flat_desc": "The base of the thumb area is relatively flat", "venus_flat_meaning": "More reserved in emotional and sensory expression. You tend toward the ascetic rather than the sensual. Relationships may feel secondary to work or spiritual pursuits.", "venus_flat_vedic": "Shukra subdued — Vairagya (detachment) over Bhoga (enjoyment). The renunciant or dedicated professional.",
+        "jupiter_prominent_label": "Prominent & Raised", "jupiter_prominent_desc": "Noticeably full area below the index finger", "jupiter_prominent_meaning": "Natural leader, teacher, and guide. You have strong ambition, confidence, and a genuine desire to uplift others. People naturally look to you for direction. Authority comes naturally.", "jupiter_prominent_vedic": "Guru strong — Brahma Jnana, leadership blessed by Jupiter. Born to teach, guide, or lead. The Guru archetype.",
+        "jupiter_moderate_label": "Moderate", "jupiter_moderate_desc": "Present but not dramatically raised", "jupiter_moderate_meaning": "Healthy confidence and ambition. You lead when needed but don't seek the spotlight for its own sake. Good judgment and fair authority.", "jupiter_moderate_vedic": "Guru in balance — wisdom applied practically. Dharmic leadership.",
+        "jupiter_flat_label": "Flat or Underdeveloped", "jupiter_flat_desc": "Little or no fullness below the index finger", "jupiter_flat_meaning": "May struggle with confidence or claiming authority. Leadership may feel uncomfortable. The inner Jupiter is waiting to be awakened — often through a Saturn transit or significant challenge.", "jupiter_flat_vedic": "Guru dormant — the teacher within is not yet activated. Faith and study will awaken it."
+      },
+      "mount": {
+        "jupiter_name": "Mount of Jupiter", "jupiter_well": "Leader, ambitious, spiritually wise, generous, charismatic. Born to guide and teach.", "jupiter_flat": "Lack of confidence, avoids leadership roles.", "jupiter_over": "Arrogant, overbearing, domineering.", "jupiter_vedic": "Guru's seat of Brahma Jnana. Prominent in teachers, judges, and spiritual leaders.",
+        "saturn_name": "Mount of Saturn", "saturn_well": "Wise, responsible, patient, deeply introspective. Excellent researchers and dedicated servants.", "saturn_flat": "Avoids responsibility, lacks discipline.", "saturn_over": "Melancholic, hermit tendencies, can't enjoy life.", "saturn_vedic": "Shani's seat of karma and dharma. Those who bear great responsibility with grace.",
+        "apollo_name": "Mount of Apollo", "apollo_well": "Creative, charismatic, drawn to beauty and art. Fame comes naturally. Joyful and warm-hearted.", "apollo_flat": "Lack of aesthetic sense, avoids public life.", "apollo_over": "Vanity, obsession with appearances, craving fame over substance.", "apollo_vedic": "Surya's seat of Atmic brilliance. Artists, performers, and those with deep creative Shakti.",
+        "mercury_name": "Mount of Mercury", "mercury_well": "Brilliant communicator, witty, business-minded, quick-thinking. Natural healer.", "mercury_flat": "Communication difficulties, poor business instinct.", "mercury_over": "Cunning, deceptive use of words.", "mercury_vedic": "Budha's seat of Vak Shakti. Scholars, traders, orators, and diplomats.",
+        "venus_name": "Mount of Venus", "venus_well": "Loving, sensual, generous, artistic. Great capacity for pleasure and deep human connection.", "venus_flat": "Cold, unaffectionate, may struggle with intimacy.", "venus_over": "Excessive sensuality, overindulgence, attachment.", "venus_vedic": "Shukra's seat of Kama (desire) — one of the four Purusharthas. The quality of love is here.",
+        "moon_name": "Mount of Moon", "moon_well": "Deeply intuitive, imaginative, psychic sensitivity, rich inner world. Love of travel and poetry.", "moon_flat": "Lack of imagination, emotionally rigid.", "moon_over": "Overly emotional, difficulty distinguishing real from imagined.", "moon_vedic": "Chandra's seat of Manas and intuition. Astrologers, poets, healers, and psychic seers.",
+        "mars_name": "Mounts of Mars", "mars_well": "Physical and moral courage. Resilience under pressure. Strength when it matters most.", "mars_flat": "Cowardice, gives up easily, avoids confrontation.", "mars_over": "Aggressive, hot-tempered, prone to confrontation.", "mars_vedic": "Mangal's Agni Shakti — the fire of righteous action. Warriors, surgeons, athletes."
       }
     },
     "library": {
@@ -1243,7 +1605,17 @@
       "pravara_title": "Pravara Matching",
       "pravara_desc": "Families with matching pravaras (ancestor sages) should avoid intermarriage even if gotras differ.",
       "diff_gotra_title": "Different Gotra Match",
-      "diff_gotra_desc": "Marriage between different gotras is considered auspicious and promotes genetic diversity."
+      "diff_gotra_desc": "Marriage between different gotras is considered auspicious and promotes genetic diversity.",
+      "deity_bharadwaj": "Brihaspati (Jupiter)",
+      "deity_kashyap": "Prajapati",
+      "deity_vatsa": "Agni",
+      "deity_gautam": "Indra",
+      "deity_agastya": "Mitra-Varuna",
+      "deity_vasishtha": "Varuna & Mitra",
+      "deity_vishwamitra": "Savitri (Sun)",
+      "deity_atri": "Brahma, Vishnu, Shiva (Trimurti)",
+      "deity_jamadagni": "Agni",
+      "deity_sandilya": "Brahman"
     },
     "sade_sati": {
       "phase1_label": "Phase 1 — Rising",

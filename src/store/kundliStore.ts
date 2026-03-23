@@ -34,11 +34,17 @@ export interface YogaData {
 export interface RemedyData {
   planet: string;
   mantra: string;
+  mantraDevanagari?: string;
   gemstone: string;
+  gemstoneKey?: string;
   day: string;
+  dayKey?: string;
   color: string;
+  colorKey?: string;
   donation: string;
+  donationKey?: string;
   fasting: string;
+  fastingKey?: string;
 }
 
 export interface NakshatraData {
@@ -160,15 +166,15 @@ export const yogasData: YogaData[] = [
 ];
 
 export const remediesData: RemedyData[] = [
-  { planet: "Sun", mantra: "Om Hraam Hreem Hraum Sah Suryaya Namah", gemstone: "Ruby (Manikya)", day: "Sunday", color: "Red / Copper", donation: "Wheat, Jaggery, Copper", fasting: "Sunday" },
-  { planet: "Moon", mantra: "Om Shraam Shreem Shraum Sah Chandraya Namah", gemstone: "Pearl (Moti)", day: "Monday", color: "White / Silver", donation: "Rice, Milk, Silver", fasting: "Monday" },
-  { planet: "Mars", mantra: "Om Kraam Kreem Kraum Sah Bhaumaya Namah", gemstone: "Red Coral (Moonga)", day: "Tuesday", color: "Red / Scarlet", donation: "Red Lentils, Jaggery", fasting: "Tuesday" },
-  { planet: "Mercury", mantra: "Om Braam Breem Braum Sah Budhaya Namah", gemstone: "Emerald (Panna)", day: "Wednesday", color: "Green", donation: "Green Moong Dal, Green Cloth", fasting: "Wednesday" },
-  { planet: "Jupiter", mantra: "Om Graam Greem Graum Sah Gurave Namah", gemstone: "Yellow Sapphire (Pukhraj)", day: "Thursday", color: "Yellow / Gold", donation: "Chana Dal, Turmeric, Gold", fasting: "Thursday" },
-  { planet: "Venus", mantra: "Om Draam Dreem Draum Sah Shukraya Namah", gemstone: "Diamond (Heera)", day: "Friday", color: "White / Pink", donation: "Rice, Sugar, White Cloth", fasting: "Friday" },
-  { planet: "Saturn", mantra: "Om Sham Shanicharaya Namah", gemstone: "Blue Sapphire (Neelam)", day: "Saturday", color: "Black / Blue", donation: "Black Sesame, Mustard Oil", fasting: "Saturday" },
-  { planet: "Rahu", mantra: "Om Bhram Bhreem Bhraum Sah Rahave Namah", gemstone: "Hessonite (Gomed)", day: "Saturday", color: "Dark Blue / Smoky", donation: "Coconut, Black Blanket", fasting: "Saturday" },
-  { planet: "Ketu", mantra: "Om Stram Streem Straum Sah Ketave Namah", gemstone: "Cat's Eye (Lehsunia)", day: "Tuesday", color: "Grey / Brown", donation: "Blanket, Dog food", fasting: "Tuesday" },
+  { planet: "Sun",     mantra: "Om Hraam Hreem Hraum Sah Suryaya Namah",   mantraDevanagari: "ॐ ह्रां ह्रीं ह्रौं सः सूर्याय नमः", gemstone: "Ruby (Manikya)",           gemstoneKey: "remedies.gem_sun",     day: "Sunday",    dayKey: "remedies.day_sunday",    color: "Red / Copper",        colorKey: "remedies.color_sun",     donation: "Wheat, Jaggery, Copper",        donationKey: "remedies.donation_sun",     fasting: "Sunday",    fastingKey: "remedies.day_sunday" },
+  { planet: "Moon",    mantra: "Om Shraam Shreem Shraum Sah Chandraya Namah", mantraDevanagari: "ॐ श्रां श्रीं श्रौं सः चन्द्राय नमः", gemstone: "Pearl (Moti)",           gemstoneKey: "remedies.gem_moon",    day: "Monday",    dayKey: "remedies.day_monday",    color: "White / Silver",      colorKey: "remedies.color_moon",    donation: "Rice, Milk, Silver",            donationKey: "remedies.donation_moon",    fasting: "Monday",    fastingKey: "remedies.day_monday" },
+  { planet: "Mars",    mantra: "Om Kraam Kreem Kraum Sah Bhaumaya Namah",  mantraDevanagari: "ॐ क्रां क्रीं क्रौं सः भौमाय नमः", gemstone: "Red Coral (Moonga)",      gemstoneKey: "remedies.gem_mars",    day: "Tuesday",   dayKey: "remedies.day_tuesday",   color: "Red / Scarlet",       colorKey: "remedies.color_mars",    donation: "Red Lentils, Jaggery",          donationKey: "remedies.donation_mars",    fasting: "Tuesday",   fastingKey: "remedies.day_tuesday" },
+  { planet: "Mercury", mantra: "Om Braam Breem Braum Sah Budhaya Namah",   mantraDevanagari: "ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः", gemstone: "Emerald (Panna)",         gemstoneKey: "remedies.gem_mercury", day: "Wednesday", dayKey: "remedies.day_wednesday", color: "Green",               colorKey: "remedies.color_mercury", donation: "Green Moong Dal, Green Cloth",   donationKey: "remedies.donation_mercury", fasting: "Wednesday", fastingKey: "remedies.day_wednesday" },
+  { planet: "Jupiter", mantra: "Om Graam Greem Graum Sah Gurave Namah",    mantraDevanagari: "ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः", gemstone: "Yellow Sapphire (Pukhraj)", gemstoneKey: "remedies.gem_jupiter", day: "Thursday", dayKey: "remedies.day_thursday",  color: "Yellow / Gold",       colorKey: "remedies.color_jupiter", donation: "Chana Dal, Turmeric, Gold",      donationKey: "remedies.donation_jupiter", fasting: "Thursday",  fastingKey: "remedies.day_thursday" },
+  { planet: "Venus",   mantra: "Om Draam Dreem Draum Sah Shukraya Namah",  mantraDevanagari: "ॐ द्रां द्रीं द्रौं सः शुक्राय नमः", gemstone: "Diamond (Heera)",         gemstoneKey: "remedies.gem_venus",   day: "Friday",    dayKey: "remedies.day_friday",    color: "White / Pink",        colorKey: "remedies.color_venus",   donation: "Rice, Sugar, White Cloth",      donationKey: "remedies.donation_venus",   fasting: "Friday",    fastingKey: "remedies.day_friday" },
+  { planet: "Saturn",  mantra: "Om Sham Shanicharaya Namah",               mantraDevanagari: "ॐ शं शनैश्चराय नमः", gemstone: "Blue Sapphire (Neelam)",  gemstoneKey: "remedies.gem_saturn",  day: "Saturday",  dayKey: "remedies.day_saturday",  color: "Black / Blue",        colorKey: "remedies.color_saturn",  donation: "Black Sesame, Mustard Oil",     donationKey: "remedies.donation_saturn",  fasting: "Saturday",  fastingKey: "remedies.day_saturday" },
+  { planet: "Rahu",    mantra: "Om Bhram Bhreem Bhraum Sah Rahave Namah",  mantraDevanagari: "ॐ भ्रां भ्रीं भ्रौं सः राहवे नमः", gemstone: "Hessonite (Gomed)",       gemstoneKey: "remedies.gem_rahu",    day: "Saturday",  dayKey: "remedies.day_saturday",  color: "Dark Blue / Smoky",   colorKey: "remedies.color_rahu",    donation: "Coconut, Black Blanket",        donationKey: "remedies.donation_rahu",    fasting: "Saturday",  fastingKey: "remedies.day_saturday" },
+  { planet: "Ketu",    mantra: "Om Stram Streem Straum Sah Ketave Namah",  mantraDevanagari: "ॐ स्त्रां स्त्रीं स्त्रौं सः केतवे नमः", gemstone: "Cat's Eye (Lehsunia)",    gemstoneKey: "remedies.gem_ketu",    day: "Tuesday",   dayKey: "remedies.day_tuesday",   color: "Grey / Brown",        colorKey: "remedies.color_ketu",    donation: "Blanket, Dog food",             donationKey: "remedies.donation_ketu",    fasting: "Tuesday",   fastingKey: "remedies.day_tuesday" },
 ];
 
 export const nakshatraData: NakshatraData[] = [

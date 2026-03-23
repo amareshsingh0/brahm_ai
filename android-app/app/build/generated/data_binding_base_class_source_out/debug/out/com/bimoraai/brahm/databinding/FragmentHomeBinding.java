@@ -27,6 +27,9 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final ImageButton btnNotification;
 
   @NonNull
+  public final ImageButton btnOpenDrawer;
+
+  @NonNull
   public final MaterialCardView cardAskAI;
 
   @NonNull
@@ -60,13 +63,15 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final TextView tvViewChart;
 
   private FragmentHomeBinding(@NonNull NestedScrollView rootView,
-      @NonNull ImageButton btnNotification, @NonNull MaterialCardView cardAskAI,
-      @NonNull MaterialCardView cardKundaliPreview, @NonNull MaterialCardView cardTodayEnergy,
-      @NonNull KundaliChartView miniChart, @NonNull RecyclerView rvQuickAccess,
-      @NonNull TextView tvGreeting, @NonNull TextView tvNakshatra, @NonNull TextView tvRahuKaal,
-      @NonNull TextView tvTithi, @NonNull TextView tvUserName, @NonNull TextView tvViewChart) {
+      @NonNull ImageButton btnNotification, @NonNull ImageButton btnOpenDrawer,
+      @NonNull MaterialCardView cardAskAI, @NonNull MaterialCardView cardKundaliPreview,
+      @NonNull MaterialCardView cardTodayEnergy, @NonNull KundaliChartView miniChart,
+      @NonNull RecyclerView rvQuickAccess, @NonNull TextView tvGreeting,
+      @NonNull TextView tvNakshatra, @NonNull TextView tvRahuKaal, @NonNull TextView tvTithi,
+      @NonNull TextView tvUserName, @NonNull TextView tvViewChart) {
     this.rootView = rootView;
     this.btnNotification = btnNotification;
+    this.btnOpenDrawer = btnOpenDrawer;
     this.cardAskAI = cardAskAI;
     this.cardKundaliPreview = cardKundaliPreview;
     this.cardTodayEnergy = cardTodayEnergy;
@@ -110,6 +115,12 @@ public final class FragmentHomeBinding implements ViewBinding {
       id = R.id.btnNotification;
       ImageButton btnNotification = ViewBindings.findChildViewById(rootView, id);
       if (btnNotification == null) {
+        break missingId;
+      }
+
+      id = R.id.btnOpenDrawer;
+      ImageButton btnOpenDrawer = ViewBindings.findChildViewById(rootView, id);
+      if (btnOpenDrawer == null) {
         break missingId;
       }
 
@@ -179,9 +190,9 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentHomeBinding((NestedScrollView) rootView, btnNotification, cardAskAI,
-          cardKundaliPreview, cardTodayEnergy, miniChart, rvQuickAccess, tvGreeting, tvNakshatra,
-          tvRahuKaal, tvTithi, tvUserName, tvViewChart);
+      return new FragmentHomeBinding((NestedScrollView) rootView, btnNotification, btnOpenDrawer,
+          cardAskAI, cardKundaliPreview, cardTodayEnergy, miniChart, rvQuickAccess, tvGreeting,
+          tvNakshatra, tvRahuKaal, tvTithi, tvUserName, tvViewChart);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

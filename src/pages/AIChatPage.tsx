@@ -16,13 +16,13 @@ interface Message {
   timestamp: Date;
 }
 
-const suggestedQueries = [
-  { label: "Bhagavad Gita", query: "What does Krishna say about Dharma in the Bhagavad Gita?" },
-  { label: "Vedic Astrology", query: "Explain the significance of Nakshatras in Vedic astrology" },
-  { label: "Karma Theory", query: "What is the concept of Karma according to Vedic texts?" },
-  { label: "Meditation", query: "What do the Upanishads say about meditation and self-realization?" },
-  { label: "Kundali Yoga", query: "What are the most powerful yogas in a Kundali?" },
-  { label: "Sanskrit Mantras", query: "Explain the meaning of Gayatri Mantra in detail" },
+const suggestedQueryKeys = [
+  { labelKey: "chat.topic_gita",     query: "What does Krishna say about Dharma in the Bhagavad Gita?" },
+  { labelKey: "chat.topic_astro",    query: "Explain the significance of Nakshatras in Vedic astrology" },
+  { labelKey: "chat.topic_karma",    query: "What is the concept of Karma according to Vedic texts?" },
+  { labelKey: "chat.topic_meditation", query: "What do the Upanishads say about meditation and self-realization?" },
+  { labelKey: "chat.topic_yoga",     query: "What are the most powerful yogas in a Kundali?" },
+  { labelKey: "chat.topic_mantras",  query: "Explain the meaning of Gayatri Mantra in detail" },
 ];
 
 const mockResponses: Record<string, { answer: string; sources: { book: string; page: number }[] }> = {
@@ -224,15 +224,15 @@ export default function AIChatPage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex-shrink-0 pb-3">
           <p className="text-xs text-muted-foreground mb-2">{t('chat.try_asking')}</p>
           <div className="flex flex-wrap gap-2">
-            {suggestedQueries.map((sq) => (
+            {suggestedQueryKeys.map((sq) => (
               <Button
-                key={sq.label}
+                key={sq.labelKey}
                 variant="outline"
                 size="sm"
                 className="text-xs h-7 border-border/50 hover:bg-primary/10 hover:text-primary"
                 onClick={() => sendMessage(sq.query)}
               >
-                {sq.label}
+                {t(sq.labelKey)}
               </Button>
             ))}
           </div>

@@ -8,76 +8,16 @@ import { useSearch } from "@/hooks/useSearch";
 import { useTranslation } from "react-i18next";
 
 const MANTRA_STATIC = [
-  {
-    id: 1, name: "Gayatri Mantra", deity: "Savitri (Sun)", source: "Rig Veda 3.62.10",
-    sanskrit: "ॐ भूर्भुवः स्वः\nतत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि\nधियो यो नः प्रचोदयात्॥",
-    transliteration: "Om Bhur Bhuvah Svah\nTat Savitur Varenyam\nBhargo Devasya Dhimahi\nDhiyo Yo Nah Prachodayat",
-    meaningKey: "data.mantras.gayatri_meaning", benefitsKey: "data.mantras.gayatri_benefits",
-    chantCount: 108, category: "Universal",
-  },
-  {
-    id: 2, name: "Mahamrityunjaya Mantra", deity: "Lord Shiva", source: "Rig Veda 7.59.12",
-    sanskrit: "ॐ त्र्यम्बकं यजामहे\nसुगन्धिं पुष्टिवर्धनम्।\nउर्वारुकमिव बन्धनान्\nमृत्योर्मुक्षीय मामृतात्॥",
-    transliteration: "Om Tryambakam Yajamahe\nSugandhim Pushtivardhanam\nUrvarukamiva Bandhanan\nMrityor Mukshiya Maamritat",
-    meaningKey: "data.mantras.mahamrityunjaya_meaning", benefitsKey: "data.mantras.mahamrityunjaya_benefits",
-    chantCount: 108, category: "Protection",
-  },
-  {
-    id: 3, name: "Om Namah Shivaya", deity: "Lord Shiva", source: "Krishna Yajur Veda (Shri Rudram)",
-    sanskrit: "ॐ नमः शिवाय",
-    transliteration: "Om Namah Shivaya",
-    meaningKey: "data.mantras.om_namah_shivaya_meaning", benefitsKey: "data.mantras.om_namah_shivaya_benefits",
-    chantCount: 108, category: "Devotion",
-  },
-  {
-    id: 4, name: "Vishnu Sahasranama", deity: "Lord Vishnu", source: "Mahabharata - Anushasana Parva",
-    sanskrit: "ॐ विश्वं विष्णुर्वषट्कारो\nभूतभव्यभवत्प्रभुः।\nभूतकृद्भूतभृद्भावो\nभूतात्मा भूतभावनः॥",
-    transliteration: "Om Vishvam Vishnur Vashatkaro\nBhuta-Bhavya-Bhavat-Prabhuh\nBhutakrid Bhutabhrid Bhavo\nBhutatma Bhutabhavanah",
-    meaningKey: "data.mantras.vishnu_sahasranama_meaning", benefitsKey: "data.mantras.vishnu_sahasranama_benefits",
-    chantCount: 1, category: "Devotion",
-  },
-  {
-    id: 5, name: "Hanuman Chalisa", deity: "Lord Hanuman", source: "Tulsidas (16th century)",
-    sanskrit: "श्रीगुरु चरन सरोज रज\nनिज मनु मुकुरु सुधारि।\nबरनउँ रघुबर बिमल जसु\nजो दायकु फल चारि॥",
-    transliteration: "Shri Guru Charan Saroj Raj\nNij Manu Mukuru Sudhari\nBaranau Raghubar Bimal Jasu\nJo Dayaku Phal Chari",
-    meaningKey: "data.mantras.hanuman_chalisa_meaning", benefitsKey: "data.mantras.hanuman_chalisa_benefits",
-    chantCount: 7, category: "Protection",
-  },
-  {
-    id: 6, name: "Lakshmi Mantra", deity: "Goddess Lakshmi", source: "Sri Sukta (Rig Veda)",
-    sanskrit: "ॐ श्रीं ह्रीं श्रीं\nकमले कमलालये\nप्रसीद प्रसीद\nॐ श्रीं ह्रीं श्रीं\nमहालक्ष्म्यै नमः॥",
-    transliteration: "Om Shreem Hreem Shreem\nKamale Kamalalaye\nPrasida Prasida\nOm Shreem Hreem Shreem\nMahalakshmyai Namah",
-    meaningKey: "data.mantras.lakshmi_meaning", benefitsKey: "data.mantras.lakshmi_benefits",
-    chantCount: 108, category: "Prosperity",
-  },
-  {
-    id: 7, name: "Saraswati Mantra", deity: "Goddess Saraswati", source: "Saraswati Stotram",
-    sanskrit: "ॐ ऐं सरस्वत्यै नमः\n\nया कुन्देन्दुतुषारहारधवला\nया शुभ्रवस्त्रावृता।\nया वीणावरदण्डमण्डितकरा\nया श्वेतपद्मासना॥",
-    transliteration: "Om Aim Saraswatyai Namah\n\nYa Kundendu Tushara Hara Dhavala\nYa Shubhra Vastravruta\nYa Veena Vara Danda Mandita Kara\nYa Shveta Padmasana",
-    meaningKey: "data.mantras.saraswati_meaning", benefitsKey: "data.mantras.saraswati_benefits",
-    chantCount: 108, category: "Knowledge",
-  },
-  {
-    id: 8, name: "Ganesh Mantra", deity: "Lord Ganesha", source: "Ganapati Atharvashirsha",
-    sanskrit: "ॐ गं गणपतये नमः\n\nवक्रतुण्ड महाकाय\nसूर्यकोटि समप्रभ।\nनिर्विघ्नं कुरु मे देव\nसर्वकार्येषु सर्वदा॥",
-    transliteration: "Om Gam Ganapataye Namah\n\nVakratunda Mahakaya\nSuryakoti Samaprabha\nNirvighnam Kuru Me Deva\nSarvakaryeshu Sarvada",
-    meaningKey: "data.mantras.ganesh_meaning", benefitsKey: "data.mantras.ganesh_benefits",
-    chantCount: 108, category: "Universal",
-  },
-  {
-    id: 9, name: "Navgraha Mantra", deity: "Nine Planets", source: "Navagraha Stotram",
-    sanskrit: "ॐ सूर्याय नमः। ॐ चन्द्राय नमः।\nॐ मङ्गलाय नमः। ॐ बुधाय नमः।\nॐ बृहस्पतये नमः। ॐ शुक्राय नमः।\nॐ शनैश्चराय नमः।\nॐ राहवे नमः। ॐ केतवे नमः।",
-    transliteration: "Om Suryaya Namah. Om Chandraya Namah.\nOm Mangalaya Namah. Om Budhaya Namah.\nOm Brihaspataye Namah. Om Shukraya Namah.\nOm Shanaischaraya Namah.\nOm Rahave Namah. Om Ketave Namah.",
-    meaningKey: "data.mantras.navgraha_meaning", benefitsKey: "data.mantras.navgraha_benefits",
-    chantCount: 9, category: "Astrology",
-  },
-  {
-    id: 10, name: "Shanti Mantra", deity: "Universal Peace", source: "Brihadaranyaka Upanishad",
-    sanskrit: "ॐ सह नाववतु। सह नौ भुनक्तु।\nसह वीर्यं करवावहै।\nतेजस्वि नावधीतमस्तु\nमा विद्विषावहै।\nॐ शान्तिः शान्तिः शान्तिः॥",
-    transliteration: "Om Saha Navavatu. Saha Nau Bhunaktu.\nSaha Viryam Karavavahai.\nTejasvi Navadhitamastu\nMa Vidvishavahai.\nOm Shantih Shantih Shantih",
-    meaningKey: "data.mantras.shanti_meaning", benefitsKey: "data.mantras.shanti_benefits",
-    chantCount: 3, category: "Universal",
-  },
+  { id: 1, name: "Gayatri Mantra", deity: "Savitri (Sun)", deityKey: "mantras.deity_savitri", source: "Rig Veda 3.62.10", sourceDev: "ऋग्वेद ३.६२.१०", sanskrit: "ॐ भूर्भुवः स्वः\nतत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि\nधियो यो नः प्रचोदयात्॥", transliteration: "Om Bhur Bhuvah Svah\nTat Savitur Varenyam\nBhargo Devasya Dhimahi\nDhiyo Yo Nah Prachodayat", meaningKey: "data.mantras.gayatri_meaning", benefitsKey: "data.mantras.gayatri_benefits", chantCount: 108, category: "Universal", categoryKey: "mantras.cat_universal" },
+  { id: 2, name: "Mahamrityunjaya Mantra", deity: "Lord Shiva", deityKey: "mantras.deity_shiva", source: "Rig Veda 7.59.12", sourceDev: "ऋग्वेद ७.५९.१२", sanskrit: "ॐ त्र्यम्बकं यजामहे\nसुगन्धिं पुष्टिवर्धनम्।\nउर्वारुकमिव बन्धनान्\nमृत्योर्मुक्षीय मामृतात्॥", transliteration: "Om Tryambakam Yajamahe\nSugandhim Pushtivardhanam\nUrvarukamiva Bandhanan\nMrityor Mukshiya Maamritat", meaningKey: "data.mantras.mahamrityunjaya_meaning", benefitsKey: "data.mantras.mahamrityunjaya_benefits", chantCount: 108, category: "Protection", categoryKey: "mantras.cat_protection" },
+  { id: 3, name: "Om Namah Shivaya", deity: "Lord Shiva", deityKey: "mantras.deity_shiva", source: "Krishna Yajur Veda (Shri Rudram)", sourceDev: "कृष्ण यजुर्वेद (श्री रुद्रम्)", sanskrit: "ॐ नमः शिवाय", transliteration: "Om Namah Shivaya", meaningKey: "data.mantras.om_namah_shivaya_meaning", benefitsKey: "data.mantras.om_namah_shivaya_benefits", chantCount: 108, category: "Devotion", categoryKey: "mantras.cat_devotion" },
+  { id: 4, name: "Vishnu Sahasranama", deity: "Lord Vishnu", deityKey: "mantras.deity_vishnu", source: "Mahabharata - Anushasana Parva", sourceDev: "महाभारत - अनुशासन पर्व", sanskrit: "ॐ विश्वं विष्णुर्वषट्कारो\nभूतभव्यभवत्प्रभुः।\nभूतकृद्भूतभृद्भावो\nभूतात्मा भूतभावनः॥", transliteration: "Om Vishvam Vishnur Vashatkaro\nBhuta-Bhavya-Bhavat-Prabhuh\nBhutakrid Bhutabhrid Bhavo\nBhutatma Bhutabhavanah", meaningKey: "data.mantras.vishnu_sahasranama_meaning", benefitsKey: "data.mantras.vishnu_sahasranama_benefits", chantCount: 1, category: "Devotion", categoryKey: "mantras.cat_devotion" },
+  { id: 5, name: "Hanuman Chalisa", deity: "Lord Hanuman", deityKey: "mantras.deity_hanuman", source: "Tulsidas (16th century)", sourceDev: "तुलसीदास (१६वीं शताब्दी)", sanskrit: "श्रीगुरु चरन सरोज रज\nनिज मनु मुकुरु सुधारि।\nबरनउँ रघुबर बिमल जसु\nजो दायकु फल चारि॥", transliteration: "Shri Guru Charan Saroj Raj\nNij Manu Mukuru Sudhari\nBaranau Raghubar Bimal Jasu\nJo Dayaku Phal Chari", meaningKey: "data.mantras.hanuman_chalisa_meaning", benefitsKey: "data.mantras.hanuman_chalisa_benefits", chantCount: 7, category: "Protection", categoryKey: "mantras.cat_protection" },
+  { id: 6, name: "Lakshmi Mantra", deity: "Goddess Lakshmi", deityKey: "mantras.deity_lakshmi", source: "Sri Sukta (Rig Veda)", sourceDev: "श्री सूक्त (ऋग्वेद)", sanskrit: "ॐ श्रीं ह्रीं श्रीं\nकमले कमलालये\nप्रसीद प्रसीद\nॐ श्रीं ह्रीं श्रीं\nमहालक्ष्म्यै नमः॥", transliteration: "Om Shreem Hreem Shreem\nKamale Kamalalaye\nPrasida Prasida\nOm Shreem Hreem Shreem\nMahalakshmyai Namah", meaningKey: "data.mantras.lakshmi_meaning", benefitsKey: "data.mantras.lakshmi_benefits", chantCount: 108, category: "Prosperity", categoryKey: "mantras.cat_prosperity" },
+  { id: 7, name: "Saraswati Mantra", deity: "Goddess Saraswati", deityKey: "mantras.deity_saraswati", source: "Saraswati Stotram", sourceDev: "सरस्वती स्तोत्रम्", sanskrit: "ॐ ऐं सरस्वत्यै नमः\n\nया कुन्देन्दुतुषारहारधवला\nया शुभ्रवस्त्रावृता।\nया वीणावरदण्डमण्डितकरा\nया श्वेतपद्मासना॥", transliteration: "Om Aim Saraswatyai Namah\n\nYa Kundendu Tushara Hara Dhavala\nYa Shubhra Vastravruta\nYa Veena Vara Danda Mandita Kara\nYa Shveta Padmasana", meaningKey: "data.mantras.saraswati_meaning", benefitsKey: "data.mantras.saraswati_benefits", chantCount: 108, category: "Knowledge", categoryKey: "mantras.cat_knowledge" },
+  { id: 8, name: "Ganesh Mantra", deity: "Lord Ganesha", deityKey: "mantras.deity_ganesha", source: "Ganapati Atharvashirsha", sourceDev: "गणपति अथर्वशीर्ष", sanskrit: "ॐ गं गणपतये नमः\n\nवक्रतुण्ड महाकाय\nसूर्यकोटि समप्रभ।\nनिर्विघ्नं कुरु मे देव\nसर्वकार्येषु सर्वदा॥", transliteration: "Om Gam Ganapataye Namah\n\nVakratunda Mahakaya\nSuryakoti Samaprabha\nNirvighnam Kuru Me Deva\nSarvakaryeshu Sarvada", meaningKey: "data.mantras.ganesh_meaning", benefitsKey: "data.mantras.ganesh_benefits", chantCount: 108, category: "Universal", categoryKey: "mantras.cat_universal" },
+  { id: 9, name: "Navgraha Mantra", deity: "Nine Planets", deityKey: "mantras.deity_navagraha", source: "Navagraha Stotram", sourceDev: "नवग्रह स्तोत्रम्", sanskrit: "ॐ सूर्याय नमः। ॐ चन्द्राय नमः।\nॐ मङ्गलाय नमः। ॐ बुधाय नमः।\nॐ बृहस्पतये नमः। ॐ शुक्राय नमः।\nॐ शनैश्चराय नमः।\nॐ राहवे नमः। ॐ केतवे नमः।", transliteration: "Om Suryaya Namah. Om Chandraya Namah.\nOm Mangalaya Namah. Om Budhaya Namah.\nOm Brihaspataye Namah. Om Shukraya Namah.\nOm Shanaischaraya Namah.\nOm Rahave Namah. Om Ketave Namah.", meaningKey: "data.mantras.navgraha_meaning", benefitsKey: "data.mantras.navgraha_benefits", chantCount: 9, category: "Astrology", categoryKey: "mantras.cat_astrology" },
+  { id: 10, name: "Shanti Mantra", deity: "Universal Peace", deityKey: "mantras.deity_universal_peace", source: "Brihadaranyaka Upanishad", sourceDev: "बृहदारण्यकोपनिषद्", sanskrit: "ॐ सह नाववतु। सह नौ भुनक्तु।\nसह वीर्यं करवावहै।\nतेजस्वि नावधीतमस्तु\nमा विद्विषावहै।\nॐ शान्तिः शान्तिः शान्तिः॥", transliteration: "Om Saha Navavatu. Saha Nau Bhunaktu.\nSaha Viryam Karavavahai.\nTejasvi Navadhitamastu\nMa Vidvishavahai.\nOm Shantih Shantih Shantih", meaningKey: "data.mantras.shanti_meaning", benefitsKey: "data.mantras.shanti_benefits", chantCount: 3, category: "Universal", categoryKey: "mantras.cat_universal" },
 ];
 
 const categoryColors: Record<string, string> = {
@@ -90,17 +30,19 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function MantraDictionaryPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState("");
   const { data: ragResults } = useSearch(search);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
+  const isEn = i18n.language === "en";
 
   // Resolve translations at render time
   const mantras = MANTRA_STATIC.map((m) => ({
     ...m,
     meaning: t(m.meaningKey),
     benefits: t(m.benefitsKey).split(", "),
+    sourceLabel: isEn ? m.source : (m.sourceDev ?? m.source),
   }));
 
   const allCategories = [...new Set(mantras.map((m) => m.category))];
@@ -140,16 +82,19 @@ export default function MantraDictionaryPage() {
           >
             {t("mantras.all")}
           </Badge>
-          {allCategories.map((cat) => (
-            <Badge
-              key={cat}
-              variant={filter === cat ? "default" : "outline"}
-              className="cursor-pointer text-xs"
-              onClick={() => setFilter(filter === cat ? null : cat)}
-            >
-              {cat}
-            </Badge>
-          ))}
+          {allCategories.map((cat) => {
+            const catKey = MANTRA_STATIC.find((m) => m.category === cat)?.categoryKey;
+            return (
+              <Badge
+                key={cat}
+                variant={filter === cat ? "default" : "outline"}
+                className="cursor-pointer text-xs"
+                onClick={() => setFilter(filter === cat ? null : cat)}
+              >
+                {catKey ? t(catKey) : cat}
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
@@ -166,11 +111,11 @@ export default function MantraDictionaryPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-display text-base">{mantra.name}</h3>
                       <Badge variant="outline" className={`text-xs ${categoryColors[mantra.category] || ""}`}>
-                        {mantra.category}
+                        {mantra.categoryKey ? t(mantra.categoryKey) : mantra.category}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {mantra.deity} — {mantra.source}
+                      {mantra.deityKey ? t(mantra.deityKey, { defaultValue: mantra.deity }) : mantra.deity} — {mantra.sourceLabel}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -197,7 +142,7 @@ export default function MantraDictionaryPage() {
                         {/* Sanskrit */}
                         <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-xs uppercase tracking-wider text-primary">Sanskrit</p>
+                            <p className="text-xs uppercase tracking-wider text-primary">{t("mantras.sanskrit_label", { defaultValue: "Sanskrit" })}</p>
                             <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
                           </div>
                           <p className="text-lg leading-relaxed whitespace-pre-line font-serif">{mantra.sanskrit}</p>

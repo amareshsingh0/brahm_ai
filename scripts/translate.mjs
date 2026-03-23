@@ -68,7 +68,7 @@ const TARGET_LANGS = [
 
 // If you already have a hand-crafted file, set to true to skip overwriting
 const SKIP_EXISTING = {
-  hi: true,   // hi.json is already manually translated — skip
+  hi: false,  // MERGE_MODE handles Hindi safely — only missing keys get translated
   sa: true,   // sa.json Sanskrit — skip (Google Translate is bad at Sanskrit)
 };
 

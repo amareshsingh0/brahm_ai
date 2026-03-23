@@ -68,6 +68,10 @@
         "source": "com.bimoraai.brahm.app-main-54:/layout/activity_main.xml"
     },
     {
+        "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/nav_drawer_header.xml",
+        "source": "com.bimoraai.brahm.app-main-54:/layout/nav_drawer_header.xml"
+    },
+    {
         "merged": "com.bimoraai.brahm.app-mergeDebugResources-51:/layout/item_quick_access.xml",
         "source": "com.bimoraai.brahm.app-main-54:/layout/item_quick_access.xml"
     },

@@ -68,14 +68,14 @@ function YogaCard({ yoga, index, dimmed = false }: { yoga: typeof yogasData[0]; 
           <p className="text-xs text-primary/60">{yoga.sanskritName}</p>
         </div>
         <span className={`text-xs px-2 py-0.5 rounded-full ${styles.badge}`}>
-          {yoga.effect}
+          {t(`yogas.effect_${yoga.effect}`, { defaultValue: yoga.effect })}
         </span>
       </div>
       <p className="text-xs text-muted-foreground leading-relaxed mb-3">{t(`data.yoga.${yogaKey}.desc`, { defaultValue: yoga.description })}</p>
       <div className="flex gap-1.5">
         {yoga.planets.map((p) => (
           <span key={p} className="text-xs px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-            {p}
+            {t(`planet.${p}`, { defaultValue: p })}
           </span>
         ))}
       </div>

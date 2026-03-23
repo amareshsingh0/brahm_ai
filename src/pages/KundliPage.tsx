@@ -588,6 +588,7 @@ function KundaliBirthForm({
   error: string | null;
   onGenerate: (form: LocalForm, city: City | null) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<LocalForm>(initial);
   const [city, setCity] = useState<City | null>(null);
   const [suggestions, setSuggestions] = useState<City[]>([]);
@@ -620,28 +621,28 @@ function KundaliBirthForm({
       <div className="cosmic-card rounded-2xl p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Star className="h-4 w-4 text-primary" />
-          <h2 className="font-display text-base text-foreground">Birth Details</h2>
+          <h2 className="font-display text-base text-foreground">{t("kundli.birth_details", { defaultValue: "Birth Details" })}</h2>
         </div>
 
         {/* Name */}
         <div>
-          <Label className="text-xs text-muted-foreground">Name <span className="opacity-70">(optional)</span></Label>
+          <Label className="text-xs text-muted-foreground">{t("kundli.name_label", { defaultValue: "Name" })} <span className="opacity-70">({t("kundli.optional", { defaultValue: "optional" })})</span></Label>
           <div className="relative mt-1">
             <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70" />
             <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              placeholder="Your name" className="pl-8 bg-muted/20 border-border/30" />
+              placeholder={t("kundli.name_placeholder", { defaultValue: "Your name" })} className="pl-8 bg-muted/20 border-border/30" />
           </div>
         </div>
 
         {/* Date + Time */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="text-xs text-muted-foreground">Date of Birth <span className="text-red-400">*</span></Label>
+            <Label className="text-xs text-muted-foreground">{t("compatibility.dob_label")} <span className="text-red-400">*</span></Label>
             <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
               className="bg-muted/20 border-border/30 mt-1" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Time of Birth <span className="text-red-400">*</span></Label>
+            <Label className="text-xs text-muted-foreground">{t("compatibility.tob_label")} <span className="text-red-400">*</span></Label>
             <Input type="time" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))}
               className="bg-muted/20 border-border/30 mt-1" />
           </div>
@@ -649,11 +650,11 @@ function KundaliBirthForm({
 
         {/* Place with autocomplete */}
         <div ref={wrapRef} className="relative">
-          <Label className="text-xs text-muted-foreground">Birth Place</Label>
+          <Label className="text-xs text-muted-foreground">{t("compatibility.place_label")}</Label>
           <div className="relative mt-1">
             <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70" />
             <Input value={form.place} onChange={e => handleCityInput(e.target.value)}
-              placeholder="Search city..." autoComplete="off"
+              placeholder={t("compatibility.place_placeholder")} autoComplete="off"
               className={`pl-8 bg-muted/20 border-border/30 ${city ? "border-primary/50" : ""}`} />
             {city && (
               <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-primary/70">
@@ -675,7 +676,7 @@ function KundaliBirthForm({
         </div>
 
         {!city && form.place && (
-          <p className="text-xs text-amber-400/80">Select a city from the dropdown for accurate coordinates.</p>
+          <p className="text-xs text-amber-400/80">{t("kundli.city_hint", { defaultValue: "Select a city from the dropdown for accurate coordinates." })}</p>
         )}
 
         {error && <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
@@ -685,12 +686,12 @@ function KundaliBirthForm({
           disabled={!canSubmit || loading}
           className="w-full py-2.5 rounded-xl text-sm font-semibold bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Calculating...</> : <><Star className="h-4 w-4" /> Generate Kundali</>}
+          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("kundli.calculating", { defaultValue: "Calculating..." })}</> : <><Star className="h-4 w-4" /> {t("kundli.generate_btn")}</>}
         </button>
       </div>
 
       <p className="text-xs text-muted-foreground/60 text-center mt-3">
-        Lahiri Ayanamsha · Whole Sign Houses · pyswisseph DE431
+        {t("kundli.system_info", { defaultValue: "Lahiri Ayanamsha · Whole Sign Houses · pyswisseph DE431" })}
       </p>
     </motion.div>
   );
@@ -893,7 +894,7 @@ export default function KundliPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display text-2xl text-foreground text-glow-gold mb-0.5">
-            {view === "result" && kundaliData?.name ? `${kundaliData.name}'s Kundali` : "Janam Kundali"}
+            {view === "result" && kundaliData?.name ? `${kundaliData.name}'s ${t("kundli.title")}` : t("kundli.janam_kundali", { defaultValue: "Janam Kundali" })}
           </h1>
           {view === "result" && kundaliData ? (
             <p className="text-xs text-muted-foreground">
@@ -901,14 +902,14 @@ export default function KundliPage() {
               {kundaliData.rahu_mode === "true" ? " · True Rahu" : ""}
             </p>
           ) : (
-            <p className="text-xs text-muted-foreground">Vedic birth chart · Divisional charts · Dasha · Yogas</p>
+            <p className="text-xs text-muted-foreground">{t("kundli.form_subtitle", { defaultValue: "Vedic birth chart · Divisional charts · Dasha · Yogas" })}</p>
           )}
         </div>
         <div className="flex items-center gap-2">
           {view === "result" && (
             <button onClick={() => setView("input")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/20 hover:border-border/40 transition-colors">
-              <Edit2 className="h-3 w-3" /> New / Edit
+              <Edit2 className="h-3 w-3" /> {t("kundli.new_edit", { defaultValue: "New / Edit" })}
             </button>
           )}
           {view === "result" && kundaliData && birthDetails && (
@@ -1148,7 +1149,7 @@ export default function KundliPage() {
                             side === "L"
                               ? "bg-primary/20 text-primary"
                               : "bg-amber-500/20 text-amber-400"
-                          }`}>{side === "L" ? "Chart A" : "Chart B"}</span>
+                          }`}>{side === "L" ? t("kundli.chart_a", { defaultValue: "Chart A" }) : t("kundli.chart_b", { defaultValue: "Chart B" })}</span>
                           <select
                             value={div}
                             onChange={e => setDiv(Number(e.target.value))}
@@ -1159,7 +1160,7 @@ export default function KundliPage() {
                             ))}
                           </select>
                           <div className="text-xs text-muted-foreground shrink-0">
-                            Lagna: <span className="text-amber-400 font-medium">{chartLagna}</span>
+                            {t("kundli.lagna")}: <span className="text-amber-400 font-medium">{chartLagna}</span>
                           </div>
                         </div>
 
@@ -2063,7 +2064,7 @@ export default function KundliPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-10">
-                    {kundaliData ? "No major yogas detected" : "Generate Kundali to see Yogas"}
+                    {kundaliData ? t("kundli.no_yogas") : t("kundli.gen_yogas")}
                   </p>
                 )}
               </motion.div>
@@ -2076,17 +2077,17 @@ export default function KundliPage() {
                   <>
                     {/* Lagna details */}
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Lagna (Ascendant)</p>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t("kundli.lagna")}</p>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         {[
-                          ["Rashi", `${kundaliData.lagna.rashi}${kundaliData.lagna.rashi_en ? ` (${kundaliData.lagna.rashi_en})` : ""}`],
-                          ["Nakshatra", `${kundaliData.lagna.nakshatra}${kundaliData.lagna.nakshatra_hindi ? ` ${kundaliData.lagna.nakshatra_hindi}` : ""}`],
-                          ["Pada", `${kundaliData.lagna.pada ?? "—"}`],
-                          ["Degree", `${kundaliData.lagna.degree}°${kundaliData.lagna.full_degree ? ` (${kundaliData.lagna.full_degree.toFixed(2)}° abs)` : ""}`],
-                          ["Navamsha Lagna", kundaliData.navamsha_lagna?.rashi ?? "—"],
-                          ["Ayanamsha", `${kundaliData.ayanamsha}° (${kundaliData.ayanamsha_label ?? "Lahiri"})`],
-                          ["Rahu/Ketu Mode", kundaliData.rahu_mode === "true" ? "True Node" : "Mean Node"],
-                          ["Place", kundaliData.place ?? "—"],
+                          [t("kundli.rashi"), `${kundaliData.lagna.rashi}${kundaliData.lagna.rashi_en ? ` (${kundaliData.lagna.rashi_en})` : ""}`],
+                          [t("kundli.nakshatra"), `${kundaliData.lagna.nakshatra}${kundaliData.lagna.nakshatra_hindi ? ` ${kundaliData.lagna.nakshatra_hindi}` : ""}`],
+                          [t("kundli.pada"), `${kundaliData.lagna.pada ?? "—"}`],
+                          [t("kundli.degree"), `${kundaliData.lagna.degree}°${kundaliData.lagna.full_degree ? ` (${kundaliData.lagna.full_degree.toFixed(2)}° abs)` : ""}`],
+                          [t("kundli.navamsha_lagna"), kundaliData.navamsha_lagna?.rashi ?? "—"],
+                          [t("kundli.ayanamsha"), `${kundaliData.ayanamsha}° (${kundaliData.ayanamsha_label ?? "Lahiri"})`],
+                          [t("kundli.rahu_ketu_mode"), kundaliData.rahu_mode === "true" ? "True Node" : "Mean Node"],
+                          [t("kundli.place"), kundaliData.place ?? "—"],
                         ].map(([k, v]) => (
                           <div key={k} className="bg-muted/20 rounded-lg p-2">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{k}</p>
@@ -2099,19 +2100,19 @@ export default function KundliPage() {
                     {/* Birth Panchang */}
                     {kundaliData.birth_panchang && (
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Birth Panchang</p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t("kundli.birth_panchang")}</p>
                         <div className="grid grid-cols-2 gap-1.5 text-xs">
                           {[
-                            ["Tithi", `${kundaliData.birth_panchang.tithi} (${kundaliData.birth_panchang.paksha})`],
-                            ["Vara", kundaliData.birth_panchang.vara],
-                            ["Nakshatra", kundaliData.birth_panchang.moon_nakshatra ?? kundaliData.birth_panchang.yoga],
-                            ["Yoga", kundaliData.birth_panchang.yoga],
-                            ["Karana", kundaliData.birth_panchang.karana],
-                            ["Sunrise", kundaliData.birth_panchang.sunrise],
-                            ["Sunset", kundaliData.birth_panchang.sunset],
-                            ["Moon Sign", kundaliData.birth_panchang.moonsign ?? "—"],
-                            ["Sun Sign", kundaliData.birth_panchang.sunsign ?? "—"],
-                            ["Surya Nak.", kundaliData.birth_panchang.surya_nakshatra ?? "—"],
+                            [t("kundli.tithi"), `${kundaliData.birth_panchang.tithi} (${kundaliData.birth_panchang.paksha})`],
+                            [t("kundli.vara"), kundaliData.birth_panchang.vara],
+                            [t("kundli.nakshatra"), kundaliData.birth_panchang.moon_nakshatra ?? kundaliData.birth_panchang.yoga],
+                            [t("kundli.yoga_panchang"), kundaliData.birth_panchang.yoga],
+                            [t("kundli.karana"), kundaliData.birth_panchang.karana],
+                            [t("kundli.sunrise"), kundaliData.birth_panchang.sunrise],
+                            [t("kundli.sunset"), kundaliData.birth_panchang.sunset],
+                            [t("kundli.moon_sign"), kundaliData.birth_panchang.moonsign ?? "—"],
+                            [t("kundli.sun_sign"), kundaliData.birth_panchang.sunsign ?? "—"],
+                            [t("kundli.surya_nak"), kundaliData.birth_panchang.surya_nakshatra ?? "—"],
                           ].map(([k, v]) => (
                             <div key={k} className="flex justify-between items-center py-1 px-2 rounded bg-muted/10 border border-border/10">
                               <span className="text-muted-foreground">{k}</span>
@@ -2125,7 +2126,7 @@ export default function KundliPage() {
                     {/* Personal characteristics */}
                     {kundaliData.personal && (
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Personal Characteristics</p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t("kundli.personal_chars")}</p>
                         <div className="grid grid-cols-2 gap-1.5 text-xs">
                           {Object.entries(kundaliData.personal).map(([k, v]) => (
                             <div key={k} className="flex justify-between items-center py-1 px-2 rounded bg-muted/10 border border-border/10">
@@ -2138,7 +2139,7 @@ export default function KundliPage() {
                     )}
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-10">Generate Kundali to see Lagna details</p>
+                  <p className="text-sm text-muted-foreground text-center py-10">{t("kundli.gen_lagna")}</p>
                 )}
               </motion.div>
             )}

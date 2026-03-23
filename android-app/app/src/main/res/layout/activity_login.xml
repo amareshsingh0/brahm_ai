@@ -13,164 +13,194 @@
         android:padding="24dp"
         android:gravity="center_horizontal">
 
-        <!-- Logo -->
-        <ImageView
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_marginTop="64dp"
-            android:src="@drawable/ic_brahm_logo"
-            android:contentDescription="Brahm AI logo" />
+        <!-- Logo with glow circle -->
+        <FrameLayout
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginTop="72dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_login_logo" />
+
+            <ImageView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_brahm_logo"
+                android:contentDescription="Brahm AI logo" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             android:text="@string/app_name"
             android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_2xl"
+            android:textSize="28sp"
+            android:letterSpacing="0.01"
             android:fontFamily="sans-serif-black" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="40dp"
             android:text="@string/app_tagline"
             android:textColor="@color/text_secondary"
-            android:textSize="@dimen/text_sm" />
+            android:textSize="13sp"
+            android:letterSpacing="0.02" />
 
-        <!-- Phone input card -->
+        <!-- Form card -->
         <LinearLayout
-            android:id="@+id/layoutPhone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
+            android:background="@drawable/bg_form_card"
+            android:padding="24dp"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/enter_phone"
-                android:textColor="@color/text_primary"
-                android:textSize="@dimen/text_md"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginBottom="16dp" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilPhone"
-                style="@style/Widget.BrahmAI.TextInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/phone_hint">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPhone"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/input_height"
-                    android:inputType="phone"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_md" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSendOtp"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height"
-                android:layout_marginTop="16dp"
-                android:text="@string/send_otp"
-                android:textSize="@dimen/text_base"
-                style="@style/Widget.BrahmAI.Button" />
-        </LinearLayout>
-
-        <!-- OTP input card (hidden initially) -->
-        <LinearLayout
-            android:id="@+id/layoutOtp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/enter_otp"
-                android:textColor="@color/text_primary"
-                android:textSize="@dimen/text_md"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginBottom="4dp" />
-
-            <TextView
-                android:id="@+id/tvOtpSentTo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary"
-                android:textSize="@dimen/text_sm"
-                android:layout_marginBottom="16dp" />
-
-            <!-- 6 OTP boxes -->
+            <!-- Phone input section -->
             <LinearLayout
+                android:id="@+id/layoutPhone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:weightSum="6">
+                android:orientation="vertical">
 
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp1"
-                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
-                    android:layout_margin="4dp" android:gravity="center" android:maxLength="1"
-                    android:inputType="number" android:textSize="@dimen/text_xl"
-                    android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
-                    android:fontFamily="sans-serif-black" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp2"
-                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
-                    android:layout_margin="4dp" android:gravity="center" android:maxLength="1"
-                    android:inputType="number" android:textSize="@dimen/text_xl"
-                    android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
-                    android:fontFamily="sans-serif-black" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp3"
-                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
-                    android:layout_margin="4dp" android:gravity="center" android:maxLength="1"
-                    android:inputType="number" android:textSize="@dimen/text_xl"
-                    android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
-                    android:fontFamily="sans-serif-black" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp4"
-                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
-                    android:layout_margin="4dp" android:gravity="center" android:maxLength="1"
-                    android:inputType="number" android:textSize="@dimen/text_xl"
-                    android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
-                    android:fontFamily="sans-serif-black" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp5"
-                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
-                    android:layout_margin="4dp" android:gravity="center" android:maxLength="1"
-                    android:inputType="number" android:textSize="@dimen/text_xl"
-                    android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
-                    android:fontFamily="sans-serif-black" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp6"
-                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
-                    android:layout_margin="4dp" android:gravity="center" android:maxLength="1"
-                    android:inputType="number" android:textSize="@dimen/text_xl"
-                    android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
-                    android:fontFamily="sans-serif-black" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enter_phone"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="We'll send a one-time code to verify"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="18dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilPhone"
+                    style="@style/Widget.BrahmAI.TextInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/phone_hint">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:inputType="phone"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSendOtp"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/send_otp"
+                    android:textSize="15sp"
+                    style="@style/Widget.BrahmAI.Button" />
             </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnVerifyOtp"
+            <!-- OTP section (hidden initially) -->
+            <LinearLayout
+                android:id="@+id/layoutOtp"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height"
-                android:layout_marginTop="16dp"
-                android:text="@string/verify_otp"
-                style="@style/Widget.BrahmAI.Button" />
-
-            <TextView
-                android:id="@+id/tvResend"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
-                android:text="@string/resend_otp"
-                android:textColor="@color/primary"
-                android:textSize="@dimen/text_sm"
-                android:padding="8dp" />
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enter_otp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tvOtpSentTo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="20dp" />
+
+                <!-- OTP boxes -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:weightSum="6">
+
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp1"
+                        android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                        android:layout_margin="3dp" android:gravity="center" android:maxLength="1"
+                        android:inputType="number" android:textSize="20sp"
+                        android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
+                        android:fontFamily="sans-serif-black" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp2"
+                        android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                        android:layout_margin="3dp" android:gravity="center" android:maxLength="1"
+                        android:inputType="number" android:textSize="20sp"
+                        android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
+                        android:fontFamily="sans-serif-black" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp3"
+                        android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                        android:layout_margin="3dp" android:gravity="center" android:maxLength="1"
+                        android:inputType="number" android:textSize="20sp"
+                        android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
+                        android:fontFamily="sans-serif-black" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp4"
+                        android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                        android:layout_margin="3dp" android:gravity="center" android:maxLength="1"
+                        android:inputType="number" android:textSize="20sp"
+                        android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
+                        android:fontFamily="sans-serif-black" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp5"
+                        android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                        android:layout_margin="3dp" android:gravity="center" android:maxLength="1"
+                        android:inputType="number" android:textSize="20sp"
+                        android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
+                        android:fontFamily="sans-serif-black" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/otp6"
+                        android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                        android:layout_margin="3dp" android:gravity="center" android:maxLength="1"
+                        android:inputType="number" android:textSize="20sp"
+                        android:textColor="@color/text_primary" android:background="@drawable/bg_otp_box"
+                        android:fontFamily="sans-serif-black" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVerifyOtp"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/verify_otp"
+                    style="@style/Widget.BrahmAI.Button" />
+
+                <TextView
+                    android:id="@+id/tvResend"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/resend_otp"
+                    android:textColor="@color/primary_light"
+                    android:textSize="13sp"
+                    android:padding="8dp" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <!-- Error -->
@@ -178,9 +208,9 @@
             android:id="@+id/tvError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:textColor="@color/error"
-            android:textSize="@dimen/text_sm"
+            android:textSize="13sp"
             android:gravity="center"
             android:visibility="gone" />
 
@@ -193,6 +223,17 @@
             android:layout_gravity="center_horizontal"
             app:indicatorColor="@color/primary"
             android:visibility="gone" />
+
+        <!-- Footer -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"
+            android:text="By continuing, you agree to our Terms &amp; Privacy Policy"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp"
+            android:gravity="center" />
 
     </LinearLayout>
 </ScrollView>

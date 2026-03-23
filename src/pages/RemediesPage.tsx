@@ -4,11 +4,18 @@ import { useState } from "react";
 import { Gem, Music, Calendar, Palette, Gift, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+const ENGLISH_TO_RASHI_KEY: Record<string, string> = {
+  Aries: "mesha", Taurus: "vrishabha", Gemini: "mithuna", Cancer: "karka",
+  Leo: "simha", Virgo: "kanya", Libra: "tula", Scorpio: "vrischika",
+  Sagittarius: "dhanu", Capricorn: "makara", Aquarius: "kumbha", Pisces: "meena",
+};
+
 export default function RemediesPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedPlanet, setSelectedPlanet] = useState("Sun");
   const remedy = remediesData.find((r) => r.planet === selectedPlanet)!;
   const planet = samplePlanets.find((p) => p.name === selectedPlanet);
+  const mantraText = i18n.language === "en" ? remedy.mantra : (remedy.mantraDevanagari ?? remedy.mantra);
 
   return (
     <div className="p-6 space-y-6">
@@ -33,7 +40,7 @@ export default function RemediesPage() {
               aria-label={`View remedies for ${r.planet}`}
             >
               <span style={{ color: p?.color }}>{p?.symbol}</span>
-              {r.planet}
+              {t(`planet.${r.planet}`, { defaultValue: r.planet })}
             </button>
           );
         })}
@@ -49,18 +56,22 @@ export default function RemediesPage() {
         <div className="cosmic-card rounded-xl p-6 flex items-center gap-4">
           <span className="text-5xl" style={{ color: planet?.color }}>{planet?.symbol}</span>
           <div>
-            <h2 className="font-display text-2xl text-foreground">{selectedPlanet}</h2>
-            <p className="text-sm text-muted-foreground">{planet?.sanskritName} · {planet?.rashi} · House {planet?.house}</p>
+            <h2 className="font-display text-2xl text-foreground">{t(`planet.${selectedPlanet}`, { defaultValue: selectedPlanet })}</h2>
+            <p className="text-sm text-muted-foreground">
+              {planet?.sanskritName}
+              {planet?.rashi && ` · ${t(`data.rashi.${ENGLISH_TO_RASHI_KEY[planet.rashi] ?? planet.rashi.toLowerCase()}.name`, { defaultValue: planet.rashi })}`}
+              {planet?.house && ` · ${t("remedies.house_n", { n: planet.house })}`}
+            </p>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          <RemedyCard icon={<Music className="h-5 w-5 text-primary" />} title={t("remedies.mantra")} content={remedy.mantra} sub={t("remedies.chant_desc")} />
-          <RemedyCard icon={<Gem className="h-5 w-5 text-nebula" />} title={t("remedies.gemstone")} content={remedy.gemstone} sub={t("remedies.wear_desc")} />
-          <RemedyCard icon={<Calendar className="h-5 w-5 text-gold" />} title={t("remedies.fasting_day")} content={remedy.fasting} sub={t("remedies.fast_desc")} />
-          <RemedyCard icon={<Palette className="h-5 w-5 text-foreground" />} title={t("remedies.color")} content={remedy.color} sub={t("remedies.color_desc")} />
-          <RemedyCard icon={<Gift className="h-5 w-5 text-primary" />} title={t("remedies.donations")} content={remedy.donation} sub={t("remedies.donate_desc", { day: remedy.day })} />
-          <RemedyCard icon={<Moon className="h-5 w-5 text-muted-foreground" />} title={t("remedies.sacred_day")} content={remedy.day} sub={t("remedies.day_desc")} />
+          <RemedyCard icon={<Music className="h-5 w-5 text-primary" />} title={t("remedies.mantra")} content={mantraText} sub={t("remedies.chant_desc")} />
+          <RemedyCard icon={<Gem className="h-5 w-5 text-nebula" />} title={t("remedies.gemstone")} content={remedy.gemstoneKey ? t(remedy.gemstoneKey, { defaultValue: remedy.gemstone }) : remedy.gemstone} sub={t("remedies.wear_desc")} />
+          <RemedyCard icon={<Calendar className="h-5 w-5 text-gold" />} title={t("remedies.fasting_day")} content={remedy.fastingKey ? t(remedy.fastingKey, { defaultValue: remedy.fasting }) : remedy.fasting} sub={t("remedies.fast_desc")} />
+          <RemedyCard icon={<Palette className="h-5 w-5 text-foreground" />} title={t("remedies.color")} content={remedy.colorKey ? t(remedy.colorKey, { defaultValue: remedy.color }) : remedy.color} sub={t("remedies.color_desc")} />
+          <RemedyCard icon={<Gift className="h-5 w-5 text-primary" />} title={t("remedies.donations")} content={remedy.donationKey ? t(remedy.donationKey, { defaultValue: remedy.donation }) : remedy.donation} sub={t("remedies.donate_desc", { day: remedy.dayKey ? t(remedy.dayKey, { defaultValue: remedy.day }) : remedy.day })} />
+          <RemedyCard icon={<Moon className="h-5 w-5 text-muted-foreground" />} title={t("remedies.sacred_day")} content={remedy.dayKey ? t(remedy.dayKey, { defaultValue: remedy.day }) : remedy.day} sub={t("remedies.day_desc")} />
         </div>
       </motion.div>
     </div>

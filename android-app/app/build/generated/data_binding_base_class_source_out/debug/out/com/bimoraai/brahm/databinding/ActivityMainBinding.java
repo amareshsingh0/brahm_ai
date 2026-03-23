@@ -4,24 +4,32 @@ package com.bimoraai.brahm.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.bimoraai.brahm.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
 
 public final class ActivityMainBinding implements ViewBinding {
   @NonNull
-  private final ConstraintLayout rootView;
+  private final DrawerLayout rootView;
 
   @NonNull
   public final BottomNavigationView bottomNavView;
+
+  @NonNull
+  public final DrawerLayout drawerLayout;
+
+  @NonNull
+  public final FrameLayout fabAiContainer;
 
   @NonNull
   public final View navDivider;
@@ -29,18 +37,25 @@ public final class ActivityMainBinding implements ViewBinding {
   @NonNull
   public final FragmentContainerView navHostFragment;
 
-  private ActivityMainBinding(@NonNull ConstraintLayout rootView,
-      @NonNull BottomNavigationView bottomNavView, @NonNull View navDivider,
-      @NonNull FragmentContainerView navHostFragment) {
+  @NonNull
+  public final NavigationView navigationView;
+
+  private ActivityMainBinding(@NonNull DrawerLayout rootView,
+      @NonNull BottomNavigationView bottomNavView, @NonNull DrawerLayout drawerLayout,
+      @NonNull FrameLayout fabAiContainer, @NonNull View navDivider,
+      @NonNull FragmentContainerView navHostFragment, @NonNull NavigationView navigationView) {
     this.rootView = rootView;
     this.bottomNavView = bottomNavView;
+    this.drawerLayout = drawerLayout;
+    this.fabAiContainer = fabAiContainer;
     this.navDivider = navDivider;
     this.navHostFragment = navHostFragment;
+    this.navigationView = navigationView;
   }
 
   @Override
   @NonNull
-  public ConstraintLayout getRoot() {
+  public DrawerLayout getRoot() {
     return rootView;
   }
 
@@ -71,6 +86,14 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      DrawerLayout drawerLayout = (DrawerLayout) rootView;
+
+      id = R.id.fabAiContainer;
+      FrameLayout fabAiContainer = ViewBindings.findChildViewById(rootView, id);
+      if (fabAiContainer == null) {
+        break missingId;
+      }
+
       id = R.id.navDivider;
       View navDivider = ViewBindings.findChildViewById(rootView, id);
       if (navDivider == null) {
@@ -83,8 +106,14 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((ConstraintLayout) rootView, bottomNavView, navDivider,
-          navHostFragment);
+      id = R.id.navigationView;
+      NavigationView navigationView = ViewBindings.findChildViewById(rootView, id);
+      if (navigationView == null) {
+        break missingId;
+      }
+
+      return new ActivityMainBinding((DrawerLayout) rootView, bottomNavView, drawerLayout,
+          fabAiContainer, navDivider, navHostFragment, navigationView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

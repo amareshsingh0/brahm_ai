@@ -128,8 +128,8 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(requireContext(), "Coming soon", Toast.LENGTH_SHORT).show();
         });
 
-        // Edit birth details
-        b.tvEditBirth.setOnClickListener(v -> showEditBirthDialog());
+        // Edit birth details (tap birth place row)
+        b.rowEditBirth.setOnClickListener(v -> showEditBirthDialog());
 
         // Logout
         b.btnLogout.setOnClickListener(v -> showLogoutDialog());

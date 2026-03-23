@@ -9,24 +9,26 @@ import { useTranslation } from "react-i18next";
 
 interface StoneEntry {
   stone: string;
+  stoneKey: string;
   color: string;
   planet: string;
   purpose: string;
+  purposeKey: string;
 }
 
 const LAGNA_STONE: Record<string, StoneEntry> = {
-  Mesha:     { stone: "Red Coral (Moonga)",              color: "Red",         planet: "Mangal", purpose: "Courage, Energy, Health" },
-  Vrishabha: { stone: "Diamond (Heera) or White Sapphire", color: "White/Clear", planet: "Shukra", purpose: "Love, Wealth, Beauty" },
-  Mithuna:   { stone: "Emerald (Panna)",                  color: "Green",       planet: "Budh",   purpose: "Intellect, Communication, Business" },
-  Karka:     { stone: "Pearl (Moti)",                     color: "White",       planet: "Chandra", purpose: "Emotions, Home, Mother" },
-  Simha:     { stone: "Ruby (Manik)",                     color: "Red",         planet: "Surya",  purpose: "Authority, Career, Health" },
-  Kanya:     { stone: "Emerald (Panna)",                  color: "Green",       planet: "Budh",   purpose: "Analysis, Health, Service" },
-  Tula:      { stone: "Diamond or White Sapphire",        color: "White/Clear", planet: "Shukra", purpose: "Relationships, Harmony, Wealth" },
-  Vrischika: { stone: "Red Coral (Moonga)",               color: "Red",         planet: "Mangal", purpose: "Power, Research, Transformation" },
-  Dhanu:     { stone: "Yellow Sapphire (Pukhraj)",        color: "Yellow",      planet: "Guru",   purpose: "Fortune, Wisdom, Expansion" },
-  Makara:    { stone: "Blue Sapphire (Neelam)",           color: "Blue",        planet: "Shani",  purpose: "Discipline, Career, Karma — wear with extreme caution after testing" },
-  Kumbha:    { stone: "Blue Sapphire (Neelam)",           color: "Blue",        planet: "Shani",  purpose: "Humanitarian work, Innovation — wear with extreme caution" },
-  Meena:     { stone: "Yellow Sapphire (Pukhraj)",        color: "Yellow",      planet: "Guru",   purpose: "Spirituality, Fortune, Compassion" },
+  Mesha:     { stone: "Red Coral (Moonga)",              stoneKey: "remedies.gem_mars",    color: "Red",         planet: "Mangal",  purpose: "Courage, Energy, Health",                purposeKey: "gemstones.purpose_mesha" },
+  Vrishabha: { stone: "Diamond (Heera) or White Sapphire", stoneKey: "gemstones.stone_diamond_ws", color: "White/Clear", planet: "Shukra", purpose: "Love, Wealth, Beauty",              purposeKey: "gemstones.purpose_vrishabha" },
+  Mithuna:   { stone: "Emerald (Panna)",                  stoneKey: "remedies.gem_mercury", color: "Green",       planet: "Budh",    purpose: "Intellect, Communication, Business",     purposeKey: "gemstones.purpose_mithuna" },
+  Karka:     { stone: "Pearl (Moti)",                     stoneKey: "remedies.gem_moon",    color: "White",       planet: "Chandra", purpose: "Emotions, Home, Mother",                 purposeKey: "gemstones.purpose_karka" },
+  Simha:     { stone: "Ruby (Manik)",                     stoneKey: "gemstones.stone_ruby", color: "Red",         planet: "Surya",   purpose: "Authority, Career, Health",              purposeKey: "gemstones.purpose_simha" },
+  Kanya:     { stone: "Emerald (Panna)",                  stoneKey: "remedies.gem_mercury", color: "Green",       planet: "Budh",    purpose: "Analysis, Health, Service",              purposeKey: "gemstones.purpose_kanya" },
+  Tula:      { stone: "Diamond or White Sapphire",        stoneKey: "gemstones.stone_diamond_ws", color: "White/Clear", planet: "Shukra",  purpose: "Relationships, Harmony, Wealth",   purposeKey: "gemstones.purpose_tula" },
+  Vrischika: { stone: "Red Coral (Moonga)",               stoneKey: "remedies.gem_mars",    color: "Red",         planet: "Mangal",  purpose: "Power, Research, Transformation",        purposeKey: "gemstones.purpose_vrischika" },
+  Dhanu:     { stone: "Yellow Sapphire (Pukhraj)",        stoneKey: "remedies.gem_jupiter", color: "Yellow",      planet: "Guru",    purpose: "Fortune, Wisdom, Expansion",             purposeKey: "gemstones.purpose_dhanu" },
+  Makara:    { stone: "Blue Sapphire (Neelam)",           stoneKey: "remedies.gem_saturn",  color: "Blue",        planet: "Shani",   purpose: "Discipline, Career, Karma",              purposeKey: "gemstones.purpose_makara" },
+  Kumbha:    { stone: "Blue Sapphire (Neelam)",           stoneKey: "remedies.gem_saturn",  color: "Blue",        planet: "Shani",   purpose: "Humanitarian work, Innovation",          purposeKey: "gemstones.purpose_kumbha" },
+  Meena:     { stone: "Yellow Sapphire (Pukhraj)",        stoneKey: "remedies.gem_jupiter", color: "Yellow",      planet: "Guru",    purpose: "Spirituality, Fortune, Compassion",      purposeKey: "gemstones.purpose_meena" },
 };
 
 const RASHI_LORD: Record<string, string> = {
@@ -37,19 +39,22 @@ const RASHI_LORD: Record<string, string> = {
 
 interface WearEntry {
   metal: string;
+  metalKey: string;
   finger: string;
+  fingerKey: string;
   day: string;
+  dayKey: string;
   mantra: string;
 }
 
 const STONE_WEAR: Record<string, WearEntry> = {
-  Mangal:  { metal: "Gold or Copper",    finger: "Ring finger",   day: "Tuesday",   mantra: "ॐ क्रां क्रीं क्रौं सः भौमाय नमः" },
-  Shukra:  { metal: "Gold or Silver",    finger: "Middle finger", day: "Friday",    mantra: "ॐ द्रां द्रीं द्रौं सः शुक्राय नमः" },
-  Budh:    { metal: "Gold",              finger: "Little finger", day: "Wednesday", mantra: "ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः" },
-  Chandra: { metal: "Silver",            finger: "Little finger", day: "Monday",    mantra: "ॐ श्रां श्रीं श्रौं सः चंद्रमसे नमः" },
-  Surya:   { metal: "Gold",              finger: "Ring finger",   day: "Sunday",    mantra: "ॐ ह्रां ह्रीं ह्रौं सः सूर्याय नमः" },
-  Guru:    { metal: "Gold",              finger: "Index finger",  day: "Thursday",  mantra: "ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः" },
-  Shani:   { metal: "Iron or Silver",    finger: "Middle finger", day: "Saturday",  mantra: "ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः" },
+  Mangal:  { metal: "Gold or Copper",    metalKey: "gemstones.metal_gold_copper", finger: "Ring finger",   fingerKey: "gemstones.finger_ring",   day: "Tuesday",   dayKey: "gemstones.day_tuesday",   mantra: "ॐ क्रां क्रीं क्रौं सः भौमाय नमः" },
+  Shukra:  { metal: "Gold or Silver",    metalKey: "gemstones.metal_gold_silver", finger: "Middle finger", fingerKey: "gemstones.finger_middle", day: "Friday",    dayKey: "gemstones.day_friday",    mantra: "ॐ द्रां द्रीं द्रौं सः शुक्राय नमः" },
+  Budh:    { metal: "Gold",              metalKey: "gemstones.metal_gold",        finger: "Little finger", fingerKey: "gemstones.finger_little", day: "Wednesday", dayKey: "gemstones.day_wednesday", mantra: "ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः" },
+  Chandra: { metal: "Silver",            metalKey: "gemstones.metal_silver",      finger: "Little finger", fingerKey: "gemstones.finger_little", day: "Monday",    dayKey: "gemstones.day_monday",    mantra: "ॐ श्रां श्रीं श्रौं सः चंद्रमसे नमः" },
+  Surya:   { metal: "Gold",              metalKey: "gemstones.metal_gold",        finger: "Ring finger",   fingerKey: "gemstones.finger_ring",   day: "Sunday",    dayKey: "gemstones.day_sunday",    mantra: "ॐ ह्रां ह्रीं ह्रौं सः सूर्याय नमः" },
+  Guru:    { metal: "Gold",              metalKey: "gemstones.metal_gold",        finger: "Index finger",  fingerKey: "gemstones.finger_index",  day: "Thursday",  dayKey: "gemstones.day_thursday",  mantra: "ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः" },
+  Shani:   { metal: "Iron or Silver",    metalKey: "gemstones.metal_iron_silver", finger: "Middle finger", fingerKey: "gemstones.finger_middle", day: "Saturday",  dayKey: "gemstones.day_saturday",  mantra: "ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः" },
 };
 
 // House lords for benefic section — 4th, 9th, 10th house lords derived from lagna
@@ -129,7 +134,7 @@ function StoneCard({
         <Gem className={`shrink-0 ${size === "large" ? "h-6 w-6" : "h-5 w-5"} ${gemIconColor(entry.color)}`} />
         <div>
           <p className={`font-display ${size === "large" ? "text-lg" : "text-base"} text-foreground leading-tight`}>
-            {entry.stone}
+            {t(entry.stoneKey, { defaultValue: entry.stone })}
           </p>
           <p className="text-xs text-muted-foreground">{label}</p>
         </div>
@@ -137,14 +142,14 @@ function StoneCard({
 
       <div className="flex flex-wrap gap-2 text-xs">
         <span className="px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-          {t("gemstones.planet_label")}: <span className="text-foreground font-medium">{entry.planet}</span>
+          {t("gemstones.planet_label")}: <span className="text-foreground font-medium">{t(`planet.${entry.planet}`, { defaultValue: entry.planet })}</span>
         </span>
         <span className="px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-          {t("gemstones.color_label")}: <span className="text-foreground font-medium">{entry.color}</span>
+          {t("gemstones.color_label")}: <span className="text-foreground font-medium">{t(`colors.${entry.color}`, { defaultValue: entry.color })}</span>
         </span>
       </div>
 
-      <p className="text-xs text-muted-foreground leading-relaxed">{entry.purpose}</p>
+      <p className="text-xs text-muted-foreground leading-relaxed">{t(entry.purposeKey, { defaultValue: entry.purpose })}</p>
 
       {remedyFor && (
         <p className="text-xs text-amber-400/90 leading-relaxed">
@@ -173,15 +178,15 @@ function StoneCard({
                 <div className="pt-2 border-t border-border/20 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                   <div>
                     <span className="text-muted-foreground">{t("gemstones.metal")}:</span>{" "}
-                    <span className="text-foreground font-medium">{wear.metal}</span>
+                    <span className="text-foreground font-medium">{t(wear.metalKey, { defaultValue: wear.metal })}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">{t("gemstones.finger")}:</span>{" "}
-                    <span className="text-foreground font-medium">{wear.finger}</span>
+                    <span className="text-foreground font-medium">{t(wear.fingerKey, { defaultValue: wear.finger })}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">{t("gemstones.day")}:</span>{" "}
-                    <span className="text-foreground font-medium">{wear.day}</span>
+                    <span className="text-foreground font-medium">{t(wear.dayKey, { defaultValue: wear.day })}</span>
                   </div>
                   <div className="col-span-2">
                     <span className="text-muted-foreground">{t("gemstones.mantra")}:</span>{" "}
@@ -223,7 +228,7 @@ function GeneralGuide() {
         {Object.entries(LAGNA_STONE).map(([rashi, entry], i) => (
           <StoneCard
             key={rashi}
-            label={rashi}
+            label={t(`data.rashi.${rashi.toLowerCase()}.name`, { defaultValue: rashi })}
             entry={entry}
             delay={0.03 * i}
           />
@@ -315,12 +320,12 @@ export default function GemstoneRecommendationsPage() {
     .filter((d) => d.entry !== null) as { planet: string; entry: StoneEntry }[];
 
   const cautionRules = [
-    "Never wear Blue Sapphire (Neelam) without a 3-day trial on the body first — observe dreams, mood, and events.",
-    "Do not combine Red Coral (Moonga) with Emerald (Panna) — Mars and Mercury are natural enemies.",
-    "Do not wear Pearl and Blue Sapphire together without expert guidance.",
-    "Yellow Sapphire and Diamond are generally compatible but consult a Jyotishi for your specific chart.",
-    "Wear gemstones only in the prescribed metal, finger, and day for maximum effect.",
-    "Minimum weight: Ruby 3 ratti, Pearl 5 ratti, Emerald 3 ratti, Yellow Sapphire 3 ratti, Blue Sapphire 2 ratti.",
+    t("gemstones.caution_1"),
+    t("gemstones.caution_2"),
+    t("gemstones.caution_3"),
+    t("gemstones.caution_4"),
+    t("gemstones.caution_5"),
+    t("gemstones.caution_6"),
   ];
 
   return (
@@ -334,8 +339,8 @@ export default function GemstoneRecommendationsPage() {
         </div>
         <p className="text-sm text-muted-foreground">
           {t("gemstones.subtitle")} —{" "}
-          <span className="text-foreground font-medium">{lagnaRashi} lagna</span> ·{" "}
-          <span className="text-foreground font-medium">{moonRashi} moon</span>
+          <span className="text-foreground font-medium">{t(`data.rashi.${lagnaRashi.toLowerCase()}.name`, { defaultValue: lagnaRashi })} lagna</span> ·{" "}
+          <span className="text-foreground font-medium">{t(`data.rashi.${moonRashi.toLowerCase()}.name`, { defaultValue: moonRashi })} moon</span>
         </p>
       </motion.div>
 
@@ -345,13 +350,13 @@ export default function GemstoneRecommendationsPage() {
           <div className="flex items-center gap-2">
             <Star className="h-4 w-4 text-amber-400" />
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-              {t("gemstones.primary_gem")} — {lagnaRashi}
+              {t("gemstones.primary_gem")} — {t(`data.rashi.${lagnaRashi.toLowerCase()}.name`, { defaultValue: lagnaRashi })}
             </h2>
           </div>
           <StoneCard
-            label={`${lagnaRashi} lagna stone · ruled by ${RASHI_LORD[lagnaRashi] ?? ""}`}
+            label={t("gemstones.lagna_stone_label", { rashi: lagnaRashi, lord: RASHI_LORD[lagnaRashi] ?? "" })}
             entry={primaryEntry}
-            badge="Primary"
+            badge={t("gemstones.badge_primary")}
             size="large"
             delay={0}
           />
@@ -364,13 +369,13 @@ export default function GemstoneRecommendationsPage() {
           <div className="flex items-center gap-2">
             <span className="text-base">☽︎</span>
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-              {t("gemstones.secondary_gem")} — {moonRashi}
+              {t("gemstones.secondary_gem")} — {t(`data.rashi.${moonRashi.toLowerCase()}.name`, { defaultValue: moonRashi })}
             </h2>
           </div>
           <StoneCard
-            label={`${moonRashi} moon stone · ruled by ${RASHI_LORD[moonRashi] ?? ""}`}
+            label={t("gemstones.moon_stone_label", { rashi: moonRashi, lord: RASHI_LORD[moonRashi] ?? "" })}
             entry={secondaryEntry}
-            badge="Secondary"
+            badge={t("gemstones.badge_secondary")}
             delay={0.06}
           />
         </section>
@@ -414,9 +419,9 @@ export default function GemstoneRecommendationsPage() {
             {exaltedPlanets.map((e, i) => (
               <StoneCard
                 key={e.planet}
-                label={`${e.planet} — Exalted (Uchcha)`}
+                label={t("gemstones.exalted_planet_label", { planet: e.planet })}
                 entry={e.entry}
-                badge="Exalted"
+                badge={t("gemstones.badge_exalted")}
                 delay={0.05 * (i + 1)}
               />
             ))}
@@ -440,7 +445,7 @@ export default function GemstoneRecommendationsPage() {
             {debilitatedPlanets.map((d, i) => (
               <StoneCard
                 key={d.planet}
-                label={`Remedy for ${d.planet} weakness`}
+                label={t("gemstones.remedy_label", { planet: d.planet })}
                 entry={d.entry}
                 remedyFor={d.planet}
                 delay={0.05 * (i + 1)}
@@ -455,7 +460,7 @@ export default function GemstoneRecommendationsPage() {
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-red-400" />
           <h2 className="text-sm font-semibold text-red-400 uppercase tracking-wide">
-            Caution &amp; Important Notes
+            {t("gemstones.caution_title")}
           </h2>
         </div>
         <div className="cosmic-card rounded-xl p-4 space-y-2">
@@ -476,8 +481,7 @@ export default function GemstoneRecommendationsPage() {
 
       {/* Disclaimer */}
       <p className="text-xs text-muted-foreground/60 leading-relaxed pb-2">
-        Ratna Shastra recommendations are based on classical Vedic astrology texts (Brihat Parashara Hora Shastra).
-        Always consult a qualified Jyotishi before wearing gemstones — individual chart combinations vary significantly.
+        {t("gemstones.ratna_disclaimer")}
       </p>
     </div>
   );

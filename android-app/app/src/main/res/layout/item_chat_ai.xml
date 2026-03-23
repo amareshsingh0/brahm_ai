@@ -4,32 +4,40 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingEnd="40dp">
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:paddingEnd="56dp">
 
-    <!-- Header: AI icon + label -->
+    <!-- Header: AI avatar + label -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="4dp">
+        android:layout_marginBottom="6dp">
 
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_ai_star"
-            android:layout_marginEnd="6dp"
-            app:tint="@color/primary"
-            android:scaleType="centerInside" />
+        <FrameLayout
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="8dp">
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_ai_avatar" />
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_ai_star"
+                app:tint="@color/primary_light" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Brahm AI"
             android:textSize="11sp"
-            android:textColor="@color/primary"
+            android:textColor="@color/primary_light"
             android:fontFamily="sans-serif-medium" />
 
     </LinearLayout>
@@ -39,11 +47,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@drawable/bg_card"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
+        android:background="@drawable/bg_ai_bubble"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
         <TextView
             android:id="@+id/tvMessage"
@@ -51,23 +59,23 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@color/text_primary"
-            android:lineSpacingMultiplier="1.5"
+            android:lineSpacingMultiplier="1.55"
             android:fontFamily="sans-serif" />
 
     </LinearLayout>
 
-    <!-- Confidence badge (hidden by default) -->
+    <!-- Confidence badge -->
     <TextView
         android:id="@+id/tvConfidence"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="5dp"
         android:textSize="10sp"
         android:visibility="gone"
         android:fontFamily="sans-serif-medium"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp" />
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp" />
 
 </LinearLayout>

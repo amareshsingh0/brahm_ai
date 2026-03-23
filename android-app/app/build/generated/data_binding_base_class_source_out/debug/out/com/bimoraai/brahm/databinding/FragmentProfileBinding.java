@@ -4,6 +4,8 @@ package com.bimoraai.brahm.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,10 +13,7 @@ import androidx.core.widget.NestedScrollView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.bimoraai.brahm.R;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
-import com.google.android.material.imageview.ShapeableImageView;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -24,25 +23,25 @@ public final class FragmentProfileBinding implements ViewBinding {
   private final NestedScrollView rootView;
 
   @NonNull
-  public final MaterialButton btnLogout;
+  public final LinearLayout btnLogout;
 
   @NonNull
-  public final MaterialCardView cardUpgrade;
+  public final LinearLayout cardUpgrade;
 
   @NonNull
   public final Chip chipPlan;
 
   @NonNull
-  public final ShapeableImageView ivAvatar;
+  public final ImageView ivAvatar;
+
+  @NonNull
+  public final LinearLayout rowEditBirth;
 
   @NonNull
   public final TextView tvBirthPlace;
 
   @NonNull
   public final TextView tvDob;
-
-  @NonNull
-  public final TextView tvEditBirth;
 
   @NonNull
   public final TextView tvName;
@@ -54,18 +53,18 @@ public final class FragmentProfileBinding implements ViewBinding {
   public final TextView tvTob;
 
   private FragmentProfileBinding(@NonNull NestedScrollView rootView,
-      @NonNull MaterialButton btnLogout, @NonNull MaterialCardView cardUpgrade,
-      @NonNull Chip chipPlan, @NonNull ShapeableImageView ivAvatar, @NonNull TextView tvBirthPlace,
-      @NonNull TextView tvDob, @NonNull TextView tvEditBirth, @NonNull TextView tvName,
+      @NonNull LinearLayout btnLogout, @NonNull LinearLayout cardUpgrade, @NonNull Chip chipPlan,
+      @NonNull ImageView ivAvatar, @NonNull LinearLayout rowEditBirth,
+      @NonNull TextView tvBirthPlace, @NonNull TextView tvDob, @NonNull TextView tvName,
       @NonNull TextView tvPhone, @NonNull TextView tvTob) {
     this.rootView = rootView;
     this.btnLogout = btnLogout;
     this.cardUpgrade = cardUpgrade;
     this.chipPlan = chipPlan;
     this.ivAvatar = ivAvatar;
+    this.rowEditBirth = rowEditBirth;
     this.tvBirthPlace = tvBirthPlace;
     this.tvDob = tvDob;
-    this.tvEditBirth = tvEditBirth;
     this.tvName = tvName;
     this.tvPhone = tvPhone;
     this.tvTob = tvTob;
@@ -99,13 +98,13 @@ public final class FragmentProfileBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.btnLogout;
-      MaterialButton btnLogout = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout btnLogout = ViewBindings.findChildViewById(rootView, id);
       if (btnLogout == null) {
         break missingId;
       }
 
       id = R.id.cardUpgrade;
-      MaterialCardView cardUpgrade = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout cardUpgrade = ViewBindings.findChildViewById(rootView, id);
       if (cardUpgrade == null) {
         break missingId;
       }
@@ -117,8 +116,14 @@ public final class FragmentProfileBinding implements ViewBinding {
       }
 
       id = R.id.ivAvatar;
-      ShapeableImageView ivAvatar = ViewBindings.findChildViewById(rootView, id);
+      ImageView ivAvatar = ViewBindings.findChildViewById(rootView, id);
       if (ivAvatar == null) {
+        break missingId;
+      }
+
+      id = R.id.rowEditBirth;
+      LinearLayout rowEditBirth = ViewBindings.findChildViewById(rootView, id);
+      if (rowEditBirth == null) {
         break missingId;
       }
 
@@ -131,12 +136,6 @@ public final class FragmentProfileBinding implements ViewBinding {
       id = R.id.tvDob;
       TextView tvDob = ViewBindings.findChildViewById(rootView, id);
       if (tvDob == null) {
-        break missingId;
-      }
-
-      id = R.id.tvEditBirth;
-      TextView tvEditBirth = ViewBindings.findChildViewById(rootView, id);
-      if (tvEditBirth == null) {
         break missingId;
       }
 
@@ -159,7 +158,7 @@ public final class FragmentProfileBinding implements ViewBinding {
       }
 
       return new FragmentProfileBinding((NestedScrollView) rootView, btnLogout, cardUpgrade,
-          chipPlan, ivAvatar, tvBirthPlace, tvDob, tvEditBirth, tvName, tvPhone, tvTob);
+          chipPlan, ivAvatar, rowEditBirth, tvBirthPlace, tvDob, tvName, tvPhone, tvTob);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

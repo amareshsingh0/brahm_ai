@@ -6,7 +6,7 @@ import PageBot from '@/components/PageBot';
 import { useTranslation } from "react-i18next";
 
 export default function HoroscopePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedRashi, setSelectedRashi] = useState("Aries");
   const { data: horoscope } = useHoroscope(selectedRashi);
 
@@ -31,7 +31,7 @@ export default function HoroscopePage() {
             aria-label={`${r.name} horoscope`}
           >
             <span>{r.symbol}</span>
-            {r.name}
+            {t(`data.rashi.${r.sanskritName.toLowerCase()}.name`, { defaultValue: r.name })}
           </button>
         ))}
       </div>
@@ -48,9 +48,9 @@ export default function HoroscopePage() {
             <span className="text-6xl block mb-3">
               {rashiData.find((r) => r.name === selectedRashi)?.symbol}
             </span>
-            <h2 className="font-display text-2xl text-foreground">{selectedRashi}</h2>
+            <h2 className="font-display text-2xl text-foreground">{t(`data.rashi.${rashiData.find(r => r.name === selectedRashi)?.sanskritName?.toLowerCase()}.name`, { defaultValue: selectedRashi })}</h2>
             <p className="text-xs text-primary mt-1">
-              {rashiData.find((r) => r.name === selectedRashi)?.sanskritName} · {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              {rashiData.find((r) => r.name === selectedRashi)?.sanskritName} · {new Date().toLocaleDateString(i18n.language, { month: "long", day: "numeric", year: "numeric" })}
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export default function HoroscopePage() {
               </div>
               <div className="bg-muted/20 rounded-lg p-3">
                 <p className="text-xs text-muted-foreground mb-1">{t('horoscope.nakshatra_lord')}</p>
-                <p className="text-sm text-foreground">{rashiData.find((r) => r.name === selectedRashi)?.ruler ?? "—"}</p>
+                <p className="text-sm text-foreground">{t(`planet.${rashiData.find((r) => r.name === selectedRashi)?.ruler}`, { defaultValue: rashiData.find((r) => r.name === selectedRashi)?.ruler ?? "—" })}</p>
               </div>
             </div>
           </div>

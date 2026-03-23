@@ -1,29 +1,33 @@
 # Brahm AI - VM Setup & Structure Reference
-# Last Updated: 2026-03-19
+# Last Updated: 2026-03-22
 
 ## VM Connection
 ```
-Google Cloud VM: g2-standard-32
-Username: amareshsingh2005
-Hostname: brahm
-Zone: us-central1-a
-IP: 35.223.14.127  (updated 2026-03-19 — use curl -s ifconfig.me to verify)
-OS: Debian 12 / Ubuntu 22.04
-GPU: NVIDIA L4 24GB (Driver 595.45.04, CUDA 13.2)
-RAM: 128 GB
-vCPU: 32
-SSD: 250 GB
-Cost: ~$0.60/hr (~$14.40/day) - ALWAYS STOP WHEN NOT USING
+GCP Account:  photogeniusai@gmail.com
+GCP Project:  brahm2005
+VM Type:      n2-highmem-16
+vCPU:         16
+RAM:          128 GB
+GPU:          NONE (Gemini API handles all LLM — no local GPU needed)
+SSD:          500 GB
+Swap:         8 GB (/swapfile)
+OS:           Debian 12
+Zone:         us-central1-a
+Static IP:    34.134.231.111  (reserved — never changes on reboot)
+Domain:       brahmasmi.bimoraai.com (SSL via Let's Encrypt)
+Cost:         ~$0.80/hr (~$19.20/day) - ALWAYS STOP WHEN NOT USING
 
-SSH: gcloud compute ssh amareshsingh2005@brahm --zone=us-central1-a
+SSH: gcloud compute ssh amareshsingh2005@brahm --zone=us-central1-a --project=brahm2005
 Python venv: source ~/ai-env/bin/activate   (venv is in ~/, NOT ~/books/)
 IMPORTANT: Use python3, NOT python (Debian 12 has no python alias)
 
-Server start command (ALWAYS use this — loads GEMINI_API_KEY):
-  pkill -9 -f uvicorn; sleep 2
-  cd ~/books
-  GEMINI_API_KEY="$(grep GEMINI_API_KEY ~/.bashrc | tail -1 | cut -d'"' -f2)" \
-  uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload &
+API managed by systemd (auto-starts on boot, auto-restarts on crash):
+  sudo systemctl status brahm-api      # check status
+  sudo systemctl restart brahm-api     # restart
+  sudo journalctl -u brahm-api -f      # live logs
+
+GEMINI_API_KEY stored in /etc/environment (picked up by systemd via EnvironmentFile)
+DO NOT use --reload flag (breaks SSE streaming)
 ```
 
 ## VM Folder Structure (~/books/)
@@ -130,11 +134,10 @@ Server start command (ALWAYS use this — loads GEMINI_API_KEY):
 # AI/ML
 torch, transformers, accelerate, bitsandbytes
 sentence-transformers (embedding)
-faiss-cpu 1.13.2 (vector search — faiss-gpu not needed, CPU loads GPU-built indexes fine)
+faiss-cpu 1.13.2 (vector search)
 rank_bm25 (keyword search)
-google-genai (Gemini API — replaces Qwen for all LLM narrative; Qwen model deleted 2026-03-19)
-# NOTE: Qwen2.5-7B-Instruct DELETED from VM. GPU now reserved for U-Net training only.
-# All LLM calls → Gemini API (GEMINI_API_KEY env var)
+google-genai (Gemini API — all LLM calls; GEMINI_API_KEY env var)
+# NOTE: No local models. All LLM → Gemini API. No GPU on this VM.
 
 # Jyotish/Astronomy
 pyswisseph (Swiss Ephemeris Python bindings)
@@ -206,7 +209,65 @@ POST /api/muhurta               # Auspicious timing calculator
 
 ## Environment Variables (VM)
 ```bash
-GEMINI_API_KEY  # Set in ~/.bashrc — used by RAG chat + palmistry endpoint
+GEMINI_API_KEY  # Set in /etc/environment — loaded by systemd EnvironmentFile
+                # Also in ~/.bashrc for manual terminal use
+```
+
+## Systemd Service (/etc/systemd/system/brahm-api.service)
+```ini
+[Unit]
+Description=Brahm AI API
+After=network.target
+
+[Service]
+Type=simple
+User=amareshsingh2005
+WorkingDirectory=/home/amareshsingh2005/books
+Environment="PATH=/home/amareshsingh2005/ai-env/bin:/usr/bin:/bin"
+EnvironmentFile=/etc/environment
+ExecStart=/home/amareshsingh2005/ai-env/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+## Deploy Commands
+```bash
+# From local machine:
+git push
+
+# On VM (SSH login as photogeniusai, project is under amareshsingh2005):
+# NOTE: ~/books does NOT exist for photogeniusai — use full path always
+cd /home/amareshsingh2005/books && sudo git pull origin main
+sudo systemctl restart brahm-api
+
+# Frontend deploy — build locally, copy to VM:
+pnpm run build
+scp -r dist/* photogeniusai@34.134.231.111:/tmp/dist/
+# Then on VM:
+sudo cp -r /tmp/dist/* /var/www/brahm-ai/
+
+# OR build on VM after git pull:
+cd /home/amareshsingh2005/books && sudo -u amareshsingh2005 pnpm run build
+sudo cp -r dist/* /var/www/brahm-ai/
+```
+
+## Admin Panel
+```
+URL:      https://brahmasmi.bimoraai.com/admin
+Password: Set ADMIN_SECRET in systemd service or /etc/environment
+Default:  brahm-admin-2024 (change this!)
+
+# To set custom password — add to service file:
+sudo nano /etc/systemd/system/brahm-api.service
+# Add under [Service]: Environment="ADMIN_SECRET=your-strong-password"
+sudo systemctl daemon-reload && sudo systemctl restart brahm-api
+
+# users.db must exist — create if missing:
+touch /home/amareshsingh2005/books/api/data/users.db
+chown amareshsingh2005:amareshsingh2005 /home/amareshsingh2005/books/api/data/users.db
 ```
 
 ## Kundali.py - Current Features
@@ -393,21 +454,6 @@ tmux new-session -s ingest
 # Each window: source ~/ai-env/bin/activate && cd ~/books && python3 scripts/01_ingest_books.py --category <name>
 ```
 
-## NVIDIA GPU Driver Fix (2026-03-14)
-After VM reboot/kernel update, `nvidia-smi` may fail. Root cause: cloud kernel headers missing.
-```bash
-# Check if GPU hardware present
-lspci | grep -i nvidia    # Should show "NVIDIA Corporation AD104GL [L4]"
-
-# If nvidia-smi fails, fix kernel headers:
-sudo apt install -y linux-headers-$(uname -r)
-# DKMS auto-builds nvidia.ko for cloud kernel
-sudo modprobe nvidia
-nvidia-smi    # Should show L4 24GB, Driver 595.45.04, CUDA 13.2
-
-# Key: VM kernel is 6.1.0-44-CLOUD-amd64 (not regular amd64)
-# Regular headers won't match. Must install cloud variant.
-```
 
 ## FAISS Index Build (2026-03-14)
 ```bash
@@ -415,9 +461,9 @@ nvidia-smi    # Should show L4 24GB, Driver 595.45.04, CUDA 13.2
 cd ~/books && python3 scripts/02_build_index.py
 
 # Result: 1,104,518 chunks from 146,809 JSON files
-# Encoding: 25 min on L4 GPU (batch_size=512)
-# Total build: 33.7 min
+# NOTE: New VM has no GPU — encoding runs on CPU (slower if rebuild needed)
 # Output: ~/books/indexes/ (master + sanskrit + hindi + english .index + metadata.db + documents.jsonl)
+# Index already transferred from old VM — no rebuild needed
 ```
 
 ## RAG Pipeline (2026-03-14)

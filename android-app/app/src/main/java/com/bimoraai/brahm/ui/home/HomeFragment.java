@@ -13,6 +13,7 @@ import com.bimoraai.brahm.R;
 import com.bimoraai.brahm.api.ApiClient;
 import com.bimoraai.brahm.databinding.FragmentHomeBinding;
 import com.bimoraai.brahm.ui.kundali.KundaliChartView;
+import com.bimoraai.brahm.ui.main.MainActivity;
 import com.bimoraai.brahm.ui.secondary.*;
 import com.bimoraai.brahm.utils.DateUtils;
 import com.bimoraai.brahm.utils.PrefsHelper;
@@ -82,6 +83,15 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupClickListeners() {
+        // Hamburger → open navigation drawer
+        if (b.btnOpenDrawer != null) {
+            b.btnOpenDrawer.setOnClickListener(v -> {
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).openDrawer();
+                }
+            });
+        }
+
         b.tvViewChart.setOnClickListener(v ->
             requireActivity().getOnBackPressedDispatcher().onBackPressed());
 

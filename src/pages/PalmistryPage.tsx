@@ -18,43 +18,47 @@ import {
 
 const HAND_TYPES = [
   {
-    id: "earth", label: "Earth Hand", vedic: "Prithvi Hasta", shape: "Square palm + Short fingers",
-    element: "Earth (Prithvi)", icon: "🌍",
+    id: "earth", label: "Earth Hand", labelKey: "palmistry.hand_earth_label", vedic: "Prithvi Hasta", vedicKey: "palmistry.hand_earth_vedic", shape: "Square palm + Short fingers", shapeKey: "palmistry.hand_earth_shape",
+    element: "Earth (Prithvi)", elementKey: "palmistry.hand_earth_element", icon: "🌍",
     traits: ["Practical & reliable", "Hardworking", "Strong physical constitution", "Prefers routine", "Hands-on learner"],
-    careers: "Builder, surgeon, chef, craftsman, athlete, engineer",
-    constitution: "Kapha (Ayurveda) — stable, grounding, enduring",
-    shadow: "Stubbornness, resistance to change, overattachment to the material",
-    vedic_note: "Bhu-Tattva dominant. Deeply connected to the material plane. The karmic path involves mastery through physical effort and grounded wisdom.",
+    traitKeys: ["palmistry.hand_earth_trait1","palmistry.hand_earth_trait2","palmistry.hand_earth_trait3","palmistry.hand_earth_trait4","palmistry.hand_earth_trait5"],
+    careers: "Builder, surgeon, chef, craftsman, athlete, engineer", careersKey: "palmistry.hand_earth_careers",
+    constitution: "Kapha (Ayurveda) — stable, grounding, enduring", constitutionKey: "palmistry.hand_earth_constitution",
+    shadow: "Stubbornness, resistance to change, overattachment to the material", shadowKey: "palmistry.hand_earth_shadow",
+    vedic_note: "Bhu-Tattva dominant. Deeply connected to the material plane. The karmic path involves mastery through physical effort and grounded wisdom.", vedic_noteKey: "palmistry.hand_earth_note",
     life_modifier: { health: 2, wealth: 1, love: 0, mental: -1, spiritual: -1, career: 2 },
   },
   {
-    id: "air", label: "Air Hand", vedic: "Vayu Hasta", shape: "Square palm + Long fingers",
-    element: "Air (Vayu)", icon: "💨",
+    id: "air", label: "Air Hand", labelKey: "palmistry.hand_air_label", vedic: "Vayu Hasta", vedicKey: "palmistry.hand_air_vedic", shape: "Square palm + Long fingers", shapeKey: "palmistry.hand_air_shape",
+    element: "Air (Vayu)", elementKey: "palmistry.hand_air_element", icon: "💨",
     traits: ["Intellectual", "Curious & versatile", "Excellent communicator", "Social", "Ideas-driven"],
-    careers: "Writer, journalist, teacher, scientist, lawyer, philosopher",
-    constitution: "Vata (Ayurveda) — swift, mercurial, adaptive",
-    shadow: "Anxiety, restlessness, difficulty grounding ideas into reality",
-    vedic_note: "Vayu-Tattva dominant. Ruled by Budha (Mercury). The karmic path involves using the gift of communication to serve truth and uplift others.",
+    traitKeys: ["palmistry.hand_air_trait1","palmistry.hand_air_trait2","palmistry.hand_air_trait3","palmistry.hand_air_trait4","palmistry.hand_air_trait5"],
+    careers: "Writer, journalist, teacher, scientist, lawyer, philosopher", careersKey: "palmistry.hand_air_careers",
+    constitution: "Vata (Ayurveda) — swift, mercurial, adaptive", constitutionKey: "palmistry.hand_air_constitution",
+    shadow: "Anxiety, restlessness, difficulty grounding ideas into reality", shadowKey: "palmistry.hand_air_shadow",
+    vedic_note: "Vayu-Tattva dominant. Ruled by Budha (Mercury). The karmic path involves using the gift of communication to serve truth and uplift others.", vedic_noteKey: "palmistry.hand_air_note",
     life_modifier: { health: -1, wealth: 1, love: 1, mental: 2, spiritual: 1, career: 1 },
   },
   {
-    id: "water", label: "Water Hand", vedic: "Jala Hasta", shape: "Long oval palm + Long fine fingers",
-    element: "Water (Jala)", icon: "💧",
+    id: "water", label: "Water Hand", labelKey: "palmistry.hand_water_label", vedic: "Jala Hasta", vedicKey: "palmistry.hand_water_vedic", shape: "Long oval palm + Long fine fingers", shapeKey: "palmistry.hand_water_shape",
+    element: "Water (Jala)", elementKey: "palmistry.hand_water_element", icon: "💧",
     traits: ["Deeply intuitive", "Empathetic", "Creative & artistic", "Psychically sensitive", "Absorbs others' energies"],
-    careers: "Healer, astrologer, artist, psychologist, poet, musician",
-    constitution: "Kapha-Pitta (Ayurveda) — fluid, receptive, emotionally rich",
-    shadow: "Over-sensitivity, poor boundaries, escapism, emotional overwhelm",
-    vedic_note: "Jala-Tattva dominant. Ruled by Chandra (Moon). The karmic path involves learning to channel deep sensitivity into healing and creative gifts without losing self.",
+    traitKeys: ["palmistry.hand_water_trait1","palmistry.hand_water_trait2","palmistry.hand_water_trait3","palmistry.hand_water_trait4","palmistry.hand_water_trait5"],
+    careers: "Healer, astrologer, artist, psychologist, poet, musician", careersKey: "palmistry.hand_water_careers",
+    constitution: "Kapha-Pitta (Ayurveda) — fluid, receptive, emotionally rich", constitutionKey: "palmistry.hand_water_constitution",
+    shadow: "Over-sensitivity, poor boundaries, escapism, emotional overwhelm", shadowKey: "palmistry.hand_water_shadow",
+    vedic_note: "Jala-Tattva dominant. Ruled by Chandra (Moon). The karmic path involves learning to channel deep sensitivity into healing and creative gifts without losing self.", vedic_noteKey: "palmistry.hand_water_note",
     life_modifier: { health: 0, wealth: -1, love: 2, mental: 1, spiritual: 2, career: 0 },
   },
   {
-    id: "fire", label: "Fire Hand", vedic: "Agni Hasta", shape: "Long palm + Short fingers",
-    element: "Fire (Agni)", icon: "🔥",
+    id: "fire", label: "Fire Hand", labelKey: "palmistry.hand_fire_label", vedic: "Agni Hasta", vedicKey: "palmistry.hand_fire_vedic", shape: "Long palm + Short fingers", shapeKey: "palmistry.hand_fire_shape",
+    element: "Fire (Agni)", elementKey: "palmistry.hand_fire_element", icon: "🔥",
     traits: ["Passionate & energetic", "Natural leader", "Charismatic & inspiring", "Ambitious", "Impatient"],
-    careers: "Entrepreneur, military leader, performer, athlete, politician, pioneer",
-    constitution: "Pitta (Ayurveda) — radiant, forceful, transforming",
-    shadow: "Arrogance, burnout, aggression, inability to rest or surrender",
-    vedic_note: "Agni-Tattva dominant. Ruled by Surya + Mangal. The karmic path involves tempering the fire of ambition with humility and compassion, so the flame uplifts rather than burns.",
+    traitKeys: ["palmistry.hand_fire_trait1","palmistry.hand_fire_trait2","palmistry.hand_fire_trait3","palmistry.hand_fire_trait4","palmistry.hand_fire_trait5"],
+    careers: "Entrepreneur, military leader, performer, athlete, politician, pioneer", careersKey: "palmistry.hand_fire_careers",
+    constitution: "Pitta (Ayurveda) — radiant, forceful, transforming", constitutionKey: "palmistry.hand_fire_constitution",
+    shadow: "Arrogance, burnout, aggression, inability to rest or surrender", shadowKey: "palmistry.hand_fire_shadow",
+    vedic_note: "Agni-Tattva dominant. Ruled by Surya + Mangal. The karmic path involves tempering the fire of ambition with humility and compassion, so the flame uplifts rather than burns.", vedic_noteKey: "palmistry.hand_fire_note",
     life_modifier: { health: 1, wealth: 2, love: 0, mental: 0, spiritual: -1, career: 2 },
   },
 ];
@@ -63,281 +67,122 @@ const QUESTIONS = [
   {
     id: "heart",
     line: "Heart Line",
+    lineKey: "data.palmistry.questions.heart_line",
     sanskrit: "हृदय रेखा",
     instruction: "Look at the TOPMOST horizontal line running across your upper palm.",
+    instructionKey: "data.palmistry.questions.heart_instruction",
     hint: "It typically runs from below your little finger toward your index or middle finger.",
+    hintKey: "data.palmistry.questions.heart_hint",
     color: "#E8650A",
     options: [
-      {
-        id: "long_curved", label: "Long & Deeply Curved",
-        desc: "Sweeps up toward the index/middle finger in a strong arc",
-        meaning: "Warm, expressive, deeply romantic. You love unconditionally and wear your heart on your sleeve. Relationships are central to your life purpose.",
-        vedic: "Strong Shukra (Venus) influence — blessings in love, partnership, and devotion. The heart is your greatest teacher.",
-        scores: { love: 3, spiritual: 1, mental: 0, health: 1, wealth: 0, career: 0 },
-      },
-      {
-        id: "straight_short", label: "Straight & Short",
-        desc: "Relatively straight, doesn't reach as far across the palm",
-        meaning: "Practical and measured in emotion. You love deeply but express it through loyal actions rather than grand gestures. Reliability is your love language.",
-        vedic: "Balanced Chandra (Moon) — emotional intelligence without overwhelm. Disciplined heart.",
-        scores: { love: 1, spiritual: 0, mental: 1, health: 0, wealth: 1, career: 1 },
-      },
-      {
-        id: "forked", label: "Forked at End",
-        desc: "The line splits into two branches near the end",
-        meaning: "Rare and auspicious. You balance heart and mind beautifully — empathetic yet rational. Natural counselor or mediator. You see both sides of every relationship.",
-        vedic: "Budha-Chandra yoga — harmonious mind-heart communication. The fork indicates the Viveka (discernment) to choose wisely in love.",
-        scores: { love: 2, spiritual: 1, mental: 2, health: 0, wealth: 0, career: 1 },
-      },
-      {
-        id: "high_index", label: "Ends Below Index Finger",
-        desc: "The line curves up and ends near the base of your index finger",
-        meaning: "Idealistic in love. You seek nothing less than a divine, soulmate-level connection. High standards — and you deserve them. Can feel perpetually unsatisfied until you find true union.",
-        vedic: "Guru (Jupiter) sub-influence on the heart — seeks Prema (divine love). Marriage as spiritual sadhana.",
-        scores: { love: 2, spiritual: 2, mental: 0, health: 0, wealth: 0, career: 0 },
-      },
-      {
-        id: "broken", label: "Broken or Chained",
-        desc: "Has gaps, islands, or chain-like appearance",
-        meaning: "Significant emotional journey. Past heartbreaks have shaped you deeply. These scars are also sources of immense compassion and wisdom. Growth through vulnerability.",
-        vedic: "Rahu/Ketu axis — karmic relationship lessons carried across lifetimes. The break is a portal to transformation.",
-        scores: { love: 0, spiritual: 2, mental: -1, health: -1, wealth: 0, career: 0 },
-      },
+      { id: "long_curved", label: "Long & Deeply Curved", labelKey: "data.palmistry.opt.heart_long_curved_label", desc: "Sweeps up toward the index/middle finger in a strong arc", descKey: "data.palmistry.opt.heart_long_curved_desc", meaning: "Warm, expressive, deeply romantic. You love unconditionally and wear your heart on your sleeve. Relationships are central to your life purpose.", meaningKey: "data.palmistry.opt.heart_long_curved_meaning", vedic: "Strong Shukra (Venus) influence — blessings in love, partnership, and devotion. The heart is your greatest teacher.", vedicKey: "data.palmistry.opt.heart_long_curved_vedic", scores: { love: 3, spiritual: 1, mental: 0, health: 1, wealth: 0, career: 0 } },
+      { id: "straight_short", label: "Straight & Short", labelKey: "data.palmistry.opt.heart_straight_short_label", desc: "Relatively straight, doesn't reach as far across the palm", descKey: "data.palmistry.opt.heart_straight_short_desc", meaning: "Practical and measured in emotion. You love deeply but express it through loyal actions rather than grand gestures. Reliability is your love language.", meaningKey: "data.palmistry.opt.heart_straight_short_meaning", vedic: "Balanced Chandra (Moon) — emotional intelligence without overwhelm. Disciplined heart.", vedicKey: "data.palmistry.opt.heart_straight_short_vedic", scores: { love: 1, spiritual: 0, mental: 1, health: 0, wealth: 1, career: 1 } },
+      { id: "forked", label: "Forked at End", labelKey: "data.palmistry.opt.heart_forked_label", desc: "The line splits into two branches near the end", descKey: "data.palmistry.opt.heart_forked_desc", meaning: "Rare and auspicious. You balance heart and mind beautifully — empathetic yet rational. Natural counselor or mediator. You see both sides of every relationship.", meaningKey: "data.palmistry.opt.heart_forked_meaning", vedic: "Budha-Chandra yoga — harmonious mind-heart communication. The fork indicates the Viveka (discernment) to choose wisely in love.", vedicKey: "data.palmistry.opt.heart_forked_vedic", scores: { love: 2, spiritual: 1, mental: 2, health: 0, wealth: 0, career: 1 } },
+      { id: "high_index", label: "Ends Below Index Finger", labelKey: "data.palmistry.opt.heart_high_index_label", desc: "The line curves up and ends near the base of your index finger", descKey: "data.palmistry.opt.heart_high_index_desc", meaning: "Idealistic in love. You seek nothing less than a divine, soulmate-level connection. High standards — and you deserve them. Can feel perpetually unsatisfied until you find true union.", meaningKey: "data.palmistry.opt.heart_high_index_meaning", vedic: "Guru (Jupiter) sub-influence on the heart — seeks Prema (divine love). Marriage as spiritual sadhana.", vedicKey: "data.palmistry.opt.heart_high_index_vedic", scores: { love: 2, spiritual: 2, mental: 0, health: 0, wealth: 0, career: 0 } },
+      { id: "broken", label: "Broken or Chained", labelKey: "data.palmistry.opt.heart_broken_label", desc: "Has gaps, islands, or chain-like appearance", descKey: "data.palmistry.opt.heart_broken_desc", meaning: "Significant emotional journey. Past heartbreaks have shaped you deeply. These scars are also sources of immense compassion and wisdom. Growth through vulnerability.", meaningKey: "data.palmistry.opt.heart_broken_meaning", vedic: "Rahu/Ketu axis — karmic relationship lessons carried across lifetimes. The break is a portal to transformation.", vedicKey: "data.palmistry.opt.heart_broken_vedic", scores: { love: 0, spiritual: 2, mental: -1, health: -1, wealth: 0, career: 0 } },
     ],
   },
   {
     id: "head",
     line: "Head Line",
+    lineKey: "data.palmistry.questions.head_line",
     sanskrit: "मस्तिष्क रेखा",
     instruction: "Find the MIDDLE horizontal line running across your palm.",
+    instructionKey: "data.palmistry.questions.head_instruction",
     hint: "It usually starts near the edge between your thumb and index finger, running across toward the outer palm.",
+    hintKey: "data.palmistry.questions.head_hint",
     color: "#C8860A",
     options: [
-      {
-        id: "long_straight", label: "Long & Straight",
-        desc: "Extends nearly across the full width of the palm in a straight line",
-        meaning: "Razor-sharp analytical mind. You excel at logic, mathematics, science, law, and strategic thinking. You see patterns others miss. Your intellect is your greatest asset.",
-        vedic: "Strong Budha (Mercury) — exceptional intellectual capacity. Saraswati's grace on the mind.",
-        scores: { mental: 3, career: 2, wealth: 1, love: -1, spiritual: 0, health: 0 },
-      },
-      {
-        id: "curved_down", label: "Deeply Curved Downward",
-        desc: "Curves noticeably downward toward the base of the palm",
-        meaning: "Highly creative and imaginative. You think in images, metaphors, and stories. Writer, artist, visionary — the world of ideas is your natural home. Intuition over logic.",
-        vedic: "Chandra dominance on Buddhi — imaginative intelligence. Saraswati as Vak Shakti (power of creative expression).",
-        scores: { mental: 2, career: 1, love: 1, spiritual: 2, health: 0, wealth: -1 },
-      },
-      {
-        id: "fork_end", label: "Forked at End (Writer's Fork)",
-        desc: "Splits into two branches — one straight, one curved — near the end",
-        meaning: "The most auspicious head line. You hold both analytical and creative intelligence simultaneously. Exceptional in communication, law, literature, philosophy, and teaching.",
-        vedic: "Saraswati blessing — dual vision, the gift of eloquence. Can translate complex ideas into beautiful language.",
-        scores: { mental: 3, career: 2, love: 1, spiritual: 1, health: 0, wealth: 1 },
-      },
-      {
-        id: "short", label: "Short",
-        desc: "Doesn't extend very far across the palm",
-        meaning: "Decisive and action-oriented. You trust your instincts over lengthy analysis. Quick thinking, entrepreneurial spirit. Sometimes seen as impulsive — but often you're simply operating on a different level of knowing.",
-        vedic: "Mangal (Mars) influence on intellect — courage of thought. The instinct IS the intelligence.",
-        scores: { mental: 1, career: 2, love: 0, spiritual: 0, health: 1, wealth: 1 },
-      },
-      {
-        id: "chained", label: "Wavy or Chained",
-        desc: "Appears uneven, wavy, or has chain-like links along it",
-        meaning: "Sensitive, creative, and deeply perceptive. Your mind picks up subtle energies others miss. This comes with mental sensitivity — meditation and regular mental rest are essential.",
-        vedic: "Ketu influence on Manas — a mind that perceives across dimensions. Highly psychic but needs grounding.",
-        scores: { mental: 1, career: 0, love: 1, spiritual: 3, health: -1, wealth: -1 },
-      },
+      { id: "long_straight", label: "Long & Straight", labelKey: "data.palmistry.opt.head_long_straight_label", desc: "Extends nearly across the full width of the palm in a straight line", descKey: "data.palmistry.opt.head_long_straight_desc", meaning: "Razor-sharp analytical mind. You excel at logic, mathematics, science, law, and strategic thinking. You see patterns others miss. Your intellect is your greatest asset.", meaningKey: "data.palmistry.opt.head_long_straight_meaning", vedic: "Strong Budha (Mercury) — exceptional intellectual capacity. Saraswati's grace on the mind.", vedicKey: "data.palmistry.opt.head_long_straight_vedic", scores: { mental: 3, career: 2, wealth: 1, love: -1, spiritual: 0, health: 0 } },
+      { id: "curved_down", label: "Deeply Curved Downward", labelKey: "data.palmistry.opt.head_curved_down_label", desc: "Curves noticeably downward toward the base of the palm", descKey: "data.palmistry.opt.head_curved_down_desc", meaning: "Highly creative and imaginative. You think in images, metaphors, and stories. Writer, artist, visionary — the world of ideas is your natural home. Intuition over logic.", meaningKey: "data.palmistry.opt.head_curved_down_meaning", vedic: "Chandra dominance on Buddhi — imaginative intelligence. Saraswati as Vak Shakti (power of creative expression).", vedicKey: "data.palmistry.opt.head_curved_down_vedic", scores: { mental: 2, career: 1, love: 1, spiritual: 2, health: 0, wealth: -1 } },
+      { id: "fork_end", label: "Forked at End (Writer's Fork)", labelKey: "data.palmistry.opt.head_fork_end_label", desc: "Splits into two branches — one straight, one curved — near the end", descKey: "data.palmistry.opt.head_fork_end_desc", meaning: "The most auspicious head line. You hold both analytical and creative intelligence simultaneously. Exceptional in communication, law, literature, philosophy, and teaching.", meaningKey: "data.palmistry.opt.head_fork_end_meaning", vedic: "Saraswati blessing — dual vision, the gift of eloquence. Can translate complex ideas into beautiful language.", vedicKey: "data.palmistry.opt.head_fork_end_vedic", scores: { mental: 3, career: 2, love: 1, spiritual: 1, health: 0, wealth: 1 } },
+      { id: "short", label: "Short", labelKey: "data.palmistry.opt.head_short_label", desc: "Doesn't extend very far across the palm", descKey: "data.palmistry.opt.head_short_desc", meaning: "Decisive and action-oriented. You trust your instincts over lengthy analysis. Quick thinking, entrepreneurial spirit. Sometimes seen as impulsive — but often you're simply operating on a different level of knowing.", meaningKey: "data.palmistry.opt.head_short_meaning", vedic: "Mangal (Mars) influence on intellect — courage of thought. The instinct IS the intelligence.", vedicKey: "data.palmistry.opt.head_short_vedic", scores: { mental: 1, career: 2, love: 0, spiritual: 0, health: 1, wealth: 1 } },
+      { id: "chained", label: "Wavy or Chained", labelKey: "data.palmistry.opt.head_chained_label", desc: "Appears uneven, wavy, or has chain-like links along it", descKey: "data.palmistry.opt.head_chained_desc", meaning: "Sensitive, creative, and deeply perceptive. Your mind picks up subtle energies others miss. This comes with mental sensitivity — meditation and regular mental rest are essential.", meaningKey: "data.palmistry.opt.head_chained_meaning", vedic: "Ketu influence on Manas — a mind that perceives across dimensions. Highly psychic but needs grounding.", vedicKey: "data.palmistry.opt.head_chained_vedic", scores: { mental: 1, career: 0, love: 1, spiritual: 3, health: -1, wealth: -1 } },
     ],
   },
   {
     id: "life",
     line: "Life Line",
+    lineKey: "data.palmistry.questions.life_line",
     sanskrit: "जीवन रेखा",
     instruction: "Find the curved line that sweeps around the base of your thumb.",
+    instructionKey: "data.palmistry.questions.life_instruction",
     hint: "It typically starts between your index finger and thumb, curving down around the thumb mount (Venus mount).",
+    hintKey: "data.palmistry.questions.life_hint",
     color: "#6D28D9",
     options: [
-      {
-        id: "wide_deep", label: "Wide Arc & Deep",
-        desc: "Makes a large, sweeping arc around the thumb — goes far into the palm",
-        meaning: "Abundant Prana (life force). You have robust vitality, strong physical resilience, and a genuine love of life. Physical activity comes naturally. You recover quickly from setbacks.",
-        vedic: "Surya-Mangal blessings — solar vitality and warrior constitution. Strong Ojas (immunity). Dhanvantari's grace.",
-        scores: { health: 3, career: 2, love: 1, mental: 0, spiritual: 0, wealth: 1 },
-      },
-      {
-        id: "long_clear", label: "Long & Unbroken",
-        desc: "Extends far down the palm with no breaks or islands",
-        meaning: "Steady, sustained vitality throughout life. Few major health crises. Your energy is reliable and consistent. Others draw strength from your presence.",
-        vedic: "Dhanvantari grace — blessed health karma from prior lifetimes of righteous living. Prana is protected.",
-        scores: { health: 3, career: 1, love: 0, mental: 1, spiritual: 0, wealth: 0 },
-      },
-      {
-        id: "double", label: "Double Life Line",
-        desc: "A parallel line runs alongside the main life line",
-        meaning: "Extraordinary — this is the Kavach Rekha (protective mark). You carry divine protection. Strong spiritual guidance from ancestors or Ishta Devata. Remarkable resilience and recovery from any situation.",
-        vedic: "Pitru Kavach and Ishta Devata's active blessing. One of the most auspicious marks in all of Samudrika Shastra.",
-        scores: { health: 3, career: 1, love: 1, mental: 1, spiritual: 3, wealth: 1 },
-      },
-      {
-        id: "close_thumb", label: "Close to Thumb (Tight Arc)",
-        desc: "Stays close to the thumb, doesn't sweep far out",
-        meaning: "More introverted energy. You conserve and channel your vitality with precision rather than broadcasting it widely. Quality over quantity in all things — relationships, work, energy expenditure.",
-        vedic: "Shani influence on Prana — teaches conservation and mastery. The monk archetype — disciplined and focused.",
-        scores: { health: 1, career: 0, love: -1, mental: 2, spiritual: 2, wealth: 0 },
-      },
-      {
-        id: "broken", label: "Broken or Has Islands",
-        desc: "Has visible gaps, breaks, or island shapes along it",
-        meaning: "Life has involved (or will involve) major transformations. A break is not an ending — it is a rebirth. Each transition you navigate builds extraordinary wisdom. You are a survivor and a transformer.",
-        vedic: "Rahu transit marker — radical life pivots that serve divine redirection. The phoenix pattern.",
-        scores: { health: -1, career: -1, love: 0, mental: 0, spiritual: 2, wealth: -1 },
-      },
+      { id: "wide_deep", label: "Wide Arc & Deep", labelKey: "data.palmistry.opt.life_wide_deep_label", desc: "Makes a large, sweeping arc around the thumb — goes far into the palm", descKey: "data.palmistry.opt.life_wide_deep_desc", meaning: "Abundant Prana (life force). You have robust vitality, strong physical resilience, and a genuine love of life. Physical activity comes naturally. You recover quickly from setbacks.", meaningKey: "data.palmistry.opt.life_wide_deep_meaning", vedic: "Surya-Mangal blessings — solar vitality and warrior constitution. Strong Ojas (immunity). Dhanvantari's grace.", vedicKey: "data.palmistry.opt.life_wide_deep_vedic", scores: { health: 3, career: 2, love: 1, mental: 0, spiritual: 0, wealth: 1 } },
+      { id: "long_clear", label: "Long & Unbroken", labelKey: "data.palmistry.opt.life_long_clear_label", desc: "Extends far down the palm with no breaks or islands", descKey: "data.palmistry.opt.life_long_clear_desc", meaning: "Steady, sustained vitality throughout life. Few major health crises. Your energy is reliable and consistent. Others draw strength from your presence.", meaningKey: "data.palmistry.opt.life_long_clear_meaning", vedic: "Dhanvantari grace — blessed health karma from prior lifetimes of righteous living. Prana is protected.", vedicKey: "data.palmistry.opt.life_long_clear_vedic", scores: { health: 3, career: 1, love: 0, mental: 1, spiritual: 0, wealth: 0 } },
+      { id: "double", label: "Double Life Line", labelKey: "data.palmistry.opt.life_double_label", desc: "A parallel line runs alongside the main life line", descKey: "data.palmistry.opt.life_double_desc", meaning: "Extraordinary — this is the Kavach Rekha (protective mark). You carry divine protection. Strong spiritual guidance from ancestors or Ishta Devata. Remarkable resilience and recovery from any situation.", meaningKey: "data.palmistry.opt.life_double_meaning", vedic: "Pitru Kavach and Ishta Devata's active blessing. One of the most auspicious marks in all of Samudrika Shastra.", vedicKey: "data.palmistry.opt.life_double_vedic", scores: { health: 3, career: 1, love: 1, mental: 1, spiritual: 3, wealth: 1 } },
+      { id: "close_thumb", label: "Close to Thumb (Tight Arc)", labelKey: "data.palmistry.opt.life_close_thumb_label", desc: "Stays close to the thumb, doesn't sweep far out", descKey: "data.palmistry.opt.life_close_thumb_desc", meaning: "More introverted energy. You conserve and channel your vitality with precision rather than broadcasting it widely. Quality over quantity in all things — relationships, work, energy expenditure.", meaningKey: "data.palmistry.opt.life_close_thumb_meaning", vedic: "Shani influence on Prana — teaches conservation and mastery. The monk archetype — disciplined and focused.", vedicKey: "data.palmistry.opt.life_close_thumb_vedic", scores: { health: 1, career: 0, love: -1, mental: 2, spiritual: 2, wealth: 0 } },
+      { id: "broken", label: "Broken or Has Islands", labelKey: "data.palmistry.opt.life_broken_label", desc: "Has visible gaps, breaks, or island shapes along it", descKey: "data.palmistry.opt.life_broken_desc", meaning: "Life has involved (or will involve) major transformations. A break is not an ending — it is a rebirth. Each transition you navigate builds extraordinary wisdom. You are a survivor and a transformer.", meaningKey: "data.palmistry.opt.life_broken_meaning", vedic: "Rahu transit marker — radical life pivots that serve divine redirection. The phoenix pattern.", vedicKey: "data.palmistry.opt.life_broken_vedic", scores: { health: -1, career: -1, love: 0, mental: 0, spiritual: 2, wealth: -1 } },
     ],
   },
   {
     id: "fate",
     line: "Fate Line",
+    lineKey: "data.palmistry.questions.fate_line",
     sanskrit: "भाग्य रेखा",
     instruction: "Look for a vertical line running up the CENTER of your palm.",
+    instructionKey: "data.palmistry.questions.fate_instruction",
     hint: "It typically runs from the base of your palm upward toward your middle (Saturn) finger. Some palms don't have this line — that's perfectly fine.",
+    hintKey: "data.palmistry.questions.fate_hint",
     color: "#C8860A",
     options: [
-      {
-        id: "deep_clear", label: "Deep & Clear from Wrist",
-        desc: "A strong, clear vertical line running from near the wrist upward",
-        meaning: "Powerful dharmic purpose. Your life path is clear and purposeful from an early age. Career feels like a calling. Success comes through disciplined, long-term commitment to your path.",
-        vedic: "Shani yoga strong — disciplined effort is magnificently rewarded. Prarabdha karma is guiding you firmly toward a specific destiny.",
-        scores: { career: 3, wealth: 2, mental: 1, health: 0, love: 0, spiritual: 1 },
-      },
-      {
-        id: "starts_late", label: "Starts in Middle of Palm",
-        desc: "The fate line only begins halfway up the palm, not from the base",
-        meaning: "A late bloomer — and that's your superpower. Life clarity and career success come after age 30-35. You're building foundations others don't see. Your greatest achievements are still ahead.",
-        vedic: "Shani dasha activation — Saturn's gifts come after his tests. The deepest roots take longest to grow.",
-        scores: { career: 2, wealth: 1, mental: 1, health: 0, love: 0, spiritual: 1 },
-      },
-      {
-        id: "broken_shifting", label: "Broken or Shifts Direction",
-        desc: "Has breaks, or noticeably changes direction midway",
-        meaning: "Multiple life chapters and career pivots. Each phase is complete in itself. You're not inconsistent — you're evolving. Each break represents a conscious or divinely-led reinvention.",
-        vedic: "Rahu-Shani interaction — disruption precedes breakthrough. The snake sheds its skin.",
-        scores: { career: 1, wealth: 0, mental: 0, health: 0, love: 1, spiritual: 2 },
-      },
-      {
-        id: "absent", label: "Not Visible / Absent",
-        desc: "No clear vertical line in the center of the palm",
-        meaning: "Complete free will. You are not bound by a predetermined destiny — you are the author of your own story in the most literal sense. Self-made in every way. Some of the most successful free spirits have no fate line.",
-        vedic: "Moksha marker — free from karma's direct grip. Pure agency. A life of Kriyamana karma (self-created karma).",
-        scores: { career: 1, wealth: 1, mental: 0, health: 0, love: 0, spiritual: 2 },
-      },
-      {
-        id: "double", label: "Double Fate Line",
-        desc: "Two parallel vertical lines running up the palm",
-        meaning: "Extraordinarily rare and auspicious. You are gifted with dual dharma — two parallel callings that you pursue simultaneously. A blessed multi-dimensional life.",
-        vedic: "Double Shani Rekha — blessed with dual purpose. The ancient texts describe this as a rare mark of those who serve two roles in society.",
-        scores: { career: 3, wealth: 2, mental: 1, health: 0, love: 1, spiritual: 1 },
-      },
+      { id: "deep_clear", label: "Deep & Clear from Wrist", labelKey: "data.palmistry.opt.fate_deep_clear_label", desc: "A strong, clear vertical line running from near the wrist upward", descKey: "data.palmistry.opt.fate_deep_clear_desc", meaning: "Powerful dharmic purpose. Your life path is clear and purposeful from an early age. Career feels like a calling. Success comes through disciplined, long-term commitment to your path.", meaningKey: "data.palmistry.opt.fate_deep_clear_meaning", vedic: "Shani yoga strong — disciplined effort is magnificently rewarded. Prarabdha karma is guiding you firmly toward a specific destiny.", vedicKey: "data.palmistry.opt.fate_deep_clear_vedic", scores: { career: 3, wealth: 2, mental: 1, health: 0, love: 0, spiritual: 1 } },
+      { id: "starts_late", label: "Starts in Middle of Palm", labelKey: "data.palmistry.opt.fate_starts_late_label", desc: "The fate line only begins halfway up the palm, not from the base", descKey: "data.palmistry.opt.fate_starts_late_desc", meaning: "A late bloomer — and that's your superpower. Life clarity and career success come after age 30-35. You're building foundations others don't see. Your greatest achievements are still ahead.", meaningKey: "data.palmistry.opt.fate_starts_late_meaning", vedic: "Shani dasha activation — Saturn's gifts come after his tests. The deepest roots take longest to grow.", vedicKey: "data.palmistry.opt.fate_starts_late_vedic", scores: { career: 2, wealth: 1, mental: 1, health: 0, love: 0, spiritual: 1 } },
+      { id: "broken_shifting", label: "Broken or Shifts Direction", labelKey: "data.palmistry.opt.fate_broken_shifting_label", desc: "Has breaks, or noticeably changes direction midway", descKey: "data.palmistry.opt.fate_broken_shifting_desc", meaning: "Multiple life chapters and career pivots. Each phase is complete in itself. You're not inconsistent — you're evolving. Each break represents a conscious or divinely-led reinvention.", meaningKey: "data.palmistry.opt.fate_broken_shifting_meaning", vedic: "Rahu-Shani interaction — disruption precedes breakthrough. The snake sheds its skin.", vedicKey: "data.palmistry.opt.fate_broken_shifting_vedic", scores: { career: 1, wealth: 0, mental: 0, health: 0, love: 1, spiritual: 2 } },
+      { id: "absent", label: "Not Visible / Absent", labelKey: "data.palmistry.opt.fate_absent_label", desc: "No clear vertical line in the center of the palm", descKey: "data.palmistry.opt.fate_absent_desc", meaning: "Complete free will. You are not bound by a predetermined destiny — you are the author of your own story in the most literal sense. Self-made in every way. Some of the most successful free spirits have no fate line.", meaningKey: "data.palmistry.opt.fate_absent_meaning", vedic: "Moksha marker — free from karma's direct grip. Pure agency. A life of Kriyamana karma (self-created karma).", vedicKey: "data.palmistry.opt.fate_absent_vedic", scores: { career: 1, wealth: 1, mental: 0, health: 0, love: 0, spiritual: 2 } },
+      { id: "double", label: "Double Fate Line", labelKey: "data.palmistry.opt.fate_double_label", desc: "Two parallel vertical lines running up the palm", descKey: "data.palmistry.opt.fate_double_desc", meaning: "Extraordinarily rare and auspicious. You are gifted with dual dharma — two parallel callings that you pursue simultaneously. A blessed multi-dimensional life.", meaningKey: "data.palmistry.opt.fate_double_meaning", vedic: "Double Shani Rekha — blessed with dual purpose. The ancient texts describe this as a rare mark of those who serve two roles in society.", vedicKey: "data.palmistry.opt.fate_double_vedic", scores: { career: 3, wealth: 2, mental: 1, health: 0, love: 1, spiritual: 1 } },
     ],
   },
   {
     id: "sun",
     line: "Sun Line",
+    lineKey: "data.palmistry.questions.sun_line",
     sanskrit: "सूर्य रेखा",
     instruction: "Look for a vertical line near your RING finger.",
+    instructionKey: "data.palmistry.questions.sun_instruction",
     hint: "It runs upward toward your ring (Apollo) finger, parallel to the fate line. Many people have a faint version of this.",
+    hintKey: "data.palmistry.questions.sun_hint",
     color: "#E8650A",
     options: [
-      {
-        id: "strong_clear", label: "Strong & Clear",
-        desc: "A noticeable vertical line clearly approaching the ring finger",
-        meaning: "Fame, recognition, and creative success are yours. You have a natural public presence — people notice you. Your creative or professional achievements will be recognized widely. Possible public career.",
-        vedic: "Surya strong — solar radiance, fame as the result of dharmic action in past lives. Kirti (fame) is your birthright.",
-        scores: { career: 2, wealth: 1, love: 1, mental: 0, health: 0, spiritual: 1 },
-      },
-      {
-        id: "multiple_short", label: "Multiple Short Lines",
-        desc: "Several small lines near the ring finger rather than one clear line",
-        meaning: "Many talents and creative gifts — but scattered across too many directions. You shine in bursts. Focusing your energy on one core creative path will unlock sustained recognition.",
-        vedic: "Surya dispersed across multiple Rashis — needs a single dharmic focus to crystallize into fame.",
-        scores: { career: 1, wealth: 0, love: 0, mental: 1, health: 0, spiritual: 1 },
-      },
-      {
-        id: "starts_heart", label: "Starts from Heart Line",
-        desc: "The sun line appears to begin from where the heart line is",
-        meaning: "Recognition comes through authentic passion and love. Your fame is earned through genuine creative expression, not calculation. Success arrives in mid-to-late life — permanent and deeply fulfilling.",
-        vedic: "Delayed Surya grace — but when it comes, it is the most enduring kind. Built on devotion rather than ambition.",
-        scores: { career: 2, wealth: 1, love: 2, mental: 0, health: 0, spiritual: 2 },
-      },
-      {
-        id: "absent", label: "Absent / Not Visible",
-        desc: "No clear line near the ring finger",
-        meaning: "Success without public fame. You achieve significantly — but prefer to work behind the scenes. Inner satisfaction matters more to you than recognition. A powerful, private achiever.",
-        vedic: "Inner Surya — the light shines inward rather than outward. Spiritual achievement over worldly recognition.",
-        scores: { career: 0, wealth: 0, love: 0, mental: 1, health: 0, spiritual: 2 },
-      },
+      { id: "strong_clear", label: "Strong & Clear", labelKey: "data.palmistry.opt.sun_strong_clear_label", desc: "A noticeable vertical line clearly approaching the ring finger", descKey: "data.palmistry.opt.sun_strong_clear_desc", meaning: "Fame, recognition, and creative success are yours. You have a natural public presence — people notice you. Your creative or professional achievements will be recognized widely. Possible public career.", meaningKey: "data.palmistry.opt.sun_strong_clear_meaning", vedic: "Surya strong — solar radiance, fame as the result of dharmic action in past lives. Kirti (fame) is your birthright.", vedicKey: "data.palmistry.opt.sun_strong_clear_vedic", scores: { career: 2, wealth: 1, love: 1, mental: 0, health: 0, spiritual: 1 } },
+      { id: "multiple_short", label: "Multiple Short Lines", labelKey: "data.palmistry.opt.sun_multiple_short_label", desc: "Several small lines near the ring finger rather than one clear line", descKey: "data.palmistry.opt.sun_multiple_short_desc", meaning: "Many talents and creative gifts — but scattered across too many directions. You shine in bursts. Focusing your energy on one core creative path will unlock sustained recognition.", meaningKey: "data.palmistry.opt.sun_multiple_short_meaning", vedic: "Surya dispersed across multiple Rashis — needs a single dharmic focus to crystallize into fame.", vedicKey: "data.palmistry.opt.sun_multiple_short_vedic", scores: { career: 1, wealth: 0, love: 0, mental: 1, health: 0, spiritual: 1 } },
+      { id: "starts_heart", label: "Starts from Heart Line", labelKey: "data.palmistry.opt.sun_starts_heart_label", desc: "The sun line appears to begin from where the heart line is", descKey: "data.palmistry.opt.sun_starts_heart_desc", meaning: "Recognition comes through authentic passion and love. Your fame is earned through genuine creative expression, not calculation. Success arrives in mid-to-late life — permanent and deeply fulfilling.", meaningKey: "data.palmistry.opt.sun_starts_heart_meaning", vedic: "Delayed Surya grace — but when it comes, it is the most enduring kind. Built on devotion rather than ambition.", vedicKey: "data.palmistry.opt.sun_starts_heart_vedic", scores: { career: 2, wealth: 1, love: 2, mental: 0, health: 0, spiritual: 2 } },
+      { id: "absent", label: "Absent / Not Visible", labelKey: "data.palmistry.opt.sun_absent_label", desc: "No clear line near the ring finger", descKey: "data.palmistry.opt.sun_absent_desc", meaning: "Success without public fame. You achieve significantly — but prefer to work behind the scenes. Inner satisfaction matters more to you than recognition. A powerful, private achiever.", meaningKey: "data.palmistry.opt.sun_absent_meaning", vedic: "Inner Surya — the light shines inward rather than outward. Spiritual achievement over worldly recognition.", vedicKey: "data.palmistry.opt.sun_absent_vedic", scores: { career: 0, wealth: 0, love: 0, mental: 1, health: 0, spiritual: 2 } },
     ],
   },
   {
     id: "mount_venus",
     line: "Mount of Venus",
+    lineKey: "data.palmistry.questions.mount_venus_line",
     sanskrit: "शुक्र पर्वत",
     instruction: "Look at the fleshy area at the BASE of your THUMB.",
+    instructionKey: "data.palmistry.questions.mount_venus_instruction",
     hint: "Press your thumb gently to your palm — the padded area that rises is the Venus mount.",
+    hintKey: "data.palmistry.questions.mount_venus_hint",
     color: "#E8650A",
     options: [
-      {
-        id: "large_full", label: "Large & Well Developed",
-        desc: "Full, firm, and prominent — noticeably raised",
-        meaning: "Abundant capacity for love, pleasure, beauty, and sensuality. You give generously in relationships. Naturally creative, with an appreciation for art, music, and beauty in all forms. Life is meant to be enjoyed.",
-        vedic: "Shukra strong — Kama (desire) is healthy and abundant. Great blessings in love, partnerships, and artistic pursuits.",
-        scores: { love: 3, spiritual: 0, mental: 0, health: 1, wealth: 0, career: 0 },
-      },
-      {
-        id: "medium", label: "Medium / Moderate",
-        desc: "Present but not especially prominent or flat",
-        meaning: "Balanced approach to love and pleasure. You enjoy life's sensory gifts without being controlled by them. Healthy relationships, moderate creative expression.",
-        vedic: "Shukra in balance — the middle path of Kama. Healthy desire without attachment.",
-        scores: { love: 1, spiritual: 1, mental: 0, health: 1, wealth: 1, career: 0 },
-      },
-      {
-        id: "flat", label: "Flat or Barely Visible",
-        desc: "The base of the thumb area is relatively flat",
-        meaning: "More reserved in emotional and sensory expression. You tend toward the ascetic rather than the sensual. Relationships may feel secondary to work or spiritual pursuits. Self-sufficiency is a core value.",
-        vedic: "Shukra subdued — Vairagya (detachment) over Bhoga (enjoyment). The renunciant or dedicated professional.",
-        scores: { love: -1, spiritual: 2, mental: 1, health: 0, wealth: 0, career: 1 },
-      },
+      { id: "large_full", label: "Large & Well Developed", labelKey: "data.palmistry.opt.venus_large_full_label", desc: "Full, firm, and prominent — noticeably raised", descKey: "data.palmistry.opt.venus_large_full_desc", meaning: "Abundant capacity for love, pleasure, beauty, and sensuality. You give generously in relationships. Naturally creative, with an appreciation for art, music, and beauty in all forms. Life is meant to be enjoyed.", meaningKey: "data.palmistry.opt.venus_large_full_meaning", vedic: "Shukra strong — Kama (desire) is healthy and abundant. Great blessings in love, partnerships, and artistic pursuits.", vedicKey: "data.palmistry.opt.venus_large_full_vedic", scores: { love: 3, spiritual: 0, mental: 0, health: 1, wealth: 0, career: 0 } },
+      { id: "medium", label: "Medium / Moderate", labelKey: "data.palmistry.opt.venus_medium_label", desc: "Present but not especially prominent or flat", descKey: "data.palmistry.opt.venus_medium_desc", meaning: "Balanced approach to love and pleasure. You enjoy life's sensory gifts without being controlled by them. Healthy relationships, moderate creative expression.", meaningKey: "data.palmistry.opt.venus_medium_meaning", vedic: "Shukra in balance — the middle path of Kama. Healthy desire without attachment.", vedicKey: "data.palmistry.opt.venus_medium_vedic", scores: { love: 1, spiritual: 1, mental: 0, health: 1, wealth: 1, career: 0 } },
+      { id: "flat", label: "Flat or Barely Visible", labelKey: "data.palmistry.opt.venus_flat_label", desc: "The base of the thumb area is relatively flat", descKey: "data.palmistry.opt.venus_flat_desc", meaning: "More reserved in emotional and sensory expression. You tend toward the ascetic rather than the sensual. Relationships may feel secondary to work or spiritual pursuits. Self-sufficiency is a core value.", meaningKey: "data.palmistry.opt.venus_flat_meaning", vedic: "Shukra subdued — Vairagya (detachment) over Bhoga (enjoyment). The renunciant or dedicated professional.", vedicKey: "data.palmistry.opt.venus_flat_vedic", scores: { love: -1, spiritual: 2, mental: 1, health: 0, wealth: 0, career: 1 } },
     ],
   },
   {
     id: "mount_jupiter",
     line: "Mount of Jupiter",
+    lineKey: "data.palmistry.questions.mount_jupiter_line",
     sanskrit: "गुरु पर्वत",
     instruction: "Look at the base of your INDEX finger.",
+    instructionKey: "data.palmistry.questions.mount_jupiter_instruction",
     hint: "The padded area directly below the index finger — when developed, it creates a visible fullness at the finger's base.",
+    hintKey: "data.palmistry.questions.mount_jupiter_hint",
     color: "#C8860A",
     options: [
-      {
-        id: "prominent", label: "Prominent & Raised",
-        desc: "Noticeably full area below the index finger",
-        meaning: "Natural leader, teacher, and guide. You have strong ambition, confidence, and a genuine desire to uplift others. People naturally look to you for direction. Authority comes naturally.",
-        vedic: "Guru strong — Brahma Jnana, leadership blessed by Jupiter. Born to teach, guide, or lead. The Guru archetype.",
-        scores: { career: 3, love: 1, mental: 1, health: 0, wealth: 2, spiritual: 2 },
-      },
-      {
-        id: "moderate", label: "Moderate",
-        desc: "Present but not dramatically raised",
-        meaning: "Healthy confidence and ambition. You lead when needed but don't seek the spotlight for its own sake. Good judgment and fair authority.",
-        vedic: "Guru in balance — wisdom applied practically. Dharmic leadership.",
-        scores: { career: 1, love: 0, mental: 1, health: 0, wealth: 1, spiritual: 1 },
-      },
-      {
-        id: "flat", label: "Flat or Underdeveloped",
-        desc: "Little or no fullness below the index finger",
-        meaning: "May struggle with confidence or claiming authority. Leadership may feel uncomfortable. The inner Jupiter is waiting to be awakened — often through a Saturn transit or significant challenge.",
-        vedic: "Guru dormant — the teacher within is not yet activated. Faith and study will awaken it.",
-        scores: { career: -1, love: 0, mental: 0, health: 0, wealth: -1, spiritual: 0 },
-      },
+      { id: "prominent", label: "Prominent & Raised", labelKey: "data.palmistry.opt.jupiter_prominent_label", desc: "Noticeably full area below the index finger", descKey: "data.palmistry.opt.jupiter_prominent_desc", meaning: "Natural leader, teacher, and guide. You have strong ambition, confidence, and a genuine desire to uplift others. People naturally look to you for direction. Authority comes naturally.", meaningKey: "data.palmistry.opt.jupiter_prominent_meaning", vedic: "Guru strong — Brahma Jnana, leadership blessed by Jupiter. Born to teach, guide, or lead. The Guru archetype.", vedicKey: "data.palmistry.opt.jupiter_prominent_vedic", scores: { career: 3, love: 1, mental: 1, health: 0, wealth: 2, spiritual: 2 } },
+      { id: "moderate", label: "Moderate", labelKey: "data.palmistry.opt.jupiter_moderate_label", desc: "Present but not dramatically raised", descKey: "data.palmistry.opt.jupiter_moderate_desc", meaning: "Healthy confidence and ambition. You lead when needed but don't seek the spotlight for its own sake. Good judgment and fair authority.", meaningKey: "data.palmistry.opt.jupiter_moderate_meaning", vedic: "Guru in balance — wisdom applied practically. Dharmic leadership.", vedicKey: "data.palmistry.opt.jupiter_moderate_vedic", scores: { career: 1, love: 0, mental: 1, health: 0, wealth: 1, spiritual: 1 } },
+      { id: "flat", label: "Flat or Underdeveloped", labelKey: "data.palmistry.opt.jupiter_flat_label", desc: "Little or no fullness below the index finger", descKey: "data.palmistry.opt.jupiter_flat_desc", meaning: "May struggle with confidence or claiming authority. Leadership may feel uncomfortable. The inner Jupiter is waiting to be awakened — often through a Saturn transit or significant challenge.", meaningKey: "data.palmistry.opt.jupiter_flat_meaning", vedic: "Guru dormant — the teacher within is not yet activated. Faith and study will awaken it.", vedicKey: "data.palmistry.opt.jupiter_flat_vedic", scores: { career: -1, love: 0, mental: 0, health: 0, wealth: -1, spiritual: 0 } },
     ],
   },
 ];
@@ -616,9 +461,9 @@ function ScanTab() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Scan className="h-4 w-4 text-primary zodiac-glow" />
-              Upload Your Palm
+              {t("palmistry.upload_section_title")}
             </CardTitle>
-            <p className="text-xs text-muted-foreground">Right hand for males · Left hand for females</p>
+            <p className="text-xs text-muted-foreground">{t("palmistry.hand_hint")}</p>
           </CardHeader>
           <CardContent className="space-y-4">
             {!image ? (
@@ -636,8 +481,8 @@ function ScanTab() {
                     <Upload className="h-7 w-7 text-primary" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium">Drop palm image here</p>
-                    <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
+                    <p className="text-sm font-medium">{t("palmistry.drop_hint")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("palmistry.or")}</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
                 </div>
@@ -651,7 +496,7 @@ function ScanTab() {
                   className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl border border-border/30 bg-muted/10 hover:bg-muted/20 hover:border-primary/30 transition-all"
                 >
                   <Camera className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium">Use Camera</span>
+                  <span className="text-sm font-medium">{t("palmistry.use_camera")}</span>
                 </button>
                 <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
               </>
@@ -691,22 +536,22 @@ function ScanTab() {
 
         <Card className="cosmic-card border-border/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Info className="h-3.5 w-3.5 text-primary" /> Photo Tips</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Info className="h-3.5 w-3.5 text-primary" /> {t("palmistry.photo_tips_title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              { icon: "☀️", t: "Good lighting", d: "Natural or bright indoor light. Avoid shadows on the palm." },
-              { icon: "✋", t: "Open palm flat", d: "Extend fingers naturally — don't press them together." },
-              { icon: "📸", t: "Top-down shot", d: "Camera directly above palm, perpendicular to the hand." },
-              { icon: "🔍", t: "Fill the frame", d: "Palm should fill most of the image so lines are visible." },
-              { icon: "🤚", t: "Which hand?", d: "Right (dominant) = active karma. Left = inherited karma." },
-              { icon: "🕉️", t: "How it works", d: "Upload your palm, then answer simple guided questions about what you see. We generate your full Vedic reading instantly." },
+              { icon: "☀️", titleKey: "palmistry.tip_lighting_title", descKey: "palmistry.tip_lighting_desc" },
+              { icon: "✋", titleKey: "palmistry.tip_open_title",     descKey: "palmistry.tip_open_desc" },
+              { icon: "📸", titleKey: "palmistry.tip_topdown_title",  descKey: "palmistry.tip_topdown_desc" },
+              { icon: "🔍", titleKey: "palmistry.tip_frame_title",    descKey: "palmistry.tip_frame_desc" },
+              { icon: "🤚", titleKey: "palmistry.tip_hand_title",     descKey: "palmistry.tip_hand_desc" },
+              { icon: "🕉️", titleKey: "palmistry.tip_how_title",     descKey: "palmistry.tip_how_desc" },
             ].map(item => (
-              <div key={item.t} className="flex items-start gap-3">
+              <div key={item.titleKey} className="flex items-start gap-3">
                 <span className="text-lg">{item.icon}</span>
                 <div>
-                  <p className="text-xs font-semibold text-foreground">{item.t}</p>
-                  <p className="text-xs text-muted-foreground">{item.d}</p>
+                  <p className="text-xs font-semibold text-foreground">{t(item.titleKey)}</p>
+                  <p className="text-xs text-muted-foreground">{t(item.descKey)}</p>
                 </div>
               </div>
             ))}
@@ -851,12 +696,12 @@ function ScanTab() {
                         {currentSelection === opt.id && <div className="h-2 w-2 rounded-full" style={{ background: q.color }} />}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{opt.label}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+                        <p className="text-sm font-medium text-foreground">{t(opt.labelKey, { defaultValue: opt.label })}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{t(opt.descKey, { defaultValue: opt.desc })}</p>
                         {currentSelection === opt.id && (
                           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-2 space-y-1">
-                            <p className="text-xs text-foreground leading-relaxed">{opt.meaning}</p>
-                            <p className="text-xs italic" style={{ color: q.color }}>✦ {opt.vedic}</p>
+                            <p className="text-xs text-foreground leading-relaxed">{t(opt.meaningKey, { defaultValue: opt.meaning })}</p>
+                            <p className="text-xs italic" style={{ color: q.color }}>✦ {t(opt.vedicKey, { defaultValue: opt.vedic })}</p>
                           </motion.div>
                         )}
                       </div>
@@ -985,14 +830,14 @@ function ScanTab() {
                       <div className="flex items-start gap-2">
                         <span className="h-2.5 w-2.5 rounded-full flex-shrink-0 mt-1" style={{ background: q.color }} />
                         <div>
-                          <span className="text-sm font-semibold text-foreground">{q.line}</span>
+                          <span className="text-sm font-semibold text-foreground">{t(q.lineKey, { defaultValue: q.line })}</span>
                           <span className="text-xs text-muted-foreground ml-2">{q.sanskrit}</span>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-xs border-border/30 ml-4">{opt.label}</Badge>
-                      <p className="text-xs text-foreground leading-relaxed">{opt.meaning}</p>
+                      <Badge variant="outline" className="text-xs border-border/30 ml-4">{t(opt.labelKey, { defaultValue: opt.label })}</Badge>
+                      <p className="text-xs text-foreground leading-relaxed">{t(opt.meaningKey, { defaultValue: opt.meaning })}</p>
                       <div className="rounded-md px-2.5 py-2 bg-muted/20 border border-border/15">
-                        <p className="text-xs italic" style={{ color: q.color }}>✦ {opt.vedic}</p>
+                        <p className="text-xs italic" style={{ color: q.color }}>✦ {t(opt.vedicKey, { defaultValue: opt.vedic })}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -1314,6 +1159,7 @@ function ScanTab() {
 // ─────────────────────────────────────────────────────────────────
 
 function LinesTab() {
+  const { t } = useTranslation();
   const [active, setActive] = useState<string | null>(null);
   return (
     <div className="space-y-3">
@@ -1324,11 +1170,11 @@ function LinesTab() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-3 text-base">
                   <span className="h-3 w-3 rounded-full flex-shrink-0" style={{ background: q.color }} />
-                  {q.line}
+                  {t(q.lineKey, { defaultValue: q.line })}
                   <span className="text-xs font-normal text-muted-foreground">({q.sanskrit})</span>
                   <ChevronRight className={`h-4 w-4 text-muted-foreground ml-auto transition-transform ${active === q.id ? "rotate-90" : ""}`} />
                 </CardTitle>
-                <p className="text-xs text-muted-foreground ml-6">{q.hint}</p>
+                <p className="text-xs text-muted-foreground ml-6">{t(q.hintKey, { defaultValue: q.hint })}</p>
               </CardHeader>
             </button>
             <AnimatePresence>
@@ -1339,9 +1185,9 @@ function LinesTab() {
                     <div className="grid sm:grid-cols-2 gap-2">
                       {q.options.map(opt => (
                         <div key={opt.id} className="rounded-lg p-3 bg-muted/10 border border-border/20 space-y-1.5">
-                          <Badge variant="outline" className="text-xs border-border/30">{opt.label}</Badge>
-                          <p className="text-xs text-foreground leading-relaxed">{opt.meaning}</p>
-                          <p className="text-xs italic" style={{ color: q.color }}>✦ {opt.vedic}</p>
+                          <Badge variant="outline" className="text-xs border-border/30">{t(opt.labelKey, { defaultValue: opt.label })}</Badge>
+                          <p className="text-xs text-foreground leading-relaxed">{t(opt.meaningKey, { defaultValue: opt.meaning })}</p>
+                          <p className="text-xs italic" style={{ color: q.color }}>✦ {t(opt.vedicKey, { defaultValue: opt.vedic })}</p>
                         </div>
                       ))}
                     </div>
@@ -1357,21 +1203,15 @@ function LinesTab() {
 }
 
 function MountsTab() {
+  const { t } = useTranslation();
   const MOUNTS = [
-    { id: "jupiter", name: "Mount of Jupiter", sanskrit: "गुरु पर्वत", finger: "Below Index Finger", planet: "Jupiter (Guru)", icon: "♃︎", color: "#C8860A",
-      well: "Leader, ambitious, spiritually wise, generous, charismatic. Born to guide and teach.", flat: "Lack of confidence, avoids leadership roles.", over: "Arrogant, overbearing, domineering.", vedic: "Guru's seat of Brahma Jnana. Prominent in teachers, judges, and spiritual leaders." },
-    { id: "saturn", name: "Mount of Saturn", sanskrit: "शनि पर्वत", finger: "Below Middle Finger", planet: "Saturn (Shani)", icon: "♄︎", color: "#7A8BAA",
-      well: "Wise, responsible, patient, deeply introspective. Excellent researchers and dedicated servants.", flat: "Avoids responsibility, lacks discipline.", over: "Melancholic, hermit tendencies, can't enjoy life.", vedic: "Shani's seat of karma and dharma. Those who bear great responsibility with grace." },
-    { id: "apollo", name: "Mount of Apollo", sanskrit: "सूर्य पर्वत", finger: "Below Ring Finger", planet: "Sun (Surya)", icon: "☉︎", color: "#E8650A",
-      well: "Creative, charismatic, drawn to beauty and art. Fame comes naturally. Joyful and warm-hearted.", flat: "Lack of aesthetic sense, avoids public life.", over: "Vanity, obsession with appearances, craving fame over substance.", vedic: "Surya's seat of Atmic brilliance. Artists, performers, and those with deep creative Shakti." },
-    { id: "mercury", name: "Mount of Mercury", sanskrit: "बुध पर्वत", finger: "Below Little Finger", planet: "Mercury (Budha)", icon: "☿︎", color: "#7A8BAA",
-      well: "Brilliant communicator, witty, business-minded, quick-thinking. Natural healer.", flat: "Communication difficulties, poor business instinct.", over: "Cunning, deceptive use of words.", vedic: "Budha's seat of Vak Shakti. Scholars, traders, orators, and diplomats." },
-    { id: "venus", name: "Mount of Venus", sanskrit: "शुक्र पर्वत", finger: "Base of Thumb", planet: "Venus (Shukra)", icon: "♀︎", color: "#E8650A",
-      well: "Loving, sensual, generous, artistic. Great capacity for pleasure and deep human connection.", flat: "Cold, unaffectionate, may struggle with intimacy.", over: "Excessive sensuality, overindulgence, attachment.", vedic: "Shukra's seat of Kama (desire) — one of the four Purusharthas. The quality of love is here." },
-    { id: "moon", name: "Mount of Moon", sanskrit: "चन्द्र पर्वत", finger: "Outer Base (opposite thumb)", planet: "Moon (Chandra)", icon: "☽︎", color: "#7A8BAA",
-      well: "Deeply intuitive, imaginative, psychic sensitivity, rich inner world. Love of travel and poetry.", flat: "Lack of imagination, emotionally rigid.", over: "Overly emotional, difficulty distinguishing real from imagined.", vedic: "Chandra's seat of Manas and intuition. Astrologers, poets, healers, and psychic seers." },
-    { id: "mars", name: "Mounts of Mars", sanskrit: "मंगल पर्वत", finger: "Upper & Lower Inner Edge", planet: "Mars (Mangal)", icon: "♂︎", color: "#E8650A",
-      well: "Physical and moral courage. Resilience under pressure. Strength when it matters most.", flat: "Cowardice, gives up easily, avoids confrontation.", over: "Aggressive, hot-tempered, prone to confrontation.", vedic: "Mangal's Agni Shakti — the fire of righteous action. Warriors, surgeons, athletes." },
+    { id: "jupiter", name: "Mount of Jupiter", nameKey: "data.palmistry.mount.jupiter_name", sanskrit: "गुरु पर्वत", finger: "Below Index Finger", planet: "Jupiter (Guru)", icon: "♃︎", color: "#C8860A", well: "Leader, ambitious, spiritually wise, generous, charismatic. Born to guide and teach.", wellKey: "data.palmistry.mount.jupiter_well", flat: "Lack of confidence, avoids leadership roles.", flatKey: "data.palmistry.mount.jupiter_flat", over: "Arrogant, overbearing, domineering.", overKey: "data.palmistry.mount.jupiter_over", vedic: "Guru's seat of Brahma Jnana. Prominent in teachers, judges, and spiritual leaders.", vedicKey: "data.palmistry.mount.jupiter_vedic" },
+    { id: "saturn", name: "Mount of Saturn", nameKey: "data.palmistry.mount.saturn_name", sanskrit: "शनि पर्वत", finger: "Below Middle Finger", planet: "Saturn (Shani)", icon: "♄︎", color: "#7A8BAA", well: "Wise, responsible, patient, deeply introspective. Excellent researchers and dedicated servants.", wellKey: "data.palmistry.mount.saturn_well", flat: "Avoids responsibility, lacks discipline.", flatKey: "data.palmistry.mount.saturn_flat", over: "Melancholic, hermit tendencies, can't enjoy life.", overKey: "data.palmistry.mount.saturn_over", vedic: "Shani's seat of karma and dharma. Those who bear great responsibility with grace.", vedicKey: "data.palmistry.mount.saturn_vedic" },
+    { id: "apollo", name: "Mount of Apollo", nameKey: "data.palmistry.mount.apollo_name", sanskrit: "सूर्य पर्वत", finger: "Below Ring Finger", planet: "Sun (Surya)", icon: "☉︎", color: "#E8650A", well: "Creative, charismatic, drawn to beauty and art. Fame comes naturally. Joyful and warm-hearted.", wellKey: "data.palmistry.mount.apollo_well", flat: "Lack of aesthetic sense, avoids public life.", flatKey: "data.palmistry.mount.apollo_flat", over: "Vanity, obsession with appearances, craving fame over substance.", overKey: "data.palmistry.mount.apollo_over", vedic: "Surya's seat of Atmic brilliance. Artists, performers, and those with deep creative Shakti.", vedicKey: "data.palmistry.mount.apollo_vedic" },
+    { id: "mercury", name: "Mount of Mercury", nameKey: "data.palmistry.mount.mercury_name", sanskrit: "बुध पर्वत", finger: "Below Little Finger", planet: "Mercury (Budha)", icon: "☿︎", color: "#7A8BAA", well: "Brilliant communicator, witty, business-minded, quick-thinking. Natural healer.", wellKey: "data.palmistry.mount.mercury_well", flat: "Communication difficulties, poor business instinct.", flatKey: "data.palmistry.mount.mercury_flat", over: "Cunning, deceptive use of words.", overKey: "data.palmistry.mount.mercury_over", vedic: "Budha's seat of Vak Shakti. Scholars, traders, orators, and diplomats.", vedicKey: "data.palmistry.mount.mercury_vedic" },
+    { id: "venus", name: "Mount of Venus", nameKey: "data.palmistry.mount.venus_name", sanskrit: "शुक्र पर्वत", finger: "Base of Thumb", planet: "Venus (Shukra)", icon: "♀︎", color: "#E8650A", well: "Loving, sensual, generous, artistic. Great capacity for pleasure and deep human connection.", wellKey: "data.palmistry.mount.venus_well", flat: "Cold, unaffectionate, may struggle with intimacy.", flatKey: "data.palmistry.mount.venus_flat", over: "Excessive sensuality, overindulgence, attachment.", overKey: "data.palmistry.mount.venus_over", vedic: "Shukra's seat of Kama (desire) — one of the four Purusharthas. The quality of love is here.", vedicKey: "data.palmistry.mount.venus_vedic" },
+    { id: "moon", name: "Mount of Moon", nameKey: "data.palmistry.mount.moon_name", sanskrit: "चन्द्र पर्वत", finger: "Outer Base (opposite thumb)", planet: "Moon (Chandra)", icon: "☽︎", color: "#7A8BAA", well: "Deeply intuitive, imaginative, psychic sensitivity, rich inner world. Love of travel and poetry.", wellKey: "data.palmistry.mount.moon_well", flat: "Lack of imagination, emotionally rigid.", flatKey: "data.palmistry.mount.moon_flat", over: "Overly emotional, difficulty distinguishing real from imagined.", overKey: "data.palmistry.mount.moon_over", vedic: "Chandra's seat of Manas and intuition. Astrologers, poets, healers, and psychic seers.", vedicKey: "data.palmistry.mount.moon_vedic" },
+    { id: "mars", name: "Mounts of Mars", nameKey: "data.palmistry.mount.mars_name", sanskrit: "मंगल पर्वत", finger: "Upper & Lower Inner Edge", planet: "Mars (Mangal)", icon: "♂︎", color: "#E8650A", well: "Physical and moral courage. Resilience under pressure. Strength when it matters most.", wellKey: "data.palmistry.mount.mars_well", flat: "Cowardice, gives up easily, avoids confrontation.", flatKey: "data.palmistry.mount.mars_flat", over: "Aggressive, hot-tempered, prone to confrontation.", overKey: "data.palmistry.mount.mars_over", vedic: "Mangal's Agni Shakti — the fire of righteous action. Warriors, surgeons, athletes.", vedicKey: "data.palmistry.mount.mars_vedic" },
   ];
   const [active, setActive] = useState<string | null>(null);
   return (
@@ -1384,27 +1224,27 @@ function MountsTab() {
                 <div className="flex items-center gap-2.5">
                   <span className="text-3xl zodiac-glow" style={{ color: m.color }}>{m.icon}</span>
                   <div>
-                    <p className="text-sm font-semibold">{m.name}</p>
-                    <p className="text-xs text-muted-foreground">{m.sanskrit} · {m.finger}</p>
+                    <p className="text-sm font-semibold">{t(m.nameKey, { defaultValue: m.name })}</p>
+                    <p className="text-xs text-muted-foreground">{m.sanskrit} · {t(`palmistry.finger_${m.id}`, { defaultValue: m.finger })}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2">{m.well}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2">{t(m.wellKey, { defaultValue: m.well })}</p>
                 <AnimatePresence>
                   {active === m.id && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                       <div className="gold-divider mb-2" />
                       <div className="space-y-2">
-                        <div><p className="text-xs font-medium text-primary mb-0.5">Well Developed</p><p className="text-xs text-muted-foreground">{m.well}</p></div>
-                        <div><p className="text-xs font-medium text-muted-foreground mb-0.5">Flat / Absent</p><p className="text-xs text-muted-foreground">{m.flat}</p></div>
-                        <div><p className="text-xs font-medium text-destructive/80 mb-0.5">Overdeveloped</p><p className="text-xs text-muted-foreground">{m.over}</p></div>
-                        <div className="rounded-md p-2 bg-muted/20 border border-border/15"><p className="text-xs italic text-muted-foreground">{m.vedic}</p></div>
+                        <div><p className="text-xs font-medium text-primary mb-0.5">{t("palmistry.mount_well")}</p><p className="text-xs text-muted-foreground">{t(m.wellKey, { defaultValue: m.well })}</p></div>
+                        <div><p className="text-xs font-medium text-muted-foreground mb-0.5">{t("palmistry.mount_flat")}</p><p className="text-xs text-muted-foreground">{t(m.flatKey, { defaultValue: m.flat })}</p></div>
+                        <div><p className="text-xs font-medium text-destructive/80 mb-0.5">{t("palmistry.mount_over")}</p><p className="text-xs text-muted-foreground">{t(m.overKey, { defaultValue: m.over })}</p></div>
+                        <div className="rounded-md p-2 bg-muted/20 border border-border/15"><p className="text-xs italic text-muted-foreground">{t(m.vedicKey, { defaultValue: m.vedic })}</p></div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
                 <div className="flex items-center gap-1 text-primary/60 text-xs">
                   <ChevronRight className={`h-3 w-3 transition-transform ${active === m.id ? "rotate-90" : ""}`} />
-                  <span>{active === m.id ? "Collapse" : "Full reading"}</span>
+                  <span>{active === m.id ? t("palmistry.collapse") : t("palmistry.full_reading")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -1416,6 +1256,7 @@ function MountsTab() {
 }
 
 function HandTypeTab() {
+  const { t } = useTranslation();
   return (
     <div className="grid sm:grid-cols-2 gap-5">
       {HAND_TYPES.map((ht, i) => (
@@ -1424,26 +1265,26 @@ function HandTypeTab() {
             <CardHeader className="pb-3">
               <div className="flex items-start gap-3">
                 <span className="text-4xl">{ht.icon}</span>
-                <div><CardTitle className="text-lg">{ht.label}</CardTitle><p className="text-xs text-muted-foreground">{ht.vedic} · {ht.shape}</p></div>
-                <Badge variant="outline" className="ml-auto border-primary/30 text-primary text-xs">{ht.element}</Badge>
+                <div><CardTitle className="text-lg">{t(ht.labelKey, { defaultValue: ht.label })}</CardTitle><p className="text-xs text-muted-foreground">{t(ht.vedicKey, { defaultValue: ht.vedic })} · {t(ht.shapeKey, { defaultValue: ht.shape })}</p></div>
+                <Badge variant="outline" className="ml-auto border-primary/30 text-primary text-xs">{t(ht.elementKey, { defaultValue: ht.element })}</Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                {ht.traits.map(t => (
-                  <div key={t} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                    <span className="text-primary mt-0.5 flex-shrink-0">◆</span><span>{t}</span>
+                {ht.traits.map((trait, ti) => (
+                  <div key={trait} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                    <span className="text-primary mt-0.5 flex-shrink-0">◆</span><span>{t(ht.traitKeys[ti], { defaultValue: trait })}</span>
                   </div>
                 ))}
               </div>
               <div className="gold-divider" />
               <div className="space-y-1.5 text-xs">
-                <div><span className="text-primary font-medium">Careers: </span><span className="text-muted-foreground">{ht.careers}</span></div>
-                <div><span className="text-primary font-medium">Constitution: </span><span className="text-muted-foreground">{ht.constitution}</span></div>
-                <div><span className="text-secondary font-medium">Shadow: </span><span className="text-muted-foreground">{ht.shadow}</span></div>
+                <div><span className="text-primary font-medium">{t("palmistry.careers_label", { defaultValue: "Careers" })}: </span><span className="text-muted-foreground">{t(ht.careersKey, { defaultValue: ht.careers })}</span></div>
+                <div><span className="text-primary font-medium">{t("palmistry.constitution_label", { defaultValue: "Constitution" })}: </span><span className="text-muted-foreground">{t(ht.constitutionKey, { defaultValue: ht.constitution })}</span></div>
+                <div><span className="text-secondary font-medium">{t("palmistry.shadow_label", { defaultValue: "Shadow" })}: </span><span className="text-muted-foreground">{t(ht.shadowKey, { defaultValue: ht.shadow })}</span></div>
               </div>
               <div className="rounded-lg p-3 bg-muted/20 border border-border/20">
-                <p className="text-xs text-muted-foreground italic leading-relaxed">{ht.vedic_note}</p>
+                <p className="text-xs text-muted-foreground italic leading-relaxed">{t(ht.vedic_noteKey, { defaultValue: ht.vedic_note })}</p>
               </div>
             </CardContent>
           </Card>

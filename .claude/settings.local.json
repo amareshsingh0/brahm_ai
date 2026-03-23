@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/update_en_data.js)"
+    ]
+  }
+}

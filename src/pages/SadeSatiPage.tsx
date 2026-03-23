@@ -191,36 +191,36 @@ export default function SadeSatiPage() {
           bg: "bg-red-500/10 border-red-500/30",
           text: "text-red-400",
           icon: <AlertTriangle className="w-5 h-5 text-red-400" />,
-          title: `Sade Sati Active — ${analysis.sadeSatiPhase} Phase`,
-          subtitle: `Saturn (♄) is in ${shaniRashi}, which is the ${
-            analysis.sadeSatiPhase === "Rising" ? "12th"
-            : analysis.sadeSatiPhase === "Peak"  ? "1st (same)"
-            : "2nd"
-          } sign from your Moon rashi (${selectedMoon}).`,
+          title: t("sade_sati.active", { phase: t(`sade_sati.phase_${analysis.sadeSatiPhase?.toLowerCase()}`, { defaultValue: analysis.sadeSatiPhase }) }),
+          subtitle: t("sade_sati.sade_sati_desc", {
+            shaniRashi,
+            position: analysis.sadeSatiPhase === "Rising" ? "12th" : analysis.sadeSatiPhase === "Peak" ? "1st (same)" : "2nd",
+            moonRashi: selectedMoon,
+          }),
         };
       case "ashtama":
         return {
           bg: "bg-orange-500/10 border-orange-500/30",
           text: "text-orange-400",
           icon: <AlertTriangle className="w-5 h-5 text-orange-400" />,
-          title: "Ashtama Shani Active",
-          subtitle: `Saturn is in the 8th house from Moon (${selectedMoon}). Unexpected obstacles, health caution.`,
+          title: t("sade_sati.ashtama_active"),
+          subtitle: t("sade_sati.ashtama_desc", { moonRashi: selectedMoon }),
         };
       case "kantaka":
         return {
           bg: "bg-amber-500/10 border-amber-500/30",
           text: "text-amber-400",
           icon: <AlertTriangle className="w-5 h-5 text-amber-400" />,
-          title: `Kantaka Shani — H${analysis.shaniFromLagna} from Lagna`,
-          subtitle: `Saturn in ${shaniRashi} is in H${analysis.shaniFromLagna} from your lagna (${lagnaRashi}). Career and relationship friction possible.`,
+          title: t("sade_sati.kantaka_active", { h: analysis.shaniFromLagna }),
+          subtitle: t("sade_sati.kantaka_desc", { shaniRashi, h: analysis.shaniFromLagna, lagnaRashi }),
         };
       case "clear":
         return {
           bg: "bg-emerald-500/10 border-emerald-500/30",
           text: "text-emerald-400",
           icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
-          title: "No Sade Sati — Saturn Transit Clear",
-          subtitle: `Saturn is in the ${analysis.shaniFromMoon}th position from your Moon rashi (${selectedMoon}). No major Shani affliction at present.`,
+          title: t("sade_sati.clear"),
+          subtitle: t("sade_sati.clear_desc", { n: analysis.shaniFromMoon, moonRashi: selectedMoon }),
         };
     }
   })();
@@ -298,7 +298,7 @@ export default function SadeSatiPage() {
           <p className="text-sm font-medium text-foreground">{t("sade_sati.select_moon")}</p>
           {storeMoonRashi && (
             <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-              From kundali
+              {t("sade_sati.from_kundali")}
             </span>
           )}
         </div>
@@ -315,7 +315,7 @@ export default function SadeSatiPage() {
               }`}
             >
               <div className="text-base leading-none mb-0.5">{RASHI_SYMBOLS[r]}</div>
-              <div>{r}</div>
+              <div>{t(`data.rashi.${r.toLowerCase()}.name`, { defaultValue: r })}</div>
             </button>
           ))}
         </div>
@@ -392,12 +392,12 @@ export default function SadeSatiPage() {
                     </span>
                     {phase.active && (
                       <span className={`text-xs px-2 py-0.5 rounded-full border ${phase.activeBg} ${phase.color} font-medium`}>
-                        Now
+                        {t("sade_sati.now")}
                       </span>
                     )}
                   </div>
                   <span className="text-xs text-star-gold">
-                    {RASHI_SYMBOLS[phase.rashi]} Saturn in {phase.rashi}
+                    {RASHI_SYMBOLS[phase.rashi]} {t("sade_sati.saturn_in_rashi", { rashi: t(`data.rashi.${phase.rashi.toLowerCase()}.name`, { defaultValue: phase.rashi }) })}
                   </span>
                 </div>
                 {phase.active && (
@@ -458,15 +458,18 @@ export default function SadeSatiPage() {
             <div className="space-y-1">
               <p className="text-xs font-medium text-foreground">{t("data.sade_sati.next_sade_sati_title")}</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Your next Sade Sati begins when Saturn enters{" "}
-                <span className="text-star-gold font-medium">
-                  {RASHI_SYMBOLS[nextTrigger]} {nextTrigger}
-                </span>{" "}
-                (the 12th sign from your Moon rashi {RASHI_SYMBOLS[selectedMoon]} {selectedMoon}).{" "}
-                Saturn is currently in {shaniRashi ? `${RASHI_SYMBOLS[shaniRashi]} ${shaniRashi}` : "—"}.
+                {t("sade_sati.next_begins_when", {
+                  triggerRashi: `${RASHI_SYMBOLS[nextTrigger]} ${t(`data.rashi.${nextTrigger.toLowerCase()}.name`, { defaultValue: nextTrigger })}`,
+                  moonRashi: `${RASHI_SYMBOLS[selectedMoon]} ${t(`data.rashi.${selectedMoon.toLowerCase()}.name`, { defaultValue: selectedMoon })}`,
+                  currentRashi: shaniRashi ? `${RASHI_SYMBOLS[shaniRashi]} ${t(`data.rashi.${shaniRashi.toLowerCase()}.name`, { defaultValue: shaniRashi })}` : "—",
+                })}
               </p>
               <p className="text-xs text-muted-foreground/70 leading-relaxed">
-                Once it begins, the full 7.5-year cycle spans {nextTrigger} → {selectedMoon} → {RASHIS[(RASHI_IDX[selectedMoon] + 1) % 12]}.
+                {t("sade_sati.next_cycle_span", {
+                  r1: t(`data.rashi.${nextTrigger.toLowerCase()}.name`, { defaultValue: nextTrigger }),
+                  r2: t(`data.rashi.${selectedMoon.toLowerCase()}.name`, { defaultValue: selectedMoon }),
+                  r3: t(`data.rashi.${RASHIS[(RASHI_IDX[selectedMoon] + 1) % 12].toLowerCase()}.name`, { defaultValue: RASHIS[(RASHI_IDX[selectedMoon] + 1) % 12] }),
+                })}
               </p>
             </div>
           </div>

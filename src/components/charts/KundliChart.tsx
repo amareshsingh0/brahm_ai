@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { samplePlanets, type PlanetData, useKundliStore, type ChartStyle } from "@/store/kundliStore";
 
 interface KundliChartProps {
@@ -16,10 +17,10 @@ const RASHI_LIST = [
   "Simha","Kanya","Tula","Vrischika",
   "Dhanu","Makara","Kumbha","Meena",
 ];
-const RASHI_ABBR: Record<string, string> = {
-  Mesha:"Mes", Vrishabha:"Vri", Mithuna:"Mit", Karka:"Kar",
-  Simha:"Sim", Kanya:"Kan", Tula:"Tul", Vrischika:"Vrc",
-  Dhanu:"Dha", Makara:"Mak", Kumbha:"Kum", Meena:"Mee",
+const RASHI_TO_KEY: Record<string, string> = {
+  Mesha:"mesha", Vrishabha:"vrishabha", Mithuna:"mithuna", Karka:"karka",
+  Simha:"simha", Kanya:"kanya", Tula:"tula", Vrischika:"vrischika",
+  Dhanu:"dhanu", Makara:"makara", Kumbha:"kumbha", Meena:"meena",
 };
 const RASHI_NUM: Record<string, number> = {};
 RASHI_LIST.forEach((r, i) => { RASHI_NUM[r] = i; });
@@ -54,6 +55,7 @@ function renderPlanets(
   cx: number, cy: number,
   onPlanetClick?: (p: PlanetData) => void,
   selectedPlanet?: PlanetData | null,
+  tFn?: (key: string, opts?: object) => string,
 ) {
   const n = planetsHere.length;
   if (n === 0) return null;
@@ -110,7 +112,7 @@ function renderPlanets(
         <text x={px} y={py + lblSize + 3} textAnchor="middle" fontSize={lblSize}
           fontWeight="500"
           fill={isSelected ? GOLD : LABEL_SUB}>
-          {p.sanskritName?.slice(0, 3) ?? p.name.slice(0, 3)}
+          {tFn ? tFn(`planet.${p.name}`, { defaultValue: p.sanskritName ?? p.name }) : (p.sanskritName ?? p.name)}
         </text>
       </motion.g>
     );
@@ -128,9 +130,10 @@ const NI_GRID: GridCell[] = [
   { id:5,row:2,col:0 }, { id:4,row:1,col:0 },
 ];
 
-function NorthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }: {
+function NorthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn }: {
   planets: PlanetData[]; lagnaRashi: string;
   onPlanetClick?: (p: PlanetData) => void; selectedPlanet?: PlanetData | null;
+  tFn?: (key: string, opts?: object) => string;
 }) {
   const lagnaIdx = RASHI_NUM[lagnaRashi] ?? 0;
   const byHouse: Record<number, PlanetData[]> = {};
@@ -139,6 +142,9 @@ function NorthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }
     byHouse[p.house].push(p);
   }
   const houseRashi = (id: number) => RASHI_LIST[(lagnaIdx + id - 1) % 12];
+  const rashiLabel = (rn: string) => tFn ? tFn(`data.rashi.${RASHI_TO_KEY[rn] ?? rn.toLowerCase()}.name`, { defaultValue: rn }) : rn;
+  const lagnaLabel = tFn ? tFn("chart.lagna", { defaultValue: "Lagna" }) : "Lagna";
+  const lagLabel = tFn ? tFn("chart.lag", { defaultValue: "Lag" }) : "Lag";
   const W = 4 * CELL + O * 2;
 
   return (
@@ -151,10 +157,10 @@ function NorthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }
       <line x1={O+3*CELL} y1={O+CELL} x2={O+CELL} y2={O+3*CELL} stroke={GOLD_FAINT} strokeWidth="0.6" />
       <text x={O+2*CELL} y={O+2*CELL-12} textAnchor="middle"
         fill={GOLD_DIM} fontSize="11" fontFamily="serif" letterSpacing="1">
-        {lagnaRashi}
+        {rashiLabel(lagnaRashi)}
       </text>
       <text x={O+2*CELL} y={O+2*CELL+5} textAnchor="middle"
-        fill={LABEL_SUB} fontSize="9" fontFamily="serif">Lagna</text>
+        fill={LABEL_SUB} fontSize="9" fontFamily="serif">{lagnaLabel}</text>
 
       {NI_GRID.map(cell => {
         const x = O + cell.col * CELL;
@@ -170,11 +176,11 @@ function NorthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }
             <text x={x+6} y={y+14} fontSize="10" fill={NUM_TEXT} fontFamily="sans-serif">{cell.id}</text>
             <text x={x+CELL-5} y={y+14} textAnchor="end" fontSize="9.5"
               fill={GOLD} fontFamily="serif">
-              {RASHI_ABBR[rn] ?? rn.slice(0,3)}
+              {rashiLabel(rn)}
             </text>
             {isL && <text x={x+CELL/2} y={y+26} textAnchor="middle" fontSize="8.5"
-              fill={LABEL_SUB}>Lag</text>}
-            {renderPlanets(planetsHere, x+CELL/2, y+CELL/2+10, onPlanetClick, selectedPlanet)}
+              fill={LABEL_SUB}>{lagLabel}</text>}
+            {renderPlanets(planetsHere, x+CELL/2, y+CELL/2+10, onPlanetClick, selectedPlanet, tFn)}
           </g>
         );
       })}
@@ -190,9 +196,10 @@ const SI_CELLS: { rashi: number; row: number; col: number }[] = [
   {rashi:8,row:3,col:0},{rashi:7,row:3,col:1},{rashi:6,row:3,col:2},{rashi:5,row:3,col:3},
 ];
 
-function SouthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }: {
+function SouthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn }: {
   planets: PlanetData[]; lagnaRashi: string;
   onPlanetClick?: (p: PlanetData) => void; selectedPlanet?: PlanetData | null;
+  tFn?: (key: string, opts?: object) => string;
 }) {
   const lagnaIdx = RASHI_NUM[lagnaRashi] ?? 0;
   const byRashi: Record<number, PlanetData[]> = {};
@@ -203,6 +210,7 @@ function SouthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }
       byRashi[ri].push(p);
     }
   }
+  const rashiLabel = (rn: string) => tFn ? tFn(`data.rashi.${RASHI_TO_KEY[rn] ?? rn.toLowerCase()}.name`, { defaultValue: rn }) : rn;
   const W = 4 * CELL + O * 2;
 
   return (
@@ -232,9 +240,9 @@ function SouthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }
             <text x={x+6} y={y+15} fontSize="9.5" fill={NUM_TEXT}>{rashi+1}</text>
             <text x={x+CELL/2} y={y+16} textAnchor="middle"
               fontSize="10" fill={GOLD} fontFamily="serif" fontWeight="600">
-              {RASHI_ABBR[rn] ?? rn}
+              {rashiLabel(rn)}
             </text>
-            {renderPlanets(planetsHere, x+CELL/2, y+CELL/2+12, onPlanetClick, selectedPlanet)}
+            {renderPlanets(planetsHere, x+CELL/2, y+CELL/2+12, onPlanetClick, selectedPlanet, tFn)}
           </g>
         );
       })}
@@ -243,9 +251,10 @@ function SouthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }
 }
 
 // ── East Indian (Diamond) Chart ───────────────────────────────────────────────
-function EastIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }: {
+function EastIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn }: {
   planets: PlanetData[]; lagnaRashi: string;
   onPlanetClick?: (p: PlanetData) => void; selectedPlanet?: PlanetData | null;
+  tFn?: (key: string, opts?: object) => string;
 }) {
   const lagnaIdx = RASHI_NUM[lagnaRashi] ?? 0;
   const byHouse: Record<number, PlanetData[]> = {};
@@ -254,6 +263,8 @@ function EastIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }:
     byHouse[p.house].push(p);
   }
   const houseRashi = (id: number) => RASHI_LIST[(lagnaIdx + id - 1) % 12];
+  const rashiLabel = (rn: string) => tFn ? tFn(`data.rashi.${RASHI_TO_KEY[rn] ?? rn.toLowerCase()}.name`, { defaultValue: rn }) : rn;
+  const lagnaLabel = tFn ? tFn("chart.lagna", { defaultValue: "Lagna" }) : "Lagna";
   const W = 450; const C = W / 2;
 
   const EAST_HOUSES: { id: number; cx: number; cy: number }[] = [
@@ -292,23 +303,24 @@ function EastIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }:
             <text x={hcx} y={hcy - 14} textAnchor="middle" fontSize="9.5" fill={NUM_TEXT}>{id}</text>
             <text x={hcx} y={hcy - 2} textAnchor="middle" fontSize="10"
               fill={isL ? GOLD : GOLD_DIM} fontFamily="serif">
-              {RASHI_ABBR[rn]}{isL ? " ▲" : ""}
+              {rashiLabel(rn)}{isL ? " ▲" : ""}
             </text>
-            {renderPlanets(planetsHere, hcx, hcy + 14, onPlanetClick, selectedPlanet)}
+            {renderPlanets(planetsHere, hcx, hcy + 14, onPlanetClick, selectedPlanet, tFn)}
           </g>
         );
       })}
 
       <text x={C} y={C - 6} textAnchor="middle" fill={GOLD_DIM} fontSize="9" fontFamily="serif">East</text>
-      <text x={C} y={C + 8} textAnchor="middle" fill={LABEL_SUB} fontSize="8.5" fontFamily="serif">{lagnaRashi}</text>
+      <text x={C} y={C + 8} textAnchor="middle" fill={LABEL_SUB} fontSize="8.5" fontFamily="serif">{rashiLabel(lagnaRashi)} {lagnaLabel}</text>
     </svg>
   );
 }
 
 // ── Western Circular Chart ────────────────────────────────────────────────────
-function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }: {
+function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn }: {
   planets: PlanetData[]; lagnaRashi: string;
   onPlanetClick?: (p: PlanetData) => void; selectedPlanet?: PlanetData | null;
+  tFn?: (key: string, opts?: object) => string;
 }) {
   const lagnaIdx = RASHI_NUM[lagnaRashi] ?? 0;
   const byHouse: Record<number, PlanetData[]> = {};
@@ -317,6 +329,8 @@ function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet }: {
     byHouse[p.house].push(p);
   }
   const houseRashi = (id: number) => RASHI_LIST[(lagnaIdx + id - 1) % 12];
+  const rashiLabel = (rn: string) => tFn ? tFn(`data.rashi.${RASHI_TO_KEY[rn] ?? rn.toLowerCase()}.name`, { defaultValue: rn }) : rn;
+  const lagnaLabel = tFn ? tFn("chart.lagna", { defaultValue: "Lagna" }) : "Lagna";
   const W = 450; const C = W / 2;
   const R1 = 210; const R2 = 165; const R3 = 65;
 
@@ -436,11 +450,12 @@ export function KundliChart({
   const setSettings = useKundliStore(s => s.setKundaliSettings);
   const style = styleProp ?? storeStyle;
 
+  const { t } = useTranslation();
   const STYLES: { key: ChartStyle; label: string }[] = [
-    { key: "north", label: "North" },
-    { key: "south", label: "South" },
-    { key: "east",  label: "East" },
-    { key: "west",  label: "West" },
+    { key: "north", label: t("chart.north", { defaultValue: "North" }) },
+    { key: "south", label: t("chart.south", { defaultValue: "South" }) },
+    { key: "east",  label: t("chart.east",  { defaultValue: "East" }) },
+    { key: "west",  label: t("chart.west",  { defaultValue: "West" }) },
   ];
 
   return (

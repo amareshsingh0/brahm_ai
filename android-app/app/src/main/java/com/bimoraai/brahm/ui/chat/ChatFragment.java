@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.bimoraai.brahm.api.SseManager;
 import com.bimoraai.brahm.databinding.FragmentChatBinding;
 import com.bimoraai.brahm.model.ChatMessage;
+import com.bimoraai.brahm.ui.main.MainActivity;
 import com.bimoraai.brahm.utils.ChatAdapter;
 import com.bimoraai.brahm.utils.PrefsHelper;
 import com.google.gson.JsonArray;
@@ -21,28 +22,13 @@ import java.util.List;
 
 /**
  * AI Chat screen — streams responses from the Brahm AI backend via SSE.
- *
- * Each user message triggers a POST /api/chat SSE stream.
- * Chunks are appended token-by-token to the live AI message via
- * {@link ChatAdapter#updateLastMessage(String)}.
  */
 public class ChatFragment extends Fragment {
 
     private FragmentChatBinding b;
     private ChatAdapter adapter;
-    private SseManager  sseManager;
-
-    // Current AI response being assembled from stream chunks
+    private SseManager sseManager;
     private StringBuilder currentAiContent = new StringBuilder();
-
-    private static final String[] SUGGESTIONS = {
-        "What does my lagna mean?",
-        "Current dasha analysis",
-        "Lucky days this week",
-        "Remedies for Saturn"
-    };
-
-    // ── Fragment lifecycle ────────────────────────────────────────────────────
 
     @Nullable
     @Override
@@ -58,8 +44,9 @@ public class ChatFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         sseManager = new SseManager(requireContext());
         setupRecyclerView();
-        setupSuggestionChips();
         setupSendButton();
+        setupHeader();
+        updateEmptyState();
     }
 
     @Override
@@ -70,6 +57,23 @@ public class ChatFragment extends Fragment {
     }
 
     // ── Setup ─────────────────────────────────────────────────────────────────
+
+    private void setupHeader() {
+        if (b.btnOpenDrawer != null) {
+            b.btnOpenDrawer.setOnClickListener(v -> {
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).openDrawer();
+                }
+            });
+        }
+
+        if (b.btnClearChat != null) {
+            b.btnClearChat.setOnClickListener(v -> {
+                adapter.clearMessages();
+                updateEmptyState();
+            });
+        }
+    }
 
     private void setupRecyclerView() {
         adapter = new ChatAdapter();
@@ -93,27 +97,6 @@ public class ChatFragment extends Fragment {
             });
     }
 
-    private void setupSuggestionChips() {
-        if (b.chipGroup != null) {
-            for (int i = 0; i < b.chipGroup.getChildCount(); i++) {
-                View chip = b.chipGroup.getChildAt(i);
-                final int idx = i;
-                if (idx < SUGGESTIONS.length) {
-                    if (chip instanceof com.google.android.material.chip.Chip) {
-                        ((com.google.android.material.chip.Chip) chip)
-                            .setText(SUGGESTIONS[idx]);
-                    }
-                    chip.setOnClickListener(v -> {
-                        if (b != null && b.etMessage != null) {
-                            b.etMessage.setText(SUGGESTIONS[idx]);
-                            b.etMessage.setSelection(SUGGESTIONS[idx].length());
-                        }
-                    });
-                }
-            }
-        }
-    }
-
     private void setupSendButton() {
         b.btnSend.setOnClickListener(v -> sendMessage());
 
@@ -126,6 +109,13 @@ public class ChatFragment extends Fragment {
         });
     }
 
+    private void updateEmptyState() {
+        if (b == null) return;
+        boolean hasMessages = adapter.getItemCount() > 0;
+        b.emptyState.setVisibility(hasMessages ? View.GONE : View.VISIBLE);
+        b.rvMessages.setVisibility(hasMessages ? View.VISIBLE : View.GONE);
+    }
+
     // ── Chat logic ────────────────────────────────────────────────────────────
 
     private void sendMessage() {
@@ -135,20 +125,16 @@ public class ChatFragment extends Fragment {
                       ? b.etMessage.getText().toString().trim() : "";
         if (TextUtils.isEmpty(text)) return;
 
-        // 1. Add user message
+        // 1. Add user message & hide empty state
         adapter.addMessage(new ChatMessage(text, true));
         b.etMessage.setText("");
+        updateEmptyState();
         scrollToBottom();
 
-        // 2. Hide suggestion chips after first message
-        if (b.scrollSuggestions != null) {
-            b.scrollSuggestions.setVisibility(View.GONE);
-        }
-
-        // 3. Show typing indicator
+        // 2. Show typing indicator
         setTypingIndicator(true);
 
-        // 4. Build birth data JSON from prefs
+        // 3. Build birth data JSON from prefs
         PrefsHelper prefs = new PrefsHelper(requireContext());
         JsonObject birthData = new JsonObject();
         if (!prefs.getBirthDate().isEmpty()) {
@@ -161,10 +147,9 @@ public class ChatFragment extends Fragment {
             birthData.addProperty("name",        prefs.getName());
         }
 
-        // 5. Build history from current adapter messages
+        // 4. Build history from current adapter messages
         List<ChatMessage> messages = adapter.getMessages();
         List<JsonObject>  history  = new ArrayList<>();
-        // Send last 10 turns (excluding the most recently added user message)
         int start = Math.max(0, messages.size() - 11);
         for (int i = start; i < messages.size() - 1; i++) {
             ChatMessage msg = messages.get(i);
@@ -174,26 +159,21 @@ public class ChatFragment extends Fragment {
             history.add(turn);
         }
 
-        // 6. Reset current AI content buffer and add an empty AI message placeholder
+        // 5. Reset buffer and add empty AI placeholder
         currentAiContent = new StringBuilder();
         adapter.addMessage(new ChatMessage("", false));
         scrollToBottom();
 
-        // 7. Start SSE stream
-        sseManager.close(); // cancel any ongoing stream
+        // 6. Start SSE stream
+        sseManager.close();
         sseManager.postChat(requireContext(), text, birthData, history,
             new SseManager.SseListener() {
-
-                @Override
-                public void onOpen() {
-                    // Already showing typing indicator — nothing more to do
-                }
+                @Override public void onOpen() {}
 
                 @Override
                 public void onChunk(String chunk) {
                     if (b == null) return;
                     currentAiContent.append(chunk);
-                    // Update the last (placeholder) AI message in-place
                     adapter.updateLastMessage(currentAiContent.toString());
                     scrollToBottom();
                 }
@@ -202,15 +182,10 @@ public class ChatFragment extends Fragment {
                 public void onDone(List<String> sources, String confidence) {
                     if (b == null) return;
                     setTypingIndicator(false);
-
-                    // Strip any trailing [CONFIDENCE: ...] tag that the backend
-                    // may have embedded in the text stream
-                    String finalText  = stripConfidenceTag(currentAiContent.toString());
-                    String finalConf  = confidence.isEmpty()
+                    String finalText = stripConfidenceTag(currentAiContent.toString());
+                    String finalConf = confidence.isEmpty()
                         ? parseConfidence(currentAiContent.toString())
                         : confidence;
-
-                    // Replace placeholder with the final message (with confidence)
                     adapter.replaceLastMessage(new ChatMessage(finalText, false, finalConf));
                     scrollToBottom();
                 }
@@ -219,10 +194,8 @@ public class ChatFragment extends Fragment {
                 public void onError(String message) {
                     if (b == null) return;
                     setTypingIndicator(false);
-                    // Replace placeholder with error message
                     adapter.replaceLastMessage(
-                        new ChatMessage("Sorry, something went wrong: " + message,
-                                        false, ""));
+                        new ChatMessage("Sorry, something went wrong: " + message, false, ""));
                     scrollToBottom();
                 }
             });
@@ -248,9 +221,7 @@ public class ChatFragment extends Fragment {
 
     private void setTypingIndicator(boolean show) {
         if (b == null) return;
-        if (b.tvTyping != null) {
-            b.tvTyping.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
+        if (b.tvTyping != null) b.tvTyping.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     private void scrollToBottom() {

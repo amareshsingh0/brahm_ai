@@ -4,7 +4,6 @@ package com.bimoraai.brahm.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.bimoraai.brahm.R;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -29,13 +27,16 @@ public final class FragmentChatBinding implements ViewBinding {
   public final ImageButton btnClearChat;
 
   @NonNull
-  public final FloatingActionButton btnSend;
+  public final ImageButton btnOpenDrawer;
+
+  @NonNull
+  public final ImageButton btnSend;
 
   @NonNull
   public final LinearLayout chatHeader;
 
   @NonNull
-  public final LinearLayout chipGroup;
+  public final LinearLayout emptyState;
 
   @NonNull
   public final TextInputEditText etMessage;
@@ -50,7 +51,7 @@ public final class FragmentChatBinding implements ViewBinding {
   public final RecyclerView rvMessages;
 
   @NonNull
-  public final HorizontalScrollView scrollSuggestions;
+  public final TextView tvGreetingMain;
 
   @NonNull
   public final TextView tvStatus;
@@ -59,21 +60,23 @@ public final class FragmentChatBinding implements ViewBinding {
   public final LinearLayout tvTyping;
 
   private FragmentChatBinding(@NonNull ConstraintLayout rootView, @NonNull ImageButton btnClearChat,
-      @NonNull FloatingActionButton btnSend, @NonNull LinearLayout chatHeader,
-      @NonNull LinearLayout chipGroup, @NonNull TextInputEditText etMessage,
-      @NonNull View headerDivider, @NonNull LinearLayout inputLayout,
-      @NonNull RecyclerView rvMessages, @NonNull HorizontalScrollView scrollSuggestions,
-      @NonNull TextView tvStatus, @NonNull LinearLayout tvTyping) {
+      @NonNull ImageButton btnOpenDrawer, @NonNull ImageButton btnSend,
+      @NonNull LinearLayout chatHeader, @NonNull LinearLayout emptyState,
+      @NonNull TextInputEditText etMessage, @NonNull View headerDivider,
+      @NonNull LinearLayout inputLayout, @NonNull RecyclerView rvMessages,
+      @NonNull TextView tvGreetingMain, @NonNull TextView tvStatus,
+      @NonNull LinearLayout tvTyping) {
     this.rootView = rootView;
     this.btnClearChat = btnClearChat;
+    this.btnOpenDrawer = btnOpenDrawer;
     this.btnSend = btnSend;
     this.chatHeader = chatHeader;
-    this.chipGroup = chipGroup;
+    this.emptyState = emptyState;
     this.etMessage = etMessage;
     this.headerDivider = headerDivider;
     this.inputLayout = inputLayout;
     this.rvMessages = rvMessages;
-    this.scrollSuggestions = scrollSuggestions;
+    this.tvGreetingMain = tvGreetingMain;
     this.tvStatus = tvStatus;
     this.tvTyping = tvTyping;
   }
@@ -111,8 +114,14 @@ public final class FragmentChatBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnOpenDrawer;
+      ImageButton btnOpenDrawer = ViewBindings.findChildViewById(rootView, id);
+      if (btnOpenDrawer == null) {
+        break missingId;
+      }
+
       id = R.id.btnSend;
-      FloatingActionButton btnSend = ViewBindings.findChildViewById(rootView, id);
+      ImageButton btnSend = ViewBindings.findChildViewById(rootView, id);
       if (btnSend == null) {
         break missingId;
       }
@@ -123,9 +132,9 @@ public final class FragmentChatBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.chipGroup;
-      LinearLayout chipGroup = ViewBindings.findChildViewById(rootView, id);
-      if (chipGroup == null) {
+      id = R.id.emptyState;
+      LinearLayout emptyState = ViewBindings.findChildViewById(rootView, id);
+      if (emptyState == null) {
         break missingId;
       }
 
@@ -153,9 +162,9 @@ public final class FragmentChatBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.scrollSuggestions;
-      HorizontalScrollView scrollSuggestions = ViewBindings.findChildViewById(rootView, id);
-      if (scrollSuggestions == null) {
+      id = R.id.tvGreetingMain;
+      TextView tvGreetingMain = ViewBindings.findChildViewById(rootView, id);
+      if (tvGreetingMain == null) {
         break missingId;
       }
 
@@ -171,9 +180,9 @@ public final class FragmentChatBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentChatBinding((ConstraintLayout) rootView, btnClearChat, btnSend, chatHeader,
-          chipGroup, etMessage, headerDivider, inputLayout, rvMessages, scrollSuggestions, tvStatus,
-          tvTyping);
+      return new FragmentChatBinding((ConstraintLayout) rootView, btnClearChat, btnOpenDrawer,
+          btnSend, chatHeader, emptyState, etMessage, headerDivider, inputLayout, rvMessages,
+          tvGreetingMain, tvStatus, tvTyping);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

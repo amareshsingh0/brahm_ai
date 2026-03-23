@@ -142,7 +142,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.VH> {
      * AI bubbles are left-aligned and include a confidence chip placeholder.
      */
     private static View buildBubbleView(Context ctx, boolean isUser) {
-        // Outer row — full width, aligns bubble left or right
+        int r18 = dp(ctx, 18);
+        int r4  = dp(ctx, 4);
+
+        // Outer row
         LinearLayout outer = new LinearLayout(ctx);
         outer.setOrientation(LinearLayout.HORIZONTAL);
         outer.setGravity(isUser ? Gravity.END : Gravity.START);
@@ -151,25 +154,28 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.VH> {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        // Inner bubble — vertical, rounded background
+        // Inner bubble
         LinearLayout bubble = new LinearLayout(ctx);
         bubble.setOrientation(LinearLayout.VERTICAL);
-        bubble.setPadding(dp(ctx, 12), dp(ctx, 10), dp(ctx, 12), dp(ctx, 10));
+        bubble.setPadding(dp(ctx, 14), dp(ctx, 10), dp(ctx, 14), dp(ctx, 10));
 
-        // Max width ~75% of screen
         LinearLayout.LayoutParams bubbleLp = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT);
-        bubbleLp.width = (int) (ctx.getResources().getDisplayMetrics().widthPixels * 0.75f);
         bubble.setLayoutParams(bubbleLp);
 
-        // Background
+        // Background with directional corner radii
         GradientDrawable bg = new GradientDrawable();
-        bg.setCornerRadius(dp(ctx, 16));
         if (isUser) {
-            bg.setColor(resolvePrimaryColor(ctx));
+            // Gradient purple: top-left,top-right,bottom-right,bottom-left
+            bg.setColors(new int[]{Color.parseColor("#8B5CF6"), Color.parseColor("#7C3AED")});
+            bg.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+            bg.setOrientation(GradientDrawable.Orientation.TL_BR);
+            bg.setCornerRadii(new float[]{r18,r18, r4,r4, r18,r18, r18,r18});
         } else {
-            bg.setColor(resolveSurfaceVariantColor(ctx));
+            bg.setColor(Color.parseColor("#1E1E28"));
+            bg.setStroke(dp(ctx, 1), Color.parseColor("#2D2D3E"));
+            bg.setCornerRadii(new float[]{r4,r4, r18,r18, r18,r18, r18,r18});
         }
         bubble.setBackground(bg);
 
@@ -179,8 +185,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.VH> {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT));
         tvContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        tvContent.setLineSpacing(dp(ctx, 2), 1f);
-        tvContent.setTextColor(isUser ? Color.WHITE : resolveOnSurfaceColor(ctx));
+        tvContent.setLineSpacing(0, 1.5f);
+        tvContent.setTextColor(isUser ? Color.WHITE : Color.parseColor("#F4F4F5"));
         bubble.addView(tvContent);
 
         // Confidence badge — only for AI
@@ -192,12 +198,12 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.VH> {
             confLp.topMargin = dp(ctx, 6);
             tvConf.setLayoutParams(confLp);
             tvConf.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-            tvConf.setPadding(dp(ctx, 8), dp(ctx, 2), dp(ctx, 8), dp(ctx, 2));
+            tvConf.setPadding(dp(ctx, 8), dp(ctx, 3), dp(ctx, 8), dp(ctx, 3));
             tvConf.setTextColor(Color.WHITE);
-            tvConf.setVisibility(View.GONE); // shown only when confidence is set
+            tvConf.setVisibility(View.GONE);
 
             GradientDrawable chipBg = new GradientDrawable();
-            chipBg.setCornerRadius(dp(ctx, 8));
+            chipBg.setCornerRadius(dp(ctx, 10));
             chipBg.setColor(Color.GRAY);
             tvConf.setBackground(chipBg);
 
