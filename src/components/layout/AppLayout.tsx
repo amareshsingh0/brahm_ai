@@ -1,6 +1,5 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileDrawer } from "./MobileDrawer";
 import { CosmicSky } from "@/components/CosmicSky";
 import { Moon } from "lucide-react";
@@ -45,11 +44,10 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* Language switcher in header — hide on mobile (available in drawer) */}
             <LanguageSwitcher variant="full" />
           </header>
-          <main className="flex-1 overflow-x-hidden overflow-y-auto pb-20 md:pb-6 px-3 sm:px-5 lg:px-7 pt-5">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto pb-6 px-3 sm:px-5 lg:px-7 pt-5">
             {children}
           </main>
         </div>
-        <MobileBottomNav />
       </div>
     </SidebarProvider>
   );
