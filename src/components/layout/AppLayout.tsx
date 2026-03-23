@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { MobileDrawer } from "./MobileDrawer";
 import { CosmicSky } from "@/components/CosmicSky";
 import { Moon } from "lucide-react";
 import { useLanguageStore } from "@/store/languageStore";
@@ -29,8 +30,11 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="h-14 flex items-center justify-between border-b border-border/30 px-4 glass sticky top-0 z-40">
-            <div className="flex items-center">
-              <SidebarTrigger className="mr-4 text-muted-foreground hover:text-primary transition-colors hidden md:flex" />
+            <div className="flex items-center gap-2">
+              {/* Mobile hamburger drawer */}
+              <MobileDrawer />
+              {/* Desktop sidebar trigger */}
+              <SidebarTrigger className="mr-2 text-muted-foreground hover:text-primary transition-colors hidden md:flex" />
               <div className="flex items-center gap-2">
                 <Moon className="h-5 w-5 text-primary md:hidden zodiac-glow" />
                 <h1 className="font-display text-sm text-muted-foreground tracking-wider uppercase">
@@ -38,7 +42,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </h1>
               </div>
             </div>
-            {/* Language switcher in header */}
+            {/* Language switcher in header — hide on mobile (available in drawer) */}
             <LanguageSwitcher variant="full" />
           </header>
           <main className="flex-1 overflow-x-hidden overflow-y-auto pb-20 md:pb-6 px-3 sm:px-5 lg:px-7 pt-5">
