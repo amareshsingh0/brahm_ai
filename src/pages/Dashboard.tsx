@@ -64,12 +64,12 @@ export default function Dashboard() {
         className="relative rounded-2xl overflow-hidden"
       >
         <img src={cosmicBg} alt="Cosmic background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/40 sm:via-background/80 sm:to-transparent" />
         <div className="relative z-10 p-5 sm:p-8 md:p-12">
           <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-foreground mb-2 text-glow-gold">
             {t("dashboard.namaste", { name: userName })}
           </h1>
-          <p className="text-muted-foreground max-w-md mb-4">{t("dashboard.subtitle")}</p>
+          <p className="text-muted-foreground max-w-[260px] sm:max-w-md mb-4">{t("dashboard.subtitle")}</p>
           {!birthDetails && (
             <Link
               to="/onboarding"

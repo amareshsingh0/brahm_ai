@@ -142,8 +142,8 @@
     background: #FFFFFF;
     border: 1px solid hsl(220 13% 89%);
     box-shadow:
-      0 1px 4px hsl(222 47% 11% / 0.05),
-      0 4px 16px hsl(222 47% 11% / 0.06);
+      0 1px 4px hsl(222 47% 11% / 0.00),
+      0 4px 16px hsl(222 47% 11% / 0.00);
   }
 
   /* ── Icon effects ── */
