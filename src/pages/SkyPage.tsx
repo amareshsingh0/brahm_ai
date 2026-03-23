@@ -85,8 +85,7 @@ const RASHI_TO_KEY: Record<string, string> = {
 const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState<string | null>(null);
-  const cx = 200, cy = 200, R = 180;
-  const planetR = 130;
+  const cx = 200, cy = 200, R = 192, INNER = 88;
 
   return (
     <div className="relative w-full max-w-sm mx-auto aspect-square">
@@ -105,7 +104,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
           const x2 = cx + R * Math.cos(endRad);
           const y2 = cy + R * Math.sin(endRad);
           const midRad  = ((startDeg + 15) * Math.PI) / 180;
-          const labelR  = 158;
+          const labelR  = INNER + (R - INNER) * 0.72; // 72% into band from inner edge
           const lx = cx + labelR * Math.cos(midRad);
           const ly = cy + labelR * Math.sin(midRad);
 
@@ -118,17 +117,17 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
           return (
             <g key={name}>
               <line
-                x1={cx + 90 * Math.cos(startRad)} y1={cy + 90 * Math.sin(startRad)}
+                x1={cx + INNER * Math.cos(startRad)} y1={cy + INNER * Math.sin(startRad)}
                 x2={x1} y2={y1}
                 stroke="hsl(215 15% 70%)" strokeWidth="1"
               />
               {/* Segment arc fill — brighter if planet present */}
               <path
-                d={`M ${cx + 90 * Math.cos(startRad)} ${cy + 90 * Math.sin(startRad)}
+                d={`M ${cx + INNER * Math.cos(startRad)} ${cy + INNER * Math.sin(startRad)}
                     L ${x1} ${y1}
                     A ${R} ${R} 0 0 1 ${x2} ${y2}
-                    L ${cx + 90 * Math.cos(endRad)} ${cy + 90 * Math.sin(endRad)}
-                    A 90 90 0 0 0 ${cx + 90 * Math.cos(startRad)} ${cy + 90 * Math.sin(startRad)}`}
+                    L ${cx + INNER * Math.cos(endRad)} ${cy + INNER * Math.sin(endRad)}
+                    A ${INNER} ${INNER} 0 0 0 ${cx + INNER * Math.cos(startRad)} ${cy + INNER * Math.sin(startRad)}`}
                 fill={hasplanet ? `${segColor}28` : `hsl(${i * 30} 25% 93%)`}
                 stroke="hsl(215 15% 78%)"
                 strokeWidth="0.8"
@@ -137,7 +136,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
               <text
                 x={lx} y={ly}
                 textAnchor="middle" dominantBaseline="central"
-                fontSize="13"
+                fontSize="11"
                 fill={hasplanet ? "hsl(38 80% 26%)" : "hsl(215 20% 40%)"}
                 fontFamily="Inter, sans-serif"
                 fontWeight={hasplanet ? "700" : "500"}
@@ -149,7 +148,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
         })}
 
         {/* Inner circles */}
-        <circle cx={cx} cy={cy} r={90}  fill="hsl(220 15% 94%)" stroke="hsl(215 15% 75%)" strokeWidth="1" />
+        <circle cx={cx} cy={cy} r={INNER}  fill="hsl(220 15% 94%)" stroke="hsl(215 15% 75%)" strokeWidth="1" />
         <circle cx={cx} cy={cy} r={45}  fill="hsl(220 15% 91%)" stroke="hsl(215 15% 75%)" strokeWidth="0.8" />
 
         {/* Lagna marker */}
@@ -160,7 +159,7 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
           return (
             <g>
               <line
-                x1={cx + 90 * Math.cos(rad)} y1={cy + 90 * Math.sin(rad)}
+                x1={cx + INNER * Math.cos(rad)} y1={cy + INNER * Math.sin(rad)}
                 x2={lx} y2={ly}
                 stroke="hsl(38 80% 32% / 0.7)" strokeWidth="1.5" strokeDasharray="3,2"
               />
@@ -170,13 +169,36 @@ const ZodiacWheel = memo(function ZodiacWheel({ snapshot }: { snapshot: LivePlan
           );
         })()}
 
-        {/* Planets */}
+        {/* Planets — with per-rashi radial offset to avoid overlap */}
         {ORDER.map((name) => {
-          const p    = snapshot.grahas[name];
+          const p = snapshot.grahas[name];
           if (!p) return null;
-          const rad  = (p.eclipticLon - 90) * Math.PI / 180;
-          const px   = cx + planetR * Math.cos(rad);
-          const py   = cy + planetR * Math.sin(rad);
+
+          // Exact angle from eclipticLon — true astronomical position
+          const rad = (p.eclipticLon - 90) * Math.PI / 180;
+
+          // Only apply radial offset if pixel-level overlap (within 2°)
+          // so that genuinely conjunct planets stay at same angle but different radii
+          const pixelOverlapPeers = ORDER.filter(n => {
+            if (n === name) return false;
+            const other = snapshot.grahas[n];
+            if (!other) return false;
+            const diff = Math.abs(((p.eclipticLon - other.eclipticLon) + 360) % 360);
+            return Math.min(diff, 360 - diff) < 2;
+          });
+          const slotIndex = ORDER.filter(n => {
+            if (n === name) return false;
+            const other = snapshot.grahas[n];
+            if (!other) return false;
+            const diff = Math.abs(((p.eclipticLon - other.eclipticLon) + 360) % 360);
+            return Math.min(diff, 360 - diff) < 2 && ORDER.indexOf(n) < ORDER.indexOf(name);
+          }).length;
+
+          const BASE_R = INNER + 30;
+          // Offset only when truly overlapping (2° threshold) — same angle, different radius
+          const r = slotIndex === 0 ? BASE_R : BASE_R + (slotIndex % 2 === 1 ? -14 : 14);
+          const px        = cx + r * Math.cos(rad);
+          const py        = cy + r * Math.sin(rad);
           const glow = GRAHA_COLOR[name] ?? "#fff";
           const isHovered = hovered === name;
 
@@ -581,8 +603,8 @@ function Track24h({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
         {ORDER.map((name) => {
           const p = snapshot.grahas[name];
           if (!p || !track) return null;
-          const t    = track[name];
-          if (!t) return null;
+          const planetTrack = track[name];
+          if (!planetTrack) return null;
           const color = GRAHA_COLOR[name] ?? "#fff";
           const speed = PLANET_SPEED_PER_DAY[name] ?? 0;
           const moveToday = Math.abs(speed).toFixed(3);
@@ -931,30 +953,30 @@ export default function SkyPage() {
 
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="cosmic-card rounded-xl p-3 text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
+        <div className="cosmic-card rounded-xl p-3 text-center flex flex-col items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-1">
             <Eye className="h-3.5 w-3.5 text-green-400" />
             <span className="text-xs text-muted-foreground">{t('sky.visible')}</span>
           </div>
-          <p className="font-display text-xl text-green-400">{visibleCount}</p>
-          <p className="text-xs text-muted-foreground">planets in sky</p>
+          <p className="font-display text-xl text-green-400 leading-tight">{visibleCount}</p>
+          <p className="text-xs text-muted-foreground">planets</p>
         </div>
-        <div className="cosmic-card rounded-xl p-3 text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
+        <div className="cosmic-card rounded-xl p-3 text-center flex flex-col items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-1">
             <TrendingDown className="h-3.5 w-3.5 text-amber-400" />
             <span className="text-xs text-muted-foreground">{t('sky.retro')}</span>
           </div>
-          <p className="font-display text-xl text-amber-400">
+          <p className="font-display text-xl text-amber-400 leading-tight">
             {ORDER.filter((n) => snapshot.grahas[n]?.retro).length}
           </p>
           <p className="text-xs text-muted-foreground">grahas ℞</p>
         </div>
-        <div className="cosmic-card rounded-xl p-3 text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
+        <div className="cosmic-card rounded-xl p-3 text-center flex flex-col items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-1">
             <Globe className="h-3.5 w-3.5 text-primary" />
             <span className="text-xs text-muted-foreground">{t('sky.lagna')}</span>
           </div>
-          <p className="font-display text-sm text-primary">{snapshot.lagna?.rashi ? t(`data.rashi.${RASHI_TO_KEY[snapshot.lagna.rashi] ?? snapshot.lagna.rashi.toLowerCase()}.name`, { defaultValue: snapshot.lagna.rashi }) : "—"}</p>
+          <p className="font-display text-xl text-primary leading-tight">{snapshot.lagna?.rashi ? t(`data.rashi.${RASHI_TO_KEY[snapshot.lagna.rashi] ?? snapshot.lagna.rashi.toLowerCase()}.name`, { defaultValue: snapshot.lagna.rashi }) : "—"}</p>
           <p className="text-xs text-muted-foreground font-mono">{snapshot.lagna?.dms ?? "—"}</p>
         </div>
       </div>

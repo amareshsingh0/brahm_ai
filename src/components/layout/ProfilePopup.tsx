@@ -443,8 +443,7 @@ export function ProfilePopup({ className = "", style, onClose }: ProfilePopupPro
             </div>
 
             {/* Language */}
-            <div className="flex items-center gap-3 px-4 py-2">
-              <Globe className="h-[17px] w-[17px] text-muted-foreground shrink-0" />
+            <div className="px-4 py-2">
               <LanguageSwitcher variant="full" />
             </div>
 

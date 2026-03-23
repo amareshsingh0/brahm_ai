@@ -227,7 +227,7 @@ export default function VedicLibraryPage() {
   const categories = getCategories(t);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="font-display text-3xl text-primary text-glow-gold">{t("library.title")}</h1>
         <p className="text-muted-foreground mt-1">{t("library.subtitle")}</p>
@@ -264,7 +264,7 @@ export default function VedicLibraryPage() {
       )}
 
       <Tabs defaultValue="vedas">
-        <TabsList className="w-full justify-start overflow-x-auto">
+        <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
           {categories.map((cat) => (
             <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5">
               <cat.icon className="h-3.5 w-3.5" />

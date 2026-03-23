@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Star, Globe, Clock, Sparkles, BookOpen, Moon, Heart,
   Gem, Sun, Compass, Zap, Hand, Eclipse, Calendar, Bot, Library,
-  Music, TreePine, Database, HelpCircle, ShieldAlert, Activity, ChevronUp,
+  Music, TreePine, HelpCircle, ShieldAlert, Activity, ChevronUp,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -14,12 +14,12 @@ import { useAuthStore } from "@/store/authStore";
 import { AnimatePresence } from "framer-motion";
 import { Avatar, ProfilePopup } from "./ProfilePopup";
 
+
 const mainNavItems = [
   { key: "dashboard", url: "/dashboard", icon: LayoutDashboard },
   { key: "chat",      url: "/chat",      icon: Bot },
   { key: "kundli",    url: "/kundli",    icon: Star },
   { key: "sky",       url: "/sky",       icon: Globe },
-  { key: "timeline",  url: "/timeline",  icon: Clock },
   { key: "horoscope", url: "/horoscope", icon: Sun },
 ];
 
@@ -43,7 +43,6 @@ const exploreNavItems = [
   { key: "library",       url: "/library",        icon: Library },
   { key: "mantras",       url: "/mantras",        icon: Music },
   { key: "gotra",         url: "/gotra",          icon: TreePine },
-  { key: "knowledge",     url: "/knowledge",      icon: Database },
   { key: "stories",       url: "/stories",        icon: BookOpen },
 ];
 

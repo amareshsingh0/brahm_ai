@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Star, Globe, Clock, Sun, Bot,
   Sparkles, BookOpen, Moon as MoonIcon, Heart, Gem, Compass,
   Zap, Hand, Eclipse, Calendar, Library, Music, TreePine,
-  Database, HelpCircle, ShieldAlert, Activity, ChevronUp,
+  HelpCircle, ShieldAlert, Activity, ChevronUp,
 } from "lucide-react";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -18,7 +18,6 @@ const mainNavItems = [
   { key: "chat",      url: "/chat",      icon: Bot },
   { key: "kundli",    url: "/kundli",    icon: Star },
   { key: "sky",       url: "/sky",       icon: Globe },
-  { key: "timeline",  url: "/timeline",  icon: Clock },
   { key: "horoscope", url: "/horoscope", icon: Sun },
 ];
 
@@ -42,9 +41,9 @@ const exploreNavItems = [
   { key: "library",       url: "/library",        icon: Library },
   { key: "mantras",       url: "/mantras",        icon: Music },
   { key: "gotra",         url: "/gotra",          icon: TreePine },
-  { key: "knowledge",     url: "/knowledge",      icon: Database },
   { key: "stories",       url: "/stories",        icon: BookOpen },
 ];
+
 
 const PLAN_BADGE: Record<string, { label: string; cls: string }> = {
   free:     { label: "Free",     cls: "bg-muted/40 text-muted-foreground" },

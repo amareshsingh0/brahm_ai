@@ -7,6 +7,7 @@ import { useLanguageStore } from "@/store/languageStore";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
+import { loadLanguage } from "@/lib/i18n";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -17,7 +18,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { t, i18n } = useTranslation();
 
   useEffect(() => {
-    i18n.changeLanguage(lang.toLowerCase());
+    const code = lang.toLowerCase();
+    loadLanguage(code).then(() => i18n.changeLanguage(code));
   }, [lang, i18n]);
 
   return (

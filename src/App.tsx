@@ -1,344 +1,172 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useTransition, useEffect, useRef, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Lazy loaded pages
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const KundliPage = lazy(() => import("./pages/KundliPage"));
-const SkyPage = lazy(() => import("./pages/SkyPage"));
-const TimelinePage = lazy(() => import("./pages/TimelinePage"));
-const RashiExplorer = lazy(() => import("./pages/RashiExplorer"));
-const StoriesPage = lazy(() => import("./pages/StoriesPage"));
+// ── Lazy pages (code-split per route) ─────────────────────────────────────────
+const LandingPage  = lazy(() => import("./pages/LandingPage"));
+const LoginPage    = lazy(() => import("./pages/LoginPage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
+const Dashboard    = lazy(() => import("./pages/Dashboard"));
+const AIChatPage   = lazy(() => import("./pages/AIChatPage"));
+const KundliPage   = lazy(() => import("./pages/KundliPage"));
+const SkyPage      = lazy(() => import("./pages/SkyPage"));
+const HoroscopePage = lazy(() => import("./pages/HoroscopePage"));
+const ProfilePage  = lazy(() => import("./pages/ProfilePage"));
+const PanchangPage = lazy(() => import("./pages/PanchangPage"));
+const GrahanPage   = lazy(() => import("./pages/GrahanPage"));
+const GocharPage   = lazy(() => import("./pages/GocharPage"));
+const CompatibilityPage = lazy(() => import("./pages/CompatibilityPage"));
+const RashiExplorer = lazy(() => import("./pages/RashiExplorer"));
 const NakshatraExplorer = lazy(() => import("./pages/NakshatraExplorer"));
 const RemediesPage = lazy(() => import("./pages/RemediesPage"));
-const YogasPage = lazy(() => import("./pages/YogasPage"));
-const CompatibilityPage = lazy(() => import("./pages/CompatibilityPage"));
-const HoroscopePage = lazy(() => import("./pages/HoroscopePage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const YogasPage    = lazy(() => import("./pages/YogasPage"));
 const PalmistryPage = lazy(() => import("./pages/PalmistryPage"));
-// MuhurtaPage is now embedded inside PanchangPage — no top-level route needed
-const GrahanPage = lazy(() => import("./pages/GrahanPage"));
-const PanchangPage = lazy(() => import("./pages/PanchangPage"));
-// CalendarPage is now embedded inside GrahanPage — no top-level route needed
-const AIChatPage = lazy(() => import("./pages/AIChatPage"));
 const VedicLibraryPage = lazy(() => import("./pages/VedicLibraryPage"));
 const MantraDictionaryPage = lazy(() => import("./pages/MantraDictionaryPage"));
 const GotraFinderPage = lazy(() => import("./pages/GotraFinderPage"));
-const KnowledgeBasePage = lazy(() => import("./pages/KnowledgeBasePage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
-const GocharPage = lazy(() => import("./pages/GocharPage"));
 const RectificationPage = lazy(() => import("./pages/RectificationPage"));
-const PrashnaPage = lazy(() => import("./pages/PrashnaPage"));
+const PrashnaPage  = lazy(() => import("./pages/PrashnaPage"));
 const VarshpalPage = lazy(() => import("./pages/VarshpalPage"));
-const KPPage = lazy(() => import("./pages/KPPage"));
-const DoshaPage = lazy(() => import("./pages/DoshaPage"));
+const KPPage       = lazy(() => import("./pages/KPPage"));
+const DoshaPage    = lazy(() => import("./pages/DoshaPage"));
 const SadeSatiPage = lazy(() => import("./pages/SadeSatiPage"));
 const GemstoneRecommendationsPage = lazy(() => import("./pages/GemstoneRecommendationsPage"));
-const AdminPage = lazy(() => import("./pages/AdminPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const StoriesPage  = lazy(() => import("./pages/StoriesPage"));
+const AdminPage    = lazy(() => import("./pages/AdminPage"));
+const NotFound     = lazy(() => import("./pages/NotFound"));
 
+// ── Thin top progress bar shown while lazy chunk loads ────────────────────────
+function TopBar({ loading }: { loading: boolean }) {
+  const [width, setWidth] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (loading) {
+      setVisible(true);
+      setWidth(15);
+      timerRef.current = setInterval(() => {
+        setWidth((w) => Math.min(w + (90 - w) * 0.12, 90));
+      }, 80);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setWidth(100);
+      const t = setTimeout(() => { setVisible(false); setWidth(0); }, 300);
+      return () => clearTimeout(t);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [loading]);
+
+  if (!visible) return null;
+  return (
+    <div
+      style={{
+        position: "fixed", top: 0, left: 0, height: 2, zIndex: 9999,
+        width: `${width}%`,
+        background: "hsl(38 80% 50%)",
+        transition: loading ? "width 0.08s linear" : "width 0.25s ease",
+        borderRadius: "0 2px 2px 0",
+        boxShadow: "0 0 8px hsl(38 80% 50% / 0.6)",
+      }}
+    />
+  );
+}
+
+// ── Wrapper that keeps old content visible while new chunk loads ───────────────
+function TransitionRoutes() {
+  const location = useLocation();
+  const [isPending, startTransition] = useTransition();
+  const [displayLocation, setDisplayLocation] = useState(location);
+
+  useEffect(() => {
+    startTransition(() => {
+      setDisplayLocation(location);
+    });
+  }, [location]);
+
+  return (
+    <>
+      <TopBar loading={isPending} />
+      <Routes location={displayLocation}>
+        <Route
+          path="/"
+          element={<AuthRedirect />}
+        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/rashi"      element={<AppLayout><RashiExplorer /></AppLayout>} />
+        <Route path="/nakshatra"  element={<AppLayout><NakshatraExplorer /></AppLayout>} />
+        <Route path="/horoscope"  element={<AppLayout><HoroscopePage /></AppLayout>} />
+        <Route path="/stories"    element={<AppLayout><StoriesPage /></AppLayout>} />
+        <Route path="/grahan"     element={<Navigate to="/panchang" replace />} />
+        <Route path="/calendar"   element={<Navigate to="/panchang" replace />} />
+        <Route path="/panchang"   element={<AppLayout><GrahanPage /></AppLayout>} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard"    element={<AppLayout><Dashboard /></AppLayout>} />
+          <Route path="/onboarding"   element={<AppLayout><OnboardingPage /></AppLayout>} />
+          <Route path="/kundli"       element={<AppLayout><KundliPage /></AppLayout>} />
+          <Route path="/sky"          element={<AppLayout><SkyPage /></AppLayout>} />
+          <Route path="/yogas"        element={<AppLayout><YogasPage /></AppLayout>} />
+          <Route path="/remedies"     element={<AppLayout><RemediesPage /></AppLayout>} />
+          <Route path="/compatibility" element={<AppLayout><CompatibilityPage /></AppLayout>} />
+          <Route path="/profile"      element={<AppLayout><ProfilePage /></AppLayout>} />
+          <Route path="/palmistry"    element={<AppLayout><PalmistryPage /></AppLayout>} />
+          <Route path="/muhurta"      element={<Navigate to="/today" replace />} />
+          <Route path="/today"        element={<AppLayout><PanchangPage /></AppLayout>} />
+          <Route path="/chat"         element={<AppLayout><AIChatPage /></AppLayout>} />
+          <Route path="/library"      element={<AppLayout><VedicLibraryPage /></AppLayout>} />
+          <Route path="/mantras"      element={<AppLayout><MantraDictionaryPage /></AppLayout>} />
+          <Route path="/gotra"        element={<AppLayout><GotraFinderPage /></AppLayout>} />
+          <Route path="/subscription" element={<AppLayout><SubscriptionPage /></AppLayout>} />
+          <Route path="/gochar"       element={<AppLayout><GocharPage /></AppLayout>} />
+          <Route path="/rectification" element={<AppLayout><RectificationPage /></AppLayout>} />
+          <Route path="/prashna"      element={<AppLayout><PrashnaPage /></AppLayout>} />
+          <Route path="/varshphal"    element={<AppLayout><VarshpalPage /></AppLayout>} />
+          <Route path="/kp"           element={<AppLayout><KPPage /></AppLayout>} />
+          <Route path="/dosha"        element={<AppLayout><DoshaPage /></AppLayout>} />
+          <Route path="/sade-sati"    element={<AppLayout><SadeSatiPage /></AppLayout>} />
+          <Route path="/gemstones"    element={<AppLayout><GemstoneRecommendationsPage /></AppLayout>} />
+        </Route>
+
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="*"      element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
+
+function AuthRedirect() {
+  const { isLoggedIn } = useAuth();
+  return isLoggedIn ? <Navigate to="/dashboard" /> : <LandingPage />;
+}
+
+// ── Query client ──────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
 });
 
-function PageLoader() {
-  return (
-    <div className="flex items-center justify-center min-h-[50vh]">
-      <div className="text-center space-y-3">
-        <div className="text-4xl animate-pulse-glow">☽︎</div>
-        <p className="text-xs text-muted-foreground">Consulting the stars...</p>
-      </div>
-    </div>
-  );
-}
-
-const App = () => {
-  const { isLoggedIn } = useAuth();
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    isLoggedIn ? (
-                      <Navigate to="/dashboard" />
-                    ) : (
-                      <LandingPage />
-                    )
-                  }
-                />
-                <Route path="/login" element={<LoginPage />} />
-                <Route
-                  path="/rashi"
-                  element={
-                    <AppLayout>
-                      <RashiExplorer />
-                    </AppLayout>
-                  }
-                />
-                <Route
-                  path="/nakshatra"
-                  element={
-                    <AppLayout>
-                      <NakshatraExplorer />
-                    </AppLayout>
-                  }
-                />
-                <Route
-                  path="/horoscope"
-                  element={
-                    <AppLayout>
-                      <HoroscopePage />
-                    </AppLayout>
-                  }
-                />
-                <Route
-                  path="/stories"
-                  element={
-                    <AppLayout>
-                      <StoriesPage />
-                    </AppLayout>
-                  }
-                />
-                <Route path="/grahan" element={<Navigate to="/panchang" replace />} />
-                <Route path="/calendar" element={<Navigate to="/panchang" replace />} />
-                <Route
-                  path="/panchang"
-                  element={
-                    <AppLayout>
-                      <GrahanPage />
-                    </AppLayout>
-                  }
-                />
-                <Route element={<ProtectedRoute />}>
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <AppLayout>
-                        <Dashboard />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/onboarding"
-                    element={
-                      <AppLayout>
-                        <OnboardingPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/kundli"
-                    element={
-                      <AppLayout>
-                        <KundliPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/sky"
-                    element={
-                      <AppLayout>
-                        <SkyPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/timeline"
-                    element={
-                      <AppLayout>
-                        <TimelinePage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/yogas"
-                    element={
-                      <AppLayout>
-                        <YogasPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/remedies"
-                    element={
-                      <AppLayout>
-                        <RemediesPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/compatibility"
-                    element={
-                      <AppLayout>
-                        <CompatibilityPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <AppLayout>
-                        <ProfilePage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/palmistry"
-                    element={
-                      <AppLayout>
-                        <PalmistryPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route path="/muhurta" element={<Navigate to="/today" replace />} />
-                  <Route
-                    path="/today"
-                    element={
-                      <AppLayout>
-                        <PanchangPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/chat"
-                    element={
-                      <AppLayout>
-                        <AIChatPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/library"
-                    element={
-                      <AppLayout>
-                        <VedicLibraryPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/mantras"
-                    element={
-                      <AppLayout>
-                        <MantraDictionaryPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/gotra"
-                    element={
-                      <AppLayout>
-                        <GotraFinderPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/knowledge"
-                    element={
-                      <AppLayout>
-                        <KnowledgeBasePage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/subscription"
-                    element={
-                      <AppLayout>
-                        <SubscriptionPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/gochar"
-                    element={
-                      <AppLayout>
-                        <GocharPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/rectification"
-                    element={
-                      <AppLayout>
-                        <RectificationPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/prashna"
-                    element={
-                      <AppLayout>
-                        <PrashnaPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/varshphal"
-                    element={
-                      <AppLayout>
-                        <VarshpalPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/kp"
-                    element={
-                      <AppLayout>
-                        <KPPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/dosha"
-                    element={
-                      <AppLayout>
-                        <DoshaPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/sade-sati"
-                    element={
-                      <AppLayout>
-                        <SadeSatiPage />
-                      </AppLayout>
-                    }
-                  />
-                  <Route
-                    path="/gemstones"
-                    element={
-                      <AppLayout>
-                        <GemstoneRecommendationsPage />
-                      </AppLayout>
-                    }
-                  />
-                </Route>
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <TransitionRoutes />
+          </Suspense>
+        </ErrorBoundary>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

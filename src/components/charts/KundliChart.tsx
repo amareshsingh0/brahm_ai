@@ -148,7 +148,7 @@ function NorthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, 
   const W = 4 * CELL + O * 2;
 
   return (
-    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-[440px] mx-auto">
+    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-full mx-auto">
       <rect x={O} y={O} width={4*CELL} height={4*CELL}
         fill={BG} stroke={GOLD_DIM} strokeWidth="1.5" rx="4" />
       <rect x={O+CELL} y={O+CELL} width={2*CELL} height={2*CELL}
@@ -214,7 +214,7 @@ function SouthIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, 
   const W = 4 * CELL + O * 2;
 
   return (
-    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-[440px] mx-auto">
+    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-full mx-auto">
       <rect x={O} y={O} width={4*CELL} height={4*CELL}
         fill={BG} stroke={GOLD_DIM} strokeWidth="1.5" rx="4" />
       <rect x={O+CELL} y={O+CELL} width={2*CELL} height={2*CELL}
@@ -283,7 +283,7 @@ function EastIndianChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, t
   ];
 
   return (
-    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-[440px] mx-auto">
+    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-full mx-auto">
       <rect x={0} y={0} width={W} height={W} fill={BG} rx="4" />
       <polygon points={`${C},8 ${W-8},${C} ${C},${W-8} 8,${C}`}
         fill="none" stroke={GOLD_DIM} strokeWidth="1.5" />
@@ -341,7 +341,7 @@ function WesternChart({ planets, lagnaRashi, onPlanetClick, selectedPlanet, tFn 
   };
 
   return (
-    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-[440px] mx-auto">
+    <svg viewBox={`0 0 ${W} ${W}`} className="w-full max-w-full mx-auto">
       <rect x={0} y={0} width={W} height={W} fill={BG} rx="4" />
       <circle cx={C} cy={C} r={R1} fill="none" stroke={GOLD_DIM} strokeWidth="1.5" />
       <circle cx={C} cy={C} r={R2} fill="none" stroke={LINE} strokeWidth="0.8" />
