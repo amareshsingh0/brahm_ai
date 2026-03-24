@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Clock, CalendarDays, AlertTriangle, Info, Moon, Sun, ChevronDown } from "lucide-react";
+import { Loader2, Clock, CalendarDays, AlertTriangle, Info, Moon, Sun, ChevronDown, Search, X } from "lucide-react";
 import { useGrahan } from "@/hooks/useGrahan";
 import { useFestivals } from "@/hooks/useFestivals";
 import { useKundliStore } from "@/store/kundliStore";
@@ -152,6 +152,124 @@ function eclipseIcon(type: string) {
   return type.includes("Solar") ? "☀️" : "🌕";
 }
 
+// ── Festival timeline helpers ─────────────────────────────────────────────────
+type TimelineItem =
+  | { kind: "festival"; data: FestivalEntry }
+  | { kind: "eclipse";  data: Eclipse };
+
+function itemDate(item: TimelineItem): string {
+  return item.data.date;
+}
+
+/** "YYYY-MM-DD" → true if date is strictly before today */
+function isPastDate(iso: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d) < today;
+}
+
+/** "YYYY-MM-DD" → "2026-04" */
+function toMonthKey(iso: string): string {
+  return iso.slice(0, 7);
+}
+
+/** "2026-04" → "April 2026" */
+function monthKeyLabel(key: string): string {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+}
+
+/** "2026-04" → "Apr" */
+function monthKeyShort(key: string): string {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("en-IN", { month: "short" });
+}
+
+function currentMonthKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Group sorted items by month key */
+function groupByMonth(items: TimelineItem[]): [string, TimelineItem[]][] {
+  const map = new Map<string, TimelineItem[]>();
+  for (const item of items) {
+    const key = toMonthKey(itemDate(item));
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(item);
+  }
+  return Array.from(map.entries());
+}
+
+// ── MonthSection component ────────────────────────────────────────────────────
+function MonthSection({
+  monthKey, items, isCurrent, isPastMonth,
+}: {
+  monthKey: string;
+  items: TimelineItem[];
+  isCurrent: boolean;
+  isPastMonth: boolean;
+}) {
+  const [open, setOpen] = useState(!isPastMonth);
+  const label = monthKeyLabel(monthKey);
+  const upcomingCount = items.filter(it => !isPastDate(itemDate(it))).length;
+
+  return (
+    <div id={`month-${monthKey}`} className="space-y-2">
+      {/* Month header */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl border transition-colors
+          ${isCurrent
+            ? "bg-amber-50 border-amber-200 hover:bg-amber-100"
+            : isPastMonth
+            ? "bg-muted/30 border-border/30 hover:bg-muted/50"
+            : "bg-muted/20 border-border/20 hover:bg-muted/40"
+          }`}
+      >
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-semibold ${isPastMonth ? "text-muted-foreground" : "text-foreground"}`}>
+            {label}
+          </span>
+          {isCurrent && (
+            <Badge className="text-xs bg-amber-500/20 text-amber-700 border border-amber-400/40 font-semibold">
+              THIS MONTH
+            </Badge>
+          )}
+          <Badge variant="outline" className="text-xs text-muted-foreground border-border/40">
+            {items.length} {items.length === 1 ? "festival" : "festivals"}
+            {upcomingCount > 0 && upcomingCount < items.length && (
+              <span className="ml-1 text-amber-600">· {upcomingCount} upcoming</span>
+            )}
+          </Badge>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {/* Festival grid */}
+      {open && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-stretch">
+          {items.map((item, i) => {
+            const past = isPastDate(itemDate(item));
+            return (
+              <div key={item.kind === "eclipse" ? `eclipse-${item.data.date}` : item.data.name}
+                className={`flex flex-col${past ? " opacity-60" : ""}`}
+              >
+                {item.kind === "eclipse" ? (
+                  <EclipseInlineCard eclipse={item.data} index={i} />
+                ) : (
+                  <FestivalCard festival={item.data} index={i} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TithiTypeBadge({ type }: { type: string }) {
   if (type === "vridhi")
     return <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Vridhi</Badge>;
@@ -178,13 +296,14 @@ function FestivalCard({ festival, index }: { festival: FestivalEntry; index: num
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.03 }}
+      className="h-full"
     >
       <Card
-        className={`glass border-border/30 h-full hover:border-primary/40 transition-colors ${
+        className={`glass border-border/30 h-full hover:border-primary/40 transition-colors flex flex-col ${
           hasGrahan ? "border-red-500/30" : hasNotes ? "border-amber-500/20" : ""
         }`}
       >
-        <CardContent className="pt-5 space-y-2">
+        <CardContent className="pt-5 flex flex-col flex-1 gap-2">
           {/* Header row */}
           <div className="flex items-center justify-between gap-2">
             <span className="text-3xl">{festival.icon}</span>
@@ -245,7 +364,7 @@ function FestivalCard({ festival, index }: { festival: FestivalEntry; index: num
             </div>
           )}
 
-          <p className="text-xs text-muted-foreground leading-relaxed">{festival.significance}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed flex-1">{festival.significance}</p>
 
           {/* Other Vedic notes — collapsible */}
           {otherNotes.length > 0 && (
@@ -588,6 +707,38 @@ export default function GrahanPage() {
   const { data: grahanData, isLoading: gLoading, isError: gError } = useGrahan(year, tz);
   const { data: festData,   isLoading: fLoading, isError: fError  } = useFestivals(year, lat, lon, tz);
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Build unified sorted timeline
+  const allItems = useMemo<TimelineItem[]>(() => {
+    if (!festData) return [];
+    return [
+      ...festData.festivals.map(f => ({ kind: "festival" as const, data: f })),
+      ...(grahanData?.eclipses ?? []).map(e => ({ kind: "eclipse" as const, data: e })),
+    ].sort((a, b) => (a.data.date < b.data.date ? -1 : a.data.date > b.data.date ? 1 : 0));
+  }, [festData, grahanData]);
+
+  // Search filter
+  const filteredItems = useMemo<TimelineItem[]>(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return allItems.filter(item =>
+      item.kind === "eclipse"
+        ? item.data.type.toLowerCase().includes(q)
+        : item.data.name.toLowerCase().includes(q) ||
+          item.data.hindi.includes(q) ||
+          item.data.deity.toLowerCase().includes(q)
+    );
+  }, [allItems, searchQuery]);
+
+  // Month groups
+  const monthGroups = useMemo(() => groupByMonth(allItems), [allItems]);
+  const curMonthKey = currentMonthKey();
+
+  // Stats
+  const upcomingCount = allItems.filter(it => !isPastDate(it.data.date)).length;
+  const pastCount = allItems.length - upcomingCount;
+
   const conflictCount = grahanData?.eclipses.filter(
     e => e.festival_conflict && e.festival_conflict.length > 0
   ).length ?? 0;
@@ -638,45 +789,99 @@ export default function GrahanPage() {
           )}
           {festData && (
             <>
-              {/* Build unified timeline: festivals + eclipses sorted by date */}
-              {(() => {
-                type TimelineItem =
-                  | { kind: "festival"; data: FestivalEntry }
-                  | { kind: "eclipse";  data: Eclipse };
+              {/* ── Search bar ── */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search festivals, deities, Hindi name…"
+                  className="w-full pl-9 pr-9 py-2.5 text-sm bg-muted/30 border border-border/40 rounded-xl text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 focus:bg-muted/50 transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
 
-                const items: TimelineItem[] = [
-                  ...festData.festivals.map(f => ({ kind: "festival" as const, data: f })),
-                  ...(grahanData?.eclipses ?? []).map(e => ({ kind: "eclipse" as const, data: e })),
-                ].sort((a, b) => {
-                  const da = a.kind === "festival" ? a.data.date : a.data.date;
-                  const db = b.kind === "festival" ? b.data.date : b.data.date;
-                  return da < db ? -1 : da > db ? 1 : 0;
-                });
+              {/* ── Month jump pills ── */}
+              {!searchQuery && (
+                <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                  {monthGroups.map(([key]) => {
+                    const isCur = key === curMonthKey;
+                    const isPast = key < curMonthKey;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => document.getElementById(`month-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                        className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border transition-colors ${
+                          isCur
+                            ? "bg-amber-500/20 text-amber-700 border-amber-400/50 font-semibold"
+                            : isPast
+                            ? "bg-muted/20 text-muted-foreground/50 border-border/20 hover:bg-muted/40"
+                            : "bg-muted/20 text-muted-foreground border-border/30 hover:bg-muted/40"
+                        }`}
+                      >
+                        {monthKeyShort(key)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
-                const eclipseCount = grahanData?.eclipses.length ?? 0;
-
-                return (
+              {/* ── Stats ── */}
+              <p className="text-xs text-muted-foreground">
+                {searchQuery ? (
+                  <span>{filteredItems.length} result{filteredItems.length !== 1 ? "s" : ""} for <span className="text-foreground font-medium">"{searchQuery}"</span></span>
+                ) : (
                   <>
-                    <p className="text-xs text-muted-foreground">
-                      {festData.festivals.length} {t("grahan.festivals_label")}
-                      {eclipseCount > 0 && (
-                        <> + <span className="text-red-400">{eclipseCount} {t("grahan.eclipse_label", { count: eclipseCount })}</span></>
-                      )}{" "}
-                      · {t("grahan.sorted_by_date")} ·{" "}
-                      <span className="text-red-400/80">{t("grahan.red_border_note")}</span>
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                      {items.map((item, i) =>
-                        item.kind === "eclipse" ? (
-                          <EclipseInlineCard key={`eclipse-${item.data.date}`} eclipse={item.data} index={i} />
-                        ) : (
-                          <FestivalCard key={item.data.name} festival={item.data} index={i} />
-                        )
-                      )}
-                    </div>
+                    <span className="text-amber-700 font-medium">{upcomingCount} upcoming</span>
+                    {pastCount > 0 && <> · <span className="text-muted-foreground/60">{pastCount} past</span></>}
+                    {(grahanData?.eclipses.length ?? 0) > 0 && (
+                      <> · <span className="text-red-500/70">{grahanData!.eclipses.length} eclipse{grahanData!.eclipses.length > 1 ? "s" : ""}</span></>
+                    )}
                   </>
-                );
-              })()}
+                )}
+              </p>
+
+              {/* ── Search results (flat) ── */}
+              {searchQuery && (
+                filteredItems.length === 0 ? (
+                  <div className="text-center py-10 text-muted-foreground text-sm">
+                    No festivals found for "{searchQuery}"
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-stretch">
+                    {filteredItems.map((item, i) =>
+                      item.kind === "eclipse" ? (
+                        <EclipseInlineCard key={`eclipse-${item.data.date}`} eclipse={item.data} index={i} />
+                      ) : (
+                        <FestivalCard key={item.data.name} festival={item.data} index={i} />
+                      )
+                    )}
+                  </div>
+                )
+              )}
+
+              {/* ── Month grouped sections ── */}
+              {!searchQuery && (
+                <div className="space-y-3">
+                  {monthGroups.map(([key, groupItems]) => (
+                    <MonthSection
+                      key={key}
+                      monthKey={key}
+                      items={groupItems}
+                      isCurrent={key === curMonthKey}
+                      isPastMonth={key < curMonthKey}
+                    />
+                  ))}
+                </div>
+              )}
             </>
           )}
         </TabsContent>

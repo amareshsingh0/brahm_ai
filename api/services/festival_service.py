@@ -1318,6 +1318,270 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "fast_note": "Fast until evening Dattatreya Puja. Dattatreya Stotram, Guru Charitra (Marathi text), and charity to Brahmin/Guru. Offer cooked rice to Dattatreya.",
      "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 12, "approx_day": 15}},
 
+    # ─── Chhath Puja — 4-Day Breakdown ──────────────────────────────────────────
+    {"name": "Chhath Puja — Nahay Khay", "hindi": "छठ पूजा — नहाय खाय",   "icon": "🛁",
+     "deity": "Surya",            "month": "Kartik",
+     "significance": "Kartik Shukla Chaturthi. First day of Chhath Puja. Devotees take holy bath (Ganga, river, or pond), wash house, cook single sattvic meal (lauki bhaat — bottle gourd rice). Symbolises purification before the 4-day solar worship.",
+     "fast_note": "Partial fast: one meal only (lauki/kaddu + chana dal + rice cooked in bronze/clay vessel, no salt). No onion/garlic. Bath in river/holy water. Rest of family also eats sattvic food.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 4, "approx_month": 11, "approx_day": 7}},
+
+    {"name": "Chhath Puja — Kharna",     "hindi": "छठ पूजा — खरना",        "icon": "🍚",
+     "deity": "Surya",            "month": "Kartik",
+     "significance": "Kartik Shukla Panchami. Second day of Chhath Puja. Kharna — devotees observe full-day nirjala fast (no food, no water). In the evening they prepare kheer (rice pudding with jaggery) and rotis as prasad for Chhathi Maiya. Fast is broken after sunset puja with kheer+roti.",
+     "fast_note": "Nirjala fast all day. Evening: cook kheer (rice + jaggery + milk in clay pot on mango-wood fire) and wheat rotis. Offer to Chhathi Maiya, then break fast. Post-Kharna: 36-hour continuous nirjala fast begins for the vrati.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 5, "approx_month": 11, "approx_day": 8}},
+
+    {"name": "Chhath Puja — Sandhya Arghya", "hindi": "छठ पूजा — संध्या अर्घ्य", "icon": "🌅",
+     "deity": "Surya",            "month": "Kartik",
+     "significance": "Kartik Shukla Shashthi. Third and main day of Chhath Puja. Devotees (vrati) carry bamboo baskets (sup/daura) filled with fruits, thekua, sugar cane, and prasad to river/pond bank. Sandhya Arghya (evening offering) is given to the setting sun. Massive community gatherings at ghats.",
+     "fast_note": "36-hour Nirjala Vrat continues (started Kharna evening). No food, no water. Reach ghat 2 hours before sunset. Offer Arghya to setting sun with fruits, thekua, coconut, sugarcane in bamboo sup. Standing in water if possible. Return home, keep vigil all night.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 6, "approx_month": 11, "approx_day": 9}},
+
+    {"name": "Chhath Puja — Usha Arghya", "hindi": "छठ पूजा — उषा अर्घ्य",   "icon": "🌄",
+     "deity": "Surya",            "month": "Kartik",
+     "significance": "Kartik Shukla Saptami. Fourth and final day of Chhath Puja. Usha Arghya — devotees return to ghat before sunrise and offer Arghya to the rising sun. This concludes the 36-hour nirjala fast. The vrati finally breaks fast with thekua, ginger, and water. One of the most spiritually powerful moments of Chhath.",
+     "fast_note": "Reach ghat well before sunrise. Offer Arghya to rising sun. After Arghya complete: break 36-hour nirjala fast with: 1 small piece of thekua + raw ginger + water first, then full prasad. Distribute thekua, fruits, sugarcane to all.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 11, "approx_day": 10}},
+
+    # ─── Regional & South Indian Festivals ──────────────────────────────────────
+    {"name": "Vishu",                    "hindi": "विषु",                    "icon": "🌾",
+     "deity": "Lord Vishnu / Krishna", "month": "Mesha (Solar)",
+     "significance": "Kerala New Year. Sun enters Mesha Rashi (Aries) — astronomical new year (same as Baisakhi / Puthandu). Vishukkani ceremony: early morning the first sight (kani) must be auspicious objects — Vishnu idol, fruits, vegetables, gold, coins, rice, kani konna flowers (Cassia fistula). Vishu Kaineettam (elders gift money to children). Grand fireworks (Vishuppadakam).",
+     "fast_note": "No strict vrat. Wake before sunrise. First sight (Vishukkani): look at Vishnu/Krishna idol surrounded by Kani Konna flowers, fruits (jackfruit, cucumber, mango), raw rice, gold, betel leaves, mirror. Light traditional lamp (nilavilakku). Receive Kaineettam from elders.",
+     "rule": {"type": "solar", "approx_month": 4, "approx_day": 14}},
+
+    {"name": "Chithra Pournami",         "hindi": "चित्रा पूर्णिमा",         "icon": "🌕",
+     "deity": "Chitra Gupta",     "month": "Chaitra",
+     "significance": "Chaitra Purnima (Full Moon in Chitra Nakshatra). Chitragupta Puja — worship of Chitragupta who maintains karmic records of all beings. Tamil Nadu's major festival: Chithirai Full Moon. Holy dip in tanks of Madurai Meenakshi temple. Chitragupta — the divine accountant of Yama — is worshipped for removal of sins.",
+     "fast_note": "Fast until moonrise. Chitragupta Puja with pen, inkpot, account books (symbolising karmic ledger). Offer: betel nut, flowers, lamp, sweets. Holy bath in river or temple tank. Charity and feeding of poor. Break fast after moonrise puja.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 4, "approx_day": 12}},
+
+    {"name": "Panguni Uthiram",          "hindi": "पंगुनी उत्तिरम",          "icon": "🌸",
+     "deity": "Lord Murugan / Shiva-Parvati", "month": "Phalguna",
+     "significance": "Phalguna (Panguni) Purnima with Uttara Phalguni Nakshatra. One of Tamil Nadu's most auspicious festivals. Celestial weddings: Shiva-Parvati, Murugan-Devasena, Murugan-Valli. Celebrated grandly at Tiruchendur, Palani Murugan temples and Madurai Meenakshi temple (Celestial Wedding of Meenakshi-Sundareswarar). Kavadi processions.",
+     "fast_note": "Pournami fast until moonrise. Murugan / Shiva-Parvati puja. Visit Murugan or Shiva temple. Kavadi or Pal Kodam (pot of milk) offering. Archana with 108 names. Abishekam (milk, curd, honey, rosewater) on Shivalinga.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 3, "approx_day": 25}},
+
+    {"name": "Thiruvathira",             "hindi": "थिरुवातिरा",               "icon": "💃",
+     "deity": "Lord Shiva",       "month": "Margashirsha",
+     "significance": "Margashirsha Purnima / Ardra Nakshatra (Thiruvadhirai). Kerala festival dedicated to Lord Shiva. Ardra Nakshatra on Margashirsha Purnima — considered Shiva's birth star. Women (especially married) observe Thiruvathira Vrat for husband's long life. All-night singing and Thiruvathirakali (circle dance). Preparation of kali (rice porridge) and ellu (sesame) dishes.",
+     "fast_note": "Women's vrat: fast the day before (Purnima eve). On Thiruvathira: wake early, ritual bath, kolam (rangoli). Fast all day — only fruits or light kali after puja. Thiruvathirakali dance in evening in groups of 8. Break fast after Ardra Nakshatra period ends.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 12, "approx_day": 20}},
+
+    {"name": "Karthigai Deepam",         "hindi": "कार्तिगई दीपम",            "icon": "🔦",
+     "deity": "Lord Shiva (Annamalaiyar)", "month": "Kartik",
+     "significance": "Kartik Purnima (Karthigai month in Tamil calendar) with Krittika Nakshatra. Tamil Nadu's Festival of Lights — older than Diwali in South India. Shiva appeared as a pillar of fire (Jyoti Lingam) on Tiruvannamalai hill (Annamalai). The beacon fire (Maha Deepam) lit on top of Tiruvannamalai hill is visible for miles. Every home lit with rows of clay lamps (karthigai vilakku). Celebrated on Karthigai Masa Purnima.",
+     "fast_note": "Light clay lamps (karthigai vilakku) throughout the house at dusk — rows on steps, roof, courtyard. Special dishes: pori urundai (puffed rice balls), kadalai mittai, appam. Tiruvannamalai Girivalam (circumambulation of Annamalai hill, 14km) on this night. No strict vrat — lamps and puja required.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 11, "approx_day": 27}},
+
+    {"name": "Vara Lakshmi Vratam",      "hindi": "वरलक्ष्मी व्रतम",           "icon": "🪙",
+     "deity": "Goddess Lakshmi",  "month": "Shravana",
+     "significance": "Shravana Shukla Friday (last/second-last Friday before Purnima). Worship of Vara Lakshmi — boon-giving form of Goddess Lakshmi. Predominantly celebrated in Andhra Pradesh, Telangana, Karnataka, Tamil Nadu by married women for the well-being and prosperity of family. Kalasha Puja: a pot (kalasha) adorned with mango leaves and coconut represents Lakshmi. Lakshmi Ashtottara (108 names) recited.",
+     "fast_note": "Women's vrat: dawn bath, dress in new clothes. Set up Vara Lakshmi Kalasha with turmeric, kumkum, silk sari, flowers, fruits. Draw rangoli (muggulu). Puja with 108 names (Lakshmi Ashtottara). Akshata (rice+turmeric) offerings. Dinner shared with neighbors. Break fast after evening puja.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 13, "approx_month": 8, "approx_day": 10}},
+
+    {"name": "Aadi Perukku",             "hindi": "आदि पेरुक्कू",              "icon": "🌊",
+     "deity": "Goddess Kaveri / River Goddess", "month": "Aadi (Solar)",
+     "significance": "18th day of Aadi (Tamil solar month, mid-July to mid-August). Celebration of rivers and water bodies — especially Kaveri river. Women worship rivers for their life-giving nature. The river rises and overflows (perukku = to rise) during monsoon. Families picnic on river banks. Pongal-like sweet rice (aadi koozh) offered to rivers. Predominantly Tamil Nadu — also known as Aadi Pathinettam Perukku.",
+     "fast_note": "No strict vrat. Visit river or water body (especially Kaveri). Women offer flowers, bananas, betel, turmeric-kumkum to river. Cook sweet rice (aadi koozh / sweet pongal). Picnic on river banks with family. Return home before sunset.",
+     "rule": {"type": "solar", "approx_month": 8, "approx_day": 2}},
+
+    # ─── Gupta Navratri ──────────────────────────────────────────────────────────
+    {"name": "Ashadha (Gupta) Navratri", "hindi": "आषाढ़ गुप्त नवरात्रि",     "icon": "🔐",
+     "deity": "Goddess Durga (10 Mahavidyas)", "month": "Ashadha",
+     "significance": "Ashadha Shukla Pratipada to Navami (9 nights). Gupta Navratri — 'secret' Navratri observed by Tantric practitioners and Shakti devotees. Worship of the 10 Mahavidyas (Kali, Tara, Tripura Sundari, Bhuvaneshvari, Bhairavi, Chhinnamasta, Dhumavati, Bagalamukhi, Matangi, Kamala). Less publicly celebrated than Chaitra/Sharad Navratris but equally powerful for Tantra sadhana.",
+     "fast_note": "9-day Devi vrat. Ghatasthapana on Pratipada. Daily Devi puja (Durga Saptashati or Mahavidya mantras). Strict sattvic diet or full fast. Midnight Tantric puja optional (Gupta means secret — deeper sadhana). Kanya Puja on Ashtami or Navami. Havan on Navami.",
+     "rule": {"type": "tithi_range", "paksha": "S", "num": 1, "length": 9, "approx_month": 7, "approx_day": 1}},
+
+    {"name": "Magha (Gupta) Navratri",   "hindi": "माघ गुप्त नवरात्रि",        "icon": "❄️",
+     "deity": "Goddess Durga (10 Mahavidyas)", "month": "Magha",
+     "significance": "Magha Shukla Pratipada to Navami (9 nights). Second Gupta Navratri of the year. Winter Navratri observed by Shakti and Tantric devotees. Worship of 10 Mahavidyas. Less publicly known but highly important in Shakta tradition. Bagalamukhi and Tara are especially propitiated in this Navratri.",
+     "fast_note": "9-day Devi vrat. Ghatasthapana on Pratipada. Daily Devi Saptashati recitation. Sattvic diet (no onion, garlic, non-veg). Midnight Mahavidya puja for deeper practitioners. Kanya Puja on Ashtami. Havan on Navami. Complete fast or one-meal-a-day (phalahar).",
+     "rule": {"type": "tithi_range", "paksha": "S", "num": 1, "length": 9, "approx_month": 2, "approx_day": 2}},
+
+    # ─── Recurring Vrats ─────────────────────────────────────────────────────────
+    {"name": "Pradosh Vrat (Shukla)",    "hindi": "प्रदोष व्रत (शुक्ल)",       "icon": "🌙",
+     "deity": "Lord Shiva",       "month": "Recurring",
+     "significance": "Shukla Trayodashi (13th lunar day, waxing fortnight). Pradosh Vrat — Shiva and Parvati are in an especially joyful mood during Pradosh Kaal (1.5 hours around sunset on Trayodashi). Lord Shiva performs the cosmic dance (Tandava) during Pradosh. Most powerful Shiva vrat — all sins destroyed, liberation attained. Somavar Pradosh (Monday) and Shani Pradosh (Saturday) are extra potent.",
+     "fast_note": "Fast all day until Pradosh Kaal (approx. 1.5 hrs before to after sunset). Abhishek of Shivalinga: milk, curd, honey, gangajal, bilva (bael) leaves. Pradosh Stotra recitation. Break fast after puja in Pradosh Kaal. Om Namah Shivaya japa (108 times minimum).",
+     "rule": {"type": "tithi", "paksha": "S", "num": 13, "approx_month": 1, "approx_day": 10}},
+
+    {"name": "Pradosh Vrat (Krishna)",   "hindi": "प्रदोष व्रत (कृष्ण)",       "icon": "🌙",
+     "deity": "Lord Shiva",       "month": "Recurring",
+     "significance": "Krishna Trayodashi (13th lunar day, waning fortnight). Pradosh Vrat — Shiva worship during Pradosh Kaal at dusk. Krishna Paksha Pradosh is equally powerful as Shukla Paksha Pradosh. Shani Pradosh (Saturday Krishna Trayodashi) is especially potent for removing Saturn afflictions.",
+     "fast_note": "Fast all day until Pradosh Kaal (1.5 hrs before sunset to 1.5 hrs after). Shiva Abhishek with panchamrit, bilva leaves. Pradosh Katha or Stotra. Break fast after sunset puja. Observe Brahmacharya on this day.",
+     "rule": {"type": "tithi", "paksha": "K", "num": 13, "approx_month": 1, "approx_day": 25}},
+
+    {"name": "Kojagiri Purnima",         "hindi": "कोजागिरी पूर्णिमा",         "icon": "🌕",
+     "deity": "Goddess Lakshmi",  "month": "Ashwin",
+     "significance": "Ashwin Shukla Purnima (Sharad Purnima / Kumar Purnima / Kojagari Purnima). Most significant Purnima of the year — moon is closest (perigee) and brightest. Goddess Lakshmi descends at midnight and asks 'Ko jagarti?' (Who is awake?). Nectar (amrit) falls from the moon into rice/milk kept in moonlight. Special kheer (rice-milk) left in moonlight absorbs divine nectar. Celebrated as Kumar Purnima in Odisha.",
+     "fast_note": "Fast until moonrise. Cook kheer in open vessel, place in bright moonlight from moonrise to midnight. Lakshmi Puja at midnight. Then consume the moonlit kheer. Stay awake all night (Jagaran) playing cards/dice — symbolises being 'awake' when Lakshmi asks. Distribute kheer. No salt after sunset.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 10, "approx_day": 17}},
+
+    # ─── Bengali & Eastern Festivals ─────────────────────────────────────────────
+    {"name": "Poila Boishakh",           "hindi": "पोइला बैशाख",               "icon": "🎊",
+     "deity": "Lord Vishnu / Goddess Lakshmi", "month": "Mesha (Solar)",
+     "significance": "Bengali New Year. Sun enters Mesha Rashi (Aries). 1st day of Boishakh (Bengali calendar, approx. April 14-15). Celebrated in West Bengal, Bangladesh, and worldwide Bengali diaspora. Hal Khata (new account books opened by merchants — Lakshmi Ganesh Puja). Mangal Shobhajatra (UNESCO listed) procession in Dhaka. New clothes, sweets (mishti doi, sandesh), visits to relatives.",
+     "fast_note": "No strict vrat. Morning bath, new clothes. Visit Lakshmi-Ganesh temple for Hal Khata puja (if merchant/businessman). Eat traditional foods: muri-moa, mishti doi, ilish (hilsa) fish. Evening cultural programs. Greet with 'Shubho Nababarsha' (Happy New Year in Bengali).",
+     "rule": {"type": "solar", "approx_month": 4, "approx_day": 15}},
+
+    {"name": "Durga Puja (Saptami)",     "hindi": "दुर्गा पूजा — सप्तमी",      "icon": "🪆",
+     "deity": "Goddess Durga",    "month": "Ashwin",
+     "significance": "Ashwin Shukla Saptami. First major day of Durga Puja (Bengal's greatest festival, also celebrated in Odisha, Assam, Jharkhand). Nabapatrika (9 plants representing 9 forms of Durga) installed and worshipped. Grand pandals (temporary temples) across Bengal light up. Goddess Durga idol (clay, 10-hands, with Lakshmi-Saraswati-Kartik-Ganesha) unveiled. Dhak drums fill the air.",
+     "fast_note": "Partial fast on Saptami morning until Nabapatrika puja. Wear new clothes. Visit pandals. Dhuno daan (myrrh/incense offering). Anjali (flower offering) in morning at pandals. Prasad: khichdi, labra (mixed vegetables), payesh.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 10, "approx_day": 2}},
+
+    {"name": "Durga Puja (Ashtami)",     "hindi": "दुर्गा पूजा — अष्टमी",      "icon": "⚔️",
+     "deity": "Goddess Durga",    "month": "Ashwin",
+     "significance": "Ashwin Shukla Ashtami. Peak day of Durga Puja. Sandhi Puja at the junction of Ashtami-Navami (most powerful moment — Goddess destroys Chanda-Munda demons). 108 lamps lit. Pushpanjali in early morning with 108 lotus flowers or bel leaves. Kumari Puja (worship of young pre-pubescent girls as Devi). Dhunuchi Naach (clay pot dance with burning coconut husk). Sindur Khela for married women.",
+     "fast_note": "Ashtami fast: no grains. Pushpanjali in morning (3 times: 5 AM, 8 AM, 10 AM approx). Sandhi Puja: fast until completion. Prasad only after puja. Kumari Puja: worship young girls with feet-washing, sindur, sweets. Break fast after Sandhi Puja.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 8, "approx_month": 10, "approx_day": 3}},
+
+    {"name": "Durga Puja (Navami)",      "hindi": "दुर्गा पूजा — नवमी",        "icon": "🏺",
+     "deity": "Goddess Durga",    "month": "Ashwin",
+     "significance": "Ashwin Shukla Navami. Mahanavami — Durga's final battle victory day. Grand Navami Puja with Mahasnan (ritual bath of Durga idol). Havan and Bali (symbolic sacrifice with vegetables). Last Pushpanjali. Bhog (khichdi, labra, chutney, payesh) offered grandly. Devotees spend maximum time at pandals. Navami evening — families gather for final celebration.",
+     "fast_note": "Navami fast until afternoon Havan. Mahanavami Havan with 108 ahutis. Final Pushpanjali with bel leaves. Grand Bhog distribution after puja. Evening: Navami feast with traditional Bengali dishes. Married women Sindur Khela begins tonight.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 9, "approx_month": 10, "approx_day": 4}},
+
+    {"name": "Kali Puja",                "hindi": "काली पूजा",                  "icon": "🌑",
+     "deity": "Goddess Kali",     "month": "Kartik",
+     "significance": "Kartik Krishna Amavasya (same night as Diwali). Bengal's Shyama Puja / Kali Puja. While North India worships Lakshmi on Diwali night, Bengal worships Goddess Kali — the fierce destroyer of evil. Tantric midnight puja. Grand Kali pandals in Kolkata. Fireworks. Rani Rashmoni's Kalighat and Dakshineswar Kali temples are especially significant.",
+     "fast_note": "Fast from morning until midnight puja. Kali Puja starts at midnight (Nishita Kaal). Offerings: red hibiscus, fish, rice, black sesame, bilva leaves. Tantric puja with mantras. Animal offerings are traditional at some temples. Break fast after midnight puja with prasad.",
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 11, "approx_day": 1}},
+
+    {"name": "Manasa Puja",              "hindi": "मनसा पूजा",                  "icon": "🐍",
+     "deity": "Goddess Manasa",   "month": "Shravana",
+     "significance": "Shravana month / Nag Panchami period. Manasa Devi — Snake Goddess, daughter of Shiva, goddess of snakes and protection from snakebite. Worshipped throughout Bengal, Odisha, Bihar, Jharkhand. Manasha Pala (folk narrative songs about Manasa) recited by women. Mud images of Manasa placed under trees. Especially popular in rural Bengal and the Sundarbans region.",
+     "fast_note": "Women's vrat in Shravana. Fast on the day of Manasa Puja. Offer: milk, flowers (white), fish (in some traditions), bananas to Manasa image. Manasha Pala (devotional songs) recited. Do not harm snakes during Shravana. Break fast after evening puja.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 5, "approx_month": 8, "approx_day": 9}},
+
+    {"name": "Bishwakarma Puja",         "hindi": "विश्वकर्मा पूजा",             "icon": "⚙️",
+     "deity": "Vishwakarma",      "month": "Bhadrapada / Solar",
+     "significance": "Solar calendar: Sun in Virgo (Kanya Sankranti, approx September 17). Vishwakarma — divine architect of the gods who built Lanka, Dwarka, and Indra's heaven. Factories, workshops, machines, vehicles, tools are worshipped. Entire industrial Bengal/Jharkhand/Odisha shuts down — workers worship their machines. Kite flying (paatla hawa) popular in Bengal on this day. Aircraft, ships, cars decorated with flowers.",
+     "fast_note": "No strict vrat. Morning puja of machines, tools, vehicles with flowers, sindur, incense. Vishwakarma idol placed in workplace. Offerings: fruits, sweets, betel. Do not use machines until puja complete. Evening feast and kite flying. No work order on this day.",
+     "rule": {"type": "solar", "approx_month": 9, "approx_day": 17}},
+
+    {"name": "Tusu Puja",                "hindi": "टुसू पूजा",                  "icon": "🌻",
+     "deity": "Goddess Tusu",     "month": "Paush",
+     "significance": "Paush month (December–January), concluding on Makar Sankranti / Poush Sankranti. Tusu Puja — tribal and folk festival of Jharkhand, West Bengal (Purulia, Bankura, Bardhaman), and Odisha. Young unmarried girls worship Tusu Devi (goddess of harvest and prosperity) throughout Paush month. On the last day (Poush Sankranti), Tusu is immersed in water with singing and dancing. Chaur (folk songs) sung every evening.",
+     "fast_note": "Month-long observation by unmarried girls. Tusu image (clay, rice husk, or flowers) installed in a decorated palanquin (chaura). Daily evening songs (Tusu Gaan) and lamp lighting. No non-vegetarian food during Paush. Final immersion on Makar Sankranti day with procession and song.",
+     "rule": {"type": "solar", "approx_month": 1, "approx_day": 14}},
+
+    {"name": "Bandna Parab",             "hindi": "बंदना परब",                  "icon": "🐄",
+     "deity": "Lord Vishnu / Cattle Goddess", "month": "Kartik",
+     "significance": "Kartik month, around Diwali period. Tribal and folk festival of Jharkhand, Bengal, and Odisha — cattle worship festival (similar to Govardhan Puja). Adivasi and farming communities worship cows, bullocks, plough tools. Houses decorated with floral art. Community singing, traditional games. Marks end of agricultural season and harvest thanksgiving.",
+     "fast_note": "No strict vrat. Bathe and decorate cattle with turmeric, sindur, marigold garlands. Offer: grass, gram, jaggery to cattle. Puja of plough and farming tools. Community feast with tribal food (handia rice beer in some communities). Songs and dance (jhumar) in evening.",
+     "rule": {"type": "tithi", "paksha": "K", "num": 14, "approx_month": 11, "approx_day": 2}},
+
+    # ─── Maharashtra Regional Festivals ──────────────────────────────────────────
+    {"name": "Bail Pola",                "hindi": "बैल पोला",                   "icon": "🐂",
+     "deity": "Cattle / Lord Shiva",  "month": "Shravana / Bhadrapada",
+     "significance": "Shravana or Bhadrapada Krishna Amavasya (Pithori Amavasya). Maharashtra's Bull Worshipping festival. Farmers decorate bullocks with colourful clothes, bells, garlands, and sindur. Wooden toy bulls (khilobale) for children. Procession of decorated bulls through village streets. Bullock races in some areas. Expresses gratitude to bulls for their year-round farming assistance.",
+     "fast_note": "No strict vrat. Bathe and decorate bulls with turmeric (haldi), oil, kumkum, garlands of flowers and marigold. Paint horns in colours. Feed special food: cooked rice, jaggery, gram. New bell and rope for bull. Mahila (women) cook puran poli and chakali as prasad. Procession with dhol-tasha music.",
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 8, "approx_day": 28}},
+
+    # ─── Pushkar & Pilgrimage Festivals ──────────────────────────────────────────
+    {"name": "Pushkar Mela",             "hindi": "पुष्कर मेला",                "icon": "🐪",
+     "deity": "Lord Brahma",      "month": "Kartik",
+     "significance": "Kartik Shukla Ekadashi to Purnima (5 days, peaks on Purnima). World's largest camel fair and one of India's most sacred pilgrimages. Pushkar — only temple to Lord Brahma in the world. The sacred Pushkar Lake was created when Brahma dropped a lotus here. Holy bath in Pushkar Lake on Kartik Purnima grants moksha. Camel trading, folk performances, hot air balloons. UNESCO recognized.",
+     "fast_note": "Kartik Purnima: mandatory holy bath (Pushkar Snan) in Pushkar Lake (52 ghats). Brahma temple puja. Offer: lotus flowers, camphor, coins to Pushkar Lake. Lamp floating (diya) on lake. 5-day mela: arrive by Ekadashi. Strict no-meat, no-alcohol zone near Pushkar. Stay for Purnima snan.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 11, "approx_day": 26}},
+
+    # ─── Kartik Snan ─────────────────────────────────────────────────────────────
+    {"name": "Kartik Snan Aarambha",     "hindi": "कार्तिक स्नान आरंभ",         "icon": "🌅",
+     "deity": "Lord Vishnu",      "month": "Ashwin",
+     "significance": "Ashwin/Kartik Amavasya (Diwali Amavasya) to Kartik Purnima — 30-day holy bath observance. Kartik Snan: the most meritorious of all holy baths, performed before sunrise at rivers, ponds, or water bodies throughout Kartik month. Devotees (especially women) wake at Brahma Muhurta (4 AM) and take holy bath, light diyas, perform Tulsi puja. Equal in merit to bathing at all tirthas. Varanasi Panchkosi Yatra during this month.",
+     "fast_note": "Daily Brahma Muhurta bath for full month. After bath: light diya near Tulsi plant. Sattvic diet whole month. Ekadashi and Purnima fasts are especially meritorious in Kartik. Charity (feeding Brahmins, poor) every day if possible. Avoid non-veg, alcohol. Read Vishnu Sahasranama or Bhagavata Purana.",
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 11, "approx_day": 1}},
+
+    # ─── Assamese Festival ────────────────────────────────────────────────────────
+    {"name": "Bohag Bihu (Rongali Bihu)", "hindi": "बोहाग बिहू (रोंगाली बिहू)", "icon": "🌿",
+     "deity": "Nature / Cattle",  "month": "Mesha (Solar)",
+     "significance": "Assamese New Year. Sun enters Mesha (Aries) — same as Baisakhi/Vishu/Puthandu but with Assamese traditions. Rongali = joyful; 7-day celebration. First day (Goru Bihu): cattle washed with turmeric and fed special food. Second day (Manuh Bihu): humans exchange gamosa (cotton towel) and pitha (rice cake). Traditional Bihu dance (Bihu Naas) in groups. Bihu songs (Bihu geet). Most festive New Year of Northeast India.",
+     "fast_note": "No strict vrat. Goru Bihu (Day 1): bathe cattle before sunrise with turmeric, feed with gourd, brinjal, pulses. Manuh Bihu (Day 2): exchange gamosa and pitha with elders. Wear traditional mekhela chador (women) / dhoti-gamosa (men). Cook: til pitha (sesame rice cake), ghila pitha, sunga pitha. Bihu dance in community.",
+     "rule": {"type": "solar", "approx_month": 4, "approx_day": 14}},
+
+    # ─── Additional Vrat / Tithi ─────────────────────────────────────────────────
+    {"name": "Vaikunta Ekadashi (South)", "hindi": "वैकुंठ एकादशी",             "icon": "🚪",
+     "deity": "Lord Vishnu",      "month": "Margashirsha",
+     "significance": "Margashirsha Shukla Ekadashi (same day as Geeta Jayanti in North). In South India (especially Tamil Nadu, Andhra, Karnataka), this is Vaikunta Ekadashi — the most important Ekadashi of all 24. The Vaikunta Dwaram (gate to heaven) at Srirangam and Tirupati is symbolically opened. Thousands queue overnight to enter the temple through the Swarga Vasal (heaven gate) at first light. Vishnu's grace is 1000x on this day.",
+     "fast_note": "Ekadashi Vrat: no grains (most devotees do nirjala fast). At Srirangam, Tirupati, Parthasarathy (Chennai): arrive night before, queue overnight to enter through Swarga Vasal at dawn. Recite Vishnu Sahasranama, Thiruvaymoli (Divya Prabandham). Break fast on Dwadashi (Vaikunta Dwadashi) with Pancharatna Kootu and rice.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 12, "approx_day": 7, "special": "ekadashi_viddha"}},
+
+    # ─── Chaitra Chhath — 4-Day Breakdown ───────────────────────────────────────
+    {"name": "Chaitra Chhath — Nahay Khay", "hindi": "चैत्र छठ — नहाय खाय",  "icon": "🛁",
+     "deity": "Surya",            "month": "Chaitra",
+     "significance": "Chaitra Shukla Chaturthi. First day of Chaitra Chhath Puja — less widely observed than Kartik Chhath but equally sacred in Bihar, UP, and Jharkhand. Devotees take holy bath and cook a single sattvic meal (lauki/kaddu + chana dal + rice). Marks beginning of the 4-day Surya worship cycle in spring.",
+     "fast_note": "Partial fast: one meal only (lauki/kaddu + chana dal + rice in bronze/clay vessel, no salt). No onion/garlic. Holy bath in river or pond at dawn. Sattvic food for entire family. Prepare for Kharna next day.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 4, "approx_month": 4, "approx_day": 3}},
+
+    {"name": "Chaitra Chhath — Kharna",     "hindi": "चैत्र छठ — खरना",       "icon": "🍚",
+     "deity": "Surya",            "month": "Chaitra",
+     "significance": "Chaitra Shukla Panchami. Second day of Chaitra Chhath. Kharna — full-day nirjala fast (no food, no water). Evening: kheer (rice+jaggery) and wheat rotis prepared as prasad. Fast broken after sunset puja. After Kharna the 36-hour continuous nirjala vrat begins for the vrati.",
+     "fast_note": "Nirjala fast all day. Evening: cook kheer in clay pot on mango-wood fire + wheat rotis. Offer to Chhathi Maiya and break fast. Post-Kharna: 36-hour continuous nirjala fast begins — no food, no water until Usha Arghya.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 5, "approx_month": 4, "approx_day": 4}},
+
+    {"name": "Chaitra Chhath — Sandhya Arghya", "hindi": "चैत्र छठ — संध्या अर्घ्य", "icon": "🌅",
+     "deity": "Surya",            "month": "Chaitra",
+     "significance": "Chaitra Shukla Shashthi. Third and main day of Chaitra Chhath. Sandhya Arghya — evening offering to the setting sun at river/pond ghat with bamboo baskets of fruits, thekua, sugarcane, and coconut. 36-hour nirjala fast continues. All-night vigil follows.",
+     "fast_note": "36-hour Nirjala Vrat continues. No food, no water. Reach ghat 2 hours before sunset with bamboo sup. Offer Arghya to setting sun with fruits, thekua, coconut, sugarcane. Stand in water if possible. Keep all-night vigil after returning.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 6, "approx_month": 4, "approx_day": 5}},
+
+    {"name": "Chaitra Chhath — Usha Arghya", "hindi": "चैत्र छठ — उषा अर्घ्य",  "icon": "🌄",
+     "deity": "Surya",            "month": "Chaitra",
+     "significance": "Chaitra Shukla Saptami. Final day of Chaitra Chhath. Usha Arghya — pre-dawn arrival at ghat, offering to the rising sun. Concludes the 36-hour nirjala fast. Vrati breaks fast with thekua, raw ginger, and water after sunrise Arghya. Prasad (thekua, fruits, sugarcane) distributed to all.",
+     "fast_note": "Reach ghat before sunrise. Offer Arghya to rising sun in water. After sunrise Arghya complete: break 36-hour fast with thekua + raw ginger + water. Then full prasad. Distribute to all present. Chaitra Chhath complete.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 4, "approx_day": 6}},
+
+    # ─── Kumbh Mela ───────────────────────────────────────────────────────────────
+    {"name": "Kumbh Mela (Prayagraj)",   "hindi": "कुंभ मेला (प्रयागराज)",     "icon": "🏺",
+     "deity": "Lord Vishnu / Triveni Sangam", "month": "Magha / Phalguna",
+     "significance": "Magha Shukla Ekadashi to Mahashivaratri period (every 12 years at Prayagraj — Purna Kumbh; every 6 years — Ardha Kumbh; every year — Magh Mela). Jupiter in Aries + Sun in Aries + Moon in Aries (Makar Sankranti triggers the opening). World's largest human gathering. Holy bath at Triveni Sangam (confluence of Ganga, Yamuna, Saraswati) destroys all sins and grants moksha. Major Shahi Snan (royal bath) dates: Makar Sankranti, Mauni Amavasya, Basant Panchami, Maghi Purnima, Mahashivaratri.",
+     "fast_note": "Shahi Snan (Royal Bath) on auspicious dates — arrive before dawn. Bath at Triveni Sangam at Prayagraj. Donate to sadhus and saints. Attend Satsang and Pravachan in Kalpa Vasa camps. Kalpa Vasa: month-long stay at Sangam (sleeping on ground, one meal/day, total celibacy). Charity (Anna Daan) daily during Kumbh.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 1, "approx_day": 23}},
+
+    # ─── Dol Purnima ──────────────────────────────────────────────────────────────
+    {"name": "Dol Purnima",              "hindi": "डोल पूर्णिमा",               "icon": "🎨",
+     "deity": "Lord Krishna / Radha",  "month": "Phalguna",
+     "significance": "Phalguna Shukla Purnima. Bengali and Odia celebration of Holi — also known as Dol Jatra or Dol Yatra. Idols of Radha-Krishna placed on a beautifully decorated swing (dol) and carried in procession. Devotees throw abir (fragrant coloured powder — red, yellow, green) on the idols and each other. Tagore's Shantiniketenbasant Utsav is celebrated on this day with baul music, dance, and natural colours. Chaitanya Mahaprabhu's birth anniversary (Gaura Purnima) also falls on this day.",
+     "fast_note": "No strict vrat. Morning: bathe and wear yellow/saffron clothes. Visit Radha-Krishna temple for Dol Yatra. Offer abir (gulal) to idols first, then play with abir. Sing Kirtan and Baul songs. Evening: cultural programs. Gaura Purnima: Chaitanya Mahaprabhu puja, Hare Krishna kirtan all night.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 3, "approx_day": 14}},
+
+    # ─── Lakshmi Puja (Diwali) ───────────────────────────────────────────────────
+    {"name": "Lakshmi Puja (Diwali)",    "hindi": "लक्ष्मी पूजा (दीवाली)",      "icon": "💰",
+     "deity": "Goddess Lakshmi",  "month": "Kartik",
+     "significance": "Kartik Krishna Amavasya (Diwali night). Main puja of Diwali — Goddess Lakshmi visits every home that is clean, lit, and joyful on this night. Lakshmi emerged from the Kshira Sagara (cosmic ocean) during Samudra Manthan on this day. Merchants perform Chopda Pujan (new account books). Goddess Saraswati, Ganesh, and Kubera also worshipped alongside Lakshmi. Entire India lit with diyas, candles, and lights. New year for Gujarati and Marwari communities.",
+     "fast_note": "Fast until evening Lakshmi Puja (Pradosh Kaal). Clean and decorate entire house. Draw Lakshmi footprints (auspicious) from door to puja room. Light diyas in every room. Puja: Lakshmi idol with lotus, coins, sweets (kheel-batasha). Lakshmi Stotram / Ashtalakshmi recitation. Chopda Puja for business owners. Fireworks after puja. Break fast with prasad.",
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 11, "approx_day": 1}},
+
+    # ─── Mysuru Dasara ────────────────────────────────────────────────────────────
+    {"name": "Mysuru Dasara",            "hindi": "मैसूर दशहरा",                "icon": "👑",
+     "deity": "Goddess Chamundeshwari", "month": "Ashwin",
+     "significance": "Ashwin Shukla Dasami (Vijayadashami). Karnataka's grandest festival — Mysuru (Mysore) Palace is illuminated with 100,000 lights throughout Navratri. On Dasara day: grand royal procession (Jamboo Savari) — golden howdah elephant carries Goddess Chamundeshwari idol through Mysuru city streets with caparisoned elephants, horses, camels, tableaux, and police bands. Torchlight parade (Panjina Kavayathu) at night. Chamundeshwari temple atop Chamundi Hills is main pilgrimage site. Declared National Festival by Government of India.",
+     "fast_note": "Navratri: Golu (doll display) set up at home. Chamundeshwari temple darshan especially on Ashtami and Navami. Dasara day: watch Jamboo Savari procession (starts Mysuru Palace, ends Bannimantap). Banni tree worship (Shami Puja) on Dasara. Ayudha Puja day before Dasara: worship vehicles and tools.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 10, "approx_month": 10, "approx_day": 3}},
+
+    # ─── Navratri Golu / Bommai Kolu ─────────────────────────────────────────────
+    {"name": "Navratri Golu (Bommai Kolu)", "hindi": "नवरात्रि गोलू (बोम्मई कोलु)", "icon": "🪆",
+     "deity": "Goddess Durga / Saraswati / Lakshmi", "month": "Ashwin",
+     "significance": "Ashwin Shukla Pratipada to Navami (9 nights of Sharad Navratri). South Indian tradition of displaying Golu (Tamil: Kolu) — stepped platforms (odd number: 3, 5, 7, 9 steps) with dolls and figurines arranged in themes (gods, epics, village scenes, nature). Tamil Nadu, Karnataka (Gombe Habba), Andhra Pradesh and Telangana celebrate this. Women invite neighbours for Golu darshan and exchange gifts (sundal — boiled legumes, tamboolam — betel+coconut). Saraswati Puja on Ashtami (Saraswati Puja for books and instruments) and Ayudha Puja on Navami.",
+     "fast_note": "Set up Golu platform on Navratri Pratipada. Add new doll every year. Daily Devi puja with flowers and lamp. Invite neighbours for Golu darshan (especially in evenings). Distribute sundal (chickpea, green gram, black-eyed peas) as prasad each day — different legume each day. Saraswati Puja (Ashtami): keep books, instruments, tools before Saraswati. Ayudha Puja (Navami): worship vehicles, machines. Vijayadashami: take books back (Vidyarambham for children).",
+     "rule": {"type": "tithi", "paksha": "S", "num": 1, "approx_month": 10, "approx_day": 3}},
+
+    # ─── Ayyappa Mandalam ─────────────────────────────────────────────────────────
+    {"name": "Ayyappa Mandalam (Deeksha)", "hindi": "अयप्पा मंडलम (दीक्षा)",   "icon": "🔱",
+     "deity": "Lord Ayyappa (Sastha)", "month": "Vrischika (Solar)",
+     "significance": "41-day vrat (Mandala Kalam) beginning on the first day of Malayalam solar month Vrischika (approx. November 15–16) and concluding on Makaravilakku (Makara Jyoti, January 14). Sabarimala pilgrimage — one of the world's largest annual pilgrimages (50 million+ devotees). Devotees (Ayyappa bhaktas) observe strict 41-day Deeksha: black/blue dress, tulsi/rudraksha mala, bare feet, celibacy, two meals/day, no shaving, sleep on floor. Journey to Sabarimala mountain temple (Kerala). 18 Golden Steps (Pathinettam Padi) to the shrine. Makaravilakku: celestial star (Makara Jyothi) appears on Makaravilakku night.",
+     "fast_note": "41-day Deeksha rules: wear black/blue irumudi (cloth). Carry irumudi (two-compartment bag) with coconut filled with ghee. No non-veg, no alcohol, no tobacco, no sexual contact. Two vegetarian meals/day. Sleep on floor/mat. No footwear. Daily Ayyappa puja morning and evening. Conclude: trek Sabarimala, climb 18 steps, break coconut, offer ghee to Ayyappa. Makaravilakku darshan is the main goal.",
+     "rule": {"type": "solar", "approx_month": 11, "approx_day": 15}},
+
+    # ─── Ekadashi Vrat (Recurring) ───────────────────────────────────────────────
+    {"name": "Ekadashi Vrat",            "hindi": "एकादशी व्रत",                "icon": "🙏",
+     "deity": "Lord Vishnu",      "month": "Recurring",
+     "significance": "Ekadashi (11th lunar day) occurs twice every month — Shukla Ekadashi (waxing) and Krishna Ekadashi (waning). Total 24 Ekadashis per year (25 in leap lunar year). Each has a unique name and specific significance. Major Ekadashis: Nirjala (Jyeshtha S11 — toughest, most meritorious), Ashadhi / Dev Shayani (Ashadha S11 — Vishnu enters Yoganidra), Dev Uthani / Prabodhini (Kartik S11 — Vishnu wakes), Geeta Jayanti / Vaikunta (Margashirsha S11 — most liberating). Ekadashi vrat is the easiest path to Vishnu's grace — observed even by those who can't do other vrats.",
+     "fast_note": "Ekadashi Vrat rules (apply to all Ekadashis): No grains (anna — rice, wheat, dal, etc.) from Dashami sunset to Dwadashi sunrise. Allowed: fruits, milk, dry fruits, sabudana, sendha namak (rock salt), potatoes, kuttu. Ideal: Nirjala (no water either) for maximum merit. Parana (fast breaking) on Dwadashi: must be done between sunrise and Dwadashi end time — NEVER after that (Viddha Ekadashi rule). Vishnu Sahasranama or Ekadashi Mahatmya recitation. Tulsi puja.",
+     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 1, "approx_day": 10, "special": "ekadashi_viddha"}},
+
 ]
 
 # ─── Main calculation ──────────────────────────────────────────────────────
