@@ -15,6 +15,13 @@ dist-ssr
 *.pdf
 *.txt
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
