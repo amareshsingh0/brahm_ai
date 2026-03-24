@@ -1391,7 +1391,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Ashadha",
      "significance": "Ashadha Shukla Pratipada to Navami (9 nights). Gupta Navratri — 'secret' Navratri observed by Tantric practitioners and Shakti devotees. Worship of the 10 Mahavidyas (Kali, Tara, Tripura Sundari, Bhuvaneshvari, Bhairavi, Chhinnamasta, Dhumavati, Bagalamukhi, Matangi, Kamala). Less publicly celebrated than Chaitra/Sharad Navratris but equally powerful for Tantra sadhana.",
      "fast_note": "9-day Devi vrat. Ghatasthapana on Pratipada. Daily Devi puja (Durga Saptashati or Mahavidya mantras). Strict sattvic diet or full fast. Midnight Tantric puja optional (Gupta means secret — deeper sadhana). Kanya Puja on Ashtami or Navami. Havan on Navami.",
-     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 7, "approx_day": 1}},
+     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 6, "approx_day": 16}},
 
     {"name": "Magha (Gupta) Navratri",   "hindi": "माघ गुप्त नवरात्रि",        "icon": "❄️",
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Magha",
@@ -1423,7 +1423,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Vishnu / Goddess Lakshmi", "month": "Mesha (Solar)",
      "significance": "Bengali New Year. Sun enters Mesha Rashi (Aries). 1st day of Boishakh (Bengali calendar, approx. April 14-15). Celebrated in West Bengal, Bangladesh, and worldwide Bengali diaspora. Hal Khata (new account books opened by merchants — Lakshmi Ganesh Puja). Mangal Shobhajatra (UNESCO listed) procession in Dhaka. New clothes, sweets (mishti doi, sandesh), visits to relatives.",
      "fast_note": "No strict vrat. Morning bath, new clothes. Visit Lakshmi-Ganesh temple for Hal Khata puja (if merchant/businessman). Eat traditional foods: muri-moa, mishti doi, ilish (hilsa) fish. Evening cultural programs. Greet with 'Shubho Nababarsha' (Happy New Year in Bengali).",
-     "rule": {"type": "solar", "lon": 0.0, "approx_month": 4, "approx_day": 15}},
+     "rule": {"type": "solar_offset", "lon": 0.0, "offset_days": 1, "approx_month": 4, "approx_day": 15}},
 
     {"name": "Durga Puja (Saptami)",     "hindi": "दुर्गा पूजा — सप्तमी",      "icon": "🪆",
      "deity": "Goddess Durga",    "month": "Ashwin",
@@ -1447,7 +1447,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Kali",     "month": "Kartik",
      "significance": "Kartik Krishna Amavasya (same night as Diwali). Bengal's Shyama Puja / Kali Puja. While North India worships Lakshmi on Diwali night, Bengal worships Goddess Kali — the fierce destroyer of evil. Tantric midnight puja. Grand Kali pandals in Kolkata. Fireworks. Rani Rashmoni's Kalighat and Dakshineswar Kali temples are especially significant.",
      "fast_note": "Fast from morning until midnight puja. Kali Puja starts at midnight (Nishita Kaal). Offerings: red hibiscus, fish, rice, black sesame, bilva leaves. Tantric puja with mantras. Animal offerings are traditional at some temples. Break fast after midnight puja with prasad.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 11, "approx_day": 1}},
+     "rule": {"type": "day_offset", "ref": "Diwali", "offset": 0}},
 
     {"name": "Manasa Puja",              "hindi": "मनसा पूजा",                  "icon": "🐍",
      "deity": "Goddess Manasa",   "month": "Shravana",
@@ -1455,11 +1455,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "fast_note": "Women's vrat in Shravana. Fast on the day of Manasa Puja. Offer: milk, flowers (white), fish (in some traditions), bananas to Manasa image. Manasha Pala (devotional songs) recited. Do not harm snakes during Shravana. Break fast after evening puja.",
      "rule": {"type": "tithi", "paksha": "S", "num": 5, "approx_month": 8, "approx_day": 9}},
 
-    {"name": "Bishwakarma Puja",         "hindi": "विश्वकर्मा पूजा",             "icon": "⚙️",
-     "deity": "Vishwakarma",      "month": "Bhadrapada / Solar",
-     "significance": "Solar calendar: Sun in Virgo (Kanya Sankranti, approx September 17). Vishwakarma — divine architect of the gods who built Lanka, Dwarka, and Indra's heaven. Factories, workshops, machines, vehicles, tools are worshipped. Entire industrial Bengal/Jharkhand/Odisha shuts down — workers worship their machines. Kite flying (paatla hawa) popular in Bengal on this day. Aircraft, ships, cars decorated with flowers.",
-     "fast_note": "No strict vrat. Morning puja of machines, tools, vehicles with flowers, sindur, incense. Vishwakarma idol placed in workplace. Offerings: fruits, sweets, betel. Do not use machines until puja complete. Evening feast and kite flying. No work order on this day.",
-     "rule": {"type": "solar", "lon": 150.0, "approx_month": 9, "approx_day": 17}},
+    # Bishwakarma Puja (Bengali regional) is the same solar festival as Vishwakarma Puja above — removed duplicate.
 
     {"name": "Tusu Puja",                "hindi": "टुसू पूजा",                  "icon": "🌻",
      "deity": "Goddess Tusu",     "month": "Paush",
@@ -1471,7 +1467,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Vishnu / Cattle Goddess", "month": "Kartik",
      "significance": "Kartik month, around Diwali period. Tribal and folk festival of Jharkhand, Bengal, and Odisha — cattle worship festival (similar to Govardhan Puja). Adivasi and farming communities worship cows, bullocks, plough tools. Houses decorated with floral art. Community singing, traditional games. Marks end of agricultural season and harvest thanksgiving.",
      "fast_note": "No strict vrat. Bathe and decorate cattle with turmeric, sindur, marigold garlands. Offer: grass, gram, jaggery to cattle. Puja of plough and farming tools. Community feast with tribal food (handia rice beer in some communities). Songs and dance (jhumar) in evening.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 14, "approx_month": 11, "approx_day": 2}},
+     "rule": {"type": "day_before", "ref": "Diwali"}},
 
     # ─── Maharashtra Regional Festivals ──────────────────────────────────────────
     {"name": "Bail Pola",                "hindi": "बैल पोला",                   "icon": "🐂",
@@ -1492,7 +1488,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Vishnu",      "month": "Ashwin",
      "significance": "Ashwin/Kartik Amavasya (Diwali Amavasya) to Kartik Purnima — 30-day holy bath observance. Kartik Snan: the most meritorious of all holy baths, performed before sunrise at rivers, ponds, or water bodies throughout Kartik month. Devotees (especially women) wake at Brahma Muhurta (4 AM) and take holy bath, light diyas, perform Tulsi puja. Equal in merit to bathing at all tirthas. Varanasi Panchkosi Yatra during this month.",
      "fast_note": "Daily Brahma Muhurta bath for full month. After bath: light diya near Tulsi plant. Sattvic diet whole month. Ekadashi and Purnima fasts are especially meritorious in Kartik. Charity (feeding Brahmins, poor) every day if possible. Avoid non-veg, alcohol. Read Vishnu Sahasranama or Bhagavata Purana.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 11, "approx_day": 1}},
+     "rule": {"type": "day_offset", "ref": "Diwali", "offset": 0}},
 
     # ─── Assamese Festival ────────────────────────────────────────────────────────
     {"name": "Bohag Bihu (Rongali Bihu)", "hindi": "बोहाग बिहू (रोंगाली बिहू)", "icon": "🌿",
@@ -1552,7 +1548,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Lakshmi",  "month": "Kartik",
      "significance": "Kartik Krishna Amavasya (Diwali night). Main puja of Diwali — Goddess Lakshmi visits every home that is clean, lit, and joyful on this night. Lakshmi emerged from the Kshira Sagara (cosmic ocean) during Samudra Manthan on this day. Merchants perform Chopda Pujan (new account books). Goddess Saraswati, Ganesh, and Kubera also worshipped alongside Lakshmi. Entire India lit with diyas, candles, and lights. New year for Gujarati and Marwari communities.",
      "fast_note": "Fast until evening Lakshmi Puja (Pradosh Kaal). Clean and decorate entire house. Draw Lakshmi footprints (auspicious) from door to puja room. Light diyas in every room. Puja: Lakshmi idol with lotus, coins, sweets (kheel-batasha). Lakshmi Stotram / Ashtalakshmi recitation. Chopda Puja for business owners. Fireworks after puja. Break fast with prasad.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 11, "approx_day": 1}},
+     "rule": {"type": "day_offset", "ref": "Diwali", "offset": 0}},
 
     # ─── Mysuru Dasara ────────────────────────────────────────────────────────────
     {"name": "Mysuru Dasara",            "hindi": "मैसूर दशहरा",                "icon": "👑",
