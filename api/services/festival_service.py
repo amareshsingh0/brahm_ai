@@ -1139,7 +1139,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Shani",      "month": "Jyeshtha",
      "significance": "Jyeshtha Amavasya. Birthday of Lord Shani (Saturn). Shani Puja with sesame oil, black sesame, blue/black flowers. Shani Stotra and Chalisa recitation. Visiting Shani Shingnapur and Shani temples. Also observed as Vat Savitri in Maharashtra and Gujarat.",
      "fast_note": "Vrat: Offer sesame oil, black sesame, blue cloth to Shani. Visit Shani temple. Shani Stotram, Chalisa, and Navagrah Puja. Donate black items to Brahmins.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 15, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 15, "date_from_sunrise": True, "no_skip_adhika": True}},
 
     {"name": "Rath Yatra",           "hindi": "रथ यात्रा",               "icon": "🎡",
      "deity": "Lord Jagannath",  "month": "Ashadha",
@@ -1391,7 +1391,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Ashadha",
      "significance": "Ashadha Shukla Pratipada to Navami (9 nights). Gupta Navratri — 'secret' Navratri observed by Tantric practitioners and Shakti devotees. Worship of the 10 Mahavidyas (Kali, Tara, Tripura Sundari, Bhuvaneshvari, Bhairavi, Chhinnamasta, Dhumavati, Bagalamukhi, Matangi, Kamala). Less publicly celebrated than Chaitra/Sharad Navratris but equally powerful for Tantra sadhana.",
      "fast_note": "9-day Devi vrat. Ghatasthapana on Pratipada. Daily Devi puja (Durga Saptashati or Mahavidya mantras). Strict sattvic diet or full fast. Midnight Tantric puja optional (Gupta means secret — deeper sadhana). Kanya Puja on Ashtami or Navami. Havan on Navami.",
-     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 7, "approx_day": 15, "start_after_ref": "Shani Jayanti"}},
+     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 7, "approx_day": 15}},
 
     {"name": "Magha (Gupta) Navratri",   "hindi": "माघ गुप्त नवरात्रि",        "icon": "❄️",
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Magha",
@@ -2025,17 +2025,22 @@ def get_festival_calendar(
 
                 if found_jd is not None:
                     y2, m2, d2 = _jd_to_parts(found_jd, tz)[:3]
-                    # If sunrise_date flag: use the day whose sunrise falls within the nakshatra
+                    # If sunrise_date flag: find the LAST consecutive day where nakshatra is at sunrise.
+                    # Checks 1 day before to 2 days after found_jd.
+                    # This handles the vridhi case where nakshatra spans two sunrises — traditional
+                    # Kerala rule for Onam: if Thiruvonam is present on two consecutive sunrises,
+                    # the SECOND day is observed.
                     if rule.get("sunrise_date"):
-                        sr_test = _actual_sunrise_jd(y2, m2, d2, lat, lon, tz)
-                        moon_at_sr = swe.calc_ut(sr_test, swe.MOON, swe.FLG_SIDEREAL)[0][0]
-                        if int(moon_at_sr * 27 / 360) % 27 != target_nak:
-                            # Nakshatra not at sunrise — try next day
-                            _nd = date(y2, m2, d2) + timedelta(days=1)
-                            sr2 = _actual_sunrise_jd(_nd.year, _nd.month, _nd.day, lat, lon, tz)
-                            moon_at_sr2 = swe.calc_ut(sr2, swe.MOON, swe.FLG_SIDEREAL)[0][0]
-                            if int(moon_at_sr2 * 27 / 360) % 27 == target_nak:
-                                y2, m2, d2 = _nd.year, _nd.month, _nd.day
+                        _base = date(y2, m2, d2)
+                        _best: Optional[date] = None
+                        for _off in range(-1, 3):
+                            _cd = _base + timedelta(days=_off)
+                            _sr = _actual_sunrise_jd(_cd.year, _cd.month, _cd.day, lat, lon, tz)
+                            _ml = swe.calc_ut(_sr, swe.MOON, swe.FLG_SIDEREAL)[0][0]
+                            if int(_ml * 27 / 360) % 27 == target_nak:
+                                _best = _cd  # keep updating — gives the last matching day
+                        if _best is not None:
+                            y2, m2, d2 = _best.year, _best.month, _best.day
                 else:
                     y2, m2, d2 = year, approx_month, approx_day
 
@@ -2073,9 +2078,12 @@ def get_festival_calendar(
                     results.append(entry)
                     continue
 
-                # All festivals skip the Adhika month — observed in the nirmala month only.
-                found_jd = _skip_adhika_if_needed(found_jd, target_idx, adhika_range, jd_center=jd_center,
-                                                  expected_month=festival.get("month"), tz=tz)
+                # Most festivals skip the Adhika month — observed in the nirmala (Nija) month only.
+                # Exception: festivals explicitly observed IN the Adhika month (e.g. Shani Jayanti
+                # in 2026 is observed on Adhika Jyeshtha Amavasya = June 15, not Nija Jyeshtha).
+                if not rule.get("no_skip_adhika"):
+                    found_jd = _skip_adhika_if_needed(found_jd, target_idx, adhika_range, jd_center=jd_center,
+                                                      expected_month=festival.get("month"), tz=tz)
 
                 # ── MONTH CORRECTION ──
                 # Always use amanta for internal check — festival["month"] fields are in Amanta convention.
