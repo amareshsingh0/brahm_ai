@@ -1133,13 +1133,13 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Savitri / Satyavan", "month": "Jyeshtha",
      "significance": "Jyeshtha Purnima. Married women observe Vat Savitri Vrat under the banyan tree, praying for husband's long life — just as Savitri won back Satyavan from Yama. Observed in North India (UP, Bihar, Bengal, Orissa). Maharashtra/Gujarat observe on Jyeshtha Amavasya.",
      "fast_note": "Vrat: Married women fast from sunrise. Circumambulate the Vat (banyan) tree 108 times, tying thread while reciting Savitri-Satyavan story. Break fast at moonrise after puja.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 6, "approx_day": 11}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 5, "approx_day": 15}},
 
     {"name": "Shani Jayanti",        "hindi": "शनि जयंती",              "icon": "🪐",
      "deity": "Lord Shani",      "month": "Jyeshtha",
      "significance": "Jyeshtha Amavasya. Birthday of Lord Shani (Saturn). Shani Puja with sesame oil, black sesame, blue/black flowers. Shani Stotra and Chalisa recitation. Visiting Shani Shingnapur and Shani temples. Also observed as Vat Savitri in Maharashtra and Gujarat.",
      "fast_note": "Vrat: Offer sesame oil, black sesame, blue cloth to Shani. Visit Shani temple. Shani Stotram, Chalisa, and Navagrah Puja. Donate black items to Brahmins.",
-     "rule": {"type": "day_offset", "ref": "Vat Savitri Purnima", "offset": 15}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 5, "approx_day": 30, "date_from_sunrise": True}},
 
     {"name": "Rath Yatra",           "hindi": "रथ यात्रा",               "icon": "🎡",
      "deity": "Lord Jagannath",  "month": "Ashadha",
@@ -2076,6 +2076,14 @@ def get_festival_calendar(
                 # All festivals skip the Adhika month — observed in the nirmala month only.
                 found_jd = _skip_adhika_if_needed(found_jd, target_idx, adhika_range, jd_center=jd_center,
                                                   expected_month=festival.get("month"), tz=tz)
+
+                # Safety net: if found_jd is STILL inside the Adhika month after the above
+                # (happens when Adhika and Nirmala month share the same name, e.g. Adhika Jyeshtha),
+                # do an explicit forward search to the Nirmala occurrence.
+                if adhika_range is not None:
+                    am_s, am_e = adhika_range
+                    if am_s - 1 <= found_jd <= am_e + 1:
+                        found_jd = _search_nirmala(found_jd + 29.5, target_idx)
 
                 # ── MONTH CORRECTION ──
                 # Always use amanta for internal check — festival["month"] fields are in Amanta convention.
