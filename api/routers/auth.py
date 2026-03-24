@@ -1,18 +1,20 @@
 """
 Auth router — OTP-based phone authentication.
 In TEST_MODE, OTP is always "123456" for any number.
-Set TEST_MODE=False and configure SMS (Twilio) for production.
+Set TEST_MODE=False and configure SMS (Twilio/MSG91) for production.
+Users are persisted to Supabase on first verify.
 """
 import uuid, time
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from api.supabase_client import get_supabase
 
 router = APIRouter()
 
 # In-memory OTP store: phone -> (otp, expiry_timestamp)
 _otp_store: dict[str, tuple[str, float]] = {}
 
-TEST_MODE = True          # set False + add Twilio for production
+TEST_MODE = True          # set False + add Twilio/MSG91 for production
 TEST_OTP  = "123456"
 OTP_TTL   = 300           # 5 minutes
 
@@ -46,7 +48,7 @@ def send_otp(req: SendOtpRequest):
     else:
         import random
         otp = str(random.randint(100000, 999999))
-        # TODO: send SMS via Twilio here
+        # TODO: send SMS via MSG91 / Twilio here
 
     _otp_store[phone] = (otp, time.time() + OTP_TTL)
     return SendOtpResponse(sent=True, message="OTP sent successfully")
@@ -72,10 +74,29 @@ def verify_otp(req: VerifyOtpRequest):
     # OTP correct — clear it
     _otp_store.pop(phone, None)
 
-    token = str(uuid.uuid4())
+    # Look up or create user in Supabase
+    sb = get_supabase()
+    res = sb.table("users").select("session_id,name,plan").eq("phone", phone).maybe_single().execute()
+
+    if res.data:
+        row = res.data
+        session_id = row["session_id"]
+        name       = row.get("name", "")
+        plan       = row.get("plan", "free")
+    else:
+        session_id = str(uuid.uuid4())
+        name       = ""
+        plan       = "free"
+        sb.table("users").insert({
+            "session_id": session_id,
+            "phone":      phone,
+            "name":       name,
+            "plan":       plan,
+        }).execute()
+
     return VerifyOtpResponse(
-        access_token=token,
-        name="",          # user fills name in onboarding
-        plan="free",
+        access_token=session_id,
+        name=name,
+        plan=plan,
         phone=phone,
     )

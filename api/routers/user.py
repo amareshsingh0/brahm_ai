@@ -1,42 +1,49 @@
 """
-User profile router — SQLite backed, keyed by session_id (localStorage UUID).
+User profile router — Supabase backed, keyed by session_id.
 """
-import sqlite3, json
 from fastapi import APIRouter, HTTPException, Query
 from api.models.user import UserProfile
-from api.config import USERS_DB
+from api.supabase_client import get_supabase
 
 router = APIRouter()
 
 
-def _conn():
-    conn = sqlite3.connect(USERS_DB)
-    conn.row_factory = sqlite3.Row
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            session_id TEXT PRIMARY KEY,
-            data TEXT NOT NULL
-        )
-    """)
-    conn.commit()
-    return conn
-
-
 @router.get("/user", response_model=UserProfile)
 def get_user(session_id: str = Query(...)):
-    with _conn() as conn:
-        row = conn.execute("SELECT data FROM users WHERE session_id=?", (session_id,)).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="User not found")
-        return json.loads(row["data"])
+    sb = get_supabase()
+    res = sb.table("users").select("*").eq("session_id", session_id).maybe_single().execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="User not found")
+    row = res.data
+    return UserProfile(
+        session_id=row["session_id"],
+        name=row.get("name", ""),
+        date=row.get("birth_date", ""),
+        time=row.get("birth_time", ""),
+        lat=row.get("birth_lat", 0.0),
+        lon=row.get("birth_lon", 0.0),
+        tz=row.get("birth_tz", 5.5),
+        place=row.get("birth_place", ""),
+        rashi=row.get("rashi", ""),
+        nakshatra=row.get("nakshatra", ""),
+        language=row.get("language", "english"),
+    )
 
 
 @router.post("/user", response_model=UserProfile)
 def upsert_user(profile: UserProfile):
-    with _conn() as conn:
-        conn.execute(
-            "INSERT OR REPLACE INTO users (session_id, data) VALUES (?, ?)",
-            (profile.session_id, profile.model_dump_json())
-        )
-        conn.commit()
+    sb = get_supabase()
+    sb.table("users").upsert({
+        "session_id":  profile.session_id,
+        "name":        profile.name,
+        "birth_date":  profile.date,
+        "birth_time":  profile.time,
+        "birth_lat":   profile.lat,
+        "birth_lon":   profile.lon,
+        "birth_tz":    profile.tz,
+        "birth_place": profile.place,
+        "rashi":       profile.rashi,
+        "nakshatra":   profile.nakshatra,
+        "language":    profile.language,
+    }, on_conflict="session_id").execute()
     return profile

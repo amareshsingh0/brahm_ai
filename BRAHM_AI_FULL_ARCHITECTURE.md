@@ -1590,8 +1590,11 @@ Available buffer:             17.1 GB
 | Server State | React Query 5.83.0 | |
 | Routing | React Router 6.30.1 | |
 | i18n | react-i18next | EN/HI/SA |
-| Storage | localStorage | JWT, birth details |
+| Auth | Clerk React SDK | Phone OTP, JWT |
+| Storage | localStorage + Zustand | birth details, state |
 | Payments | Cashfree JS SDK | In-app checkout |
+| Error Tracking | Sentry React SDK | Crashes + replays |
+| Testing | Vitest + Playwright | Unit + E2E |
 
 ### Android App
 | Layer | Technology | Notes |
@@ -1627,17 +1630,18 @@ Available buffer:             17.1 GB
 |-------|-----------|-------|
 | API | FastAPI | Pydantic v2 |
 | Server | Uvicorn | workers=1 |
-| Auth | python-jose (JWT) | HS256 |
-| OTP | MSG91 / Firebase Auth | SMS OTP |
+| Auth | Clerk (→ Auth0 at scale) | Phone OTP + JWT |
+| DB | Supabase (PostgreSQL) | + RLS + Realtime |
 | Payments | Cashfree Payments API | Webhooks |
-| LLM | Qwen2.5-7B-Instruct | 4-bit nf4 |
+| LLM | Gemini 2.5 Flash | google-genai SDK |
 | Embedding | paraphrase-multilingual-MiniLM-L12-v2 | 384 dim |
 | Reranker | cross-encoder/ms-marco-MiniLM-L-6-v2 | |
 | Vector DB | FAISS HNSW | 1.1M chunks |
 | Keyword | rank_bm25 | |
 | Astronomy | pyswisseph | |
-| DB | SQLite (dev) / PostgreSQL (prod) | |
-| Process | PM2 | |
+| Error Tracking | Sentry | Frontend + Backend |
+| Metrics | Prometheus + Grafana | VM port 9090/3000 |
+| Process | systemd (brahm-api) | |
 
 ---
 
@@ -1677,6 +1681,1468 @@ open http://34.135.70.190:8000/docs
 ---
 
 *Generated: 2026-03-21 | Brahm AI v5.0 — Web + Android (Java 17) + iOS (Swift 5.9) + AI Engine*
+
+---
+
+## 22. DATABASE — SUPABASE
+
+### Decision
+**Supabase** replaces raw SQLite/PostgreSQL plan.
+- PostgreSQL under the hood (same schema, no changes needed)
+- Built-in Auth (used as DB only — Clerk handles auth UI/OTP)
+- Realtime subscriptions (can push plan activation to frontend instantly)
+- Row Level Security (RLS) for data isolation
+- Dashboard for admin queries (replaces manual sqlite3 CLI)
+- Free tier: 500MB DB + 2GB bandwidth — enough for launch
+- Upgrade path: Pro ($25/mo) → scale as needed
+
+### Supabase Schema (same as Section 9.1, now on Supabase)
+```sql
+-- All tables stay identical to Section 9.1
+-- users, subscriptions, usage_log
+
+-- Enable RLS on all tables
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usage_log ENABLE ROW LEVEL SECURITY;
+
+-- Users can only read/update their own row
+CREATE POLICY "user_self_access" ON users
+  FOR ALL USING (id = current_setting('request.jwt.claims', true)::json->>'sub');
+
+-- Subscriptions: user reads own, admin reads all
+CREATE POLICY "user_own_subscription" ON subscriptions
+  FOR SELECT USING (user_id = current_setting('request.jwt.claims', true)::json->>'sub');
+```
+
+### FastAPI Integration
+```python
+# api/services/db.py
+from supabase import create_client, Client
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")  # service role — full access
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Usage examples:
+# Insert user:
+supabase.table("users").insert({"id": uid, "phone": phone, ...}).execute()
+
+# Get user:
+result = supabase.table("users").select("*").eq("phone", phone).single().execute()
+
+# Update kundali cache:
+supabase.table("users").update({"kundali_json": json.dumps(kundali)}).eq("id", uid).execute()
+
+# Log usage:
+supabase.table("usage_log").insert({"user_id": uid, "feature": "ai_chat"}).execute()
+```
+
+### Environment Variables (VM)
+```
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...  (server only — never expose to frontend)
+SUPABASE_ANON_KEY=eyJ...          (safe for frontend if needed)
+```
+
+### Migration from SQLite → Supabase
+```
+1. pnpm add @supabase/supabase-js (frontend, if needed)
+2. pip install supabase (backend)
+3. Run schema SQL in Supabase SQL editor
+4. Replace sqlite3 calls in api/services/ with supabase client calls
+5. Move SUPABASE_URL + keys to VM /etc/environment
+6. Test: POST /api/auth/send-otp → user row created in Supabase
+```
+
+---
+
+## 23. AUTHENTICATION — CLERK (→ AUTH0 AT SCALE)
+
+### Phase Strategy
+| Phase | Tool | When | Why |
+|-------|------|------|-----|
+| **Launch → 10k MAU** | **Clerk** | Now | Best DX, phone OTP built-in, React SDK, generous free tier |
+| **Scale → 50k+ MAU** | **Auth0** | When Clerk free tier exhausted | Enterprise SLA, multi-tenant, advanced rules |
+
+### Why Clerk Over Custom JWT (Now)
+- Phone OTP (India numbers) built-in — no MSG91 setup needed
+- Pre-built `<SignIn>`, `<SignUp>`, `<UserButton>` React components
+- JWT automatically attached to requests via `useAuth()` hook
+- 10,000 MAU free → perfect for launch
+- Webhooks: `user.created`, `user.updated` → sync to Supabase users table
+- Takes 1 day to integrate vs 1 week for custom JWT
+
+### Clerk Integration
+```typescript
+// src/main.tsx
+import { ClerkProvider } from '@clerk/clerk-react'
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
+<ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+  <App />
+</ClerkProvider>
+```
+
+```typescript
+// src/hooks/useAuth.ts — replaces custom JWT hook
+import { useAuth, useUser } from '@clerk/clerk-react'
+
+export function useBrahmAuth() {
+  const { getToken, isSignedIn } = useAuth()
+  const { user } = useUser()
+
+  // Get JWT for API calls
+  const token = await getToken()  // auto-refreshed by Clerk
+
+  return { token, isSignedIn, userId: user?.id, phone: user?.phoneNumbers[0]?.phoneNumber }
+}
+```
+
+```typescript
+// src/lib/api.ts — auto-inject Clerk JWT
+import { useAuth } from '@clerk/clerk-react'
+
+// In API client:
+const token = await getToken()
+headers: { Authorization: `Bearer ${token}` }
+```
+
+```python
+# api/middleware/auth_middleware.py — verify Clerk JWT
+import jwt
+from clerk_backend_api import Clerk
+
+clerk = Clerk(bearer_auth=os.getenv("CLERK_SECRET_KEY"))
+
+async def verify_clerk_token(token: str) -> dict:
+    # Clerk JWT verified with Clerk's JWKS endpoint
+    payload = jwt.decode(token, options={"verify_signature": False})  # Clerk handles sig
+    # Or use: clerk.sessions.verify_token(token)
+    return {"sub": payload["sub"], "phone": payload.get("phone_number")}
+```
+
+### Clerk → Supabase Sync (Webhook)
+```python
+# api/routers/webhooks.py
+# POST /api/webhooks/clerk — called by Clerk on user.created
+@router.post("/webhooks/clerk")
+async def clerk_webhook(request: Request):
+    payload = await request.json()
+    if payload["type"] == "user.created":
+        user_data = payload["data"]
+        phone = user_data["phone_numbers"][0]["phone_number"]
+        uid = user_data["id"]  # Clerk user ID
+        # Upsert into Supabase
+        supabase.table("users").upsert({
+            "id": uid, "phone": phone,
+            "name": f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+        }).execute()
+```
+
+### Migration to Auth0 (When Ready)
+```
+1. Export users from Clerk → import to Auth0
+2. Replace ClerkProvider with Auth0Provider
+3. Replace useAuth() with useAuth0()
+4. Backend: verify Auth0 JWT (RS256) instead of Clerk
+5. Zero DB changes (Supabase users table stays same)
+```
+
+### Environment Variables
+```
+# Frontend (.env.local)
+VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
+
+# Backend (VM /etc/environment)
+CLERK_SECRET_KEY=sk_live_...
+```
+
+---
+
+## 24. TESTING STRATEGY
+
+### Test Pyramid
+```
+         ┌─────────────┐
+         │  E2E Tests  │  ← Playwright (5-10 critical flows)
+         │  (slow, few)│
+         ├─────────────┤
+         │  API Tests  │  ← Postman / Newman (all endpoints)
+         │  (medium)   │
+         ├─────────────┤
+         │ Unit Tests  │  ← Jest + Vitest (fast, many)
+         │ (fast, many)│
+         └─────────────┘
+```
+
+### 24.1 Unit Tests — Jest (Frontend) + pytest (Backend)
+
+#### Frontend: Vitest + React Testing Library
+```bash
+# Install
+pnpm add -D vitest @testing-library/react @testing-library/jest-dom jsdom
+
+# vite.config.ts — add test config
+test: {
+  environment: 'jsdom',
+  globals: true,
+  setupFiles: ['./src/test/setup.ts']
+}
+```
+
+```typescript
+// src/hooks/__tests__/useKundali.test.ts
+import { renderHook } from '@testing-library/react'
+import { useKundliStore } from '@/store/kundliStore'
+
+test('kundali store initializes empty', () => {
+  const { result } = renderHook(() => useKundliStore())
+  expect(result.current.kundaliData).toBeNull()
+})
+```
+
+```typescript
+// src/components/__tests__/KundliChart.test.tsx
+test('KundliChart renders SVG', () => {
+  render(<KundliChart />)
+  expect(screen.getByRole('img')).toBeInTheDocument()  // SVG
+})
+```
+
+#### Backend: pytest + httpx
+```bash
+pip install pytest pytest-asyncio httpx
+
+# Run tests
+pytest api/tests/ -v
+```
+
+```python
+# api/tests/test_kundali.py
+from httpx import AsyncClient
+from api.main import app
+
+@pytest.mark.asyncio
+async def test_kundali_endpoint():
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        resp = await client.post("/api/kundali", json={
+            "date": "1990-05-15", "time": "10:30",
+            "lat": 25.317, "lon": 82.973, "tz": 5.5
+        })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "lagna" in data
+    assert "grahas" in data
+    assert data["lagna"]["rashi"] in ["Mesha", "Vrishabha", "Mithuna", "Karka",
+                                       "Simha", "Kanya", "Tula", "Vrishchika",
+                                       "Dhanu", "Makara", "Kumbha", "Meena"]
+
+@pytest.mark.asyncio
+async def test_panchang_endpoint():
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        resp = await client.get("/api/panchang?lat=28.6139&lon=77.209&tz=5.5")
+    assert resp.status_code == 200
+    assert "tithi" in resp.json()
+```
+
+### 24.2 API Tests — Postman + Newman (CI)
+
+```
+Collection: Brahm AI API Tests
+├── Auth
+│   ├── POST /api/auth/send-otp → 200, sent: true
+│   └── POST /api/auth/verify-otp → 200, access_token present
+├── Kundali
+│   ├── POST /api/kundali (valid) → 200, lagna.rashi present
+│   └── POST /api/kundali (missing fields) → 422 Unprocessable
+├── Panchang
+│   └── GET /api/panchang → 200, tithi + nakshatra present
+├── Chat
+│   └── POST /api/chat → 200, SSE stream starts
+├── Subscription
+│   ├── GET /api/subscription/plans → 3 plans returned
+│   └── POST /api/subscription/checkout → payment_session_id present
+└── Admin
+    └── GET /api/admin/stats → 200, mau + revenue
+```
+
+```bash
+# Run via Newman (CLI — use in CI/CD)
+pip install newman  # or npm install -g newman
+newman run brahm-ai-api-tests.postman_collection.json \
+  --environment brahm-ai-prod.postman_environment.json \
+  --reporters cli,json \
+  --reporter-json-export results.json
+```
+
+### 24.3 E2E Tests — Playwright
+
+**Why Playwright over Cypress:**
+- Better SSE/streaming support (AI chat testing)
+- Faster parallel execution
+- Mobile viewport testing (critical for Brahm AI mobile)
+- No iframe restrictions (Cashfree checkout testing)
+
+```bash
+pnpm add -D @playwright/test
+npx playwright install chromium firefox webkit
+```
+
+```typescript
+// tests/e2e/auth.spec.ts
+import { test, expect } from '@playwright/test'
+
+test('login with OTP flow', async ({ page }) => {
+  await page.goto('/')
+  await page.click('text=Get Started Free')
+  await page.fill('[placeholder*="phone"]', '9876543210')
+  await page.click('text=Send OTP')
+  await expect(page.locator('text=Enter 6-digit OTP')).toBeVisible()
+})
+
+test('kundali page loads chart', async ({ page }) => {
+  // login first (use test account)
+  await page.goto('/kundli')
+  await expect(page.locator('svg')).toBeVisible()  // chart renders
+  await expect(page.locator('text=Lagna')).toBeVisible()
+})
+
+test('AI chat sends and receives message', async ({ page }) => {
+  await page.goto('/chat')
+  await page.fill('[placeholder="Ask something..."]', 'Meri kundali batao')
+  await page.press('[placeholder="Ask something..."]', 'Enter')
+  // Wait for streaming response
+  await expect(page.locator('.ai-response')).toBeVisible({ timeout: 30000 })
+})
+
+test('mobile hamburger menu opens', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })  // iPhone
+  await page.goto('/dashboard')
+  await page.click('[aria-label="Open navigation"]')
+  await expect(page.locator('text=My Kundali')).toBeVisible()
+})
+```
+
+```bash
+# Run E2E tests
+npx playwright test
+npx playwright test --headed                    # visible browser
+npx playwright test --project=Mobile-Chrome    # mobile viewport
+```
+
+### 24.4 Test Coverage Targets
+| Layer | Tool | Target Coverage |
+|-------|------|----------------|
+| Backend services | pytest | 80% (kundali_service, panchang_service, auth_service) |
+| API endpoints | pytest + Postman | 100% of endpoints have at least 1 happy-path test |
+| React hooks | Vitest | 70% (useChat, useKundali, useAuth) |
+| E2E flows | Playwright | 5 critical paths: login, kundali, chat, subscription, mobile nav |
+
+### 24.5 CI/CD Pipeline (GitHub Actions)
+```yaml
+# .github/workflows/test.yml
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r api/requirements.txt pytest pytest-asyncio httpx
+      - run: pytest api/tests/ -v
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pnpm install && pnpm test --run
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pnpm install && npx playwright install --with-deps chromium
+      - run: npx playwright test --project=chromium
+```
+
+---
+
+## 25. MONITORING & LOGGING
+
+### Stack
+| Tool | Purpose | Where |
+|------|---------|-------|
+| **Sentry** | Error tracking (frontend + backend) | Cloud (sentry.io) |
+| **Prometheus** | Metrics collection (FastAPI) | VM: port 9090 |
+| **Grafana** | Dashboards (on top of Prometheus) | VM: port 3000 |
+| **Python logging** | Structured backend logs | VM: `/var/log/brahm-api/` |
+
+### 25.1 Sentry — Error Tracking
+
+#### Frontend (React)
+```bash
+pnpm add @sentry/react
+```
+
+```typescript
+// src/main.tsx
+import * as Sentry from "@sentry/react"
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,       // "development" | "production"
+  tracesSampleRate: 0.1,                   // 10% of requests traced
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({ maskAllText: false }),  // Session replay
+  ],
+  replaysOnErrorSampleRate: 1.0,           // 100% of errors get replay
+})
+
+// Wrap app
+<Sentry.ErrorBoundary fallback={<ErrorPage />}>
+  <App />
+</Sentry.ErrorBoundary>
+```
+
+#### Backend (FastAPI)
+```bash
+pip install sentry-sdk[fastapi]
+```
+
+```python
+# api/main.py
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    environment=os.getenv("ENV", "production"),
+    traces_sample_rate=0.1,
+    integrations=[FastApiIntegration()],
+    # Capture user context from JWT
+    before_send=lambda event, hint: event
+)
+
+# In routes — capture user context:
+sentry_sdk.set_user({"id": user["sub"], "phone": user["phone"]})
+```
+
+**What Sentry catches:**
+- React component crashes → full stack trace + session replay
+- FastAPI 500 errors → Python traceback + request context
+- Unhandled promise rejections (SSE failures, API timeouts)
+- Slow transactions (if kundali calc > 2s)
+
+#### Environment Variables
+```
+# Frontend (.env.local)
+VITE_SENTRY_DSN=https://xxx@sentry.io/yyy
+
+# Backend (VM)
+SENTRY_DSN=https://xxx@sentry.io/yyy
+ENV=production
+```
+
+### 25.2 Prometheus — Metrics Collection
+
+```bash
+pip install prometheus-fastapi-instrumentator
+```
+
+```python
+# api/main.py
+from prometheus_fastapi_instrumentator import Instrumentator
+
+app = FastAPI()
+Instrumentator().instrument(app).expose(app)
+# Auto-exposes: GET /metrics (Prometheus scrape endpoint)
+```
+
+**Auto-collected metrics:**
+```
+http_requests_total{method, handler, status}     — request counts per endpoint
+http_request_duration_seconds{handler}           — latency histogram
+http_requests_in_progress{handler}               — concurrent requests
+```
+
+**Custom metrics to add:**
+```python
+from prometheus_client import Counter, Histogram, Gauge
+
+kundali_calculations = Counter("brahm_kundali_total", "Total kundali calculations")
+ai_chat_tokens = Counter("brahm_ai_tokens_total", "Total AI tokens used")
+active_users = Gauge("brahm_active_users", "Users active in last 5 min")
+rag_latency = Histogram("brahm_rag_seconds", "RAG pipeline latency")
+
+# In route handlers:
+kundali_calculations.inc()
+with rag_latency.time():
+    result = await rag_pipeline(query)
+```
+
+**Prometheus config (`/etc/prometheus/prometheus.yml` on VM):**
+```yaml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: brahm-api
+    static_configs:
+      - targets: ['localhost:8000']   # FastAPI /metrics endpoint
+```
+
+```bash
+# Install + start Prometheus on VM
+wget https://github.com/prometheus/prometheus/releases/download/.../prometheus-*.tar.gz
+tar xf prometheus-*.tar.gz
+./prometheus --config.file=prometheus.yml &
+# Access: http://34.135.70.190:9090
+```
+
+### 25.3 Grafana — Dashboards
+
+```bash
+# Install Grafana on VM
+sudo apt-get install -y grafana
+sudo systemctl start grafana-server
+sudo systemctl enable grafana-server
+# Access: http://34.135.70.190:3000 (admin/admin default)
+```
+
+**Add Prometheus data source:**
+```
+Settings → Data Sources → Add → Prometheus
+URL: http://localhost:9090
+```
+
+**Key Dashboards to create:**
+
+| Dashboard | Panels |
+|-----------|--------|
+| **API Health** | RPS, error rate, p95 latency per endpoint |
+| **AI Engine** | Kundali calc/min, chat requests/min, RAG latency, token usage |
+| **Users** | New signups/day, MAU, plan distribution (Free/Jyotishi/Acharya) |
+| **Revenue** | Cashfree payments/day, MRR, plan upgrades |
+| **VM** | CPU %, RAM %, GPU VRAM usage |
+
+**Useful PromQL queries:**
+```promql
+# Error rate (last 5 min)
+rate(http_requests_total{status=~"5.."}[5m])
+
+# p95 API latency
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+# Kundali calculations per hour
+increase(brahm_kundali_total[1h])
+
+# Active AI chat sessions
+brahm_active_users
+```
+
+### 25.4 Structured Python Logging
+
+```python
+# api/logging_config.py
+import logging, json
+from datetime import datetime
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        return json.dumps({
+            "ts":      datetime.utcnow().isoformat(),
+            "level":   record.levelname,
+            "module":  record.module,
+            "msg":     record.getMessage(),
+            "user_id": getattr(record, "user_id", None),
+            "endpoint": getattr(record, "endpoint", None),
+        })
+
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[
+        logging.StreamHandler(),                              # → journalctl
+        logging.FileHandler("/var/log/brahm-api/app.log"),   # → file
+    ]
+)
+```
+
+```python
+# Usage in routes:
+logger = logging.getLogger(__name__)
+logger.info("kundali_calculated", extra={"user_id": uid, "endpoint": "/api/kundali"})
+logger.error("cashfree_webhook_failed", extra={"order_id": order_id, "error": str(e)})
+```
+
+**Log rotation (logrotate config on VM):**
+```
+/var/log/brahm-api/*.log {
+    daily
+    rotate 30
+    compress
+    missingok
+    notifempty
+    postrotate
+        systemctl reload brahm-api
+    endscript
+}
+```
+
+### 25.5 Alerting (Grafana Alerts)
+
+| Alert | Condition | Action |
+|-------|-----------|--------|
+| High error rate | 5xx > 5% for 5 min | Email + Slack DM |
+| API down | No scrape for 2 min | Email immediately |
+| Slow kundali | p95 > 3s for 10 min | Log warning |
+| VRAM near full | GPU > 22GB | Email warning |
+| DB connection fail | Supabase errors > 10/min | Email + auto-retry |
+
+```
+Grafana → Alerting → Contact points → Add email / Slack webhook
+```
+
+### 25.6 Setup Order
+```
+1. Sentry (30 min) — signup sentry.io, add DSN to frontend + backend
+2. Python logging (1 hr) — structured logs to /var/log/brahm-api/
+3. Prometheus (1 hr) — install on VM, add instrumentator to FastAPI
+4. Grafana (2 hr) — install on VM, connect Prometheus, build 3 dashboards
+5. Alerts (30 min) — set up email alerts for critical conditions
+```
+
+---
+
+## 26. USER DATA STORAGE — COMPLETE MAP
+
+### 26.1 Where Every Piece of User Data Lives
+
+| Data | Storage | Why | Retention |
+|------|---------|-----|-----------|
+| User profile (name, phone, birth details) | Supabase `users` table | Persistent, synced across devices | Forever |
+| Kundali JSON (calculated chart) | Supabase `users.kundali_json` column | Cached — no recalc on return | Forever |
+| Active subscription + plan | Supabase `subscriptions` table | Source of truth for feature gates | Until cancelled/expired |
+| Payment history | Supabase `subscriptions` + `payment_log` table | Audit trail, receipts | Forever |
+| Feature usage counts (AI chat/day) | Supabase `usage_log` table | Free tier enforcement | 90 days rolling |
+| **Chat history (all conversations)** | **Supabase `chat_messages` table** | Persistent across devices, admin visible | 1 year |
+| Chat history (current session cache) | Browser `localStorage` (`brahm_chat_{pageContext}`) | Fast load, no API call needed | Until cleared |
+| Birth details (quick access) | Zustand `kundliStore` + `localStorage` | Instant availability on every page | Until logout |
+| Auth token (JWT) | `localStorage` (web) / Keychain (iOS) / EncryptedSharedPrefs (Android) | Clerk-managed | 7 days |
+| UI preferences (language, theme) | `localStorage` + Supabase `users.lang_pref` | Instant + cross-device | Forever |
+| Fact-sheet ("meri baatein") | `localStorage` (`brahm_facts`) | Personal AI context | Until cleared |
+| FCM push token | Supabase `users.fcm_token` | Push notification delivery | Until app uninstall |
+| Session replays / error events | Sentry cloud | Debugging only | 30 days |
+| API metrics | Prometheus (VM) | Performance monitoring | 30 days |
+
+---
+
+### 26.2 Chat History — Full Design
+
+#### Why store chat history in DB (not just localStorage)?
+- User switches device (phone → laptop) — history should sync
+- Admin can see conversations for support/moderation
+- AI can reference past sessions ("pichli baar tune kaha tha...")
+- Analytics: what questions users ask most
+- Required for any "history" feature in the app
+
+#### Supabase Schema — `chat_messages` table
+```sql
+CREATE TABLE chat_messages (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      TEXT REFERENCES users(id) ON DELETE CASCADE,
+  session_id   TEXT NOT NULL,        -- groups messages into one conversation
+  page_context TEXT DEFAULT 'general', -- 'kundali' | 'panchang' | 'sky' | 'general' etc.
+  role         TEXT NOT NULL,        -- 'user' | 'assistant'
+  content      TEXT NOT NULL,
+  confidence   TEXT,                 -- 'HIGH' | 'MEDIUM' | 'LOW' (from AI tag)
+  sources      JSONB,                -- [{book, chunk_id}] from RAG
+  tokens_used  INTEGER,              -- Gemini token count (for billing/analytics)
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes for fast queries
+CREATE INDEX idx_chat_user_id ON chat_messages(user_id);
+CREATE INDEX idx_chat_session ON chat_messages(session_id);
+CREATE INDEX idx_chat_created ON chat_messages(created_at DESC);
+
+-- RLS: users see only their own messages; admins see all
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "user_own_messages" ON chat_messages
+  FOR SELECT USING (user_id = auth.uid());
+
+CREATE POLICY "admin_all_messages" ON chat_messages
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
+  );
+```
+
+#### session_id Strategy
+```
+session_id = "{user_id}_{page_context}_{date}"
+Example:    "usr_a1b2c3_kundali_2026-03-24"
+
+→ One session per page per day
+→ Groups related messages together in admin view
+→ Easy to clear one page's history without affecting others
+```
+
+#### FastAPI — Save Chat Messages
+```python
+# api/routers/chat.py — after streaming completes, save to DB
+
+async def save_chat_message(user_id: str, session_id: str, page_context: str,
+                             role: str, content: str, confidence: str = None,
+                             sources: list = None, tokens: int = None):
+    supabase.table("chat_messages").insert({
+        "user_id":      user_id,
+        "session_id":   session_id,
+        "page_context": page_context,
+        "role":         role,
+        "content":      content,
+        "confidence":   confidence,
+        "sources":      sources or [],
+        "tokens_used":  tokens,
+    }).execute()
+
+# In /api/chat SSE handler:
+# 1. Save user message immediately
+await save_chat_message(uid, session_id, page_context, "user", user_message)
+
+# 2. Stream AI response... collect full response
+full_response = ""
+async for chunk in gemini_stream:
+    full_response += chunk
+    yield chunk
+
+# 3. Save AI response after stream ends
+await save_chat_message(uid, session_id, page_context, "assistant",
+                        full_response, confidence=extracted_confidence,
+                        sources=rag_sources, tokens=token_count)
+```
+
+#### Frontend — Load Chat History from DB
+```typescript
+// src/hooks/useChat.ts — on mount, load history from API
+
+// New endpoint: GET /api/chat/history?page_context=kundali&limit=20
+const loadHistory = async () => {
+  const res = await api.get(`/chat/history?page_context=${pageContext}&limit=20`)
+  if (res.messages?.length) {
+    setMessages(res.messages)
+    // Also update localStorage cache
+    localStorage.setItem(`brahm_chat_${pageContext}`, JSON.stringify(res.messages))
+  } else {
+    // Fallback to localStorage if API fails/slow
+    const cached = localStorage.getItem(`brahm_chat_${pageContext}`)
+    if (cached) setMessages(JSON.parse(cached))
+  }
+}
+```
+
+```python
+# api/routers/chat.py — new history endpoint
+@router.get("/chat/history")
+async def get_chat_history(
+    page_context: str = "general",
+    limit: int = 20,
+    user = Depends(get_current_user)
+):
+    result = supabase.table("chat_messages") \
+        .select("role, content, confidence, sources, created_at") \
+        .eq("user_id", user["sub"]) \
+        .eq("page_context", page_context) \
+        .order("created_at", desc=False) \
+        .limit(limit) \
+        .execute()
+    return {"messages": result.data}
+```
+
+#### Chat History Retention Policy
+```
+- Keep last 1 year of messages per user
+- Scheduled job (weekly): DELETE FROM chat_messages WHERE created_at < now() - interval '1 year'
+- On user account delete: CASCADE deletes all messages automatically
+- User can clear their own history: DELETE WHERE user_id = ? AND page_context = ?
+```
+
+---
+
+### 26.3 Updated Supabase Schema — Complete
+
+```sql
+-- ── USERS ──────────────────────────────────────────────────────
+CREATE TABLE users (
+  id              TEXT PRIMARY KEY,        -- Clerk user ID (user_xxxxx)
+  phone           TEXT UNIQUE,
+  email           TEXT UNIQUE,
+  name            TEXT,
+  role            TEXT DEFAULT 'user',     -- 'user' | 'admin'
+  lang_pref       TEXT DEFAULT 'en',
+  city            TEXT,
+  lat             REAL, lon REAL, tz REAL,
+  birth_date      TEXT, birth_time TEXT,
+  birth_city      TEXT,
+  birth_lat       REAL, birth_lon REAL, birth_tz REAL,
+  kundali_json    TEXT,                    -- cached KundaliResponse
+  notif_panchang  BOOLEAN DEFAULT TRUE,
+  notif_grahan    BOOLEAN DEFAULT TRUE,
+  notif_festivals BOOLEAN DEFAULT FALSE,
+  fcm_token       TEXT,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  last_login      TIMESTAMPTZ
+);
+
+-- ── SUBSCRIPTIONS ───────────────────────────────────────────────
+CREATE TABLE subscriptions (
+  id                TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id           TEXT REFERENCES users(id) ON DELETE CASCADE,
+  plan              TEXT NOT NULL,         -- 'free' | 'jyotishi' | 'acharya'
+  period            TEXT,                  -- 'monthly' | 'yearly'
+  status            TEXT DEFAULT 'active', -- 'active' | 'cancelled' | 'expired'
+  cashfree_order_id TEXT,
+  amount_paid       INTEGER,               -- in paise (₹199 = 19900)
+  started_at        TIMESTAMPTZ,
+  expires_at        TIMESTAMPTZ,
+  cancelled_at      TIMESTAMPTZ
+);
+
+-- ── USAGE LOG ───────────────────────────────────────────────────
+CREATE TABLE usage_log (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     TEXT REFERENCES users(id) ON DELETE CASCADE,
+  feature     TEXT,                        -- 'ai_chat' | 'kundali' | 'search' | 'palmistry'
+  metadata    JSONB,                       -- {page_context, tokens, response_ms}
+  used_at     TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_usage_user_date ON usage_log(user_id, used_at DESC);
+
+-- ── CHAT MESSAGES ───────────────────────────────────────────────
+CREATE TABLE chat_messages (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      TEXT REFERENCES users(id) ON DELETE CASCADE,
+  session_id   TEXT NOT NULL,
+  page_context TEXT DEFAULT 'general',
+  role         TEXT NOT NULL,              -- 'user' | 'assistant'
+  content      TEXT NOT NULL,
+  confidence   TEXT,                       -- 'HIGH' | 'MEDIUM' | 'LOW'
+  sources      JSONB,                      -- [{book, chunk_id}]
+  tokens_used  INTEGER,
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_chat_user_id ON chat_messages(user_id);
+CREATE INDEX idx_chat_session  ON chat_messages(session_id);
+CREATE INDEX idx_chat_created  ON chat_messages(created_at DESC);
+
+-- ── SAVED KUNDALIS ──────────────────────────────────────────────
+-- For Jyotishi+ users saving multiple charts (clients, family)
+CREATE TABLE saved_kundalis (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      TEXT REFERENCES users(id) ON DELETE CASCADE,
+  label        TEXT,                       -- "My chart" | "Mom" | "Client - Ramesh"
+  birth_date   TEXT, birth_time TEXT,
+  birth_city   TEXT,
+  birth_lat    REAL, birth_lon REAL, birth_tz REAL,
+  kundali_json TEXT,                       -- KundaliResponse JSON
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+## 27. ADMIN PANEL — COMPLETE SYSTEM
+
+### 27.1 Complete Data Tracked Per User
+
+Every action a user takes is stored and visible to admin:
+
+| Action | Table | What's Stored |
+|--------|-------|--------------|
+| Signed up | `users` | phone, name, device, signup time, IP |
+| Login | `users.last_login` + `login_log` | timestamp, device, IP, success/fail |
+| Generated Kundali | `kundali_log` | birth details used, result JSON, calc time |
+| AI Chat message | `chat_messages` | full message, AI reply, confidence, tokens, page context |
+| Palm reading | `palmistry_log` | image hash, AI result JSON, timestamp |
+| Paid subscription | `subscriptions` + `payment_log` | plan, amount, Cashfree order ID, status |
+| Payment failed | `payment_log` | reason, attempt count |
+| Subscription cancelled | `subscriptions.cancelled_at` | reason if provided |
+| Used feature | `usage_log` | feature name, count per day |
+| Saved Kundali | `saved_kundalis` | label, birth details, kundali JSON |
+| Account deleted | `deleted_accounts` | soft-delete audit trail |
+
+---
+
+### 27.2 Complete Supabase Schema (All Tables)
+
+```sql
+-- ── USERS ─────────────────────────────────────────────────────────────────
+CREATE TABLE users (
+  id              TEXT PRIMARY KEY,        -- Clerk user_xxx ID
+  phone           TEXT UNIQUE,
+  email           TEXT UNIQUE,
+  name            TEXT,
+  role            TEXT DEFAULT 'user',     -- 'user' | 'admin' | 'banned'
+  status          TEXT DEFAULT 'active',   -- 'active' | 'suspended' | 'deleted'
+  lang_pref       TEXT DEFAULT 'en',
+  city            TEXT,
+  lat             REAL, lon REAL, tz REAL,
+  birth_date      TEXT, birth_time TEXT,
+  birth_city      TEXT,
+  birth_lat       REAL, birth_lon REAL, birth_tz REAL,
+  kundali_json    TEXT,                    -- cached active KundaliResponse
+  notif_panchang  BOOLEAN DEFAULT TRUE,
+  notif_grahan    BOOLEAN DEFAULT TRUE,
+  notif_festivals BOOLEAN DEFAULT FALSE,
+  fcm_token       TEXT,
+  signup_ip       TEXT,
+  signup_device   TEXT,                    -- 'web' | 'android' | 'ios'
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  last_login      TIMESTAMPTZ,
+  deleted_at      TIMESTAMPTZ             -- soft delete
+);
+
+-- ── LOGIN LOG ─────────────────────────────────────────────────────────────
+CREATE TABLE login_log (
+  id         BIGSERIAL PRIMARY KEY,
+  user_id    TEXT REFERENCES users(id) ON DELETE CASCADE,
+  phone      TEXT,                         -- in case user not found
+  ip         TEXT,
+  device     TEXT,                         -- 'web' | 'android' | 'ios'
+  user_agent TEXT,
+  success    BOOLEAN,
+  fail_reason TEXT,                        -- 'wrong_otp' | 'expired_otp' | 'banned'
+  logged_at  TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_login_user ON login_log(user_id, logged_at DESC);
+
+-- ── SUBSCRIPTIONS ─────────────────────────────────────────────────────────
+CREATE TABLE subscriptions (
+  id                TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id           TEXT REFERENCES users(id) ON DELETE CASCADE,
+  plan              TEXT NOT NULL,         -- 'jyotishi' | 'acharya'
+  period            TEXT,                  -- 'monthly' | 'yearly'
+  status            TEXT DEFAULT 'active', -- 'active' | 'cancelled' | 'expired' | 'paused'
+  cashfree_order_id TEXT UNIQUE,
+  cashfree_sub_id   TEXT,                  -- recurring subscription ID
+  amount_paid       INTEGER,               -- paise (₹199 = 19900)
+  currency          TEXT DEFAULT 'INR',
+  started_at        TIMESTAMPTZ,
+  expires_at        TIMESTAMPTZ,
+  cancelled_at      TIMESTAMPTZ,
+  cancel_reason     TEXT,                  -- 'user_request' | 'payment_failed' | 'admin'
+  cancelled_by      TEXT                   -- 'user' | 'admin' | 'system'
+);
+CREATE INDEX idx_sub_user ON subscriptions(user_id, status);
+CREATE INDEX idx_sub_expiry ON subscriptions(expires_at) WHERE status = 'active';
+
+-- ── PAYMENT LOG ───────────────────────────────────────────────────────────
+CREATE TABLE payment_log (
+  id                BIGSERIAL PRIMARY KEY,
+  user_id           TEXT REFERENCES users(id),
+  subscription_id   TEXT REFERENCES subscriptions(id),
+  cashfree_order_id TEXT,
+  cashfree_payment_id TEXT,
+  amount            INTEGER,               -- paise
+  currency          TEXT DEFAULT 'INR',
+  status            TEXT,                  -- 'SUCCESS' | 'FAILED' | 'PENDING' | 'REFUNDED'
+  payment_method    TEXT,                  -- 'UPI' | 'CARD' | 'NETBANKING' | 'WALLET'
+  fail_reason       TEXT,
+  refund_amount     INTEGER,
+  refund_at         TIMESTAMPTZ,
+  webhook_raw       JSONB,                 -- full Cashfree webhook payload (audit)
+  paid_at           TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_payment_user ON payment_log(user_id, paid_at DESC);
+CREATE INDEX idx_payment_status ON payment_log(status, paid_at DESC);
+
+-- ── CHAT MESSAGES ─────────────────────────────────────────────────────────
+CREATE TABLE chat_messages (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      TEXT REFERENCES users(id) ON DELETE CASCADE,
+  session_id   TEXT NOT NULL,              -- "{user_id}_{page_context}_{date}"
+  page_context TEXT DEFAULT 'general',     -- 'kundali'|'panchang'|'sky'|'general'|...
+  role         TEXT NOT NULL,              -- 'user' | 'assistant'
+  content      TEXT NOT NULL,
+  confidence   TEXT,                       -- 'HIGH' | 'MEDIUM' | 'LOW'
+  sources      JSONB,                      -- [{book, chunk_id, score}]
+  tokens_used  INTEGER,
+  response_ms  INTEGER,                    -- AI response time in ms
+  flagged      BOOLEAN DEFAULT FALSE,      -- admin flag for review
+  flag_reason  TEXT,
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_chat_user ON chat_messages(user_id, created_at DESC);
+CREATE INDEX idx_chat_session ON chat_messages(session_id);
+CREATE INDEX idx_chat_flagged ON chat_messages(flagged) WHERE flagged = TRUE;
+
+-- ── KUNDALI LOG ───────────────────────────────────────────────────────────
+CREATE TABLE kundali_log (
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      TEXT REFERENCES users(id),
+  birth_date   TEXT, birth_time TEXT,
+  birth_city   TEXT,
+  birth_lat    REAL, birth_lon REAL, birth_tz REAL,
+  result_json  TEXT,                       -- full KundaliResponse
+  calc_ms      INTEGER,                    -- calculation time ms
+  source       TEXT DEFAULT 'web',         -- 'web' | 'android' | 'ios'
+  is_saved     BOOLEAN DEFAULT FALSE,      -- user saved it to saved_kundalis
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_kundali_user ON kundali_log(user_id, created_at DESC);
+
+-- ── SAVED KUNDALIS ────────────────────────────────────────────────────────
+CREATE TABLE saved_kundalis (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      TEXT REFERENCES users(id) ON DELETE CASCADE,
+  label        TEXT,                       -- "My chart" | "Mom" | "Client - Ramesh"
+  birth_date   TEXT, birth_time TEXT,
+  birth_city   TEXT,
+  birth_lat    REAL, birth_lon REAL, birth_tz REAL,
+  kundali_json TEXT,
+  is_shared    BOOLEAN DEFAULT FALSE,
+  share_token  TEXT UNIQUE,                -- for /kundli?share=xxx public URL
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+
+-- ── PALMISTRY LOG ─────────────────────────────────────────────────────────
+CREATE TABLE palmistry_log (
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      TEXT REFERENCES users(id),
+  image_hash   TEXT,                       -- SHA256 of uploaded image (no image stored)
+  image_size   INTEGER,                    -- bytes
+  result_json  TEXT,                       -- full Gemini Vision response
+  lines_found  JSONB,                      -- {life_line, heart_line, head_line, ...}
+  confidence   TEXT,
+  tokens_used  INTEGER,
+  response_ms  INTEGER,
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_palm_user ON palmistry_log(user_id, created_at DESC);
+
+-- ── USAGE LOG ─────────────────────────────────────────────────────────────
+CREATE TABLE usage_log (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     TEXT REFERENCES users(id) ON DELETE CASCADE,
+  feature     TEXT,  -- 'ai_chat'|'kundali'|'search'|'palmistry'|'compatibility'|'gochar'
+  source      TEXT DEFAULT 'web',          -- 'web' | 'android' | 'ios'
+  metadata    JSONB,                       -- {page_context, tokens, response_ms, plan}
+  used_at     TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_usage_user_date ON usage_log(user_id, used_at DESC);
+CREATE INDEX idx_usage_feature ON usage_log(feature, used_at DESC);
+
+-- ── DELETED ACCOUNTS (soft-delete audit) ─────────────────────────────────
+CREATE TABLE deleted_accounts (
+  id             BIGSERIAL PRIMARY KEY,
+  user_id        TEXT,
+  phone          TEXT,
+  name           TEXT,
+  plan_at_delete TEXT,
+  total_chats    INTEGER,
+  total_payments INTEGER,
+  delete_reason  TEXT,                     -- 'user_request' | 'admin_ban' | 'gdpr'
+  deleted_by     TEXT,                     -- 'user' | 'admin'
+  deleted_at     TIMESTAMPTZ DEFAULT now()
+);
+
+-- ── ADMIN ACTIONS LOG ────────────────────────────────────────────────────
+-- Every admin action is logged (who did what to whom)
+CREATE TABLE admin_log (
+  id          BIGSERIAL PRIMARY KEY,
+  admin_id    TEXT REFERENCES users(id),
+  action      TEXT,    -- 'ban_user'|'refund'|'change_plan'|'delete_user'|'flag_message'
+  target_id   TEXT,    -- user_id or payment_id or message_id
+  target_type TEXT,    -- 'user' | 'payment' | 'chat_message' | 'subscription'
+  details     JSONB,   -- {old_value, new_value, reason}
+  performed_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+### 27.3 Admin API Endpoints (Complete)
+
+```python
+# api/routers/admin.py
+# All routes: Depends(get_admin_user) — role='admin' required
+# Every admin action is logged to admin_log table
+
+# ── DASHBOARD ────────────────────────────────────────────────────
+GET  /api/admin/stats
+     → { total_users, new_today, new_week, mau, dau,
+         paid_users, revenue_today, revenue_month, revenue_total,
+         chats_today, kundalis_today, palm_readings_today,
+         active_subscriptions: {jyotishi_monthly, jyotishi_yearly, acharya_monthly, acharya_yearly} }
+
+# ── USER MANAGEMENT ──────────────────────────────────────────────
+GET  /api/admin/users?search=&plan=&status=&page=&limit=
+     → paginated list: [{ id, name, phone, plan, status, created_at, last_login,
+                          total_chats, total_payments, last_active }]
+
+GET  /api/admin/users/{user_id}
+     → full profile: { ...user_row, subscription, usage_today,
+                        login_history[-5], total_kundalis, total_chats,
+                        total_palmistry, lifetime_paid_inr }
+
+PATCH /api/admin/users/{user_id}
+     body: { status?, role?, plan?, note }
+     → can set: status='suspended'|'active', role='admin'|'user', plan override
+     → logs to admin_log
+
+DELETE /api/admin/users/{user_id}
+     body: { reason, hard_delete: bool }
+     → soft delete: sets users.status='deleted', users.deleted_at=now()
+     → saves to deleted_accounts audit table
+     → hard delete: removes all rows + cancels active subscription
+     → logs to admin_log
+
+POST /api/admin/users/{user_id}/ban
+     body: { reason }
+     → sets role='banned', cancels subscription, logs admin_log
+
+POST /api/admin/users/{user_id}/unban
+     → sets role='user', logs admin_log
+
+# ── CHAT HISTORY ─────────────────────────────────────────────────
+GET  /api/admin/users/{user_id}/chats?page_context=&page=&limit=
+     → full chat history with all fields (confidence, tokens, sources, flagged)
+
+POST /api/admin/chats/{message_id}/flag
+     body: { reason }
+     → sets flagged=TRUE, flag_reason, logs admin_log
+
+DELETE /api/admin/users/{user_id}/chats
+     body: { page_context? }   # optional: clear specific context only
+     → deletes all or context-specific chat messages, logs admin_log
+
+# ── KUNDALI HISTORY ──────────────────────────────────────────────
+GET  /api/admin/users/{user_id}/kundalis
+     → all kundali calculations: [{ id, birth_details, calc_ms, created_at, is_saved }]
+
+GET  /api/admin/users/{user_id}/kundalis/{id}
+     → full result_json of that calculation
+
+# ── PALMISTRY HISTORY ────────────────────────────────────────────
+GET  /api/admin/users/{user_id}/palmistry
+     → all palm readings: [{ id, image_hash, lines_found, confidence, created_at }]
+
+GET  /api/admin/users/{user_id}/palmistry/{id}
+     → full result_json
+
+# ── PAYMENT & SUBSCRIPTION ───────────────────────────────────────
+GET  /api/admin/users/{user_id}/payments
+     → full payment history: [{ id, plan, amount, status, method, paid_at, cashfree_order_id }]
+
+GET  /api/admin/users/{user_id}/subscription
+     → current + past subscriptions with all fields
+
+POST /api/admin/users/{user_id}/subscription/cancel
+     body: { reason }
+     → cancels active subscription via Cashfree API + updates DB, logs admin_log
+
+POST /api/admin/users/{user_id}/subscription/extend
+     body: { days, reason }
+     → extends expires_at manually (goodwill gesture), logs admin_log
+
+POST /api/admin/payments/{payment_id}/refund
+     body: { amount?, reason }
+     → calls Cashfree refund API, updates payment_log, logs admin_log
+
+POST /api/admin/users/{user_id}/grant-plan
+     body: { plan, days, reason }
+     → manually grant free access (influencer, support resolution), logs admin_log
+
+# ── SUBSCRIPTION OVERVIEW ─────────────────────────────────────────
+GET  /api/admin/subscriptions?status=&plan=&expiring_days=
+     → all subscriptions with user name/phone
+
+GET  /api/admin/subscriptions/expiring
+     → users whose subscription expires in next 7 days (for renewal reminders)
+
+GET  /api/admin/revenue
+     → { today, this_week, this_month, all_time,
+         by_plan: {jyotishi_monthly: x, ...},
+         by_method: {upi: x, card: y, ...},
+         refunds_this_month }
+
+# ── ANALYTICS ────────────────────────────────────────────────────
+GET  /api/admin/analytics/chat
+     → { top_questions[-20], page_context_dist, avg_tokens, avg_response_ms,
+         daily_chats[-30], flagged_messages[-10] }
+
+GET  /api/admin/analytics/features
+     → feature usage counts: { kundali, ai_chat, palmistry, compatibility, ... }
+     by day/week/month
+
+GET  /api/admin/analytics/users
+     → { signups_by_day[-30], retention_day1/day7/day30,
+         plan_conversion_rate, churn_rate }
+
+# ── ADMIN AUDIT LOG ──────────────────────────────────────────────
+GET  /api/admin/logs
+     → all admin actions with who did what when
+
+# ── BULK ACTIONS ─────────────────────────────────────────────────
+POST /api/admin/notify
+     body: { user_ids[]|all, title, body, type: 'push'|'email' }
+     → send push notification to specific users or all
+
+POST /api/admin/export/users
+     → CSV export: name, phone, plan, created_at, total_paid
+```
+
+---
+
+### 27.4 Admin Panel UI (`/admin` — React Page) ✅ BUILT
+
+**File:** `src/pages/AdminPage.tsx`
+**Auth:** X-Admin-Key header (sessionStorage, clears on browser close)
+**Style:** Standalone dark UI — does NOT use AppLayout (no sidebar/header interference)
+
+```
+/admin
+├── 📊 Dashboard
+│   ├── Users row (5 cards): Total | New Today | New Week | DAU | MAU
+│   ├── Revenue row (4 cards): Today | Month | Total | Paid Users
+│   ├── Activity row (3 cards): Chats Today | Kundalis Today | Palm Today
+│   ├── Subscriptions row (4 cards): Jyotishi Monthly/Yearly | Acharya Monthly/Yearly
+│   └── Top Endpoints table
+│
+├── 👥 Users
+│   ├── Search: phone/name
+│   ├── Filter: All Plans | Free | Jyotishi | Acharya
+│   ├── Filter: All Status | Active | Suspended | Banned
+│   ├── Table: Name | Phone | Plan | Status | Joined | Chats | Kundalis | Paid ₹ | View
+│   └── Click row → User Detail Modal (full overlay)
+│       ├── Header: name, phone, plan badge, status badge, admin badge
+│       ├── Action Bar:
+│       │   ├── [Change Plan] [Grant Free Days] [Extend Sub] [Cancel Sub]
+│       │   ├── [Suspend / Unsuspend] [Ban / Unban]
+│       │   └── [Clear Chats] [Delete Account]
+│       └── 7 Sub-tabs:
+│           ├── 👤 Profile     — all fields: ID, phone, birth details, sub, Cashfree order ID, lifetime paid
+│           ├── 💬 Chats       — all messages, filter by page_context, flag button per message
+│           ├── ⭐ Kundalis    — every calculation: birth details, calc_ms, expandable JSON
+│           ├── 🖐 Palmistry   — all palm readings: lines_found, confidence, tokens
+│           ├── 💳 Payments    — user's transactions with Refund button per payment
+│           ├── 📊 Usage       — feature usage breakdown today
+│           └── 🔐 Logins      — login history: IP, device, success/fail, fail reason
+│
+├── 💳 Payments
+│   ├── Revenue summary: Today | Month | Total (from /api/admin/revenue)
+│   ├── Filter: All | SUCCESS | FAILED | PENDING | REFUNDED
+│   ├── Table: User | Phone | Order ID | Amount | Status | Method | Fail Reason | Date
+│   └── [Refund] button on SUCCESS rows → calls /api/admin/payments/{id}/refund
+│
+├── 💬 Chat Monitor
+│   ├── Recent tab — latest messages across all users (user + phone shown)
+│   ├── ⚑ Flagged tab — only flagged messages
+│   └── 📊 Analytics tab — Top 15 questions (30d) + Page context distribution
+│
+└── 📋 Admin Log
+    └── Every admin action: Time | Admin | Action (color-coded) | Target | Details JSON
+```
+
+**Mobile:** Bottom tab bar (5 tabs) replaces sidebar on small screens.
+
+---
+
+### 27.5 Admin Access Control
+
+```python
+# api/services/auth_service.py
+
+ADMIN_PHONES = os.getenv("ADMIN_PHONES", "").split(",")
+
+def upsert_user(phone: str) -> dict:
+    role = "admin" if phone in ADMIN_PHONES else "user"
+    # ...
+
+# api/dependencies.py
+def get_admin_user(user = Depends(get_current_user)):
+    if user["role"] not in ("admin",):
+        raise HTTPException(403, "Admin access required")
+    return user
+```
+
+```
+# VM /etc/environment
+ADMIN_PHONES=+91XXXXXXXXXX,+91YYYYYYYYYY
+```
+
+**Admin route protection (React):**
+```typescript
+// src/pages/AdminPage.tsx
+const { plan, role } = useAuthStore()
+if (role !== 'admin') return <Navigate to="/dashboard" />
+```
+
+---
+
+### 27.6 Pre-built Supabase Studio SQL Queries
+
+Save these in Supabase SQL Editor → "Saved Queries":
+
+```sql
+-- 1. DAILY PULSE
+SELECT
+  (SELECT COUNT(*) FROM users WHERE created_at > now() - interval '24h') AS new_users_24h,
+  (SELECT COUNT(*) FROM chat_messages WHERE created_at > now() - interval '24h') AS chats_24h,
+  (SELECT COUNT(*) FROM kundali_log WHERE created_at > now() - interval '24h') AS kundalis_24h,
+  (SELECT COUNT(*) FROM palmistry_log WHERE created_at > now() - interval '24h') AS palm_24h,
+  (SELECT COALESCE(SUM(amount_paid)/100.0,0) FROM payment_log WHERE status='SUCCESS' AND paid_at > now() - interval '24h') AS revenue_24h_inr,
+  (SELECT COUNT(*) FROM subscriptions WHERE status='active' AND plan != 'free') AS paid_users_total;
+
+-- 2. FULL USER PROFILE (replace phone)
+SELECT u.id, u.name, u.phone, u.role, u.status, u.created_at, u.last_login,
+       u.birth_date, u.birth_city, u.lang_pref,
+       s.plan, s.period, s.status AS sub_status, s.expires_at, s.amount_paid/100.0 AS paid_inr,
+       (SELECT COUNT(*) FROM chat_messages WHERE user_id = u.id) AS total_chats,
+       (SELECT COUNT(*) FROM kundali_log WHERE user_id = u.id) AS total_kundalis,
+       (SELECT COUNT(*) FROM palmistry_log WHERE user_id = u.id) AS total_palm_readings,
+       (SELECT COALESCE(SUM(amount_paid)/100.0,0) FROM payment_log WHERE user_id = u.id AND status='SUCCESS') AS lifetime_paid_inr
+FROM users u
+LEFT JOIN subscriptions s ON s.user_id = u.id AND s.status = 'active'
+WHERE u.phone = '+919876543210';
+
+-- 3. USER'S FULL CHAT HISTORY (replace user_id)
+SELECT session_id, page_context, role, content, confidence,
+       tokens_used, response_ms, flagged, created_at
+FROM chat_messages
+WHERE user_id = 'user_xxx'
+ORDER BY created_at ASC;
+
+-- 4. USER'S ALL KUNDALI CALCULATIONS
+SELECT id, birth_date, birth_time, birth_city, calc_ms, is_saved, source, created_at
+FROM kundali_log
+WHERE user_id = 'user_xxx'
+ORDER BY created_at DESC;
+
+-- 5. USER'S PAYMENT HISTORY
+SELECT cashfree_order_id, amount/100.0 AS inr, status, payment_method, fail_reason, paid_at
+FROM payment_log
+WHERE user_id = 'user_xxx'
+ORDER BY paid_at DESC;
+
+-- 6. USER'S PALMISTRY HISTORY
+SELECT id, lines_found, confidence, tokens_used, created_at
+FROM palmistry_log
+WHERE user_id = 'user_xxx'
+ORDER BY created_at DESC;
+
+-- 7. REVENUE BREAKDOWN
+SELECT
+  period_label,
+  COUNT(*) AS payments,
+  SUM(amount)/100.0 AS total_inr
+FROM (
+  SELECT TO_CHAR(paid_at, 'YYYY-MM') AS period_label, amount
+  FROM payment_log WHERE status = 'SUCCESS'
+) t
+GROUP BY period_label ORDER BY period_label DESC LIMIT 12;
+
+-- 8. TOP QUESTIONS ASKED (last 30 days)
+SELECT content, COUNT(*) AS times_asked
+FROM chat_messages
+WHERE role = 'user' AND created_at > now() - interval '30 days'
+GROUP BY content ORDER BY times_asked DESC LIMIT 25;
+
+-- 9. FEATURE USAGE BREAKDOWN
+SELECT feature, source, COUNT(*) AS uses
+FROM usage_log
+WHERE used_at > now() - interval '30 days'
+GROUP BY feature, source ORDER BY uses DESC;
+
+-- 10. SUBSCRIPTIONS EXPIRING IN 7 DAYS
+SELECT u.name, u.phone, u.lang_pref, s.plan, s.period, s.expires_at,
+       s.amount_paid/100.0 AS paid_inr
+FROM users u JOIN subscriptions s ON s.user_id = u.id
+WHERE s.status = 'active' AND s.expires_at BETWEEN now() AND now() + interval '7 days'
+ORDER BY s.expires_at;
+
+-- 11. CHURN: RECENTLY CANCELLED
+SELECT u.name, u.phone, s.plan, s.cancelled_at, s.cancel_reason, s.cancelled_by
+FROM users u JOIN subscriptions s ON s.user_id = u.id
+WHERE s.status = 'cancelled' AND s.cancelled_at > now() - interval '30 days'
+ORDER BY s.cancelled_at DESC;
+
+-- 12. MAU + DAU
+SELECT
+  COUNT(DISTINCT CASE WHEN used_at > now() - interval '24h' THEN user_id END) AS dau,
+  COUNT(DISTINCT CASE WHEN used_at > now() - interval '30d' THEN user_id END) AS mau
+FROM usage_log;
+
+-- 13. BANNED / SUSPENDED USERS
+SELECT id, name, phone, role, status, created_at
+FROM users WHERE status != 'active' OR role = 'banned'
+ORDER BY created_at DESC;
+
+-- 14. ADMIN ACTION LOG
+SELECT a.performed_at, u.name AS admin_name, a.action, a.target_type, a.target_id, a.details
+FROM admin_log a JOIN users u ON u.id = a.admin_id
+ORDER BY a.performed_at DESC LIMIT 50;
+```
+
+---
+
+### 27.7 Admin Build Status
+
+```
+✅ DONE — Frontend (src/pages/AdminPage.tsx):
+  ✅ Dashboard — 15 stat cards + top endpoints
+  ✅ Users tab — search, filter by plan/status, full table, User Detail Modal
+  ✅ User Detail Modal — 7 sub-tabs:
+       Profile / Chats / Kundalis / Palmistry / Payments / Usage / Logins
+  ✅ All user actions:
+       Change Plan | Grant Free Days | Extend Sub | Cancel Sub
+       Suspend/Unsuspend | Ban/Unban | Clear Chats | Delete Account
+  ✅ Payments tab — revenue summary, filter, Refund button per row
+  ✅ Chat Monitor — recent, flagged, analytics (top questions + context dist)
+  ✅ Admin Log — all admin actions, color-coded by action type
+  ✅ Mobile-responsive — bottom tab bar on small screens
+  ✅ Auth — X-Admin-Key header (sessionStorage)
+
+⬜ TODO — Backend (api/routers/admin.py) — needed for frontend to work:
+  GET  /api/admin/stats
+  GET  /api/admin/users?search=&plan=&status=&page=&limit=
+  GET  /api/admin/users/{id}
+  PATCH /api/admin/users/{id}           → change plan/status/role
+  DELETE /api/admin/users/{id}          → soft/hard delete
+  POST /api/admin/users/{id}/ban
+  POST /api/admin/users/{id}/unban
+  POST /api/admin/users/{id}/grant-plan
+  POST /api/admin/users/{id}/subscription/cancel
+  POST /api/admin/users/{id}/subscription/extend
+  GET  /api/admin/users/{id}/chats?page_context=&page=
+  DELETE /api/admin/users/{id}/chats
+  POST /api/admin/chats/{msg_id}/flag
+  GET  /api/admin/users/{id}/kundalis
+  GET  /api/admin/users/{id}/palmistry
+  GET  /api/admin/users/{id}/payments
+  GET  /api/admin/users/{id}/logins
+  GET  /api/admin/payments?status=&page=
+  POST /api/admin/payments/{id}/refund  → calls Cashfree refund API
+  GET  /api/admin/revenue
+  GET  /api/admin/chats?flagged=&page=
+  GET  /api/admin/analytics/chat        → top questions + context dist
+  GET  /api/admin/logs?page=
+
+  Rules for all backend admin routes:
+  - Depends(get_admin_user) — role='admin' required on every route
+  - Every mutating action → INSERT into admin_log table
+  - Cancellation/ban → also call Cashfree cancel API if active subscription
+
+⬜ TODO — Future additions (after 500+ users):
+  → Push notification broadcaster (send to all / paid / specific user)
+  → CSV export: users, revenue
+  → Grafana iframe embed for API health dashboard
+  → Realtime new user / payment alerts (Supabase Realtime)
+```
 
 ---
 
