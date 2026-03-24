@@ -421,7 +421,7 @@
   "landing": {
     "hero_title": "ब्रह्म AI",
     "hero_subtitle": "Vedic Wisdom Meets Artificial Intelligence",
-    "hero_desc": "Explore your Kundali, Panchang, Compatibility, and sacred texts — powered by 1.1 million chunks of Vedic knowledge.",
+    "hero_desc": "Explore your Kundali, Panchang, Compatibility, and sacred texts — rooted in Vedic tradition.",
     "get_started": "Get Started Free",
     "explore": "Explore Features",
     "stats_chunks": "Knowledge Chunks",
@@ -1081,7 +1081,7 @@
     "pipeline_step3": "3. Chunking",
     "pipeline_step3_desc": "Split into 400-token chunks with 50-token overlap for context continuity",
     "pipeline_step4": "4. Embedding",
-    "pipeline_step4_desc": "Generate vectors using MiniLM-L12 multilingual model (384 dim)",
+    "pipeline_step4_desc": "Generate semantic vectors using a multilingual embedding model",
     "pipeline_step5": "5. Knowledge Indexing",
     "pipeline_step5_desc": "Add to knowledge index with metadata (book, chapter, page, verse)",
     "stat_total_books": "Total Books",

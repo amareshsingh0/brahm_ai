@@ -31,7 +31,7 @@ export default function LandingPage() {
     {
       icon: "🤖",
       title: `${t('appTitle')} Chat`,
-      desc: "Ask any Vedic question. Powered by 1.1 million Sanskrit, Hindi, and English text chunks from 100+ sacred books.",
+      desc: "Ask any Vedic question — answered from 100+ sacred scriptures including Vedas, Upanishads, Puranas, and Gitas.",
       plan: "Jyotishi+",
       color: "from-blue-500/10 to-purple-500/10 border-blue-500/20",
     },
