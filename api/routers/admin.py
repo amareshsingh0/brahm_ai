@@ -9,6 +9,7 @@ import os
 import json
 import threading
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Header, Query, Request
 from pydantic import BaseModel
@@ -127,50 +128,57 @@ def get_stats(x_admin_key: str = Header(None)):
     sb = _get_supabase()
     if sb:
         try:
-            # Users
-            total_users  = sb.table("users").select("id", count="exact").execute().count or 0
-            new_today    = sb.table("users").select("id", count="exact").gte("created_at", today).execute().count or 0
-            new_week     = sb.table("users").select("id", count="exact").gte("created_at", week_ago).execute().count or 0
-            # MAU / DAU via usage_log
-            dau          = sb.table("usage_log").select("user_id", count="exact").gte("used_at", today).execute().count or 0
-            mau          = sb.table("usage_log").select("user_id", count="exact").gte("used_at", month_ago).execute().count or 0
-            # Paid users
-            paid_users   = sb.table("subscriptions").select("id", count="exact").eq("status", "active").neq("plan", "free").execute().count or 0
-            # Revenue
-            rev_today_r  = sb.table("payment_log").select("amount").eq("status", "SUCCESS").gte("paid_at", today).execute()
-            rev_month_r  = sb.table("payment_log").select("amount").eq("status", "SUCCESS").gte("paid_at", month_ago).execute()
-            rev_total_r  = sb.table("payment_log").select("amount").eq("status", "SUCCESS").execute()
-            rev_today    = sum(r.get("amount", 0) or 0 for r in (rev_today_r.data or []))
-            rev_month    = sum(r.get("amount", 0) or 0 for r in (rev_month_r.data or []))
-            rev_total    = sum(r.get("amount", 0) or 0 for r in (rev_total_r.data or []))
-            # Activity today
-            chats_today  = sb.table("chat_messages").select("id", count="exact").gte("created_at", today).execute().count or 0
-            kund_today   = sb.table("kundali_log").select("id", count="exact").gte("created_at", today).execute().count or 0
-            palm_today   = sb.table("palmistry_log").select("id", count="exact").gte("created_at", today).execute().count or 0
-            # Sub breakdown
-            sub_jm = sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","jyotishi").eq("period","monthly").execute().count or 0
-            sub_jy = sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","jyotishi").eq("period","yearly").execute().count or 0
-            sub_am = sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","acharya").eq("period","monthly").execute().count or 0
-            sub_ay = sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","acharya").eq("period","yearly").execute().count or 0
+            # Run all queries in parallel — reduces 13 sequential round-trips to ~1 RTT
+            def q(fn):
+                return fn()
+
+            queries = {
+                "total_users":  lambda: sb.table("users").select("id", count="exact").execute().count or 0,
+                "new_today":    lambda: sb.table("users").select("id", count="exact").gte("created_at", today).execute().count or 0,
+                "new_week":     lambda: sb.table("users").select("id", count="exact").gte("created_at", week_ago).execute().count or 0,
+                "dau":          lambda: sb.table("usage_log").select("user_id", count="exact").gte("used_at", today).execute().count or 0,
+                "mau":          lambda: sb.table("usage_log").select("user_id", count="exact").gte("used_at", month_ago).execute().count or 0,
+                "paid_users":   lambda: sb.table("subscriptions").select("id", count="exact").eq("status", "active").neq("plan", "free").execute().count or 0,
+                "rev_today":    lambda: sb.table("payment_log").select("amount").eq("status", "SUCCESS").gte("paid_at", today).execute().data or [],
+                "rev_month":    lambda: sb.table("payment_log").select("amount").eq("status", "SUCCESS").gte("paid_at", month_ago).execute().data or [],
+                "rev_total":    lambda: sb.table("payment_log").select("amount").eq("status", "SUCCESS").execute().data or [],
+                "chats_today":  lambda: sb.table("chat_messages").select("id", count="exact").gte("created_at", today).execute().count or 0,
+                "kund_today":   lambda: sb.table("kundali_log").select("id", count="exact").gte("created_at", today).execute().count or 0,
+                "palm_today":   lambda: sb.table("palmistry_log").select("id", count="exact").gte("created_at", today).execute().count or 0,
+                "sub_jm":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","jyotishi").eq("period","monthly").execute().count or 0,
+                "sub_jy":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","jyotishi").eq("period","yearly").execute().count or 0,
+                "sub_am":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","acharya").eq("period","monthly").execute().count or 0,
+                "sub_ay":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","acharya").eq("period","yearly").execute().count or 0,
+            }
+
+            results = {}
+            with ThreadPoolExecutor(max_workers=16) as ex:
+                futures = {ex.submit(q, fn): key for key, fn in queries.items()}
+                for future in as_completed(futures):
+                    results[futures[future]] = future.result()
+
+            rev_today = sum(r.get("amount", 0) or 0 for r in results["rev_today"])
+            rev_month = sum(r.get("amount", 0) or 0 for r in results["rev_month"])
+            rev_total = sum(r.get("amount", 0) or 0 for r in results["rev_total"])
 
             return {
-                "total_users": total_users,
-                "new_today": new_today,
-                "new_week": new_week,
-                "mau": mau,
-                "dau": dau,
-                "paid_users": paid_users,
+                "total_users": results["total_users"],
+                "new_today":   results["new_today"],
+                "new_week":    results["new_week"],
+                "mau":         results["mau"],
+                "dau":         results["dau"],
+                "paid_users":  results["paid_users"],
                 "revenue_today": rev_today,
                 "revenue_month": rev_month,
                 "revenue_total": rev_total,
-                "chats_today": chats_today,
-                "kundalis_today": kund_today,
-                "palm_today": palm_today,
+                "chats_today":   results["chats_today"],
+                "kundalis_today": results["kund_today"],
+                "palm_today":    results["palm_today"],
                 "active_subscriptions": {
-                    "jyotishi_monthly": sub_jm,
-                    "jyotishi_yearly": sub_jy,
-                    "acharya_monthly": sub_am,
-                    "acharya_yearly": sub_ay,
+                    "jyotishi_monthly": results["sub_jm"],
+                    "jyotishi_yearly":  results["sub_jy"],
+                    "acharya_monthly":  results["sub_am"],
+                    "acharya_yearly":   results["sub_ay"],
                 },
                 "top_endpoints": _top_endpoints(),
             }

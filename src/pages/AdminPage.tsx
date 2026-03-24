@@ -138,19 +138,57 @@ interface Paginated<T> {
   pages: number;
 }
 
-// ─── API ──────────────────────────────────────────────────────────────────────
+// ─── API + Cache ──────────────────────────────────────────────────────────────
 
 const BASE = (import.meta.env.VITE_API_URL ?? "https://brahmasmi.bimoraai.com/api").replace(/\/$/, "");
 
+// Module-level cache: path → { data, ts }. GET requests served from cache for 5 min.
+const _cache = new Map<string, { data: unknown; ts: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export function invalidateAdminCache(path?: string) {
+  if (path) _cache.delete(path);
+  else _cache.clear();
+}
+
 async function aFetch(path: string, opts: RequestInit = {}) {
   const key = sessionStorage.getItem("admin-key") ?? "";
+  const isGet = !opts.method || opts.method === "GET";
+
+  // Serve from cache for GET requests
+  if (isGet) {
+    const cached = _cache.get(path);
+    if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
+  }
+
   const res = await fetch(`${BASE}${path}`, {
     ...opts,
     headers: { "Content-Type": "application/json", "X-Admin-Key": key, ...(opts.headers ?? {}) },
   });
   if (res.status === 401) { sessionStorage.removeItem("admin-key"); window.location.reload(); }
   if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  const data = await res.json();
+
+  // Store in cache for GET requests, invalidate on mutations
+  if (isGet) {
+    _cache.set(path, { data, ts: Date.now() });
+  } else {
+    _cache.clear(); // any mutation clears all cached data
+  }
+  return data;
+}
+
+// Preload all tabs in background — called once on login so tabs open instantly
+function preloadAll() {
+  const paths = [
+    "/api/admin/stats",
+    "/api/admin/users?page=1&limit=25",
+    "/api/admin/payments?page=1&limit=30",
+    "/api/admin/revenue",
+    "/api/admin/chats?page=1&limit=40",
+    "/api/admin/logs?page=1&limit=50",
+  ];
+  paths.forEach((p) => aFetch(p).catch(() => {}));
 }
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
@@ -215,10 +253,13 @@ function fmtInr(paise?: number) { return paise ? `₹${(paise / 100).toLocaleStr
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
 function DashboardTab() {
-  const [s, setS] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cached = _cache.get("/api/admin/stats");
+  const [s, setS] = useState<Stats | null>((cached?.data as Stats) ?? null);
+  const [loading, setLoading] = useState(!cached);
 
-  useEffect(() => { aFetch("/api/admin/stats").then(setS).finally(() => setLoading(false)); }, []);
+  useEffect(() => {
+    aFetch("/api/admin/stats").then((d) => setS(d as Stats)).finally(() => setLoading(false));
+  }, []);
 
   if (loading) return <Loader />;
   if (!s) return <Empty msg="Failed to load stats." />;
@@ -711,15 +752,17 @@ function LoginsSubTab({ items, loading }: { items: LoginEntry[]; loading: boolea
 // ─── Users Tab ────────────────────────────────────────────────────────────────
 
 function UsersTab() {
-  const [users, setUsers]     = useState<UserRow[]>([]);
-  const [total, setTotal]     = useState(0);
+  const _ckey = "/api/admin/users?page=1&limit=25";
+  const _cd = (_cache.get(_ckey)?.data as { users: UserRow[]; total: number; page: number; pages: number }) ?? null;
+  const [users, setUsers]     = useState<UserRow[]>(_cd?.users ?? []);
+  const [total, setTotal]     = useState(_cd?.total ?? 0);
   const [page, setPage]       = useState(1);
-  const [pages, setPages]     = useState(1);
+  const [pages, setPages]     = useState(_cd?.pages ?? 1);
   const [search, setSearch]   = useState("");
   const [query, setQuery]     = useState("");
   const [planFilter, setPlan] = useState("");
   const [statusFilter, setSt] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!_cd);
   const [detail, setDetail]   = useState<string | null>(null);
 
   const load = useCallback(async (p: number, q: string, plan: string, status: string) => {
@@ -810,13 +853,16 @@ function UsersTab() {
 // ─── Payments Tab ─────────────────────────────────────────────────────────────
 
 function PaymentsTab() {
-  const [payments, setPayments] = useState<PaymentRow[]>([]);
-  const [total, setTotal]       = useState(0);
+  const _ckey = "/api/admin/payments?page=1&limit=30";
+  const _cd = (_cache.get(_ckey)?.data as { items: PaymentRow[]; total: number; pages: number }) ?? null;
+  const _rev = (_cache.get("/api/admin/revenue")?.data as { today: number; month: number; total: number }) ?? null;
+  const [payments, setPayments] = useState<PaymentRow[]>(_cd?.items ?? []);
+  const [total, setTotal]       = useState(_cd?.total ?? 0);
   const [page, setPage]         = useState(1);
-  const [pages, setPages]       = useState(1);
+  const [pages, setPages]       = useState(_cd?.pages ?? 1);
   const [statusF, setStatusF]   = useState("");
-  const [loading, setLoading]   = useState(true);
-  const [revenue, setRevenue]   = useState<{ today: number; month: number; total: number } | null>(null);
+  const [loading, setLoading]   = useState(!_cd);
+  const [revenue, setRevenue]   = useState<{ today: number; month: number; total: number } | null>(_rev);
 
   const load = useCallback(async (p: number, status: string) => {
     setLoading(true);
@@ -907,12 +953,14 @@ function PaymentsTab() {
 // ─── Chat Monitor Tab ─────────────────────────────────────────────────────────
 
 function ChatMonitorTab() {
+  const _ckey = "/api/admin/chats?page=1&limit=40";
+  const _cd = (_cache.get(_ckey)?.data as { items: (ChatMsg & { user_name?: string; user_phone?: string })[]; pages: number }) ?? null;
   const [mode, setMode] = useState<"recent" | "flagged" | "analytics">("recent");
-  const [chats, setChats] = useState<(ChatMsg & { user_name?: string; user_phone?: string })[]>([]);
+  const [chats, setChats] = useState<(ChatMsg & { user_name?: string; user_phone?: string })[]>(_cd?.items ?? []);
   const [analytics, setAnalytics] = useState<{ top_questions: { content: string; times: number }[]; context_dist: { page_context: string; count: number }[] } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!_cd);
   const [page, setPage]   = useState(1);
-  const [pages, setPages] = useState(1);
+  const [pages, setPages] = useState(_cd?.pages ?? 1);
 
   const load = useCallback(async (p: number, m: string) => {
     setLoading(true);
@@ -993,10 +1041,12 @@ function ChatMonitorTab() {
 // ─── Admin Log Tab ────────────────────────────────────────────────────────────
 
 function AdminLogTab() {
-  const [logs, setLogs]   = useState<AdminLogEntry[]>([]);
+  const _ckey = "/api/admin/logs?page=1&limit=50";
+  const _cd = (_cache.get(_ckey)?.data as { items: AdminLogEntry[]; pages: number }) ?? null;
+  const [logs, setLogs]   = useState<AdminLogEntry[]>(_cd?.items ?? []);
   const [page, setPage]   = useState(1);
-  const [pages, setPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [pages, setPages] = useState(_cd?.pages ?? 1);
+  const [loading, setLoading] = useState(!_cd);
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -1105,10 +1155,16 @@ export default function AdminPage() {
 
   useEffect(() => {
     const key = sessionStorage.getItem("admin-key");
-    if (key) aFetch("/api/admin/stats").then(() => setAuthed(true)).catch(() => sessionStorage.removeItem("admin-key"));
+    if (key) {
+      aFetch("/api/admin/stats")
+        .then(() => { setAuthed(true); preloadAll(); })
+        .catch(() => sessionStorage.removeItem("admin-key"));
+    }
   }, []);
 
-  if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
+  const handleLogin = () => { setAuthed(true); preloadAll(); };
+
+  if (!authed) return <LoginScreen onLogin={handleLogin} />;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -1149,11 +1205,11 @@ export default function AdminPage() {
         {/* Content */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto pb-20 sm:pb-6 bg-background">
           <h2 className="text-lg font-bold text-foreground mb-5">{TABS.find((t) => t.id === tab)?.label}</h2>
-          {tab === "dashboard" && <DashboardTab />}
-          {tab === "users"     && <UsersTab />}
-          {tab === "payments"  && <PaymentsTab />}
-          {tab === "chat"      && <ChatMonitorTab />}
-          {tab === "adminlog"  && <AdminLogTab />}
+          <div className={tab === "dashboard" ? "" : "hidden"}><DashboardTab /></div>
+          <div className={tab === "users"     ? "" : "hidden"}><UsersTab /></div>
+          <div className={tab === "payments"  ? "" : "hidden"}><PaymentsTab /></div>
+          <div className={tab === "chat"      ? "" : "hidden"}><ChatMonitorTab /></div>
+          <div className={tab === "adminlog"  ? "" : "hidden"}><AdminLogTab /></div>
         </main>
       </div>
     </div>
