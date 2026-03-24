@@ -1,10 +1,11 @@
 """
-Brahm AI — Custom Auth Router (Phase 2)
+Brahm AI — Custom Auth Router (Phase 2 + 3)
 - Phone OTP: send via MSG91 (TEST_MODE=True uses fixed OTP 123456)
 - OTP stored as bcrypt hash in otp_log table (never plaintext)
 - JWT access token (15min) + refresh token (30 days, stored hashed in DB)
 - Rate limiting: max 5 OTP sends per phone per 15 min
 - Brute force: max 5 wrong OTP attempts → lock otp entry
+- Google OAuth: verify id_token via google-auth library
 """
 import os, secrets, hashlib, uuid
 from datetime import datetime, timedelta, timezone
@@ -344,6 +345,106 @@ def logout_all(credentials: HTTPAuthorizationCredentials = Depends(bearer)):
         "revoked_at": _now().isoformat(),
     }).eq("user_id", user_id).eq("revoked", False).execute()
     return {"message": "Logged out from all devices"}
+
+
+# ── Google OAuth ─────────────────────────────────────────────────────────────
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+
+class GoogleAuthRequest(BaseModel):
+    id_token: str
+    device_type: str = "web"   # 'web' | 'android' | 'ios'
+
+@router.post("/auth/google", response_model=AuthResponse)
+def google_login(req: GoogleAuthRequest, request: Request):
+    """Verify Google id_token and return JWT tokens."""
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(500, "Google OAuth not configured")
+
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+        idinfo = google_id_token.verify_oauth2_token(
+            req.id_token,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+    except Exception as e:
+        raise HTTPException(401, f"Invalid Google token: {str(e)}")
+
+    google_id = idinfo["sub"]
+    email     = idinfo.get("email", "")
+    name      = idinfo.get("name", "")
+
+    sb = get_supabase()
+
+    # Find existing user by google_id or email
+    user_res = sb.table("users").select("id,phone,name,plan,status").eq("google_id", google_id).maybe_single().execute()
+
+    if not user_res.data and email:
+        user_res = sb.table("users").select("id,phone,name,plan,status").eq("email", email).maybe_single().execute()
+
+    if user_res.data:
+        user    = user_res.data
+        user_id = user["id"]
+        phone   = user.get("phone") or ""
+        plan    = user.get("plan", "free")
+        if user.get("status") in ("suspended", "banned", "deleted"):
+            raise HTTPException(403, f"Account {user['status']}")
+        # Link google_id if not already linked
+        sb.table("users").update({
+            "google_id":  google_id,
+            "last_login": _now().isoformat(),
+        }).eq("id", user_id).execute()
+    else:
+        user_id = str(uuid.uuid4())
+        phone   = ""
+        plan    = "free"
+        sb.table("users").insert({
+            "id":         user_id,
+            "google_id":  google_id,
+            "email":      email,
+            "name":       name,
+            "plan":       plan,
+            "signup_ip":  _get_ip(request),
+            "signup_device": req.device_type,
+            "last_login": _now().isoformat(),
+        }).execute()
+
+    # Log login
+    sb.table("login_log").insert({
+        "user_id":    user_id,
+        "ip":         _get_ip(request),
+        "user_agent": request.headers.get("user-agent", ""),
+        "success":    True,
+    }).execute()
+
+    # Generate tokens
+    access_token  = _make_access_token(user_id, phone, plan)
+    refresh_token = _make_refresh_token()
+    refresh_hash  = _hash_token(refresh_token)
+    refresh_expiry = (_now() + timedelta(days=REFRESH_TTL_DAYS)).isoformat()
+
+    ua = request.headers.get("user-agent", "")
+    sb.table("refresh_tokens").insert({
+        "user_id":     user_id,
+        "token_hash":  refresh_hash,
+        "device_name": ua[:120] if ua else "",
+        "device_type": req.device_type,
+        "ip_address":  _get_ip(request),
+        "user_agent":  ua,
+        "expires_at":  refresh_expiry,
+    }).execute()
+
+    return AuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user_id=user_id,
+        name=name,
+        plan=plan,
+        phone=phone,
+        phone_verified=bool(phone),
+    )
 
 
 @router.get("/auth/me")
