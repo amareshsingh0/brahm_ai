@@ -1,43 +1,111 @@
 import { useAuthStore, type AuthUser } from '@/store/authStore';
 
-function buildMockUser(phone: string): AuthUser {
-  return {
-    id: 'usr_123',
-    name: 'Test User',
-    phone,
-    plan: 'free',
-  };
-}
+const API = "/api";
 
 export const useAuth = () => {
-  const { setAuth, logout, ...user } = useAuthStore();
+  const { setAuth, setRefreshToken, logout: storeLogout, ...user } = useAuthStore();
 
+  // ── Phone OTP ────────────────────────────────────────────────
   const sendOtp = async (phone: string) => {
-    const normalizedPhone = phone.trim();
-    // Backend auth routes are not wired yet, so keep the OTP flow stubbed.
-    console.log(`Sending OTP to ${normalizedPhone}`);
-    return { sent: true };
+    const res = await fetch(`${API}/auth/otp/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: `+91${phone}`, purpose: "login" }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to send OTP");
+    }
+    return res.json();
   };
 
   const verifyOtp = async (phone: string, otp: string) => {
-    const normalizedPhone = phone.trim();
-    const normalizedOtp = otp.trim();
-    // Backend auth routes are not wired yet, so keep the OTP flow stubbed.
-    console.log(`Verifying OTP ${normalizedOtp} for ${normalizedPhone}`);
-    const mockUser = buildMockUser(normalizedPhone);
-    const mockToken = 'mock-jwt-token';
-    setAuth(mockToken, mockUser);
-    return { token: mockToken, user: mockUser };
+    const res = await fetch(`${API}/auth/otp/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: `+91${phone}`, otp, purpose: "login" }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Invalid OTP");
+    }
+    const data = await res.json();
+    const authUser: AuthUser = {
+      id:    data.user_id,
+      name:  data.name,
+      phone: data.phone,
+      plan:  data.plan,
+    };
+    setAuth(data.access_token, authUser);
+    setRefreshToken(data.refresh_token);
+    return { token: data.access_token, user: authUser };
   };
 
-  const userLogout = () => {
-    logout();
+  // ── Google OAuth ─────────────────────────────────────────────
+  const googleLogin = async (idToken: string) => {
+    const res = await fetch(`${API}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_token: idToken, device_type: "web" }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Google login failed");
+    }
+    const data = await res.json();
+    const authUser: AuthUser = {
+      id:    data.user_id,
+      name:  data.name,
+      phone: data.phone,
+      plan:  data.plan,
+    };
+    setAuth(data.access_token, authUser);
+    setRefreshToken(data.refresh_token);
+    return { token: data.access_token, user: authUser };
+  };
+
+  // ── Refresh access token ─────────────────────────────────────
+  const refreshAccessToken = async () => {
+    const refreshToken = useAuthStore.getState().refreshToken;
+    if (!refreshToken) throw new Error("No refresh token");
+    const res = await fetch(`${API}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) {
+      storeLogout();
+      throw new Error("Session expired. Please login again.");
+    }
+    const data = await res.json();
+    useAuthStore.getState().setAuth(data.access_token, {
+      id:    useAuthStore.getState().userId!,
+      name:  useAuthStore.getState().name!,
+      phone: useAuthStore.getState().phone!,
+      plan:  useAuthStore.getState().plan,
+    });
+    return data.access_token;
+  };
+
+  // ── Logout ───────────────────────────────────────────────────
+  const logout = async () => {
+    const refreshToken = useAuthStore.getState().refreshToken;
+    if (refreshToken) {
+      fetch(`${API}/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      }).catch(() => {});
+    }
+    storeLogout();
   };
 
   return {
     ...user,
     sendOtp,
     verifyOtp,
-    logout: userLogout,
+    googleLogin,
+    refreshAccessToken,
+    logout,
   };
 };
