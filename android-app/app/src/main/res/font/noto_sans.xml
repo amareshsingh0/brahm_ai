@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Noto Sans — Latin + Devanagari (Hindi/Sanskrit support)
+    Download from Google Fonts and place in res/font/:
+      noto_sans_regular.ttf
+      noto_sans_medium.ttf
+      noto_sans_semibold.ttf (or use NotoSans-Bold for semibold)
+      noto_sans_bold.ttf
+
+    Or use downloadable font from Google Fonts via font_provider (see below).
+-->
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto">
+    <font
+        app:fontStyle="normal"
+        app:fontWeight="400"
+        app:font="@font/noto_sans_regular" />
+    <font
+        app:fontStyle="normal"
+        app:fontWeight="500"
+        app:font="@font/noto_sans_medium" />
+    <font
+        app:fontStyle="normal"
+        app:fontWeight="600"
+        app:font="@font/noto_sans_semibold" />
+    <font
+        app:fontStyle="normal"
+        app:fontWeight="700"
+        app:font="@font/noto_sans_bold" />
+</font-family>

@@ -1,71 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ── Brahm AI Dark Theme — mirrors website brand palette ────────────── -->
+    <!-- Brahm AI Light Theme — exact mirror of website tailwind.config.ts -->
 
-    <!-- Backgrounds (zinc-scale, near-black) -->
-    <color name="bg_primary">#FF09090B</color>       <!-- zinc-950 — main background -->
-    <color name="bg_surface">#FF18181B</color>        <!-- zinc-900 — cards -->
-    <color name="bg_surface_2">#FF27272A</color>      <!-- zinc-800 — elevated cards -->
-    <color name="bg_border">#FF3F3F46</color>         <!-- zinc-700 — borders -->
+    <!-- Backgrounds -->
+    <color name="bg_background">#F7F7F8</color>   <!-- bg-background — warm off-white -->
+    <color name="bg_card">#FFFFFF</color>           <!-- bg-card — pure white -->
+    <color name="bg_muted">#F0F0F2</color>          <!-- bg-muted / bg-sidebar -->
 
-    <!-- Primary = Purple (website accent: #7C3AED) -->
-    <color name="primary">#FF7C3AED</color>
-    <color name="primary_light">#FF9F67F3</color>
-    <color name="primary_dim">#267C3AED</color>
-
-    <!-- Gold — website: #B07A00, brightened for dark bg -->
-    <color name="accent_gold">#FFD4A017</color>       <!-- warm antique gold -->
-    <color name="accent_gold_dim">#26D4A017</color>
-
-    <!-- Saffron (website secondary: #D4540A) — CTA / button color -->
-    <color name="accent_saffron">#FFE8682A</color>    <!-- warm saffron-orange -->
-    <color name="accent_saffron_end">#FFD4540A</color><!-- darker saffron -->
+    <!-- Brand -->
+    <color name="gold">#B07A00</color>              <!-- amber-700 — primary gold -->
+    <color name="saffron">#D4540A</color>           <!-- orange-600 — saffron/CTA -->
+    <color name="purple">#7C3AED</color>            <!-- violet-700 — mystic accent -->
 
     <!-- Text -->
-    <color name="text_primary">#FFFAFAFA</color>      <!-- zinc-50 -->
-    <color name="text_secondary">#FFA1A1AA</color>    <!-- zinc-400 -->
-    <color name="text_muted">#FF71717A</color>        <!-- zinc-500 -->
+    <color name="text_foreground">#111827</color>   <!-- near-black -->
+    <color name="text_muted">#6B7280</color>        <!-- medium gray -->
 
-    <!-- Semantic -->
-    <color name="success">#FF34D399</color>           <!-- emerald-400 -->
-    <color name="warning">#FFFBBF24</color>           <!-- amber-400 -->
-    <color name="error">#FFF87171</color>             <!-- red-400 -->
+    <!-- Border -->
+    <color name="border">#E5E7EB</color>            <!-- light separator -->
 
-    <!-- Planet colors -->
-    <color name="planet_sun">#FFD4A017</color>        <!-- gold (matches website gold) -->
-    <color name="planet_moon">#FF94A3B8</color>
-    <color name="planet_mars">#FFEF4444</color>
-    <color name="planet_mercury">#FF22C55E</color>
-    <color name="planet_jupiter">#FFEAB308</color>
-    <color name="planet_venus">#FFA855F7</color>
-    <color name="planet_saturn">#FF64748B</color>
-    <color name="planet_rahu">#FF6366F1</color>
-    <color name="planet_ketu">#FFF97316</color>
+    <!-- Status -->
+    <color name="success">#16A34A</color>
+    <color name="error">#DC2626</color>
+    <color name="warning">#D97706</color>
 
-    <!-- Status / nav bar -->
-    <color name="status_bar">#FF09090B</color>
-    <color name="nav_bar">#FF09090B</color>
-
-    <!-- Bottom nav -->
-    <color name="bottom_nav_bg">#FF13131A</color>
-    <color name="bottom_nav_indicator">#307C3AED</color>
-
-    <!-- Chat bubbles -->
-    <color name="bubble_user_start">#FFE8682A</color>  <!-- saffron gradient start -->
-    <color name="bubble_user_end">#FFD4540A</color>    <!-- saffron gradient end -->
-    <color name="bubble_ai_bg">#1E1E28</color>
-    <color name="bubble_ai_border">#2D2D3E</color>
-
-    <!-- Input bar -->
-    <color name="input_bar_bg">#1C1C24</color>
-    <color name="input_bar_border">#35354A</color>
-
-    <!-- Surface elevated -->
-    <color name="bg_surface_3">#1A1A24</color>
-    <color name="bg_surface_4">#13131E</color>
-
-    <!-- Hero card (gold-tinted dark) -->
-    <color name="hero_bg_start">#201408</color>        <!-- dark saffron warm -->
-    <color name="hero_bg_end">#100A04</color>
-    <color name="hero_border">#4A2A0A</color>
+    <!-- Planet colors (for chart) -->
+    <color name="planet_sun">#B07A00</color>
+    <color name="planet_moon">#64748B</color>
+    <color name="planet_mars">#DC2626</color>
+    <color name="planet_mercury">#16A34A</color>
+    <color name="planet_jupiter">#D97706</color>
+    <color name="planet_venus">#9333EA</color>
+    <color name="planet_saturn">#475569</color>
+    <color name="planet_rahu">#4F46E5</color>
+    <color name="planet_ketu">#EA580C</color>
 </resources>

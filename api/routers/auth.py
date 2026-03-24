@@ -222,7 +222,7 @@ def verify_otp(req: VerifyOtpRequest, request: Request):
     # Upsert user
     user_res = sb.table("users").select("id,name,plan,phone_verified").eq("phone", phone).maybe_single().execute()
 
-    if user_res.data:
+    if user_res and user_res.data:
         user = user_res.data
         user_id = user["id"]
         name    = user.get("name", "") or ""
