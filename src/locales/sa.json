@@ -801,7 +801,7 @@
     "pipeline_step3_desc": "संदर्भ की निरंतरता बनाए रखने के लिए इसे 400-टोकन के टुकड़ों में विभाजित किया गया है, जिसमें 50-टोकन का ओवरलैप है।",
     "pipeline_step4": "4. एम्बेडिंग",
     "pipeline_step4_desc": "MiniLM-L12 बहुभाषी मॉडल (384 आयाम) का उपयोग करके वैक्टर उत्पन्न करें।",
-    "pipeline_step5": "5. FAISS अनुक्रमणिका",
+    "pipeline_step5": "5. Vedic Search अनुक्रमणिका",
     "pipeline_step5_desc": "मेटाडेटा (पुस्तक, अध्याय, पृष्ठ, श्लोक) सहित HNSW इंडेक्स में जोड़ें",
     "stat_total_books": "कुल पुस्तकें",
     "stat_total_chunks": "कुल टुकड़े",
@@ -820,7 +820,7 @@
     "lang_status_primary": "प्राथमिक",
     "texts": "ग्रंथों",
     "backend_title": "बैकएंड कनेक्शन",
-    "backend_desc": "RAG बैकएंड (FastAPI + Qwen + FAISS) को Google Cloud GPU VM पर चलाने के लिए कॉन्फ़िगर किया गया है। VM को प्रारंभ करें और लाइव AI चैट और खोज कार्यक्षमता को सक्षम करने के लिए API सर्वर चलाएँ।"
+    "backend_desc": "AI बैकएंड को Google Cloud GPU VM पर चलाने के लिए कॉन्फ़िगर किया गया है। VM को प्रारंभ करें और लाइव AI चैट और खोज कार्यक्षमता को सक्षम करने के लिए API सर्वर चलाएँ।"
   },
   "calendar": {
     "any_year_city": "किसी भी वर्ष · किसी भी शहर · 1800–2200",
@@ -855,7 +855,7 @@
     "tab_festivals": "समारोह",
     "tab_eclipses": "ग्रहणों",
     "loading_festivals": "चंद्र कैलेंडर से गणना करना…",
-    "loading_eclipses": "pyswisseph से ग्रहणों की गणना करना…",
+    "loading_eclipses": "Drik Siddhanta से ग्रहणों की गणना करना…",
     "error_festivals": "त्योहारों का डेटा लोड नहीं हो सका। API सर्वर शायद डाउन है।",
     "error_eclipses": "एक्लिप्स डेटा लोड नहीं हो सका। एपीआई सर्वर डाउन हो सकता है।",
     "no_eclipses": "{{year}} के लिए कोई ग्रहण नहीं मिला।",

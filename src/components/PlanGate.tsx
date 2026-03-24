@@ -15,7 +15,7 @@ const PLAN_DISPLAY: Record<AuthPlan, { label: string; labelHi: string; price: st
 const PLAN_FEATURES: Record<AuthPlan, string[]> = {
   free:     [],
   jyotishi: ["Unlimited AI Chat", "Full Kundali + Dashas", "Compatibility Analysis", "Muhurta Finder"],
-  acharya:  ["Sanskrit Library Search (1.1M chunks)", "Varshaphala (coming soon)", "Priority GPU inference"],
+  acharya:  ["Vedic Scripture Library", "Varshaphala (coming soon)", "Priority inference"],
 };
 
 interface PlanGateProps {

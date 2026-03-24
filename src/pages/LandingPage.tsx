@@ -18,10 +18,10 @@ const planColors: Record<string, string> = {
 };
 
 const stats = [
-  { value: "1.1M+", label: "Sanskrit / Hindi / English chunks" },
-  { value: "53",    label: "Festivals verified 2024–2045" },
   { value: "108",   label: "Yogas & Doshas detected" },
-  { value: "9",     label: "Grahas, real pyswisseph data" },
+  { value: "9",     label: "Grahas tracked in real-time" },
+  { value: "27",    label: "Nakshatras analyzed" },
+  { value: "12",    label: "Divisional charts supported" },
 ];
 
 export default function LandingPage() {
@@ -38,7 +38,7 @@ export default function LandingPage() {
     {
       icon: "⭐",
       title: "Kundali & Dashas",
-      desc: "Precise birth chart using pyswisseph + Lahiri ayanamsha. Full Vimshottari Dasha timeline, Yogas, and Lagna analysis.",
+      desc: "Precise birth chart with Lahiri ayanamsha. Full Vimshottari Dasha timeline, Yogas, and Lagna analysis.",
       plan: "Free",
       color: "from-gold/10 to-amber-500/10 border-amber-500/20",
     },
@@ -59,7 +59,7 @@ export default function LandingPage() {
     {
       icon: "🌑",
       title: "Eclipse & Festival Calendar",
-      desc: "53 festivals, all regions, 2024–2045. Grahan with Sparsha/Madhya/Moksha timings, Sutak, and conflict detection.",
+      desc: "Festivals across all regions with multi-year coverage. Grahan with Sparsha/Madhya/Moksha timings, Sutak, and conflict detection.",
       plan: "Free",
       color: "from-gray-500/10 to-slate-500/10 border-gray-500/20",
     },
@@ -193,7 +193,7 @@ export default function LandingPage() {
             ))}
           </div>
           <p className="text-center text-xs text-muted-foreground/50 mt-3">
-            Login to get Panchang for your city — real-time pyswisseph calculations
+            Login to get Panchang for your city — real-time precise calculations
           </p>
         </motion.div>
       </section>
@@ -368,7 +368,7 @@ export default function LandingPage() {
           <Link to="/login"     className="hover:text-foreground transition-colors">Login</Link>
         </div>
         <p className="text-xs text-muted-foreground/60 mt-4">
-          Grounded in Vedic tradition · Powered by AI · 1.1M sacred text chunks
+          Grounded in Vedic tradition · Powered by AI
         </p>
       </footer>
     </div>

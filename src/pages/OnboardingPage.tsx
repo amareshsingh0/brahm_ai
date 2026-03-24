@@ -85,7 +85,7 @@ export default function OnboardingPage() {
           <p className="text-sm text-muted-foreground">{t('onboarding.reading_positions')}</p>
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            <span>Consulting pyswisseph + Lahiri ayanamsha</span>
+            <span>Calculating your birth chart with Lahiri ayanamsha</span>
           </div>
         </motion.div>
       </div>

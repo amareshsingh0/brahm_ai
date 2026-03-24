@@ -2,7 +2,7 @@
  * useLivePlanets — real-time sidereal planetary positions.
  *
  * Strategy:
- *  1. Fetch true positions from the API every 5 minutes (pyswisseph, accurate).
+ *  1. Fetch true positions from the API every 5 minutes (accurate astronomical calc).
  *  2. Between fetches, interpolate per-second using average planet speeds.
  *  3. At midnight (00:00 local time) the 24-hour track resets.
  *  4. Subscribers get a new object every second → React re-renders live.

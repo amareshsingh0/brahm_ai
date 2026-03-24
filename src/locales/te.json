@@ -1047,7 +1047,7 @@
     "pipeline_step3_desc": "సందర్భ కొనసాగింపు కోసం 50-టోకెన్ల అతివ్యాప్తితో 400-టోకెన్ల భాగాలుగా విభజించండి",
     "pipeline_step4": "4. ఎంబెడ్డింగ్",
     "pipeline_step4_desc": "MiniLM-L12 బహుభాషా నమూనా (384 డైమెన్షన్) ఉపయోగించి వెక్టర్లను రూపొందించండి",
-    "pipeline_step5": "5. FAISS సూచికీకరణ",
+    "pipeline_step5": "5. Vedic Search సూచికీకరణ",
     "pipeline_step5_desc": "మెటాడేటాతో (పుస్తకం, అధ్యాయం, పేజీ, పద్యం) HNSW సూచికకు జోడించండి",
     "stat_total_books": "మొత్తం పుస్తకాలు",
     "stat_total_chunks": "మొత్తం ముక్కలు",
@@ -1066,7 +1066,7 @@
     "lang_status_primary": "ప్రాథమిక",
     "texts": "పాఠాలు",
     "backend_title": "బ్యాకెండ్ కనెక్షన్",
-    "backend_desc": "RAG బ్యాకెండ్ (FastAPI + Qwen + FAISS) Google Cloud GPU VMలో రన్ అయ్యేలా కాన్ఫిగర్ చేయబడింది. లైవ్ AI చాట్ మరియు సెర్చ్ ఫంక్షనాలిటీని ఎనేబుల్ చేయడానికి VMని స్టార్ట్ చేసి, API సర్వర్‌ను రన్ చేయండి."
+    "backend_desc": "RAG బ్యాకెండ్ (FastAPI + Qwen + Vedic Search) Google Cloud GPU VMలో రన్ అయ్యేలా కాన్ఫిగర్ చేయబడింది. లైవ్ AI చాట్ మరియు సెర్చ్ ఫంక్షనాలిటీని ఎనేబుల్ చేయడానికి VMని స్టార్ట్ చేసి, API సర్వర్‌ను రన్ చేయండి."
   },
   "calendar": {
     "any_year_city": "ఏ సంవత్సరమైనా · ఏ నగరమైనా · 1800–2200",
@@ -1101,7 +1101,7 @@
     "tab_festivals": "పండుగలు",
     "tab_eclipses": "గ్రహణాలు",
     "loading_festivals": "చంద్ర క్యాలెండర్ ప్రకారం లెక్కిస్తే…",
-    "loading_eclipses": "pyswisseph నుండి గ్రహణాలను లెక్కించడం…",
+    "loading_eclipses": "Drik Siddhanta నుండి గ్రహణాలను లెక్కించడం…",
     "error_festivals": "పండుగ డేటాను లోడ్ చేయలేకపోయాము. API సర్వర్ పనిచేయకపోవచ్చు.",
     "error_eclipses": "ఎక్లిప్స్ డేటాను లోడ్ చేయలేకపోయాము. API సర్వర్ పనిచేయకపోవచ్చు.",
     "no_eclipses": "{{year}}కు గ్రహణాలు ఏవీ కనుగొనబడలేదు.",

@@ -33,6 +33,7 @@ def get_user(session_id: str = Query(...)):
 @router.post("/user", response_model=UserProfile)
 def upsert_user(profile: UserProfile):
     sb = get_supabase()
+    # NOTE: role, status, plan are intentionally excluded — only admin can change those.
     sb.table("users").upsert({
         "session_id":  profile.session_id,
         "name":        profile.name,

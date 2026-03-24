@@ -333,11 +333,11 @@
     "system_nakshatra": "ਨਕਸ਼ਤਰ (ਕਲਾਸੀਕਲ)",
     "system_rashi": "ਰਾਸ਼ੀ (ਡ੍ਰਿਕ ਗਨੀਤਾ)",
     "nakshatra_disclaimer": "ਲਹਿਰੀ ਅਯਾਨਮਸ਼ਾ · ਨਕਸ਼ਤਰ ਵਿਸ਼ਲੇਸ਼ਣ ਇੱਕ ਪੂਰਕ ਪਰਤ ਹੈ — ਪੂਰੀ ਅਗਵਾਈ ਲਈ ਕਿਸੇ ਯੋਗ ਜੋਤੀਸ਼ੀ ਨਾਲ ਸਲਾਹ ਕਰੋ।",
-    "ashtakoot_disclaimer": "ਲਾਹਿਰੀ ਅਯਨਾਮਸ਼ਾ · pyswisseph DE431 · ਅਸ਼ਟਕੂਟ ਬਹੁਤ ਸਾਰੇ ਕਾਰਕਾਂ ਵਿੱਚੋਂ ਇੱਕ ਹੈ — ਕਿਸੇ ਯੋਗ ਜੋਤਸ਼ੀ ਨਾਲ ਸਲਾਹ ਕਰੋ।",
+    "ashtakoot_disclaimer": "ਲਾਹਿਰੀ ਅਯਨਾਮਸ਼ਾ · Drik Siddhanta · ਅਸ਼ਟਕੂਟ ਬਹੁਤ ਸਾਰੇ ਕਾਰਕਾਂ ਵਿੱਚੋਂ ਇੱਕ ਹੈ — ਕਿਸੇ ਯੋਗ ਜੋਤਸ਼ੀ ਨਾਲ ਸਲਾਹ ਕਰੋ।",
     "system_nakshatra_desc": "ਪਰਾਸ਼ਰੀ - ਜਨਮ ਨਕਸ਼ਤਰ ਦੁਆਰਾ ਵਰਣ",
     "system_rashi_desc": "ਆਧੁਨਿਕ ਦ੍ਰਿਕ ਗਣੀਤਾ — ਚੰਦਰਮਾ ਚਿੰਨ੍ਹ ਤੱਤ ਦੁਆਰਾ ਵਰਣ",
     "system_both_desc": "ਨਕਸ਼ਤਰ ਅੰਕ ਦਿਖਾਉਂਦਾ ਹੈ; ਜੇਕਰ ਵੱਖਰਾ ਹੋਵੇ ਤਾਂ ਰਾਸ਼ੀ ਵਿਕਲਪ ਦਿਖਾਇਆ ਗਿਆ ਹੈ।",
-    "system_info": "ਲਹਿਰੀ ਅਯਨਾਮਸ਼ਾ · ਚੰਦਰਮਾ ਨਕਸ਼ਤਰ · pyswisseph · ਰੱਜੂ ਅਤੇ ਵੇਧਾ ਸ਼ਾਮਲ · PDF ਨਿਰਯਾਤ"
+    "system_info": "ਲਹਿਰੀ ਅਯਨਾਮਸ਼ਾ · ਚੰਦਰਮਾ ਨਕਸ਼ਤਰ · Drik Siddhanta · ਰੱਜੂ ਅਤੇ ਵੇਧਾ ਸ਼ਾਮਲ · PDF ਨਿਰਯਾਤ"
   },
   "horoscope": {
     "title": "ਰੋਜ਼ਾਨਾ ਕੁੰਡਲੀ",
@@ -1047,7 +1047,7 @@
     "pipeline_step3_desc": "ਸੰਦਰਭ ਨਿਰੰਤਰਤਾ ਲਈ 50-ਟੋਕਨ ਓਵਰਲੈਪ ਦੇ ਨਾਲ 400-ਟੋਕਨ ਹਿੱਸਿਆਂ ਵਿੱਚ ਵੰਡੋ",
     "pipeline_step4": "4. ਏਮਬੈਡਿੰਗ",
     "pipeline_step4_desc": "MiniLM-L12 ਬਹੁ-ਭਾਸ਼ਾਈ ਮਾਡਲ (384 ਡਿਮ) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਵੈਕਟਰ ਤਿਆਰ ਕਰੋ।",
-    "pipeline_step5": "5. FAISS ਇੰਡੈਕਸਿੰਗ",
+    "pipeline_step5": "5. Vedic Search ਇੰਡੈਕਸਿੰਗ",
     "pipeline_step5_desc": "ਮੈਟਾਡੇਟਾ (ਕਿਤਾਬ, ਅਧਿਆਇ, ਪੰਨਾ, ਆਇਤ) ਦੇ ਨਾਲ HNSW ਇੰਡੈਕਸ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰੋ",
     "stat_total_books": "ਕੁੱਲ ਕਿਤਾਬਾਂ",
     "stat_total_chunks": "ਕੁੱਲ ਹਿੱਸੇ",
@@ -1066,7 +1066,7 @@
     "lang_status_primary": "ਪ੍ਰਾਇਮਰੀ",
     "texts": "ਟੈਕਸਟ",
     "backend_title": "ਬੈਕਐਂਡ ਕਨੈਕਸ਼ਨ",
-    "backend_desc": "RAG ਬੈਕਐਂਡ (FastAPI + Qwen + FAISS) ਨੂੰ Google Cloud GPU VM 'ਤੇ ਚਲਾਉਣ ਲਈ ਕੌਂਫਿਗਰ ਕੀਤਾ ਗਿਆ ਹੈ। VM ਸ਼ੁਰੂ ਕਰੋ ਅਤੇ ਲਾਈਵ AI ਚੈਟ ਅਤੇ ਖੋਜ ਕਾਰਜਕੁਸ਼ਲਤਾ ਨੂੰ ਸਮਰੱਥ ਬਣਾਉਣ ਲਈ API ਸਰਵਰ ਚਲਾਓ।"
+    "backend_desc": "RAG ਬੈਕਐਂਡ (FastAPI + Qwen + Vedic Search) ਨੂੰ Google Cloud GPU VM 'ਤੇ ਚਲਾਉਣ ਲਈ ਕੌਂਫਿਗਰ ਕੀਤਾ ਗਿਆ ਹੈ। VM ਸ਼ੁਰੂ ਕਰੋ ਅਤੇ ਲਾਈਵ AI ਚੈਟ ਅਤੇ ਖੋਜ ਕਾਰਜਕੁਸ਼ਲਤਾ ਨੂੰ ਸਮਰੱਥ ਬਣਾਉਣ ਲਈ API ਸਰਵਰ ਚਲਾਓ।"
   },
   "calendar": {
     "any_year_city": "ਕੋਈ ਵੀ ਸਾਲ · ਕੋਈ ਵੀ ਸ਼ਹਿਰ · 1800–2200",

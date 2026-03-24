@@ -51,6 +51,30 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def _check_user_status(request: Request, call_next):
+    """Block suspended or banned users from all non-admin API endpoints."""
+    from fastapi.responses import JSONResponse
+    path = request.url.path
+    if path.startswith("/api/") and not path.startswith("/api/admin"):
+        session_id = request.query_params.get("session_id", "")
+        if session_id:
+            try:
+                from api.supabase_client import get_supabase
+                sb = get_supabase()
+                row = sb.table("users").select("status,role").eq("session_id", session_id).maybe_single().execute()
+                if row.data:
+                    status = row.data.get("status", "active")
+                    role   = row.data.get("role", "user")
+                    if status == "suspended":
+                        return JSONResponse(status_code=403, content={"detail": "Account suspended. Contact support."})
+                    if role == "banned":
+                        return JSONResponse(status_code=403, content={"detail": "Account banned."})
+            except Exception:
+                pass  # If Supabase is unreachable, let the request through
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def _activity_log(request: Request, call_next):
     """Log every /api/ request (non-admin) to activity_logs.db asynchronously."""
     path = request.url.path

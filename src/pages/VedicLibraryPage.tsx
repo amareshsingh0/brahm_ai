@@ -243,7 +243,7 @@ export default function VedicLibraryPage() {
         />
       </div>
 
-      {/* RAG search results from FAISS knowledge base */}
+      {/* Search results */}
       {search.length > 2 && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground flex items-center gap-1">

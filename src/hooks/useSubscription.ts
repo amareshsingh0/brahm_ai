@@ -79,7 +79,7 @@ export function usePlans() {
         currency: "INR",
         features: [
           "Everything in Jyotishi",
-          "Sanskrit Library Search (1.1M chunks)",
+          "Vedic Scripture Library",
           "Varshaphala — coming soon",
           "Priority GPU inference",
           "PDF export — coming soon",

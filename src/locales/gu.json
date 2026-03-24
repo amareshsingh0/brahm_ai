@@ -168,7 +168,7 @@
     "optional": "વૈકલ્પિક",
     "name_placeholder": "તમારું નામ",
     "city_hint": "ચોક્કસ કોઓર્ડિનેટ્સ માટે ડ્રોપડાઉનમાંથી શહેર પસંદ કરો.",
-    "system_info": "લાહિરી અયનમશા · આખા સાઇન હાઉસ · pyswisseph DE431",
+    "system_info": "લાહિરી અયનમશા · આખા સાઇન હાઉસ · Drik Siddhanta",
     "calculating": "ગણતરી કરી રહ્યું છે...",
     "new_edit": "નવું / સંપાદિત કરો",
     "chart_a": "ચાર્ટ A",
@@ -333,11 +333,11 @@
     "system_nakshatra": "નક્ષત્ર (શાસ્ત્રીય)",
     "system_rashi": "રાશી (ડ્રિક ગણિતા)",
     "nakshatra_disclaimer": "લહેરી અયનાંશ · નક્ષત્ર વિશ્લેષણ એક પૂરક સ્તર છે - સંપૂર્ણ માર્ગદર્શન માટે લાયક જ્યોતિષીની સલાહ લો.",
-    "ashtakoot_disclaimer": "લાહિરી આયનામ્શા · pyswisseph DE431 · અષ્ટકૂટ એ ઘણા પરિબળોમાંનું એક છે — લાયક જ્યોતિષીની સલાહ લો.",
+    "ashtakoot_disclaimer": "લાહિરી આયનામ્શા · Drik Siddhanta · અષ્ટકૂટ એ ઘણા પરિબળોમાંનું એક છે — લાયક જ્યોતિષીની સલાહ લો.",
     "system_nakshatra_desc": "પરાશરી - જન્મ નક્ષત્ર દ્વારા વર્ણ",
     "system_rashi_desc": "આધુનિક દૃક ગણિતા — ચંદ્ર રાશિ તત્વ દ્વારા વર્ણ",
     "system_both_desc": "નક્ષત્રનો સ્કોર બતાવે છે; જો અલગ હોય તો રાશિનો વિકલ્પ બતાવે છે.",
-    "system_info": "લાહિરી આયનામશા · ચંદ્ર નક્ષત્ર · pyswisseph · રજ્જુ અને વેદ સામેલ · PDF નિકાસ"
+    "system_info": "લાહિરી આયનામશા · ચંદ્ર નક્ષત્ર · Drik Siddhanta · રજ્જુ અને વેદ સામેલ · PDF નિકાસ"
   },
   "horoscope": {
     "title": "દૈનિક રાશિફળ",
@@ -1047,7 +1047,7 @@
     "pipeline_step3_desc": "સંદર્ભ સાતત્ય માટે 50-ટોકન ઓવરલેપ સાથે 400-ટોકન હિસ્સામાં વિભાજીત કરો",
     "pipeline_step4": "4. એમ્બેડિંગ",
     "pipeline_step4_desc": "MiniLM-L12 બહુભાષી મોડેલ (384 ડિમ) નો ઉપયોગ કરીને વેક્ટર જનરેટ કરો.",
-    "pipeline_step5": "5. FAISS ઇન્ડેક્સિંગ",
+    "pipeline_step5": "5. Vedic Search ઇન્ડેક્સિંગ",
     "pipeline_step5_desc": "મેટાડેટા (પુસ્તક, પ્રકરણ, પૃષ્ઠ, શ્લોક) સાથે HNSW અનુક્રમણિકામાં ઉમેરો.",
     "stat_total_books": "કુલ પુસ્તકો",
     "stat_total_chunks": "કુલ હિસ્સા",
@@ -1066,7 +1066,7 @@
     "lang_status_primary": "પ્રાથમિક",
     "texts": "ટેક્સ્ટ્સ",
     "backend_title": "બેકએન્ડ કનેક્શન",
-    "backend_desc": "RAG બેકએન્ડ (FastAPI + Qwen + FAISS) ને Google Cloud GPU VM પર ચલાવવા માટે ગોઠવેલ છે. લાઇવ AI ચેટ અને શોધ કાર્યક્ષમતાને સક્ષમ કરવા માટે VM શરૂ કરો અને API સર્વર ચલાવો."
+    "backend_desc": "RAG બેકએન્ડ (FastAPI + Qwen + Vedic Search) ને Google Cloud GPU VM પર ચલાવવા માટે ગોઠવેલ છે. લાઇવ AI ચેટ અને શોધ કાર્યક્ષમતાને સક્ષમ કરવા માટે VM શરૂ કરો અને API સર્વર ચલાવો."
   },
   "calendar": {
     "any_year_city": "કોઈપણ વર્ષ · કોઈપણ શહેર · ૧૮૦૦–૨૨૦૦",

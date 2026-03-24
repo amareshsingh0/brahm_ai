@@ -260,7 +260,6 @@ export default function AIChatPage() {
           </Button>
         </form>
         <p className="text-xs text-muted-foreground mt-1.5 text-center">
-          {/* Powered by Qwen 2.5-7B + FAISS Hybrid RAG — 100k+ Sanskrit, Hindi & English texts */}
         </p>
       </div>
     </div>
