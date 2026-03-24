@@ -1139,7 +1139,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Shani",      "month": "Jyeshtha",
      "significance": "Jyeshtha Amavasya. Birthday of Lord Shani (Saturn). Shani Puja with sesame oil, black sesame, blue/black flowers. Shani Stotra and Chalisa recitation. Visiting Shani Shingnapur and Shani temples. Also observed as Vat Savitri in Maharashtra and Gujarat.",
      "fast_note": "Vrat: Offer sesame oil, black sesame, blue cloth to Shani. Visit Shani temple. Shani Stotram, Chalisa, and Navagrah Puja. Donate black items to Brahmins.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 15, "date_from_sunrise": True}},
+     "rule": {"type": "day_offset", "ref": "Vat Savitri Purnima", "offset": 15}},
 
     {"name": "Rath Yatra",           "hindi": "रथ यात्रा",               "icon": "🎡",
      "deity": "Lord Jagannath",  "month": "Ashadha",
@@ -1209,7 +1209,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "King Mahabali / Vamana", "month": "Chingam",
      "significance": "Thiruvonam — Moon in Shravana nakshatra during Kerala's Chingam month (Sun in Leo). Kerala's biggest festival. Celebrates King Mahabali's annual visit to his people. Pookalam (flower carpet), Onam Sadya (26-dish feast on banana leaf), Vallam Kali (snake boat race).",
      "fast_note": None,
-     "rule": {"type": "nakshatra", "nakshatra": 21, "approx_month": 8, "approx_day": 27}},
+     "rule": {"type": "nakshatra", "nakshatra": 21, "approx_month": 8, "approx_day": 27, "sunrise_date": True}},
 
     {"name": "Vishwakarma Puja",     "hindi": "विश्वकर्मा पूजा",         "icon": "⚙️",
      "deity": "Lord Vishwakarma", "month": "Bhadrapada",
@@ -1391,7 +1391,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Ashadha",
      "significance": "Ashadha Shukla Pratipada to Navami (9 nights). Gupta Navratri — 'secret' Navratri observed by Tantric practitioners and Shakti devotees. Worship of the 10 Mahavidyas (Kali, Tara, Tripura Sundari, Bhuvaneshvari, Bhairavi, Chhinnamasta, Dhumavati, Bagalamukhi, Matangi, Kamala). Less publicly celebrated than Chaitra/Sharad Navratris but equally powerful for Tantra sadhana.",
      "fast_note": "9-day Devi vrat. Ghatasthapana on Pratipada. Daily Devi puja (Durga Saptashati or Mahavidya mantras). Strict sattvic diet or full fast. Midnight Tantric puja optional (Gupta means secret — deeper sadhana). Kanya Puja on Ashtami or Navami. Havan on Navami.",
-     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 6, "approx_day": 16}},
+     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 6, "approx_day": 16, "start_after_ref": "Shani Jayanti"}},
 
     {"name": "Magha (Gupta) Navratri",   "hindi": "माघ गुप्त नवरात्रि",        "icon": "❄️",
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Magha",
@@ -1529,12 +1529,8 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "fast_note": "Reach ghat before sunrise. Offer Arghya to rising sun in water. After sunrise Arghya complete: break 36-hour fast with thekua + raw ginger + water. Then full prasad. Distribute to all present. Chaitra Chhath complete.",
      "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 4, "approx_day": 6}},
 
-    # ─── Kumbh Mela ───────────────────────────────────────────────────────────────
-    {"name": "Kumbh Mela (Prayagraj)",   "hindi": "कुंभ मेला (प्रयागराज)",     "icon": "🏺",
-     "deity": "Lord Vishnu / Triveni Sangam", "month": "Magha / Phalguna",
-     "significance": "Magha Shukla Ekadashi to Mahashivaratri period (every 12 years at Prayagraj — Purna Kumbh; every 6 years — Ardha Kumbh; every year — Magh Mela). Jupiter in Aries + Sun in Aries + Moon in Aries (Makar Sankranti triggers the opening). World's largest human gathering. Holy bath at Triveni Sangam (confluence of Ganga, Yamuna, Saraswati) destroys all sins and grants moksha. Major Shahi Snan (royal bath) dates: Makar Sankranti, Mauni Amavasya, Basant Panchami, Maghi Purnima, Mahashivaratri.",
-     "fast_note": "Shahi Snan (Royal Bath) on auspicious dates — arrive before dawn. Bath at Triveni Sangam at Prayagraj. Donate to sadhus and saints. Attend Satsang and Pravachan in Kalpa Vasa camps. Kalpa Vasa: month-long stay at Sangam (sleeping on ground, one meal/day, total celibacy). Charity (Anna Daan) daily during Kumbh.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 1, "approx_day": 23}},
+    # Kumbh / Ardha Kumbh / Magh Mela entries are generated dynamically by
+    # _get_kumbh_entries(year, tz) — injected in get_festival_calendar() below.
 
     # ─── Dol Purnima ──────────────────────────────────────────────────────────────
     {"name": "Dol Purnima",              "hindi": "डोल पूर्णिमा",               "icon": "🎨",
@@ -1579,6 +1575,251 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 1, "approx_day": 10, "special": "ekadashi_viddha"}},
 
 ]
+
+# ─── Kumbh / Ardha Kumbh / Magh Mela dynamic generator ───────────────────
+
+# Prayagraj Kumbh cycle anchor: Maha Kumbh 2025, then every 12 years.
+# Ardha Kumbh every 6 years (half-cycle).
+# Every other year: Magh Mela (annual mini-Kumbh at same site).
+_MAHA_KUMBH_YEARS = {2025, 2037, 2049, 2061}   # extend as needed
+_ARDHA_KUMBH_YEARS = {2019, 2031, 2043, 2055}  # 6-yr cycle (non-Maha)
+
+def _get_kumbh_entries(year: int, tz: float) -> List[Dict]:
+    """
+    Returns a list of festival-dict entries for the Kumbh / Ardha Kumbh / Magh Mela
+    for the requested year.
+
+    Kumbh year  → Maha Kumbh banner + all 6 Shahi Snan days
+    Ardha year  → Ardha Kumbh banner + all 6 Shahi Snan days
+    Other years → Magh Mela banner  + 5 Snan days (no Paush Purnima)
+    """
+    _init()
+
+    is_maha  = year in _MAHA_KUMBH_YEARS
+    is_ardha = year in _ARDHA_KUMBH_YEARS
+    is_kumbh = is_maha or is_ardha
+
+    if is_maha:
+        mela_name  = "Maha Kumbh Mela (Prayagraj)"
+        mela_hindi = "महाकुंभ मेला (प्रयागराज)"
+        mela_icon  = "🏺"
+        mela_sig   = (
+            "Maha Kumbh — held every 12 years at Prayagraj (Triveni Sangam). "
+            "World's largest human gathering. Jupiter in Aries + Sun in Aries + Moon in Aries. "
+            "Holy bath at the confluence of Ganga, Yamuna, and Saraswati destroys all sins. "
+            "Shahi Snan (Royal Bath) on 6 key dates. Kalpa Vasa: month-long stay at the Sangam. "
+            "All four Kumbh sites (Prayagraj, Haridwar, Nashik, Ujjain) consider the Prayagraj "
+            "Maha Kumbh the most sacred."
+        )
+    elif is_ardha:
+        mela_name  = "Ardha Kumbh Mela (Prayagraj)"
+        mela_hindi = "अर्धकुंभ मेला (प्रयागराज)"
+        mela_icon  = "🏺"
+        mela_sig   = (
+            "Ardha Kumbh — held every 6 years at Prayagraj (half of the 12-year Kumbh cycle). "
+            "Holy bath at Triveni Sangam (Ganga + Yamuna + Saraswati). Jupiter in Libra. "
+            "Shahi Snan (Royal Bath) on 6 key dates. Almost as significant as Purna Kumbh. "
+            "Kalpa Vasa for the entire Magha month is especially meritorious."
+        )
+    else:
+        mela_name  = "Magh Mela (Prayagraj)"
+        mela_hindi = "माघ मेला (प्रयागराज)"
+        mela_icon  = "🙏"
+        mela_sig   = (
+            "Magh Mela — annual pilgrimage at Triveni Sangam, Prayagraj. "
+            "Held every year in the Magha month (Jan–Feb). Smaller than Kumbh but equally "
+            "sacred for Magha Snan. Kalpa Vasa: devotees stay for the entire Magha month "
+            "on the banks of the Sangam. Mauni Amavasya is the most important bath day."
+        )
+
+    mela_fast = (
+        "Shahi / Amrit Snan: arrive at Triveni Sangam before dawn. "
+        "Bath in Ganga at the confluence. Donate to sadhus. "
+        "Kalpa Vasa: stay at Sangam from Makar Sankranti to Maghi Purnima "
+        "(sleep on ground, one meal/day, celibacy, daily Sangam bath)."
+    )
+
+    # ── Compute each Snan date ──────────────────────────────────────────
+
+    def _tithi_date(paksha: str, num: int, approx_month: int, approx_day: int) -> str:
+        idx = _rule_to_idx(paksha, num)
+        jd_c = swe.julday(year, approx_month, approx_day, 6.0 - tz)
+        for delta in sorted(range(-40, 41), key=abs):
+            for sub_h in [0, 6, 12, 18]:
+                t = jd_c + float(delta) + sub_h / 24.0
+                if _tithi_idx(t) == idx:
+                    y2, m2, d2 = _jd_to_parts(t, tz)[:3]
+                    return f"{y2:04d}-{m2:02d}-{d2:02d}"
+        return f"{year}-{approx_month:02d}-{approx_day:02d}"
+
+    # 1. Makar Sankranti (Sun enters Capricorn sidereal = 270°) — opening Snan / Amrit Snan
+    makar_date, makar_time = _find_solar_entry(year, 270.0, 1, tz)
+
+    # 2. Paush Purnima (Magha S15 of previous month — opening bath, only for Kumbh years)
+    paush_purnima = _tithi_date("S", 15, 1, 10)   # Pausha Purnima ~Jan 10-13
+
+    # 3. Mauni Amavasya (Magha K15 — most important Snan, everyone goes silent)
+    mauni_amavasya = _tithi_date("K", 15, 1, 28)  # Magha Amavasya ~late Jan/early Feb
+
+    # 4. Basant Panchami (Magha S5)
+    basant_panchami = _tithi_date("S", 5, 2, 3)   # ~Feb 3-5
+
+    # 5. Maghi Purnima (Magha S15 — closing Snan for Kalpa Vasins)
+    maghi_purnima = _tithi_date("S", 15, 2, 12)   # ~Feb 12-14
+
+    # 6. Mahashivaratri (Phalguna K14 — final Shahi Snan)
+    maha_shivratri = _tithi_date("K", 14, 2, 26)  # ~Feb 26 – Mar 1
+
+    # ── Build entries ──────────────────────────────────────────────────
+
+    def _entry(name: str, hindi: str, date_str: str, sig: str,
+               fast: str, snan_type: str, snan_num: int) -> Dict:
+        return {
+            "name":            name,
+            "hindi":           hindi,
+            "icon":            "🛁",
+            "deity":           "Lord Vishnu / Triveni Sangam",
+            "month":           "Magha",
+            "significance":    sig,
+            "fast_note":       fast,
+            "date":            date_str,
+            "date_end":        None,
+            "tithi_start":     "04:00",
+            "tithi_end":       "08:00",
+            "tithi_start_date": date_str,
+            "paksha":          "N/A",
+            "tithi_name":      snan_type,
+            "tithi_type":      "normal",
+            "tithi_prev_day":  False,
+            "date_smarta":     None,
+            "date_vaishnava":  None,
+            "tradition":       "smarta",
+            "lunar_system":    "amanta",
+            "dosh_notes":      [],
+            "kumbh_snan_num":  snan_num,   # extra field: snan serial number
+            "kumbh_type":      ("maha" if is_maha else "ardha" if is_ardha else "magh_mela"),
+        }
+
+    entries: List[Dict] = []
+
+    # Main banner entry (date = Makar Sankranti = opening)
+    entries.append({
+        "name":            mela_name,
+        "hindi":           mela_hindi,
+        "icon":            mela_icon,
+        "deity":           "Lord Vishnu / Triveni Sangam",
+        "month":           "Magha / Phalguna",
+        "significance":    mela_sig,
+        "fast_note":       mela_fast,
+        "date":            makar_date,
+        "date_end":        maha_shivratri,   # mela runs Makar Sankranti → Mahashivaratri
+        "tithi_start":     makar_time,
+        "tithi_end":       "N/A",
+        "tithi_start_date": makar_date,
+        "paksha":          "N/A",
+        "tithi_name":      "Sankranti",
+        "tithi_type":      "normal",
+        "tithi_prev_day":  False,
+        "date_smarta":     None,
+        "date_vaishnava":  None,
+        "tradition":       "smarta",
+        "lunar_system":    "amanta",
+        "dosh_notes":      [],
+        "kumbh_snan_num":  0,
+        "kumbh_type":      ("maha" if is_maha else "ardha" if is_ardha else "magh_mela"),
+    })
+
+    snan_fast = (
+        "Arrive at Triveni Sangam, Prayagraj before dawn. "
+        "Take holy dip in Ganga at the Sangam. Offer Ganga Jal, flowers, til. "
+        "Donate to sadhus and saints. Chant Ganga Stotram / Mahamrityunjaya."
+    )
+
+    # Snan 1 — Makar Sankranti (also Shahi Snan 1 for Kumbh)
+    entries.append(_entry(
+        f"{'Shahi Snan 1 — ' if is_kumbh else 'Amrit Snan — '}Makar Sankranti",
+        "शाही स्नान १ — मकर संक्रांति" if is_kumbh else "अमृत स्नान — मकर संक्रांति",
+        makar_date,
+        "First Shahi Snan (Royal Bath) of Kumbh Mela. Sun enters Capricorn. "
+        "The most auspicious day to begin the Kumbh pilgrimage. "
+        "Millions take the first holy dip at Triveni Sangam at dawn."
+        if is_kumbh else
+        "Makar Sankranti Snan at Triveni Sangam, Prayagraj. "
+        "Sun enters Capricorn — extremely auspicious for holy bath at the Sangam.",
+        snan_fast, "Makar Sankranti Snan", 1
+    ))
+
+    # Paush Purnima — only for Kumbh / Ardha Kumbh (marks official opening)
+    if is_kumbh:
+        entries.append(_entry(
+            "Shahi Snan 2 — Paush Purnima",
+            "शाही स्नान २ — पौष पूर्णिमा",
+            paush_purnima,
+            "Second Shahi Snan. Paush Purnima — marks official start of Kumbh Mela. "
+            "Kalpa Vasins (month-long stay devotees) take their first official dip. "
+            "Akharas begin their Kumbh residence at Sangam.",
+            snan_fast, "Paush Purnima Snan", 2
+        ))
+
+    # Mauni Amavasya
+    snan_n = 3 if is_kumbh else 2
+    entries.append(_entry(
+        f"{'Shahi Snan ' + str(snan_n) + ' — ' if is_kumbh else 'Amrit Snan — '}Mauni Amavasya",
+        f"शाही स्नान {snan_n} — मौनी अमावस्या" if is_kumbh else "अमृत स्नान — मौनी अमावस्या",
+        mauni_amavasya,
+        "Mauni Amavasya — the most important Snan day. "
+        "Devotees observe complete silence (Maun) and take bath before dawn. "
+        "Largest single-day gathering in human history during Kumbh years. "
+        "Pitru Tarpan at Sangam is especially meritorious on this Amavasya.",
+        "Observe Maun (complete silence) from previous night until after bath. "
+        "Take dip before sunrise. Offer til (sesame) to Pitru. "
+        "No food until after bath and Pitru Tarpan.",
+        "Mauni Amavasya Snan", snan_n
+    ))
+
+    # Basant Panchami
+    snan_n = 4 if is_kumbh else 3
+    entries.append(_entry(
+        f"{'Shahi Snan ' + str(snan_n) + ' — ' if is_kumbh else 'Amrit Snan — '}Basant Panchami",
+        f"शाही स्नान {snan_n} — बसंत पंचमी" if is_kumbh else "अमृत स्नान — बसंत पंचमी",
+        basant_panchami,
+        "Basant Panchami Snan — marks arrival of spring. "
+        "Saraswati Puja coincides. "
+        "Naga Sadhus lead the Shahi procession to the Sangam on this day during Kumbh. "
+        "Yellow clothes (colour of spring) worn by devotees.",
+        snan_fast, "Basant Panchami Snan", snan_n
+    ))
+
+    # Maghi Purnima
+    snan_n = 5 if is_kumbh else 4
+    entries.append(_entry(
+        f"{'Shahi Snan ' + str(snan_n) + ' — ' if is_kumbh else 'Amrit Snan — '}Maghi Purnima",
+        f"शाही स्नान {snan_n} — माघी पूर्णिमा" if is_kumbh else "अमृत स्नान — माघी पूर्णिमा",
+        maghi_purnima,
+        "Maghi Purnima Snan — final bath for Kalpa Vasins. "
+        "Marks end of the Magha month stay (Kalpa Vasa concludes). "
+        "Full moon bath at Sangam. Last major Shahi Snan before Mahashivaratri.",
+        snan_fast, "Maghi Purnima Snan", snan_n
+    ))
+
+    # Mahashivaratri — closing Snan
+    snan_n = 6 if is_kumbh else 5
+    entries.append(_entry(
+        f"{'Shahi Snan ' + str(snan_n) + ' — ' if is_kumbh else 'Amrit Snan — '}Mahashivaratri",
+        f"शाही स्नान {snan_n} — महाशिवरात्रि" if is_kumbh else "अमृत स्नान — महाशिवरात्रि",
+        maha_shivratri,
+        "Mahashivaratri Snan — final and closing Snan of the Mela. "
+        "Last Shahi Snan during Kumbh (Kumbh officially concludes today). "
+        "Akharas take the final procession to Sangam. "
+        "Lord Shiva's night — night-long vigil and Shiva puja after the Snan.",
+        "Final dip at Sangam before dawn on Mahashivaratri. "
+        "Then observe Mahashivaratri Vrat (fast all day, night vigil, 4 prahar Shiva puja). "
+        "Break fast next morning.",
+        "Mahashivaratri Snan", snan_n
+    ))
+
+    return entries
+
 
 # ─── Main calculation ──────────────────────────────────────────────────────
 
@@ -1784,6 +2025,17 @@ def get_festival_calendar(
 
                 if found_jd is not None:
                     y2, m2, d2 = _jd_to_parts(found_jd, tz)[:3]
+                    # If sunrise_date flag: use the day whose sunrise falls within the nakshatra
+                    if rule.get("sunrise_date"):
+                        sr_test = _actual_sunrise_jd(y2, m2, d2, lat, lon, tz)
+                        moon_at_sr = swe.calc_ut(sr_test, swe.MOON, swe.FLG_SIDEREAL)[0][0]
+                        if int(moon_at_sr * 27 / 360) % 27 != target_nak:
+                            # Nakshatra not at sunrise — try next day
+                            _nd = date(y2, m2, d2) + timedelta(days=1)
+                            sr2 = _actual_sunrise_jd(_nd.year, _nd.month, _nd.day, lat, lon, tz)
+                            moon_at_sr2 = swe.calc_ut(sr2, swe.MOON, swe.FLG_SIDEREAL)[0][0]
+                            if int(moon_at_sr2 * 27 / 360) % 27 == target_nak:
+                                y2, m2, d2 = _nd.year, _nd.month, _nd.day
                 else:
                     y2, m2, d2 = year, approx_month, approx_day
 
@@ -2106,6 +2358,12 @@ def get_festival_calendar(
                 approx_day   = rule.get("approx_day", 15)
                 jd_center    = swe.julday(year, approx_month, approx_day, 6.0 - tz)
 
+                # If start_after_ref is set, override jd_center to day after that festival
+                _sar = rule.get("start_after_ref")
+                if _sar and _sar in ref_dates:
+                    _ref_d = date.fromisoformat(ref_dates[_sar]) + timedelta(days=1)
+                    jd_center = swe.julday(_ref_d.year, _ref_d.month, _ref_d.day, 6.0 - tz)
+
                 # In Adhik Maas: force search center to midpoint of Adhik range
                 if (adhika_range is not None and adhik_month_name is not None
                         and festival.get("month") == adhik_month_name):
@@ -2199,6 +2457,13 @@ def get_festival_calendar(
         if not entry.get("tithi_start_date"):
             entry["tithi_start_date"] = entry.get("date")
         results.append(entry)
+
+    # ── Kumbh / Ardha Kumbh / Magh Mela — injected dynamically ───────────
+    try:
+        kumbh_entries = _get_kumbh_entries(year, tz)
+        results.extend(kumbh_entries)
+    except Exception:
+        log.exception("Kumbh entries generation failed for year %d", year)
 
     results.sort(key=lambda x: x.get("date", "9999"))
     _cache[cache_key] = results
