@@ -362,19 +362,24 @@ def google_login(req: GoogleAuthRequest, request: Request):
         raise HTTPException(500, "Google OAuth not configured")
 
     try:
-        from google.oauth2 import id_token as google_id_token
-        from google.auth.transport import requests as google_requests
-        idinfo = google_id_token.verify_oauth2_token(
-            req.id_token,
-            google_requests.Request(),
-            GOOGLE_CLIENT_ID,
+        # Frontend sends access_token (implicit flow) — fetch userinfo from Google
+        import httpx as _httpx
+        r = _httpx.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {req.id_token}"},
+            timeout=8,
         )
+        if r.status_code != 200:
+            raise Exception(f"Google userinfo error: {r.text}")
+        idinfo = r.json()
     except Exception as e:
         raise HTTPException(401, f"Invalid Google token: {str(e)}")
 
-    google_id = idinfo["sub"]
+    google_id = idinfo.get("sub", "")
     email     = idinfo.get("email", "")
     name      = idinfo.get("name", "")
+    if not google_id:
+        raise HTTPException(401, "Could not fetch Google user info")
 
     sb = get_supabase()
 

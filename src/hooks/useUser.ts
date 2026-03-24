@@ -1,34 +1,27 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api } from '../lib/api';
+import { apiFetch } from '@/lib/apiFetch';
 import type { UserProfile } from '../types/api';
-
-const SESSION_KEY = 'brahm_session_id';
-
-function getOrCreateSessionId(): string {
-  let id = localStorage.getItem(SESSION_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(SESSION_KEY, id);
-  }
-  return id;
-}
 
 export function useUser() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const sid = getOrCreateSessionId();
-    api.get<UserProfile>(`/api/user?session_id=${sid}`)
-      .then(setProfile)
-      .catch(() => setProfile({ session_id: sid }))
+    apiFetch('/api/user')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setProfile(data); })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
   const saveProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    const sid = getOrCreateSessionId();
-    const merged = { session_id: sid, ...profile, ...updates };
-    const saved = await api.post<UserProfile>('/api/user', merged);
+    const merged = { ...profile, ...updates };
+    const res = await apiFetch('/api/user', {
+      method: 'POST',
+      body: JSON.stringify(merged),
+    });
+    if (!res.ok) throw new Error('Failed to save profile');
+    const saved = await res.json();
     setProfile(saved);
     return saved;
   }, [profile]);

@@ -52,41 +52,90 @@ app.add_middleware(
 
 @app.middleware("http")
 async def _check_user_status(request: Request, call_next):
-    """Block suspended or banned users from all non-admin API endpoints."""
+    """Block suspended or banned users. Supports both JWT (Bearer) and legacy session_id."""
     from fastapi.responses import JSONResponse
     path = request.url.path
-    if path.startswith("/api/") and not path.startswith("/api/admin"):
-        session_id = request.query_params.get("session_id", "")
-        if session_id:
-            try:
-                from api.supabase_client import get_supabase
+    # Skip auth/admin routes
+    if not path.startswith("/api/") or path.startswith("/api/admin") or path.startswith("/api/auth"):
+        return await call_next(request)
+
+    user_id = None
+    try:
+        from api.supabase_client import get_supabase
+        import os
+        from jose import jwt as _jwt, JWTError
+
+        # Try JWT Bearer token first
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            secret = os.getenv("JWT_SECRET", "")
+            if secret:
+                try:
+                    payload = _jwt.decode(token, secret, algorithms=["HS256"])
+                    user_id = payload.get("sub")
+                except JWTError:
+                    pass
+
+        # Fallback: legacy session_id query param
+        if not user_id:
+            sid = request.query_params.get("session_id", "")
+            if sid:
                 sb = get_supabase()
-                row = sb.table("users").select("status,role").eq("session_id", session_id).maybe_single().execute()
+                row = sb.table("users").select("id,status,role").eq("session_id", sid).maybe_single().execute()
                 if row.data:
-                    status = row.data.get("status", "active")
-                    role   = row.data.get("role", "user")
+                    user_id = row.data.get("id")
+                    status  = row.data.get("status", "active")
+                    role    = row.data.get("role", "user")
                     if status == "suspended":
                         return JSONResponse(status_code=403, content={"detail": "Account suspended. Contact support."})
                     if role == "banned":
                         return JSONResponse(status_code=403, content={"detail": "Account banned."})
-            except Exception:
-                pass  # If Supabase is unreachable, let the request through
+
+        # Check JWT user status
+        if user_id:
+            sb = get_supabase()
+            row = sb.table("users").select("status,role").eq("id", user_id).maybe_single().execute()
+            if row.data:
+                status = row.data.get("status", "active")
+                role   = row.data.get("role", "user")
+                if status == "suspended":
+                    return JSONResponse(status_code=403, content={"detail": "Account suspended. Contact support."})
+                if role == "banned":
+                    return JSONResponse(status_code=403, content={"detail": "Account banned."})
+    except Exception:
+        pass
+
     return await call_next(request)
 
 
 @app.middleware("http")
 async def _activity_log(request: Request, call_next):
-    """Log every /api/ request (non-admin) to activity_logs.db asynchronously."""
+    """Log every /api/ request (non-admin) asynchronously."""
     path = request.url.path
     if path.startswith("/api/") and not path.startswith("/api/admin"):
-        session_id = request.query_params.get("session_id", "")
+        # Try JWT first, fallback to session_id
+        user_id = request.query_params.get("session_id", "")
+        try:
+            import os
+            from jose import jwt as _jwt, JWTError
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                token = auth_header[7:]
+                secret = os.getenv("JWT_SECRET", "")
+                if secret:
+                    payload = _jwt.decode(token, secret, algorithms=["HS256"])
+                    user_id = payload.get("sub", user_id)
+        except Exception:
+            pass
+
         method = request.method
-        start = time.time()
+        start  = time.time()
         response = await call_next(request)
         duration_ms = int((time.time() - start) * 1000)
         threading.Thread(
             target=admin.log_request,
-            args=(method, path, session_id, response.status_code, duration_ms),
+            args=(method, path, user_id, response.status_code, duration_ms),
             daemon=True,
         ).start()
         return response

@@ -1,4 +1,5 @@
 import { useAuthStore, type AuthUser } from '@/store/authStore';
+import { apiFetch } from '@/lib/apiFetch';
 
 const API = "/api";
 
@@ -43,9 +44,8 @@ export const useAuth = () => {
 
   // ── Google OAuth ─────────────────────────────────────────────
   const googleLogin = async (idToken: string) => {
-    const res = await fetch(`${API}/auth/google`, {
+    const res = await apiFetch(`${API}/auth/google`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id_token: idToken, device_type: "web" }),
     });
     if (!res.ok) {
@@ -62,29 +62,6 @@ export const useAuth = () => {
     setAuth(data.access_token, authUser);
     setRefreshToken(data.refresh_token);
     return { token: data.access_token, user: authUser };
-  };
-
-  // ── Refresh access token ─────────────────────────────────────
-  const refreshAccessToken = async () => {
-    const refreshToken = useAuthStore.getState().refreshToken;
-    if (!refreshToken) throw new Error("No refresh token");
-    const res = await fetch(`${API}/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-    if (!res.ok) {
-      storeLogout();
-      throw new Error("Session expired. Please login again.");
-    }
-    const data = await res.json();
-    useAuthStore.getState().setAuth(data.access_token, {
-      id:    useAuthStore.getState().userId!,
-      name:  useAuthStore.getState().name!,
-      phone: useAuthStore.getState().phone!,
-      plan:  useAuthStore.getState().plan,
-    });
-    return data.access_token;
   };
 
   // ── Logout ───────────────────────────────────────────────────
@@ -105,7 +82,6 @@ export const useAuth = () => {
     sendOtp,
     verifyOtp,
     googleLogin,
-    refreshAccessToken,
     logout,
   };
 };

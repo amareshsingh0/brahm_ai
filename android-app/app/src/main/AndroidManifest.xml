@@ -9,61 +9,48 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
+        android:name=".BrahmApp"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:theme="@style/Theme.BrahmAI"
-        android:supportsRtl="false"
+        android:supportsRtl="true"
         android:usesCleartextTraffic="false">
 
-        <!-- Splash -->
+        <!-- Single Activity — Compose NavHost handles all navigation -->
         <activity
-            android:name=".ui.auth.SplashActivity"
-            android:theme="@style/Theme.BrahmAI.Splash"
+            android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.BrahmAI.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Auth -->
-        <activity android:name=".ui.auth.LoginActivity"
-            android:theme="@style/Theme.BrahmAI.NoBar"
-            android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".ui.auth.OnboardingActivity"
-            android:theme="@style/Theme.BrahmAI.NoBar"
-            android:windowSoftInputMode="adjustResize" />
-
-        <!-- Main (bottom nav host) -->
-        <activity android:name=".ui.main.MainActivity"
-            android:exported="false" />
-
-        <!-- Secondary screens -->
-        <activity android:name=".ui.secondary.GocharActivity" />
-        <activity android:name=".ui.secondary.CompatibilityActivity" />
-        <activity android:name=".ui.secondary.MuhurtaActivity" />
-        <activity android:name=".ui.secondary.SadeSatiActivity" />
-        <activity android:name=".ui.secondary.DoshaActivity" />
-        <activity android:name=".ui.secondary.GemstoneActivity" />
-        <activity android:name=".ui.secondary.KPActivity" />
-        <activity android:name=".ui.secondary.PrashnaActivity" />
-        <activity android:name=".ui.secondary.VarshpalActivity" />
-        <activity android:name=".ui.secondary.RectificationActivity" />
-        <activity android:name=".ui.secondary.PalmistryActivity" />
-        <activity android:name=".ui.secondary.HoroscopeActivity" />
-
         <!-- FCM -->
-        <service android:name=".utils.BrahmFirebaseService"
+        <service android:name=".core.notifications.BrahmFirebaseService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <!-- File provider for camera -->
+        <!-- WorkManager Hilt initializer -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.hilt.work.HiltWorkerInitializer"
+                android:value="androidx.startup" />
+        </provider>
+
+        <!-- File provider for camera (palmistry photo upload) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
