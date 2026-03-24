@@ -386,10 +386,10 @@ def google_login(req: GoogleAuthRequest, request: Request):
     # Find existing user by google_id or email
     user_res = sb.table("users").select("id,phone,name,plan,status").eq("google_id", google_id).maybe_single().execute()
 
-    if not user_res.data and email:
+    if not (user_res and user_res.data) and email:
         user_res = sb.table("users").select("id,phone,name,plan,status").eq("email", email).maybe_single().execute()
 
-    if user_res.data:
+    if user_res and user_res.data:
         user    = user_res.data
         user_id = user["id"]
         phone   = user.get("phone") or ""
