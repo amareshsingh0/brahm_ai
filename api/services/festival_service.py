@@ -1139,7 +1139,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Shani",      "month": "Jyeshtha",
      "significance": "Jyeshtha Amavasya. Birthday of Lord Shani (Saturn). Shani Puja with sesame oil, black sesame, blue/black flowers. Shani Stotra and Chalisa recitation. Visiting Shani Shingnapur and Shani temples. Also observed as Vat Savitri in Maharashtra and Gujarat.",
      "fast_note": "Vrat: Offer sesame oil, black sesame, blue cloth to Shani. Visit Shani temple. Shani Stotram, Chalisa, and Navagrah Puja. Donate black items to Brahmins.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 20, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 15, "date_from_sunrise": True}},
 
     {"name": "Rath Yatra",           "hindi": "रथ यात्रा",               "icon": "🎡",
      "deity": "Lord Jagannath",  "month": "Ashadha",
@@ -1209,7 +1209,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "King Mahabali / Vamana", "month": "Chingam",
      "significance": "Thiruvonam — Moon in Shravana nakshatra during Kerala's Chingam month (Sun in Leo). Kerala's biggest festival. Celebrates King Mahabali's annual visit to his people. Pookalam (flower carpet), Onam Sadya (26-dish feast on banana leaf), Vallam Kali (snake boat race).",
      "fast_note": None,
-     "rule": {"type": "nakshatra", "nakshatra": 21, "approx_month": 8, "approx_day": 25}},
+     "rule": {"type": "nakshatra", "nakshatra": 21, "approx_month": 8, "approx_day": 27}},
 
     {"name": "Vishwakarma Puja",     "hindi": "विश्वकर्मा पूजा",         "icon": "⚙️",
      "deity": "Lord Vishwakarma", "month": "Bhadrapada",
@@ -1348,7 +1348,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Vishnu / Krishna", "month": "Mesha (Solar)",
      "significance": "Kerala New Year. Sun enters Mesha Rashi (Aries) — astronomical new year (same as Baisakhi / Puthandu). Vishukkani ceremony: early morning the first sight (kani) must be auspicious objects — Vishnu idol, fruits, vegetables, gold, coins, rice, kani konna flowers (Cassia fistula). Vishu Kaineettam (elders gift money to children). Grand fireworks (Vishuppadakam).",
      "fast_note": "No strict vrat. Wake before sunrise. First sight (Vishukkani): look at Vishnu/Krishna idol surrounded by Kani Konna flowers, fruits (jackfruit, cucumber, mango), raw rice, gold, betel leaves, mirror. Light traditional lamp (nilavilakku). Receive Kaineettam from elders.",
-     "rule": {"type": "solar", "approx_month": 4, "approx_day": 14}},
+     "rule": {"type": "solar", "lon": 0.0, "approx_month": 4, "approx_day": 14}},
 
     {"name": "Chithra Pournami",         "hindi": "चित्रा पूर्णिमा",         "icon": "🌕",
      "deity": "Chitra Gupta",     "month": "Chaitra",
@@ -1366,7 +1366,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Shiva",       "month": "Margashirsha",
      "significance": "Margashirsha Purnima / Ardra Nakshatra (Thiruvadhirai). Kerala festival dedicated to Lord Shiva. Ardra Nakshatra on Margashirsha Purnima — considered Shiva's birth star. Women (especially married) observe Thiruvathira Vrat for husband's long life. All-night singing and Thiruvathirakali (circle dance). Preparation of kali (rice porridge) and ellu (sesame) dishes.",
      "fast_note": "Women's vrat: fast the day before (Purnima eve). On Thiruvathira: wake early, ritual bath, kolam (rangoli). Fast all day — only fruits or light kali after puja. Thiruvathirakali dance in evening in groups of 8. Break fast after Ardra Nakshatra period ends.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 12, "approx_day": 20}},
+     "rule": {"type": "nakshatra", "nakshatra": 5, "approx_month": 12, "approx_day": 20}},
 
     {"name": "Karthigai Deepam",         "hindi": "कार्तिगई दीपम",            "icon": "🔦",
      "deity": "Lord Shiva (Annamalaiyar)", "month": "Kartik",
@@ -1378,26 +1378,26 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Lakshmi",  "month": "Shravana",
      "significance": "Shravana Shukla Friday (last/second-last Friday before Purnima). Worship of Vara Lakshmi — boon-giving form of Goddess Lakshmi. Predominantly celebrated in Andhra Pradesh, Telangana, Karnataka, Tamil Nadu by married women for the well-being and prosperity of family. Kalasha Puja: a pot (kalasha) adorned with mango leaves and coconut represents Lakshmi. Lakshmi Ashtottara (108 names) recited.",
      "fast_note": "Women's vrat: dawn bath, dress in new clothes. Set up Vara Lakshmi Kalasha with turmeric, kumkum, silk sari, flowers, fruits. Draw rangoli (muggulu). Puja with 108 names (Lakshmi Ashtottara). Akshata (rice+turmeric) offerings. Dinner shared with neighbors. Break fast after evening puja.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 13, "approx_month": 8, "approx_day": 10}},
+     "rule": {"type": "vara_lakshmi", "approx_month": 8, "approx_day": 10}},
 
     {"name": "Aadi Perukku",             "hindi": "आदि पेरुक्कू",              "icon": "🌊",
      "deity": "Goddess Kaveri / River Goddess", "month": "Aadi (Solar)",
      "significance": "18th day of Aadi (Tamil solar month, mid-July to mid-August). Celebration of rivers and water bodies — especially Kaveri river. Women worship rivers for their life-giving nature. The river rises and overflows (perukku = to rise) during monsoon. Families picnic on river banks. Pongal-like sweet rice (aadi koozh) offered to rivers. Predominantly Tamil Nadu — also known as Aadi Pathinettam Perukku.",
      "fast_note": "No strict vrat. Visit river or water body (especially Kaveri). Women offer flowers, bananas, betel, turmeric-kumkum to river. Cook sweet rice (aadi koozh / sweet pongal). Picnic on river banks with family. Return home before sunset.",
-     "rule": {"type": "solar", "approx_month": 8, "approx_day": 2}},
+     "rule": {"type": "solar_offset", "lon": 90.0, "offset_days": 17, "approx_month": 8, "approx_day": 3}},
 
     # ─── Gupta Navratri ──────────────────────────────────────────────────────────
     {"name": "Ashadha (Gupta) Navratri", "hindi": "आषाढ़ गुप्त नवरात्रि",     "icon": "🔐",
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Ashadha",
      "significance": "Ashadha Shukla Pratipada to Navami (9 nights). Gupta Navratri — 'secret' Navratri observed by Tantric practitioners and Shakti devotees. Worship of the 10 Mahavidyas (Kali, Tara, Tripura Sundari, Bhuvaneshvari, Bhairavi, Chhinnamasta, Dhumavati, Bagalamukhi, Matangi, Kamala). Less publicly celebrated than Chaitra/Sharad Navratris but equally powerful for Tantra sadhana.",
      "fast_note": "9-day Devi vrat. Ghatasthapana on Pratipada. Daily Devi puja (Durga Saptashati or Mahavidya mantras). Strict sattvic diet or full fast. Midnight Tantric puja optional (Gupta means secret — deeper sadhana). Kanya Puja on Ashtami or Navami. Havan on Navami.",
-     "rule": {"type": "tithi_range", "paksha": "S", "num": 1, "length": 9, "approx_month": 7, "approx_day": 1}},
+     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 7, "approx_day": 1}},
 
     {"name": "Magha (Gupta) Navratri",   "hindi": "माघ गुप्त नवरात्रि",        "icon": "❄️",
      "deity": "Goddess Durga (10 Mahavidyas)", "month": "Magha",
      "significance": "Magha Shukla Pratipada to Navami (9 nights). Second Gupta Navratri of the year. Winter Navratri observed by Shakti and Tantric devotees. Worship of 10 Mahavidyas. Less publicly known but highly important in Shakta tradition. Bagalamukhi and Tara are especially propitiated in this Navratri.",
      "fast_note": "9-day Devi vrat. Ghatasthapana on Pratipada. Daily Devi Saptashati recitation. Sattvic diet (no onion, garlic, non-veg). Midnight Mahavidya puja for deeper practitioners. Kanya Puja on Ashtami. Havan on Navami. Complete fast or one-meal-a-day (phalahar).",
-     "rule": {"type": "tithi_range", "paksha": "S", "num": 1, "length": 9, "approx_month": 2, "approx_day": 2}},
+     "rule": {"type": "tithi_range", "paksha": "S", "start": 1, "end": 9, "approx_month": 1, "approx_day": 21}},
 
     # ─── Recurring Vrats ─────────────────────────────────────────────────────────
     {"name": "Pradosh Vrat (Shukla)",    "hindi": "प्रदोष व्रत (शुक्ल)",       "icon": "🌙",
@@ -1423,7 +1423,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Vishnu / Goddess Lakshmi", "month": "Mesha (Solar)",
      "significance": "Bengali New Year. Sun enters Mesha Rashi (Aries). 1st day of Boishakh (Bengali calendar, approx. April 14-15). Celebrated in West Bengal, Bangladesh, and worldwide Bengali diaspora. Hal Khata (new account books opened by merchants — Lakshmi Ganesh Puja). Mangal Shobhajatra (UNESCO listed) procession in Dhaka. New clothes, sweets (mishti doi, sandesh), visits to relatives.",
      "fast_note": "No strict vrat. Morning bath, new clothes. Visit Lakshmi-Ganesh temple for Hal Khata puja (if merchant/businessman). Eat traditional foods: muri-moa, mishti doi, ilish (hilsa) fish. Evening cultural programs. Greet with 'Shubho Nababarsha' (Happy New Year in Bengali).",
-     "rule": {"type": "solar", "approx_month": 4, "approx_day": 15}},
+     "rule": {"type": "solar", "lon": 0.0, "approx_month": 4, "approx_day": 15}},
 
     {"name": "Durga Puja (Saptami)",     "hindi": "दुर्गा पूजा — सप्तमी",      "icon": "🪆",
      "deity": "Goddess Durga",    "month": "Ashwin",
@@ -1459,13 +1459,13 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Vishwakarma",      "month": "Bhadrapada / Solar",
      "significance": "Solar calendar: Sun in Virgo (Kanya Sankranti, approx September 17). Vishwakarma — divine architect of the gods who built Lanka, Dwarka, and Indra's heaven. Factories, workshops, machines, vehicles, tools are worshipped. Entire industrial Bengal/Jharkhand/Odisha shuts down — workers worship their machines. Kite flying (paatla hawa) popular in Bengal on this day. Aircraft, ships, cars decorated with flowers.",
      "fast_note": "No strict vrat. Morning puja of machines, tools, vehicles with flowers, sindur, incense. Vishwakarma idol placed in workplace. Offerings: fruits, sweets, betel. Do not use machines until puja complete. Evening feast and kite flying. No work order on this day.",
-     "rule": {"type": "solar", "approx_month": 9, "approx_day": 17}},
+     "rule": {"type": "solar", "lon": 150.0, "approx_month": 9, "approx_day": 17}},
 
     {"name": "Tusu Puja",                "hindi": "टुसू पूजा",                  "icon": "🌻",
      "deity": "Goddess Tusu",     "month": "Paush",
      "significance": "Paush month (December–January), concluding on Makar Sankranti / Poush Sankranti. Tusu Puja — tribal and folk festival of Jharkhand, West Bengal (Purulia, Bankura, Bardhaman), and Odisha. Young unmarried girls worship Tusu Devi (goddess of harvest and prosperity) throughout Paush month. On the last day (Poush Sankranti), Tusu is immersed in water with singing and dancing. Chaur (folk songs) sung every evening.",
      "fast_note": "Month-long observation by unmarried girls. Tusu image (clay, rice husk, or flowers) installed in a decorated palanquin (chaura). Daily evening songs (Tusu Gaan) and lamp lighting. No non-vegetarian food during Paush. Final immersion on Makar Sankranti day with procession and song.",
-     "rule": {"type": "solar", "approx_month": 1, "approx_day": 14}},
+     "rule": {"type": "solar", "lon": 270.0, "approx_month": 1, "approx_day": 14}},
 
     {"name": "Bandna Parab",             "hindi": "बंदना परब",                  "icon": "🐄",
      "deity": "Lord Vishnu / Cattle Goddess", "month": "Kartik",
@@ -1499,7 +1499,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Nature / Cattle",  "month": "Mesha (Solar)",
      "significance": "Assamese New Year. Sun enters Mesha (Aries) — same as Baisakhi/Vishu/Puthandu but with Assamese traditions. Rongali = joyful; 7-day celebration. First day (Goru Bihu): cattle washed with turmeric and fed special food. Second day (Manuh Bihu): humans exchange gamosa (cotton towel) and pitha (rice cake). Traditional Bihu dance (Bihu Naas) in groups. Bihu songs (Bihu geet). Most festive New Year of Northeast India.",
      "fast_note": "No strict vrat. Goru Bihu (Day 1): bathe cattle before sunrise with turmeric, feed with gourd, brinjal, pulses. Manuh Bihu (Day 2): exchange gamosa and pitha with elders. Wear traditional mekhela chador (women) / dhoti-gamosa (men). Cook: til pitha (sesame rice cake), ghila pitha, sunga pitha. Bihu dance in community.",
-     "rule": {"type": "solar", "approx_month": 4, "approx_day": 14}},
+     "rule": {"type": "solar", "lon": 0.0, "approx_month": 4, "approx_day": 14}},
 
     # ─── Additional Vrat / Tithi ─────────────────────────────────────────────────
     {"name": "Vaikunta Ekadashi (South)", "hindi": "वैकुंठ एकादशी",             "icon": "🚪",
@@ -1573,7 +1573,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Ayyappa (Sastha)", "month": "Vrischika (Solar)",
      "significance": "41-day vrat (Mandala Kalam) beginning on the first day of Malayalam solar month Vrischika (approx. November 15–16) and concluding on Makaravilakku (Makara Jyoti, January 14). Sabarimala pilgrimage — one of the world's largest annual pilgrimages (50 million+ devotees). Devotees (Ayyappa bhaktas) observe strict 41-day Deeksha: black/blue dress, tulsi/rudraksha mala, bare feet, celibacy, two meals/day, no shaving, sleep on floor. Journey to Sabarimala mountain temple (Kerala). 18 Golden Steps (Pathinettam Padi) to the shrine. Makaravilakku: celestial star (Makara Jyothi) appears on Makaravilakku night.",
      "fast_note": "41-day Deeksha rules: wear black/blue irumudi (cloth). Carry irumudi (two-compartment bag) with coconut filled with ghee. No non-veg, no alcohol, no tobacco, no sexual contact. Two vegetarian meals/day. Sleep on floor/mat. No footwear. Daily Ayyappa puja morning and evening. Conclude: trek Sabarimala, climb 18 steps, break coconut, offer ghee to Ayyappa. Makaravilakku darshan is the main goal.",
-     "rule": {"type": "solar", "approx_month": 11, "approx_day": 15}},
+     "rule": {"type": "solar", "lon": 210.0, "approx_month": 11, "approx_day": 15}},
 
     # ─── Ekadashi Vrat (Recurring) ───────────────────────────────────────────────
     {"name": "Ekadashi Vrat",            "hindi": "एकादशी व्रत",                "icon": "🙏",
@@ -1672,6 +1672,52 @@ def get_festival_calendar(
                 entry["tithi_start_date"] = d
                 entry["paksha"]           = "N/A"
                 entry["tithi_name"]       = "Sankranti"
+                ref_dates[festival["name"]] = d
+
+            # ── Solar entry + N days offset (e.g. Aadi Perukku = Karka+17) ──
+            elif rule["type"] == "solar_offset":
+                base_d, base_t = _find_solar_entry(year, rule["lon"], rule["approx_month"], tz)
+                d = (date.fromisoformat(base_d) + timedelta(days=rule.get("offset_days", 0))).isoformat()
+                entry["date"]             = d
+                entry["tithi_start"]      = base_t
+                entry["tithi_end"]        = base_t
+                entry["tithi_start_date"] = d
+                entry["paksha"]           = "N/A"
+                entry["tithi_name"]       = "Solar Day"
+                ref_dates[festival["name"]] = d
+
+            # ── Vara Lakshmi: last Friday before Shravana Purnima ──────
+            elif rule["type"] == "vara_lakshmi":
+                # Find Shravana Purnima (Shravana S15)
+                approx_month = rule["approx_month"]
+                jd_center    = swe.julday(year, approx_month, rule.get("approx_day", 15), 6.0 - tz)
+                purnima_idx  = _rule_to_idx("S", 15)
+                purnima_jd   = None
+                for delta in sorted(range(-30, 31), key=abs):
+                    for sub_h in [0, 6, 12, 18]:
+                        test_jd = jd_center + float(delta) + sub_h / 24.0
+                        if _tithi_idx(test_jd) == purnima_idx:
+                            purnima_jd = test_jd
+                            break
+                    if purnima_jd is not None:
+                        break
+                if purnima_jd is not None:
+                    purnima_date = date.fromisoformat(_jd_to_date_str(purnima_jd, tz))
+                    # Find last Friday (weekday=4) strictly before Purnima
+                    check = purnima_date - timedelta(days=1)
+                    for _ in range(7):
+                        if check.weekday() == 4:  # Friday
+                            break
+                        check -= timedelta(days=1)
+                    d = check.isoformat()
+                else:
+                    d = f"{year}-{approx_month:02d}-{rule.get('approx_day', 10):02d}"
+                entry["date"]             = d
+                entry["tithi_start"]      = "06:00"
+                entry["tithi_end"]        = "23:59"
+                entry["tithi_start_date"] = d
+                entry["paksha"]           = "Shukla"
+                entry["tithi_name"]       = "Friday before Shravana Purnima"
                 ref_dates[festival["name"]] = d
 
             # ── Day after a reference festival ─────────────────────────
