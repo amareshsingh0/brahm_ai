@@ -220,10 +220,11 @@ def verify_otp(req: VerifyOtpRequest, request: Request):
     sb.table("otp_log").update({"used": True}).eq("id", row["id"]).execute()
 
     # Upsert user
-    user_res = sb.table("users").select("id,name,plan,phone_verified").eq("phone", phone).maybe_single().execute()
+    _ur = sb.table("users").select("id,name,plan,phone_verified").eq("phone", phone).execute()
+    user_data = _ur.data[0] if _ur.data else None
 
-    if user_res and user_res.data:
-        user = user_res.data
+    if user_data:
+        user = user_data
         user_id = user["id"]
         name    = user.get("name", "") or ""
         plan    = user.get("plan", "free")
@@ -299,13 +300,11 @@ def refresh_access_token(req: RefreshRequest):
         .eq("token_hash", token_hash) \
         .eq("revoked", False) \
         .gte("expires_at", now_iso) \
-        .maybe_single() \
         .execute()
 
-    if not res.data:
+    row = res.data[0] if res.data else None
+    if not row:
         raise HTTPException(401, "Invalid or expired refresh token. Please login again.")
-
-    row  = res.data
     user = row["users"]
 
     # Update last_used_at
@@ -384,13 +383,15 @@ def google_login(req: GoogleAuthRequest, request: Request):
     sb = get_supabase()
 
     # Find existing user by google_id or email
-    user_res = sb.table("users").select("id,phone,name,plan,status").eq("google_id", google_id).maybe_single().execute()
+    _ur = sb.table("users").select("id,phone,name,plan,status").eq("google_id", google_id).execute()
+    user_data = _ur.data[0] if _ur.data else None
 
-    if not (user_res and user_res.data) and email:
-        user_res = sb.table("users").select("id,phone,name,plan,status").eq("email", email).maybe_single().execute()
+    if not user_data and email:
+        _ur2 = sb.table("users").select("id,phone,name,plan,status").eq("email", email).execute()
+        user_data = _ur2.data[0] if _ur2.data else None
 
-    if user_res and user_res.data:
-        user    = user_res.data
+    if user_data:
+        user    = user_data
         user_id = user["id"]
         phone   = user.get("phone") or ""
         plan    = user.get("plan", "free")
@@ -465,12 +466,11 @@ def get_me(credentials: HTTPAuthorizationCredentials = Depends(bearer)):
 
     user_id = payload.get("sub")
     sb = get_supabase()
-    res = sb.table("users").select("id,phone,name,plan,phone_verified,role,status,created_at").eq("id", user_id).maybe_single().execute()
+    res = sb.table("users").select("id,phone,name,plan,phone_verified,role,status,created_at").eq("id", user_id).execute()
+    user = res.data[0] if res.data else None
 
-    if not res.data:
+    if not user:
         raise HTTPException(404, "User not found")
-
-    user = res.data
     if user.get("status") in ("suspended", "banned", "deleted"):
         raise HTTPException(403, f"Account {user['status']}")
 
