@@ -1474,7 +1474,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Cattle / Lord Shiva",  "month": "Shravana",
      "significance": "Shravana or Bhadrapada Krishna Amavasya (Pithori Amavasya). Maharashtra's Bull Worshipping festival. Farmers decorate bullocks with colourful clothes, bells, garlands, and sindur. Wooden toy bulls (khilobale) for children. Procession of decorated bulls through village streets. Bullock races in some areas. Expresses gratitude to bulls for their year-round farming assistance.",
      "fast_note": "No strict vrat. Bathe and decorate bulls with turmeric (haldi), oil, kumkum, garlands of flowers and marigold. Paint horns in colours. Feed special food: cooked rice, jaggery, gram. New bell and rope for bull. Mahila (women) cook puran poli and chakali as prasad. Procession with dhol-tasha music.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 9, "approx_day": 11, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 9, "approx_day": 11, "date_from_sunrise": True, "no_month_correction": True}},
 
     # ─── Pushkar & Pilgrimage Festivals ──────────────────────────────────────────
     {"name": "Pushkar Mela",             "hindi": "पुष्कर मेला",                "icon": "🐪",

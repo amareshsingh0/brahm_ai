@@ -88,6 +88,9 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
+    // Material components (needed for XML theme — Theme.Material3.Light.NoActionBar)
+    implementation 'com.google.android.material:material:1.12.0'
+
     // AndroidX core
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.activity:activity-compose:1.9.3'
