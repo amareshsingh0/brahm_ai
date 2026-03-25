@@ -1378,7 +1378,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Lakshmi",  "month": "Shravana",
      "significance": "Shravana Shukla Friday (last/second-last Friday before Purnima). Worship of Vara Lakshmi — boon-giving form of Goddess Lakshmi. Predominantly celebrated in Andhra Pradesh, Telangana, Karnataka, Tamil Nadu by married women for the well-being and prosperity of family. Kalasha Puja: a pot (kalasha) adorned with mango leaves and coconut represents Lakshmi. Lakshmi Ashtottara (108 names) recited.",
      "fast_note": "Women's vrat: dawn bath, dress in new clothes. Set up Vara Lakshmi Kalasha with turmeric, kumkum, silk sari, flowers, fruits. Draw rangoli (muggulu). Puja with 108 names (Lakshmi Ashtottara). Akshata (rice+turmeric) offerings. Dinner shared with neighbors. Break fast after evening puja.",
-     "rule": {"type": "vara_lakshmi", "approx_month": 8, "approx_day": 10}},
+     "rule": {"type": "vara_lakshmi", "approx_month": 8, "approx_day": 25}},
 
     {"name": "Aadi Perukku",             "hindi": "आदि पेरुक्कू",              "icon": "🌊",
      "deity": "Goddess Kaveri / River Goddess", "month": "Aadi (Solar)",
@@ -1435,7 +1435,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Ashtami. Peak day of Durga Puja. Sandhi Puja at the junction of Ashtami-Navami (most powerful moment — Goddess destroys Chanda-Munda demons). 108 lamps lit. Pushpanjali in early morning with 108 lotus flowers or bel leaves. Kumari Puja (worship of young pre-pubescent girls as Devi). Dhunuchi Naach (clay pot dance with burning coconut husk). Sindur Khela for married women.",
      "fast_note": "Ashtami fast: no grains. Pushpanjali in morning (3 times: 5 AM, 8 AM, 10 AM approx). Sandhi Puja: fast until completion. Prasad only after puja. Kumari Puja: worship young girls with feet-washing, sindur, sweets. Break fast after Sandhi Puja.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 8, "approx_month": 10, "approx_day": 3}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 8, "approx_month": 10, "approx_day": 3, "date_from_sunrise": True}},
 
     {"name": "Durga Puja (Navami)",      "hindi": "दुर्गा पूजा — नवमी",        "icon": "🏺",
      "deity": "Goddess Durga",    "month": "Ashwin",
