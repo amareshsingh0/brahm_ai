@@ -1,5 +1,5 @@
 # Brahm AI — Full Architecture Document
-# Last Updated: 2026-03-21 (v5.0 — Native Mobile Apps Added)
+# Last Updated: 2026-03-25 (v6.0 — Separate Admin App + Domain Separation)
 
 ---
 
@@ -54,10 +54,20 @@
 | Platform | Tech | Distribution | Status |
 |----------|------|--------------|--------|
 | **Website** | React 18 + Vite + TypeScript | brahmasmi.bimoraai.com | ✅ Live |
+| **Admin App** | React 18 + Vite (separate build) | api.brahmasmi.bimoraai.com/admin | ✅ Live |
 | **Android** | Java 17 LTS + MVVM + Retrofit2 | Google Play Store | 🔜 Phase 1-4 |
 | **iOS** | Swift 5.9 + SwiftUI + URLSession | Apple App Store | 🔜 Phase 5-6 |
 
-All three platforms share the **same FastAPI backend** — zero backend changes needed for mobile.
+All platforms share the **same FastAPI backend** — zero backend changes needed for mobile.
+
+### Domain Separation
+| Domain | Purpose | Serves |
+|--------|---------|--------|
+| `brahmasmi.bimoraai.com` | User-facing web app | React app (`/var/www/brahm-ai/`) |
+| `brahmasmi.bimoraai.com/admin` | **Returns 404** | Admin blocked from user domain |
+| `api.brahmasmi.bimoraai.com/api` | FastAPI backend | Proxied to port 8000 |
+| `api.brahmasmi.bimoraai.com/admin` | Admin panel | Separate React app (`/var/www/brahm-admin/`) |
+| `api.brahmasmi.bimoraai.com/docs` | Swagger UI | FastAPI docs |
 
 **VM:** Google Cloud g2-standard-32 | 32 vCPU | 128 GB RAM | NVIDIA L4 24GB GPU
 **IP:** 34.135.70.190 | Cost: ~$0.60/hr | OS: Debian 12 | CUDA 13.2
@@ -78,6 +88,48 @@ C:\desktop\Brahm AI\              (local project root)
 ├── tailwind.config.ts              (dark cosmic theme)
 ├── index.html                      (React entry)
 ├── .env.local                      (VITE_API_URL=http://34.135.70.190:8000)
+│
+├── admin-app/                      ← Separate Admin React App (deployed to /var/www/brahm-admin/)
+│   ├── package.json                (react, react-router-dom, recharts, lucide-react, tailwindcss)
+│   ├── vite.config.ts              (base: '/admin/', proxy /api → port 8000, port 5174)
+│   ├── tailwind.config.ts
+│   ├── tsconfig.json
+│   ├── index.html
+│   └── src/
+│       ├── main.tsx                React entry point
+│       ├── App.tsx                 BrowserRouter basename="/admin" + all routes
+│       ├── index.css               CSS vars (same tokens as main app)
+│       ├── lib/
+│       │   ├── types.ts            All admin TypeScript interfaces
+│       │   ├── api.ts              aFetch + 5-min GET cache + preloadAll()
+│       │   └── utils.ts            cn, fmt, fmtInr, PLAN_CLS, STATUS_CLS, PAY_CLS, ACTION_CLS
+│       ├── components/
+│       │   ├── layout/
+│       │   │   ├── AdminLayout.tsx  Auth guard + sidebar + header + mobile bottom nav
+│       │   │   ├── Sidebar.tsx      Collapsible (w-56/w-14), NavLink active state
+│       │   │   └── Header.tsx       Logo + Admin badge + logout
+│       │   └── ui/
+│       │       ├── StatCard.tsx     Icon + label + value + optional trend
+│       │       ├── DataTable.tsx    Generic reusable table (Column<T> + rows + loading)
+│       │       ├── Pagination.tsx
+│       │       ├── Badge.tsx
+│       │       └── Loader.tsx       Loader + Empty + ActionBtn
+│       ├── pages/
+│       │   ├── LoginPage.tsx        X-Admin-Key input → sessionStorage → preloadAll
+│       │   ├── DashboardPage.tsx    Stats grid + revenue + top endpoints
+│       │   ├── UsersPage.tsx        Paginated table → navigate /users/:id on click
+│       │   ├── UserDetailPage.tsx   useParams(:id) + 7 sub-tabs + action buttons
+│       │   ├── PaymentsPage.tsx     Revenue StatCards + filter + refund action
+│       │   ├── ChatsPage.tsx        Recent / Flagged / Analytics switcher
+│       │   └── LogsPage.tsx         Admin action log (DataTable + ACTION_CLS)
+│       └── user-detail-tabs/
+│           ├── ProfileTab.tsx       User fields grid
+│           ├── ChatsTab.tsx         Context filter + flag button + pagination
+│           ├── KundalisTab.tsx      Expand → raw JSON toggle
+│           ├── PalmistryTab.tsx     Lines found chips
+│           ├── PaymentsTab.tsx      Payment history with status badge
+│           ├── UsageTab.tsx         Bar chart (today's feature counts)
+│           └── LoginsTab.tsx        Login history (success/fail + IP + device)
 │
 ├── api/                            ← FastAPI backend (on VM: ~/books/api/)
 │   ├── main.py                     FastAPI app, CORS, lifespan
@@ -396,14 +448,26 @@ C:\desktop\Brahm AI\              (local project root)
 | GET | `/api/horoscope/{rashi}` | — | Daily prediction (public) | <0.5s |
 | GET | `/api/cities` | — | City lookup (public) | <0.1s |
 
-#### Admin Endpoints (NEW — admin JWT only)
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/admin/users` | Admin JWT | List all users with plan/usage |
-| GET | `/api/admin/users/{user_id}` | Admin JWT | Single user full profile |
-| PATCH | `/api/admin/users/{user_id}` | Admin JWT | Update user plan/status |
-| GET | `/api/admin/subscriptions` | Admin JWT | All active subscriptions |
-| GET | `/api/admin/stats` | Admin JWT | MAU, revenue, feature usage |
+#### Admin Endpoints (X-Admin-Key header auth)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/stats` | MAU, DAU, revenue, subscriptions, top endpoints |
+| GET | `/api/admin/users` | Paginated users list with filters |
+| GET | `/api/admin/users/{id}` | Full user profile + subscription + usage_today |
+| POST | `/api/admin/users/{id}/action` | suspend / reactivate / ban / reset_key / delete |
+| GET | `/api/admin/users/{id}/chats` | Paginated chat messages (ctx filter) |
+| GET | `/api/admin/users/{id}/kundalis` | Kundali history |
+| GET | `/api/admin/users/{id}/palms` | Palmistry history |
+| GET | `/api/admin/users/{id}/payments` | Payment history |
+| GET | `/api/admin/users/{id}/logins` | Login history |
+| POST | `/api/admin/chats/{id}/flag` | Flag a chat message |
+| GET | `/api/admin/payments` | All payments + revenue stats |
+| POST | `/api/admin/payments/{id}/refund` | Issue refund |
+| GET | `/api/admin/revenue` | Revenue breakdown (today/month/total) |
+| GET | `/api/admin/chats` | Recent chats (all users) |
+| GET | `/api/admin/chats/flagged` | Flagged chats |
+| GET | `/api/admin/chats/analytics` | Top questions + context distribution |
+| GET | `/api/admin/logs` | Admin action log |
 
 ---
 
@@ -1477,41 +1541,59 @@ src/components/PlanGate.tsx
 
 ---
 
-## 17. DEPLOYMENT ARCHITECTURE (UPDATED)
+## 17. DEPLOYMENT ARCHITECTURE (UPDATED v6.0)
 
 ```
-VM: 34.135.70.190
+VM: 34.134.231.111  (updated IP)
 │
-├── Port 7860 — Gradio (fallback)
-│   pm2: brahm-gradio
-│
-├── Port 8000 — FastAPI (production API)
-│   pm2: brahm-api
+├── Port 8000 — FastAPI (systemd: brahm-api)
 │   cmd: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1
+│   NEVER use --reload (breaks SSE)
 │
-└── Port 3000 — React static (optional)
-    serve dist/ via nginx or python3 -m http.server
+├── /var/www/brahm-ai/         ← User-facing React app (pnpm run build → dist/)
+│
+└── /var/www/brahm-admin/      ← Admin React app (admin-app/dist/)
+
+nginx: /etc/nginx/sites-available/brahm-ai  (user domain)
+  server_name brahmasmi.bimoraai.com;
+  location /  → root /var/www/brahm-ai; try_files ...
+  location /admin { return 404; }        ← BLOCKED on user domain
+  location /docs  { return 404; }
+  location /api   → proxy_pass http://127.0.0.1:8000;
+  add_header Cross-Origin-Opener-Policy "same-origin-allow-popups";
+
+nginx: /etc/nginx/sites-available/brahm-api  (admin/api domain)
+  server_name api.brahmasmi.bimoraai.com;
+  location /api  → proxy_pass http://127.0.0.1:8000; (SSE: proxy_buffering off)
+  location /admin → alias /var/www/brahm-admin; try_files $uri $uri/ /admin/index.html;
+  location ~ ^/(docs|redoc|openapi.json|health) → proxy_pass http://127.0.0.1:8000;
+  location /  → return 404;  (no full site on api domain)
+
+Deploy commands:
+  # Backend
+  cd ~/books && git pull origin main && sudo systemctl restart brahm-api
+
+  # User frontend
+  cd ~/books && git pull origin main && pnpm run build && sudo cp -r dist/* /var/www/brahm-ai/
+
+  # Admin app
+  cd ~/books/admin-app && pnpm install && pnpm run build
+  sudo mkdir -p /var/www/brahm-admin && sudo cp -r dist/* /var/www/brahm-admin/
+  sudo nginx -t && sudo systemctl reload nginx
 
 GCloud Firewall:
-  brahm-api:       tcp:8000
-  brahm-gradio:    tcp:7860
+  brahm-api: tcp:8000
 
-Environment vars on VM (.env file in ~/books/api/):
-  JWT_SECRET=<64-char random>
-  CASHFREE_APP_ID=<from Cashfree dashboard>
-  CASHFREE_SECRET=<from Cashfree dashboard>
-  MSG91_AUTH_KEY=<from MSG91>          (for OTP SMS)
-  FIREBASE_SERVER_KEY=<from Firebase>  (for push notifications)
-  ADMIN_PHONE=+91XXXXXXXXXX            (your phone — gets role='admin')
+Environment vars (systemd service file — NOT /etc/environment):
+  /etc/systemd/system/brahm-api.service → Environment= lines
+  After editing: sudo systemctl daemon-reload && sudo systemctl restart brahm-api
 
-Production domain (future):
-  brahmai.app → nginx reverse proxy → 8000
-  www.brahmai.app → serve React dist/
-  api.brahmai.app → FastAPI
+  KEY vars: JWT_SECRET, CASHFREE_APP_ID, CASHFREE_SECRET, MSG91_AUTH_KEY,
+            ADMIN_KEY (for X-Admin-Key header auth), GOOGLE_CLIENT_ID
 
 App Store:
   Bundle ID: ai.brahm.app
-  Deployment: capacitor build → Xcode/Android Studio → App Store Connect / Play Console
+  Deployment: Java/Swift → Android Studio/Xcode → Play Console / App Store Connect
 ```
 
 **VRAM Budget (NVIDIA L4 24GB):**

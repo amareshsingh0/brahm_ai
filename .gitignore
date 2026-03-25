@@ -49,6 +49,10 @@ android-app/.kotlin/
 # Capacitor (deleted, but just in case)
 android/
 
+# ─── Fonts (binary — download separately from Google Fonts) ──────────────────
+android-app/**/*.ttf
+android-app/**/*.otf
+
 # ─── Secrets / Keys ───────────────────────────────────────────────────────────
 *.keystore
 *.jks

@@ -1139,7 +1139,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Shani",      "month": "Jyeshtha",
      "significance": "Jyeshtha Amavasya. Birthday of Lord Shani (Saturn). Shani Puja with sesame oil, black sesame, blue/black flowers. Shani Stotra and Chalisa recitation. Visiting Shani Shingnapur and Shani temples. Also observed as Vat Savitri in Maharashtra and Gujarat.",
      "fast_note": "Vrat: Offer sesame oil, black sesame, blue cloth to Shani. Visit Shani temple. Shani Stotram, Chalisa, and Navagrah Puja. Donate black items to Brahmins.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 15, "date_from_sunrise": True, "no_skip_adhika": True}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 15, "date_from_sunrise": True, "no_skip_adhika": True, "no_month_correction": True}},
 
     {"name": "Rath Yatra",           "hindi": "रथ यात्रा",               "icon": "🎡",
      "deity": "Lord Jagannath",  "month": "Ashadha",
@@ -1274,7 +1274,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Yama / Yamuna",   "month": "Kartik",
      "significance": "Kartik Shukla Dvitiya (2 days after Diwali). Sisters apply tilak on brother's forehead and pray for his long life. Brothers give gifts. Yama (Death god) visited his sister Yamuna on this day — brothers protected from untimely death. Also Bhai Tika (Nepal), Bhau Beej (Maharashtra).",
      "fast_note": "Bhai Dooj ritual: Sister applies tilak (roli/kumkum), gives sweets and aarti. Brother gives gifts and blessings. Yama Dvitiya fast optional — sisters pray for brothers' long life.",
-     "rule": {"type": "day_offset", "ref": "Diwali", "offset": 2}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 2, "approx_month": 11, "approx_day": 11, "date_from_sunrise": True}},
 
     {"name": "Skanda Sashti",        "hindi": "स्कंद षष्ठी",             "icon": "🏹",
      "deity": "Lord Murugan / Kartikeya", "month": "Kartik",
@@ -1384,7 +1384,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Kaveri / River Goddess", "month": "Aadi (Solar)",
      "significance": "18th day of Aadi (Tamil solar month, mid-July to mid-August). Celebration of rivers and water bodies — especially Kaveri river. Women worship rivers for their life-giving nature. The river rises and overflows (perukku = to rise) during monsoon. Families picnic on river banks. Pongal-like sweet rice (aadi koozh) offered to rivers. Predominantly Tamil Nadu — also known as Aadi Pathinettam Perukku.",
      "fast_note": "No strict vrat. Visit river or water body (especially Kaveri). Women offer flowers, bananas, betel, turmeric-kumkum to river. Cook sweet rice (aadi koozh / sweet pongal). Picnic on river banks with family. Return home before sunset.",
-     "rule": {"type": "solar_offset", "lon": 90.0, "offset_days": 17, "approx_month": 8, "approx_day": 3}},
+     "rule": {"type": "solar_offset", "lon": 90.0, "offset_days": 18, "approx_month": 8, "approx_day": 3}},
 
     # ─── Gupta Navratri ──────────────────────────────────────────────────────────
     {"name": "Ashadha (Gupta) Navratri", "hindi": "आषाढ़ गुप्त नवरात्रि",     "icon": "🔐",
@@ -1429,7 +1429,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Saptami. First major day of Durga Puja (Bengal's greatest festival, also celebrated in Odisha, Assam, Jharkhand). Nabapatrika (9 plants representing 9 forms of Durga) installed and worshipped. Grand pandals (temporary temples) across Bengal light up. Goddess Durga idol (clay, 10-hands, with Lakshmi-Saraswati-Kartik-Ganesha) unveiled. Dhak drums fill the air.",
      "fast_note": "Partial fast on Saptami morning until Nabapatrika puja. Wear new clothes. Visit pandals. Dhuno daan (myrrh/incense offering). Anjali (flower offering) in morning at pandals. Prasad: khichdi, labra (mixed vegetables), payesh.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 10, "approx_day": 2}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 10, "approx_day": 2, "date_from_sunrise": True}},
 
     {"name": "Durga Puja (Ashtami)",     "hindi": "दुर्गा पूजा — अष्टमी",      "icon": "⚔️",
      "deity": "Goddess Durga",    "month": "Ashwin",
@@ -1940,8 +1940,9 @@ def get_festival_calendar(
                         break
                 if purnima_jd is not None:
                     purnima_date = date.fromisoformat(_jd_to_date_str(purnima_jd, tz))
-                    # Find last Friday (weekday=4) strictly before Purnima
-                    check = purnima_date - timedelta(days=1)
+                    # Find last Friday (weekday=4) on or before Purnima
+                    # If Purnima itself is a Friday, observe on that day (e.g. 2026: Aug 28 = Friday)
+                    check = purnima_date
                     for _ in range(7):
                         if check.weekday() == 4:  # Friday
                             break
@@ -2087,7 +2088,9 @@ def get_festival_calendar(
 
                 # ── MONTH CORRECTION ──
                 # Always use amanta for internal check — festival["month"] fields are in Amanta convention.
-                if festival.get("month"):
+                # Skip if no_month_correction flag set (e.g. Shani Jayanti — boundary Amavasya on same
+                # day as Mithuna Sankranti causes _get_lunar_month_name to misidentify the month).
+                if festival.get("month") and not rule.get("no_month_correction"):
                     got = _get_lunar_month_name(found_jd, tz, "amanta")
                     if got and got != festival["month"]:
                         # Try one month earlier first (handles late jd_center overshoot)
