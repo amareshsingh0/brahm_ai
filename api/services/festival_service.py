@@ -1499,10 +1499,10 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
 
     # ─── Additional Vrat / Tithi ─────────────────────────────────────────────────
     {"name": "Vaikunta Ekadashi (South)", "hindi": "वैकुंठ एकादशी",             "icon": "🚪",
-     "deity": "Lord Vishnu",      "month": "Margashirsha",
+     "deity": "Lord Vishnu",      "month": "Pausha",
      "significance": "Margashirsha Shukla Ekadashi (same day as Geeta Jayanti in North). In South India (especially Tamil Nadu, Andhra, Karnataka), this is Vaikunta Ekadashi — the most important Ekadashi of all 24. The Vaikunta Dwaram (gate to heaven) at Srirangam and Tirupati is symbolically opened. Thousands queue overnight to enter the temple through the Swarga Vasal (heaven gate) at first light. Vishnu's grace is 1000x on this day.",
      "fast_note": "Ekadashi Vrat: no grains (most devotees do nirjala fast). At Srirangam, Tirupati, Parthasarathy (Chennai): arrive night before, queue overnight to enter through Swarga Vasal at dawn. Recite Vishnu Sahasranama, Thiruvaymoli (Divya Prabandham). Break fast on Dwadashi (Vaikunta Dwadashi) with Pancharatna Kootu and rice.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 12, "approx_day": 7, "special": "ekadashi_viddha"}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 12, "approx_day": 31, "special": "ekadashi_viddha"}},
 
     # ─── Chaitra Chhath — 4-Day Breakdown ───────────────────────────────────────
     {"name": "Chaitra Chhath — Nahay Khay", "hindi": "चैत्र छठ — नहाय खाय",  "icon": "🛁",

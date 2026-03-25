@@ -35,6 +35,7 @@ __pycache__/
 
 # ─── Android ──────────────────────────────────────────────────────────────────
 android-app/.gradle/
+.gradle/
 android-app/build/
 android-app/app/build/
 android-app/local.properties
