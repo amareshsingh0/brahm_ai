@@ -29,12 +29,14 @@ android {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
             buildConfigField "String", "BASE_URL", '"https://brahmasmi.bimoraai.com/api/"'
+            buildConfigField "String", "SENTRY_DSN", '"https://570edf35ff19bcd1a723c735d0271507@o4511104916389888.ingest.us.sentry.io/4511105022885888"'
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "BASE_URL", '"https://brahmasmi.bimoraai.com/api/"'
+            buildConfigField "String", "SENTRY_DSN", '"https://570edf35ff19bcd1a723c735d0271507@o4511104916389888.ingest.us.sentry.io/4511105022885888"'
         }
     }
 

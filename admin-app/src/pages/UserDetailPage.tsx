@@ -44,29 +44,37 @@ export default function UserDetailPage() {
   const [chatLoad,  setChatLoad]  = useState(false);
 
   const [kundalis,  setKundalis]  = useState<KundaliEntry[]>([]);
-  const [kundLoad,  setKundLoad]  = useState(false);
-
   const [palms,     setPalms]     = useState<PalmEntry[]>([]);
-  const [palmLoad,  setPalmLoad]  = useState(false);
-
   const [payments,  setPayments]  = useState<PaymentRow[]>([]);
-  const [payLoad,   setPayLoad]   = useState(false);
-
   const [logins,    setLogins]    = useState<LoginEntry[]>([]);
-  const [loginLoad, setLoginLoad] = useState(false);
 
   const [actioning, setActioning] = useState(false);
 
-  // ── Load user ────────────────────────────────────────────────────────────────
+  // ── Load ALL data in parallel on mount ───────────────────────────────────────
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    aFetch<UserDetail>(`/admin/users/${id}`)
-      .then(setUser)
-      .finally(() => setLoading(false));
+    Promise.all([
+      aFetch<UserDetail>(`/admin/users/${id}`),
+      aFetch<{ items: ChatMsg[]; page: number; pages: number }>(`/admin/users/${id}/chats?page=1&limit=30`),
+      aFetch<KundaliEntry[]>(`/admin/users/${id}/kundalis`),
+      aFetch<PalmEntry[]>(`/admin/users/${id}/palms`),
+      aFetch<PaymentRow[]>(`/admin/users/${id}/payments`),
+      aFetch<LoginEntry[]>(`/admin/users/${id}/logins`),
+    ]).then(([userData, chatsData, kundData, palmData, payData, loginData]) => {
+      setUser(userData);
+      const cd = chatsData as { items: ChatMsg[]; page: number; pages: number };
+      setChats(cd.items ?? []);
+      setChatPage(cd.page ?? 1);
+      setChatPages(cd.pages ?? 1);
+      setKundalis(kundData as KundaliEntry[]);
+      setPalms(palmData as PalmEntry[]);
+      setPayments(payData as PaymentRow[]);
+      setLogins(loginData as LoginEntry[]);
+    }).finally(() => setLoading(false));
   }, [id]);
 
-  // ── Load tab data lazily ──────────────────────────────────────────────────────
+  // ── Reload chats (pagination / ctx filter) ────────────────────────────────────
   const loadChats = useCallback(async (p: number, ctx: string) => {
     if (!id) return;
     setChatLoad(true);
@@ -78,38 +86,6 @@ export default function UserDetailPage() {
     setChatPage(d.page ?? 1);
     setChatPages(d.pages ?? 1);
   }, [id]);
-
-  useEffect(() => {
-    if (tab === "chats") loadChats(1, chatCtx);
-  }, [tab, loadChats]);  // eslint-disable-line
-
-  useEffect(() => {
-    if (tab !== "kundalis" || kundalis.length) return;
-    setKundLoad(true);
-    aFetch<KundaliEntry[]>(`/admin/users/${id}/kundalis`)
-      .then(setKundalis).finally(() => setKundLoad(false));
-  }, [tab]);  // eslint-disable-line
-
-  useEffect(() => {
-    if (tab !== "palmistry" || palms.length) return;
-    setPalmLoad(true);
-    aFetch<PalmEntry[]>(`/admin/users/${id}/palms`)
-      .then(setPalms).finally(() => setPalmLoad(false));
-  }, [tab]);  // eslint-disable-line
-
-  useEffect(() => {
-    if (tab !== "payments" || payments.length) return;
-    setPayLoad(true);
-    aFetch<PaymentRow[]>(`/admin/users/${id}/payments`)
-      .then(setPayments).finally(() => setPayLoad(false));
-  }, [tab]);  // eslint-disable-line
-
-  useEffect(() => {
-    if (tab !== "logins" || logins.length) return;
-    setLoginLoad(true);
-    aFetch<LoginEntry[]>(`/admin/users/${id}/logins`)
-      .then(setLogins).finally(() => setLoginLoad(false));
-  }, [tab]);  // eslint-disable-line
 
   // ── Actions ───────────────────────────────────────────────────────────────────
   async function doAction(action: string, payload?: Record<string, unknown>) {
@@ -243,9 +219,9 @@ export default function UserDetailPage() {
             <Pagination page={chatPage} pages={chatPages} onChange={(p) => loadChats(p, chatCtx)} />
           </>
         )}
-        {tab === "kundalis"  && <KundalisTab  items={kundalis}  loading={kundLoad}  />}
-        {tab === "palmistry" && <PalmistryTab items={palms}     loading={palmLoad}  />}
-        {tab === "payments"  && <PaymentsTab  items={payments}  loading={payLoad}   />}
+        {tab === "kundalis"  && <KundalisTab  items={kundalis} loading={false} />}
+        {tab === "palmistry" && <PalmistryTab items={palms}    loading={false} />}
+        {tab === "payments"  && <PaymentsTab  items={payments} loading={false} />}
         {tab === "usage"     && <UsageTab     items={user.usage_today ?? []} loading={false} />}
         {tab === "logins"    && <LoginsTab    items={logins}    loading={loginLoad} />}
       </div>

@@ -5,6 +5,17 @@ Run: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1
 """
 import time, threading
 from contextlib import asynccontextmanager
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
+
+sentry_sdk.init(
+    dsn="https://235c04d3ea8600588af7bc44fc0eec82@o4511104916389888.ingest.us.sentry.io/4511105029242880",
+    integrations=[StarletteIntegration(), FastApiIntegration()],
+    traces_sample_rate=0.2,   # 20% of requests tracked for performance
+    send_default_pii=False,   # no personal data sent
+    environment="production",
+)
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware

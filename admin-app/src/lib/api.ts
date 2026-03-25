@@ -10,7 +10,7 @@ const BASE = (import.meta.env.VITE_API_URL ?? "https://brahmasmi.bimoraai.com/ap
 
 // ── Cache ──────────────────────────────────────────────────────────────────────
 const _cache = new Map<string, { data: unknown; ts: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 export function invalidateCache(path?: string) {
   if (path) _cache.delete(path);

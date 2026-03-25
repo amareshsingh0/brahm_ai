@@ -1351,16 +1351,16 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "rule": {"type": "solar", "lon": 0.0, "approx_month": 4, "approx_day": 14}},
 
     {"name": "Chithra Pournami",         "hindi": "चित्रा पूर्णिमा",         "icon": "🌕",
-     "deity": "Chitra Gupta",     "month": "Chaitra",
+     "deity": "Chitra Gupta",     "month": "Vaishakha",
      "significance": "Chaitra Purnima (Full Moon in Chitra Nakshatra). Chitragupta Puja — worship of Chitragupta who maintains karmic records of all beings. Tamil Nadu's major festival: Chithirai Full Moon. Holy dip in tanks of Madurai Meenakshi temple. Chitragupta — the divine accountant of Yama — is worshipped for removal of sins.",
      "fast_note": "Fast until moonrise. Chitragupta Puja with pen, inkpot, account books (symbolising karmic ledger). Offer: betel nut, flowers, lamp, sweets. Holy bath in river or temple tank. Charity and feeding of poor. Break fast after moonrise puja.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 4, "approx_day": 12}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 5, "approx_day": 1, "date_from_sunrise": True}},
 
     {"name": "Panguni Uthiram",          "hindi": "पंगुनी उत्तिरम",          "icon": "🌸",
-     "deity": "Lord Murugan / Shiva-Parvati", "month": "Phalguna",
+     "deity": "Lord Murugan / Shiva-Parvati", "month": "Chaitra",
      "significance": "Phalguna (Panguni) Purnima with Uttara Phalguni Nakshatra. One of Tamil Nadu's most auspicious festivals. Celestial weddings: Shiva-Parvati, Murugan-Devasena, Murugan-Valli. Celebrated grandly at Tiruchendur, Palani Murugan temples and Madurai Meenakshi temple (Celestial Wedding of Meenakshi-Sundareswarar). Kavadi processions.",
      "fast_note": "Pournami fast until moonrise. Murugan / Shiva-Parvati puja. Visit Murugan or Shiva temple. Kavadi or Pal Kodam (pot of milk) offering. Archana with 108 names. Abishekam (milk, curd, honey, rosewater) on Shivalinga.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 3, "approx_day": 25}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 15, "approx_month": 4, "approx_day": 1, "date_from_sunrise": True}},
 
     {"name": "Thiruvathira",             "hindi": "थिरुवातिरा",               "icon": "💃",
      "deity": "Lord Shiva",       "month": "Margashirsha",
@@ -1471,10 +1471,10 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
 
     # ─── Maharashtra Regional Festivals ──────────────────────────────────────────
     {"name": "Bail Pola",                "hindi": "बैल पोला",                   "icon": "🐂",
-     "deity": "Cattle / Lord Shiva",  "month": "Shravana / Bhadrapada",
+     "deity": "Cattle / Lord Shiva",  "month": "Bhadrapada",
      "significance": "Shravana or Bhadrapada Krishna Amavasya (Pithori Amavasya). Maharashtra's Bull Worshipping festival. Farmers decorate bullocks with colourful clothes, bells, garlands, and sindur. Wooden toy bulls (khilobale) for children. Procession of decorated bulls through village streets. Bullock races in some areas. Expresses gratitude to bulls for their year-round farming assistance.",
      "fast_note": "No strict vrat. Bathe and decorate bulls with turmeric (haldi), oil, kumkum, garlands of flowers and marigold. Paint horns in colours. Feed special food: cooked rice, jaggery, gram. New bell and rope for bull. Mahila (women) cook puran poli and chakali as prasad. Procession with dhol-tasha music.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 8, "approx_day": 28}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 9, "approx_day": 11, "date_from_sunrise": True}},
 
     # ─── Pushkar & Pilgrimage Festivals ──────────────────────────────────────────
     {"name": "Pushkar Mela",             "hindi": "पुष्कर मेला",                "icon": "🐪",

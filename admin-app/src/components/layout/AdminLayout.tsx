@@ -13,19 +13,16 @@ export function AdminLayout() {
     const key = sessionStorage.getItem("admin-key");
     if (!key) { navigate("/login", { replace: true }); return; }
 
-    // Verify key is still valid + warm cache
-    aFetch("/admin/stats")
-      .then(() => { setReady(true); preloadAll(); })
-      .catch(() => { sessionStorage.removeItem("admin-key"); navigate("/login", { replace: true }); });
+    // Render immediately — verify + warm cache in background
+    setReady(true);
+    preloadAll();
+    aFetch("/admin/stats").catch(() => {
+      sessionStorage.removeItem("admin-key");
+      navigate("/login", { replace: true });
+    });
   }, [navigate]);
 
-  if (!ready) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full border-2 border-amber-200 border-t-amber-600 animate-spin" />
-      </div>
-    );
-  }
+  if (!ready) return null;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
