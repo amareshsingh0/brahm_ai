@@ -361,16 +361,32 @@ def google_login(req: GoogleAuthRequest, request: Request):
         raise HTTPException(500, "Google OAuth not configured")
 
     try:
-        # Frontend sends access_token (implicit flow) — fetch userinfo from Google
         import httpx as _httpx
-        r = _httpx.get(
-            "https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": f"Bearer {req.id_token}"},
-            timeout=8,
-        )
-        if r.status_code != 200:
-            raise Exception(f"Google userinfo error: {r.text}")
-        idinfo = r.json()
+        token = req.id_token
+
+        # Detect token type:
+        # - Android Credential Manager sends a JWT ID token (3 dot-separated parts)
+        # - Web implicit flow sends an opaque access token
+        if token.count('.') == 2:
+            # JWT ID token (Android) — verify via tokeninfo endpoint
+            r = _httpx.get(
+                f"https://oauth2.googleapis.com/tokeninfo?id_token={token}",
+                timeout=8,
+            )
+            if r.status_code != 200:
+                raise Exception(f"Invalid ID token: {r.text}")
+            idinfo = r.json()
+            # tokeninfo returns 'sub', 'email', 'name' (same fields as userinfo)
+        else:
+            # Opaque access token (web implicit flow) — fetch userinfo
+            r = _httpx.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=8,
+            )
+            if r.status_code != 200:
+                raise Exception(f"Google userinfo error: {r.text}")
+            idinfo = r.json()
     except Exception as e:
         raise HTTPException(401, f"Invalid Google token: {str(e)}")
 

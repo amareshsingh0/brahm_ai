@@ -46,7 +46,8 @@
             </intent-filter>
         </service>
 
-        <!-- WorkManager Hilt initializer -->
+        <!-- WorkManager Hilt initializer — disabled via tools:node="remove" to avoid
+             ClassNotFoundException at startup; HiltWorkerFactory is wired manually in BrahmApp -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -54,7 +55,8 @@
             tools:node="merge">
             <meta-data
                 android:name="androidx.hilt.work.HiltWorkerInitializer"
-                android:value="androidx.startup" />
+                android:value="androidx.startup"
+                tools:node="remove" />
         </provider>
 
         <!-- File provider for camera (palmistry photo upload) -->

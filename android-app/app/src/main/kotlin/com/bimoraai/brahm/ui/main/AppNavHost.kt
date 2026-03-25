@@ -31,7 +31,9 @@ object Route {
     const val RECTIFICATION = "rectification"
     const val PALMISTRY  = "palmistry"
     const val HOROSCOPE  = "horoscope"
-    const val PROFILE    = "profile"
+    const val PROFILE         = "profile"
+    const val PROFILE_EDIT    = "profile_edit"
+    const val BILLING         = "billing"
 }
 
 @Composable
@@ -75,5 +77,7 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.PALMISTRY)      { com.bimoraai.brahm.ui.palmistry.PalmistryScreen(navController) }
         composable(Route.HOROSCOPE)      { com.bimoraai.brahm.ui.horoscope.HoroscopeScreen(navController) }
         composable(Route.PROFILE)        { com.bimoraai.brahm.ui.profile.ProfileScreen(navController) }
+        composable(Route.PROFILE_EDIT)   { com.bimoraai.brahm.ui.profile.ProfileEditScreen(navController) }
+        composable(Route.BILLING)        { com.bimoraai.brahm.ui.profile.BillingScreen(navController) }
     }
 }

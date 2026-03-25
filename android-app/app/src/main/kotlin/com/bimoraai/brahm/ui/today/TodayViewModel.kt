@@ -3,11 +3,12 @@ package com.bimoraai.brahm.ui.today
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bimoraai.brahm.core.network.ApiService
-import com.bimoraai.brahm.core.network.PanchangRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -16,7 +17,7 @@ class TodayViewModel @Inject constructor(
     private val api: ApiService,
 ) : ViewModel() {
 
-    private val _panchang = MutableStateFlow<Map<String, Any?>?>(null)
+    private val _panchang = MutableStateFlow<JsonObject?>(null)
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
 
@@ -32,12 +33,11 @@ class TodayViewModel @Inject constructor(
             _error.value = null
             try {
                 val today = LocalDate.now().toString()
-                // Default: Delhi coordinates — will be replaced with user location
-                val res = api.getPanchang(PanchangRequest(today, 28.6139, 77.2090, "Asia/Kolkata"))
-                if (res.isSuccessful) {
+                val res = api.getPanchang(date = today, lat = 28.6139, lon = 77.2090, tz = 5.5)
+                if (res.isSuccessful && res.body() != null) {
                     _panchang.value = res.body()
                 } else {
-                    _error.value = "Failed to load Panchang"
+                    _error.value = res.errorBody()?.string()?.take(200) ?: "Failed to load Panchang (${res.code()})"
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Network error"
@@ -47,3 +47,6 @@ class TodayViewModel @Inject constructor(
         }
     }
 }
+
+fun JsonObject.str(key: String): String =
+    this[key]?.jsonPrimitive?.content?.takeIf { it.isNotBlank() && it != "null" } ?: "—"

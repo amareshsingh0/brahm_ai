@@ -1,3 +1,22 @@
+# ─── Claude Code memory / config (never commit) ───────────────────────────────
+.claude/
+
+# ─── Temp / archive files ─────────────────────────────────────────────────────
+api.b64
+api.tar.gz
+api_part*.txt
+*.b64
+*.tar.gz
+
+# ─── Admin app build ──────────────────────────────────────────────────────────
+admin-app/node_modules/
+admin-app/dist/
+
+# ─── SQLite local DBs ─────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
 # Logs
 logs
 *.log

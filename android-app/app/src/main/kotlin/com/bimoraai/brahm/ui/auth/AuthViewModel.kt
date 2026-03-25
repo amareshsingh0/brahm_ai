@@ -35,10 +35,14 @@ class AuthViewModel @Inject constructor(
             _state.value = AuthState.Loading
             try {
                 val res = api.sendOtp(SendOtpRequest(phone))
-                if (res.isSuccessful && res.body()?.success == true) {
+                if (res.isSuccessful && res.body()?.sent == true) {
                     _state.value = AuthState.OtpSent(phone)
                 } else {
-                    _state.value = AuthState.Error("Failed to send OTP. Try again.")
+                    val errBody = res.errorBody()?.string()?.take(300)
+                    val msg = res.body()?.message
+                        ?: errBody
+                        ?: "Failed to send OTP (HTTP ${res.code()})"
+                    _state.value = AuthState.Error(msg)
                 }
             } catch (e: Exception) {
                 _state.value = AuthState.Error(e.message ?: "Network error")
@@ -54,10 +58,11 @@ class AuthViewModel @Inject constructor(
                 val body = res.body()
                 if (res.isSuccessful && body != null) {
                     tokenDataStore.saveTokens(body.access_token, body.refresh_token)
-                    tokenDataStore.saveUserId(body.user.id, body.user.plan)
+                    tokenDataStore.saveUserId(body.user_id, body.plan)
                     _state.value = AuthState.LoggedIn
                 } else {
-                    _state.value = AuthState.Error("Invalid OTP. Please try again.")
+                    val errBody = res.errorBody()?.string()?.take(300)
+                    _state.value = AuthState.Error(errBody ?: "Invalid OTP. Please try again.")
                 }
             } catch (e: Exception) {
                 _state.value = AuthState.Error(e.message ?: "Network error")
@@ -69,14 +74,15 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = AuthState.Loading
             try {
-                val res = api.googleAuth(GoogleAuthRequest(idToken))
+                val res = api.googleAuth(GoogleAuthRequest(idToken, device_type = "android"))
                 val body = res.body()
                 if (res.isSuccessful && body != null) {
                     tokenDataStore.saveTokens(body.access_token, body.refresh_token)
-                    tokenDataStore.saveUserId(body.user.id, body.user.plan)
+                    tokenDataStore.saveUserId(body.user_id, body.plan)
                     _state.value = AuthState.LoggedIn
                 } else {
-                    _state.value = AuthState.Error("Google login failed.")
+                    val errBody = res.errorBody()?.string()?.take(300)
+                    _state.value = AuthState.Error(errBody ?: "Google login failed.")
                 }
             } catch (e: Exception) {
                 _state.value = AuthState.Error(e.message ?: "Network error")

@@ -145,10 +145,10 @@ def get_stats(x_admin_key: str = Header(None)):
                 "chats_today":  lambda: sb.table("chat_messages").select("id", count="exact").gte("created_at", today).execute().count or 0,
                 "kund_today":   lambda: sb.table("kundali_log").select("id", count="exact").gte("created_at", today).execute().count or 0,
                 "palm_today":   lambda: sb.table("palmistry_log").select("id", count="exact").gte("created_at", today).execute().count or 0,
-                "sub_jm":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","jyotishi").eq("period","monthly").execute().count or 0,
-                "sub_jy":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","jyotishi").eq("period","yearly").execute().count or 0,
-                "sub_am":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","acharya").eq("period","monthly").execute().count or 0,
-                "sub_ay":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","acharya").eq("period","yearly").execute().count or 0,
+                "sub_sm":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","standard").eq("period","monthly").execute().count or 0,
+                "sub_sy":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","standard").eq("period","yearly").execute().count or 0,
+                "sub_pm":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","premium").eq("period","monthly").execute().count or 0,
+                "sub_py":       lambda: sb.table("subscriptions").select("id", count="exact").eq("status","active").eq("plan","premium").eq("period","yearly").execute().count or 0,
             }
 
             results = {}
@@ -175,10 +175,10 @@ def get_stats(x_admin_key: str = Header(None)):
                 "kundalis_today": results["kund_today"],
                 "palm_today":    results["palm_today"],
                 "active_subscriptions": {
-                    "jyotishi_monthly": results["sub_jm"],
-                    "jyotishi_yearly":  results["sub_jy"],
-                    "acharya_monthly":  results["sub_am"],
-                    "acharya_yearly":   results["sub_ay"],
+                    "standard_monthly": results["sub_sm"],
+                    "standard_yearly":  results["sub_sy"],
+                    "premium_monthly":  results["sub_pm"],
+                    "premium_yearly":   results["sub_py"],
                 },
                 "top_endpoints": _top_endpoints(),
             }
@@ -197,7 +197,7 @@ def get_stats(x_admin_key: str = Header(None)):
         "new_today": 0, "new_week": 0, "mau": 0, "dau": 0,
         "paid_users": 0, "revenue_today": 0, "revenue_month": 0, "revenue_total": 0,
         "chats_today": 0, "kundalis_today": 0, "palm_today": 0,
-        "active_subscriptions": {"jyotishi_monthly":0,"jyotishi_yearly":0,"acharya_monthly":0,"acharya_yearly":0},
+        "active_subscriptions": {"standard_monthly":0,"standard_yearly":0,"premium_monthly":0,"premium_yearly":0},
         "top_endpoints": _top_endpoints(),
     }
 
@@ -451,7 +451,7 @@ def unsuspend_user(user_id: str, x_admin_key: str = Header(None)):
 
 
 class GrantPlanBody(BaseModel):
-    plan:   str = "jyotishi"
+    plan:   str = "standard"
     days:   int = 30
     reason: str = "admin_grant"
 

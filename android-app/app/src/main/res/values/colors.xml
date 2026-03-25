@@ -3,21 +3,28 @@
     <!-- Brahm AI Light Theme — exact mirror of website tailwind.config.ts -->
 
     <!-- Backgrounds -->
-    <color name="bg_background">#F7F7F8</color>   <!-- bg-background — warm off-white -->
-    <color name="bg_card">#FFFFFF</color>           <!-- bg-card — pure white -->
-    <color name="bg_muted">#F0F0F2</color>          <!-- bg-muted / bg-sidebar -->
+    <color name="bg_background">#F7F7F8</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_muted">#F0F0F2</color>
+    <color name="bg_surface">#FFFFFF</color>
+    <color name="bg_surface_2">#F0F0F2</color>
 
     <!-- Brand -->
-    <color name="gold">#B07A00</color>              <!-- amber-700 — primary gold -->
-    <color name="saffron">#D4540A</color>           <!-- orange-600 — saffron/CTA -->
-    <color name="purple">#7C3AED</color>            <!-- violet-700 — mystic accent -->
+    <color name="primary">#B07A00</color>
+    <color name="gold">#B07A00</color>
+    <color name="accent_gold">#B07A00</color>
+    <color name="saffron">#D4540A</color>
+    <color name="purple">#7C3AED</color>
 
     <!-- Text -->
-    <color name="text_foreground">#111827</color>   <!-- near-black -->
-    <color name="text_muted">#6B7280</color>        <!-- medium gray -->
+    <color name="text_foreground">#111827</color>
+    <color name="text_primary">#111827</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_muted">#6B7280</color>
 
     <!-- Border -->
-    <color name="border">#E5E7EB</color>            <!-- light separator -->
+    <color name="border">#E5E7EB</color>
+    <color name="bg_border">#E5E7EB</color>
 
     <!-- Status -->
     <color name="success">#16A34A</color>

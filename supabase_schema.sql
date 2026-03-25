@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   name            TEXT DEFAULT '',
   role            TEXT DEFAULT 'user',     -- 'user' | 'admin' | 'banned'
   status          TEXT DEFAULT 'active',   -- 'active' | 'suspended' | 'deleted'
-  plan            TEXT DEFAULT 'free',     -- 'free' | 'jyotishi' | 'acharya'
+  plan            TEXT DEFAULT 'free',     -- 'free' | 'standard' | 'premium'
   lang_pref       TEXT DEFAULT 'en',       -- 'en' | 'hi' | 'sa'
   city            TEXT,
   lat             FLOAT,
@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
   birth_tz        FLOAT DEFAULT 5.5,
   birth_place     TEXT DEFAULT '',
   birth_city      TEXT DEFAULT '',
+  gender          TEXT DEFAULT '',         -- 'Male' | 'Female' | 'Other' | 'Prefer not to say'
   rashi           TEXT DEFAULT '',
   nakshatra       TEXT DEFAULT '',
   kundali_json    TEXT,                    -- cached KundaliResponse JSON
@@ -59,7 +60,7 @@ CREATE TABLE IF NOT EXISTS login_log (
 CREATE TABLE IF NOT EXISTS subscriptions (
   id                TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   user_id           TEXT REFERENCES users(id) ON DELETE CASCADE,
-  plan              TEXT NOT NULL,
+  plan              TEXT NOT NULL,              -- 'free' | 'standard' | 'premium'
   period            TEXT,                  -- 'monthly' | 'yearly'
   status            TEXT DEFAULT 'active', -- 'active' | 'cancelled' | 'expired'
   cashfree_order_id TEXT UNIQUE,

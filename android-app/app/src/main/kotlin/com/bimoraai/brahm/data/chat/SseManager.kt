@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
@@ -56,5 +57,3 @@ class SseManager @Inject constructor(
     }
 }
 
-private fun String.toMediaTypeOrNull(): okhttp3.MediaType? =
-    okhttp3.MediaType.parse(this)

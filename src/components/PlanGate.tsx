@@ -7,15 +7,15 @@ import { usePlanCheck } from "@/hooks/useSubscription";
 import type { AuthPlan } from "@/store/authStore";
 
 const PLAN_DISPLAY: Record<AuthPlan, { label: string; labelHi: string; price: string }> = {
-  free:      { label: "Free",      labelHi: "निःशुल्क", price: "₹0/mo"    },
-  jyotishi:  { label: "Jyotishi",  labelHi: "ज्योतिषी",  price: "₹199/mo"  },
-  acharya:   { label: "Acharya",   labelHi: "आचार्य",    price: "₹499/mo"  },
+  free:     { label: "Free",     labelHi: "निःशुल्क", price: "₹0/mo"    },
+  standard: { label: "Standard", labelHi: "मानक",     price: "₹199/mo"  },
+  premium:  { label: "Premium",  labelHi: "प्रीमियम",  price: "₹399/mo"  },
 };
 
 const PLAN_FEATURES: Record<AuthPlan, string[]> = {
   free:     [],
-  jyotishi: ["Unlimited AI Chat", "Full Kundali + Dashas", "Compatibility Analysis", "Muhurta Finder"],
-  acharya:  ["Vedic Scripture Library", "Varshaphala (coming soon)", "Priority inference"],
+  standard: ["Unlimited AI Chat", "Full Kundali + All 7 Tabs", "Gochar Transits", "Compatibility Analysis", "Muhurta Finder"],
+  premium:  ["Everything in Standard", "Gemstone Guide", "Dosha & Sade Sati", "Varshphal", "KP System", "Scripture Library"],
 };
 
 interface PlanGateProps {

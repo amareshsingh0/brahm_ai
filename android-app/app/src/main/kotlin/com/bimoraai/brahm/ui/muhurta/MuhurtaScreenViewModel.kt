@@ -7,6 +7,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.put
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,9 +38,22 @@ class MuhurtaScreenViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
             try {
-                val res = api.getMuhurta(lastParams)
-                if (res.isSuccessful) _result.value = res.body()
-                else _error.value = "Failed to load data"
+                val jsonBody = buildJsonObject {
+                    lastParams.forEach { (k, v) ->
+                        when (v) {
+                            is String -> put(k, v)
+                            is Number -> put(k, v.toDouble())
+                            is Boolean -> put(k, v)
+                            else -> if (v != null) put(k, v.toString())
+                        }
+                    }
+                }
+                val res = api.getMuhurta(jsonBody)
+                if (res.isSuccessful) {
+                    _result.value = res.body()?.entries?.associate { (k, v) ->
+                        k to if (v is JsonPrimitive) v.contentOrNull else v.toString()
+                    }
+                } else _error.value = "Failed to load data"
             } catch (e: Exception) {
                 _error.value = e.message ?: "Network error"
             } finally {

@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 
 export interface Plan {
-  id: "free" | "jyotishi" | "acharya";
+  id: "free" | "standard" | "premium";
   name: string;
   name_hi: string;
   price_monthly: number;
@@ -14,7 +14,7 @@ export interface Plan {
 }
 
 export interface SubscriptionStatus {
-  plan: "free" | "jyotishi" | "acharya";
+  plan: "free" | "standard" | "premium";
   status: "active" | "cancelled" | "expired";
   started_at: string | null;
   expires_at: string | null;
@@ -27,14 +27,13 @@ export interface CheckoutResponse {
   payment_url: string;
 }
 
-const PLAN_ORDER: Record<string, number> = { free: 0, jyotishi: 1, acharya: 2 };
+const PLAN_ORDER: Record<string, number> = { free: 0, standard: 1, premium: 2 };
 
 export function usePlans() {
   return useQuery<Plan[]>({
     queryKey: ["subscription", "plans"],
     queryFn: () => api.get<{ plans: Plan[] }>("/api/subscription/plans").then((r) => r.plans),
-    staleTime: 60 * 60 * 1000, // 1 hour
-    // Fallback data so UI works before backend is wired
+    staleTime: 60 * 60 * 1000,
     placeholderData: [
       {
         id: "free",
@@ -47,23 +46,24 @@ export function usePlans() {
           "Daily Horoscope",
           "Today's Panchang",
           "Festival Calendar",
-          "Eclipse Calendar",
+          "Palmistry AI Analysis",
           "Basic Kundali (view only)",
-          "5 AI Chat messages/day",
+          "5 AI Chat messages / day",
         ],
         limits: { ai_chat_daily: 5, kundali_saves: 1 },
       },
       {
-        id: "jyotishi",
-        name: "Jyotishi",
-        name_hi: "ज्योतिषी",
+        id: "standard",
+        name: "Standard",
+        name_hi: "मानक",
         price_monthly: 199,
-        price_yearly: 1499,
+        price_yearly: 1999,
         currency: "INR",
         features: [
-          "Everything in Free",
+          "Everything in Free, plus:",
           "Unlimited AI Chat",
-          "Full Kundali + Dasha Timeline",
+          "Full Kundali + All 7 Tabs",
+          "Gochar Transits",
           "Compatibility Analysis",
           "Muhurta Finder",
           "Save unlimited charts",
@@ -71,18 +71,21 @@ export function usePlans() {
         limits: { ai_chat_daily: -1, kundali_saves: -1 },
       },
       {
-        id: "acharya",
-        name: "Acharya",
-        name_hi: "आचार्य",
-        price_monthly: 499,
+        id: "premium",
+        name: "Premium",
+        name_hi: "प्रीमियम",
+        price_monthly: 399,
         price_yearly: 3999,
         currency: "INR",
         features: [
-          "Everything in Jyotishi",
+          "Everything in Standard, plus:",
+          "Gemstone Recommendations",
+          "Dosha + Sade Sati Reports",
+          "Varshphal Annual Chart",
+          "Prashna Kundali",
+          "KP System",
           "Vedic Scripture Library",
-          "Varshaphala — coming soon",
           "Priority GPU inference",
-          "PDF export — coming soon",
         ],
         limits: { ai_chat_daily: -1, kundali_saves: -1 },
       },
@@ -98,7 +101,6 @@ export function useSubscriptionStatus() {
     enabled: isLoggedIn,
     staleTime: 30 * 1000,
     retry: false,
-    // Fallback: derive from auth store plan
     placeholderData: { plan: "free", status: "active", started_at: null, expires_at: null, period: null },
   });
 }
@@ -111,7 +113,7 @@ export function useCheckout() {
 }
 
 /** Returns true if current plan meets the minimum required plan. */
-export function usePlanCheck(minPlan: "free" | "jyotishi" | "acharya") {
+export function usePlanCheck(minPlan: "free" | "standard" | "premium") {
   const plan = useAuthStore((s) => s.plan);
   return PLAN_ORDER[plan] >= PLAN_ORDER[minPlan];
 }

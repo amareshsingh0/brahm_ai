@@ -1,117 +1,286 @@
 package com.bimoraai.brahm.ui.profile
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.BrahmCard
+import com.bimoraai.brahm.ui.main.Route
 import com.bimoraai.brahm.core.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
     vm: ProfileViewModel = hiltViewModel(),
 ) {
     val user by vm.user.collectAsState()
+    val context = LocalContext.current
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BrahmBackground)
-            .padding(16.dp),
-    ) {
-        // Avatar + name
-        BrahmCard(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+    val plan = user?.plan ?: "free"
+    val isPaid    = plan != "free"
+    val planColor = if (isPaid) BrahmGold else BrahmMutedForeground
+    val planBg    = if (isPaid) BrahmGold.copy(alpha = 0.12f) else Color(0xFFE5E7EB)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Settings", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmCard),
+            )
+        },
+        containerColor = BrahmBackground,
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+        ) {
+
+            // ── User card (top, like Grok) ──────────────────────────────────────
+            Surface(color = BrahmCard) {
+                Row(
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(BrahmGold.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    Text(
-                        text = (user?.name?.firstOrNull() ?: "U").toString().uppercase(),
-                        style = MaterialTheme.typography.headlineSmall.copy(color = BrahmGold),
-                    )
-                }
-                Spacer(Modifier.width(16.dp))
-                Column {
-                    Text(user?.name ?: "User", style = MaterialTheme.typography.titleLarge)
-                    Text(user?.phone ?: user?.email ?: "—", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                    Spacer(Modifier.height(4.dp))
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (user?.plan == "premium") BrahmGold.copy(alpha = 0.15f) else BrahmMuted,
+                    // Avatar circle
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(BrahmGold),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = (user?.plan ?: "free").uppercase(),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium.copy(color = if (user?.plan == "premium") BrahmGold else BrahmMutedForeground),
+                            text = (user?.name?.firstOrNull() ?: "U").toString().uppercase(),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(user?.name ?: "User", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                        Text(user?.phone ?: user?.email ?: "—", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    }
+                    // Plan badge
+                    Surface(shape = RoundedCornerShape(20.dp), color = planBg) {
+                        Text(
+                            text = plan.replaceFirstChar { it.uppercase() },
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                            style = MaterialTheme.typography.labelMedium.copy(color = planColor, fontWeight = FontWeight.SemiBold),
                         )
                     }
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
+
+            // ── ACCOUNT section ────────────────────────────────────────────────
+            SettingsSectionLabel("Account")
+            SettingsGroup {
+                SettingsItem(
+                    icon = Icons.Default.Person,
+                    iconColor = Color(0xFF5C6BC0),
+                    label = "Profile",
+                    subtitle = "Name, birth details, gender",
+                    onClick = { navController.navigate(Route.PROFILE_EDIT) },
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
+                SettingsItem(
+                    icon = Icons.Default.CreditCard,
+                    iconColor = BrahmGold,
+                    label = "Billing",
+                    subtitle = if (isPaid) "${plan.replaceFirstChar { it.uppercase() }} plan active" else "Free plan · Upgrade available",
+                    onClick = { navController.navigate(Route.BILLING) },
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // ── PREFERENCES section ─────────────────────────────────────────────
+            SettingsSectionLabel("Preferences")
+            SettingsGroup {
+                SettingsItem(
+                    icon = Icons.Default.Notifications,
+                    iconColor = Color(0xFF43A047),
+                    label = "Notifications",
+                    subtitle = "Manage app notifications",
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                    },
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
+                SettingsItem(
+                    icon = Icons.Default.Share,
+                    iconColor = Color(0xFF00ACC1),
+                    label = "Share App",
+                    subtitle = "Invite friends to Brahm AI",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, "Try Brahm AI — Vedic Astrology App")
+                            putExtra(Intent.EXTRA_TEXT, "Check out Brahm AI — AI-powered Vedic astrology! 🌙✨\nhttps://brahmasmi.bimoraai.com")
+                        }
+                        context.startActivity(Intent.createChooser(intent, "Share Brahm AI"))
+                    },
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // ── LEGAL section ───────────────────────────────────────────────────
+            SettingsSectionLabel("Legal")
+            SettingsGroup {
+                SettingsItem(
+                    icon = Icons.Default.PrivacyTip,
+                    iconColor = Color(0xFF546E7A),
+                    label = "Privacy Policy",
+                    subtitle = "How we handle your data",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://brahmasmi.bimoraai.com/privacy"))
+                        context.startActivity(intent)
+                    },
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // ── Sign Out ────────────────────────────────────────────────────────
+            Surface(
+                onClick = { showLogoutDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFFFEBEE),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Icon(Icons.Default.Logout, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                    Text("Sign Out", style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Medium))
+                }
+            }
+
+            Spacer(Modifier.height(32.dp))
         }
+    }
 
-        Spacer(Modifier.height(16.dp))
+    // Logout confirmation dialog
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Sign Out") },
+            text = { Text("Are you sure you want to sign out?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        vm.logout { navController.navigate(Route.LOGIN) { popUpTo(0) } }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) { Text("Sign Out") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
+            },
+        )
+    }
+}
 
-        // Menu items
-        listOf(
-            Triple(Icons.Default.Person, "Edit Profile", {}),
-            Triple(Icons.Default.Star, "Upgrade to Premium", {}),
-            Triple(Icons.Default.Notifications, "Notifications", {}),
-            Triple(Icons.Default.Language, "Language", {}),
-            Triple(Icons.Default.Share, "Share App", {}),
-        ).forEach { (icon, label, action) ->
-            ProfileMenuItem(icon = icon, label = label, onClick = action)
-        }
+// ── Reusable composables ─────────────────────────────────────────────────────
 
-        Spacer(Modifier.weight(1f))
+@Composable
+private fun SettingsSectionLabel(label: String) {
+    Text(
+        text = label.uppercase(),
+        modifier = Modifier.padding(start = 20.dp, bottom = 6.dp),
+        style = MaterialTheme.typography.labelSmall.copy(
+            color = BrahmMutedForeground,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.sp,
+        ),
+    )
+}
 
-        // Logout
-        OutlinedButton(
-            onClick = { vm.logout { navController.navigate("login") { popUpTo(0) } } },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        ) {
-            Icon(Icons.Default.Logout, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Logout")
-        }
+@Composable
+private fun SettingsGroup(content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = BrahmCard,
+    ) {
+        Column(content = content)
     }
 }
 
 @Composable
-private fun ProfileMenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        shape = RoundedCornerShape(8.dp),
-        color = BrahmCard,
-    ) {
+private fun SettingsItem(
+    icon: ImageVector,
+    iconColor: Color,
+    label: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Surface(onClick = onClick, color = Color.Transparent) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Icon(icon, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(12.dp))
-            Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = BrahmMutedForeground, modifier = Modifier.size(20.dp))
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(iconColor.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(18.dp))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
+                Text(subtitle, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+            }
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = BrahmMutedForeground, modifier = Modifier.size(18.dp))
         }
     }
 }

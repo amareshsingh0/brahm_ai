@@ -50,9 +50,13 @@ def get_user(request: Request, session_id: str = Query(default="")):
         lon=row.get("birth_lon", 0.0),
         tz=row.get("birth_tz", 5.5),
         place=row.get("birth_place", ""),
+        gender=row.get("gender", ""),
         rashi=row.get("rashi", ""),
         nakshatra=row.get("nakshatra", ""),
         language=row.get("language", "english"),
+        plan=row.get("plan", "free"),
+        phone=row.get("phone"),
+        email=row.get("email"),
     )
 
 
@@ -71,6 +75,7 @@ def upsert_user(profile: UserProfile, request: Request, session_id: str = Query(
         "birth_lon":   profile.lon,
         "birth_tz":    profile.tz,
         "birth_place": profile.place,
+        "gender":      profile.gender,
         "rashi":       profile.rashi,
         "nakshatra":   profile.nakshatra,
         "language":    profile.language,

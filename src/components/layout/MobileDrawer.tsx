@@ -47,8 +47,8 @@ const exploreNavItems = [
 
 const PLAN_BADGE: Record<string, { label: string; cls: string }> = {
   free:     { label: "Free",     cls: "bg-muted/40 text-muted-foreground" },
-  jyotishi: { label: "Jyotishi", cls: "bg-amber-500/20 text-amber-400" },
-  acharya:  { label: "Acharya",  cls: "bg-purple-500/20 text-purple-400" },
+  standard: { label: "Standard", cls: "bg-blue-500/20 text-blue-400" },
+  premium:  { label: "Premium",  cls: "bg-amber-500/20 text-amber-400" },
 };
 
 export function MobileDrawer() {

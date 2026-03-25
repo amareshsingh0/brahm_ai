@@ -1,5 +1,6 @@
 package com.bimoraai.brahm.ui.auth
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,13 +11,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.components.BrahmButton
 import com.bimoraai.brahm.core.components.BrahmOutlinedButton
 import com.bimoraai.brahm.core.theme.*
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
+
+// Web OAuth client ID from Google Cloud Console (Firebase → Authentication → Google → Web client ID)
+// TODO: replace with your actual Web Client ID from Firebase Console
+private const val GOOGLE_WEB_CLIENT_ID = "121105525669-5km0oub8cmumovltdsi34279g8m0dv28.apps.googleusercontent.com"
 
 @Composable
 fun LoginScreen(
@@ -28,6 +40,8 @@ fun LoginScreen(
     var otp by remember { mutableStateOf("") }
     var showOtp by remember { mutableStateOf(false) }
     var storedPhone by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(state) {
         when (state) {
@@ -92,7 +106,7 @@ fun LoginScreen(
                 } else {
                     // OTP input
                     Text("Enter OTP", style = MaterialTheme.typography.titleMedium)
-                    Text("Sent to +91 $storedPhone", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    Text("Sent to $storedPhone", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(
                         value = otp,
@@ -110,7 +124,7 @@ fun LoginScreen(
                     Spacer(Modifier.height(16.dp))
                     BrahmButton(
                         text = "Verify OTP",
-                        onClick = { vm.verifyOtp("+91$storedPhone", otp) },
+                        onClick = { vm.verifyOtp(storedPhone, otp) },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = otp.length == 6,
                         loading = state is AuthState.Loading,
@@ -147,7 +161,31 @@ fun LoginScreen(
         // Google Sign-In
         BrahmOutlinedButton(
             text = "Continue with Google",
-            onClick = { /* handled via Credential Manager in Activity */ },
+            onClick = {
+                scope.launch {
+                    val credentialManager = CredentialManager.create(context)
+                    val googleIdOption = GetGoogleIdOption.Builder()
+                        .setFilterByAuthorizedAccounts(false)
+                        .setServerClientId(GOOGLE_WEB_CLIENT_ID)
+                        .build()
+                    val request = GetCredentialRequest.Builder()
+                        .addCredentialOption(googleIdOption)
+                        .build()
+                    try {
+                        val result = credentialManager.getCredential(
+                            request = request,
+                            context = context as Activity,
+                        )
+                        val idToken = GoogleIdTokenCredential
+                            .createFrom(result.credential.data)
+                            .idToken
+                        vm.googleLogin(idToken)
+                    } catch (e: GetCredentialException) {
+                        vm.resetState()
+                        // Error is shown via AuthState.Error if needed
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
         )
     }

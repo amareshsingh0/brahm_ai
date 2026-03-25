@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Light theme — Compose handles all styling, XML only needed for system chrome -->
-    <style name="Theme.BrahmAI" parent="Theme.Material3.Light.NoActionBar">
+    <!-- Light theme — Compose handles all UI, XML theme only sets system chrome (status bar, nav bar) -->
+    <style name="Theme.BrahmAI" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:statusBarColor">#F7F7F8</item>
         <item name="android:navigationBarColor">#FFFFFF</item>
         <item name="android:windowLightStatusBar">true</item>

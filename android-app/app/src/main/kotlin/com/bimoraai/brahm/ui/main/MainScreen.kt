@@ -1,94 +1,288 @@
 package com.bimoraai.brahm.ui.main
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.bimoraai.brahm.core.theme.BrahmBorder
-import com.bimoraai.brahm.core.theme.BrahmGold
-import com.bimoraai.brahm.core.theme.BrahmMutedForeground
+import com.bimoraai.brahm.core.datastore.TokenDataStore
+import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.chat.ChatScreen
 import com.bimoraai.brahm.ui.kundali.KundaliScreen
 import com.bimoraai.brahm.ui.more.MoreScreen
 import com.bimoraai.brahm.ui.profile.ProfileScreen
 import com.bimoraai.brahm.ui.today.TodayScreen
+import kotlinx.coroutines.launch
 
-// ─── Bottom nav tabs ──────────────────────────────────────────────────────────
-sealed class BottomTab(val route: String, val label: String, val icon: ImageVector) {
-    object Today   : BottomTab("tab_today",   "Today",   Icons.Default.WbSunny)
-    object Kundali : BottomTab("tab_kundali", "Kundali", Icons.Default.AutoAwesome)
-    object Chat    : BottomTab("tab_chat",    "Ask AI",  Icons.Default.AutoAwesomeMosaic)
-    object More    : BottomTab("tab_more",    "More",    Icons.Default.GridView)
-    object Profile : BottomTab("tab_profile", "Profile", Icons.Default.Person)
-}
+// ─── Drawer nav item ──────────────────────────────────────────────────────────
+data class DrawerItem(val route: String, val label: String, val icon: ImageVector)
 
-private val bottomTabs = listOf(
-    BottomTab.Today,
-    BottomTab.Kundali,
-    BottomTab.Chat,
-    BottomTab.More,
-    BottomTab.Profile,
+private val mainItems = listOf(
+    DrawerItem("tab_today",   "Dashboard",       Icons.Default.Dashboard),
+    DrawerItem("tab_chat",    "Brahm AI Chat",   Icons.AutoMirrored.Filled.Chat),
+    DrawerItem("tab_kundali", "My Kundli",       Icons.Default.Stars),
+    DrawerItem(Route.HOROSCOPE, "Daily Horoscope", Icons.Default.WbSunny),
 )
 
+private val exploreItems = listOf(
+    DrawerItem(Route.GOCHAR,         "Gochar (Transits)",  Icons.Default.Explore),
+    DrawerItem(Route.COMPATIBILITY,  "Compatibility",      Icons.Default.Favorite),
+    DrawerItem(Route.PALMISTRY,      "Palmistry",          Icons.Default.FrontHand),
+    DrawerItem(Route.SADE_SATI,      "Sade Sati",          Icons.Default.Timelapse),
+    DrawerItem(Route.DOSHA,          "Dosha Check",        Icons.Default.HealthAndSafety),
+    DrawerItem(Route.GEMSTONE,       "Gemstone Guide",     Icons.Default.Diamond),
+    DrawerItem(Route.MUHURTA,        "Muhurta",            Icons.Default.Schedule),
+    DrawerItem(Route.KP,             "KP System",          Icons.Default.Science),
+    DrawerItem(Route.PRASHNA,        "Prashna",            Icons.Default.LiveHelp),
+    DrawerItem(Route.VARSHPHAL,      "Varshphal",          Icons.Default.CalendarMonth),
+    DrawerItem(Route.RECTIFICATION,  "Rectification",      Icons.Default.Analytics),
+)
+
+// ─── Main Screen with Drawer nav ──────────────────────────────────────────────
 @Composable
-fun MainScreen(navController: NavController) {
+fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = null) {
     val tabNavController = rememberNavController()
     val currentEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                containerColor = androidx.compose.ui.graphics.Color.White,
-                tonalElevation = 0.dp,
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    fun openDrawer() { scope.launch { drawerState.open() } }
+    fun closeDrawer() { scope.launch { drawerState.close() } }
+
+    fun navigate(route: String) {
+        closeDrawer()
+        // Tab routes stay inside the inner NavHost
+        if (route.startsWith("tab_")) {
+            tabNavController.navigate(route) {
+                popUpTo("tab_today") { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        } else {
+            // Full-screen routes go to outer NavController
+            navController.navigate(route)
+        }
+    }
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                modifier = Modifier.width(300.dp),
+                drawerContainerColor = Color(0xFFF0F0F2),
+                drawerShape = RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp),
             ) {
-                bottomTabs.forEach { tab ->
-                    NavigationBarItem(
-                        selected = currentRoute == tab.route,
-                        onClick = {
-                            tabNavController.navigate(tab.route) {
-                                popUpTo(tabNavController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(tab.icon, contentDescription = tab.label)
-                        },
-                        label = { Text(tab.label) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = BrahmGold,
-                            selectedTextColor = BrahmGold,
-                            unselectedIconColor = BrahmMutedForeground,
-                            unselectedTextColor = BrahmMutedForeground,
-                            indicatorColor = androidx.compose.ui.graphics.Color(0xFFFFF8E7),
-                        ),
-                    )
-                }
+                DrawerContent(
+                    currentRoute = currentRoute,
+                    onNavigate = { navigate(it) },
+                    onClose = { closeDrawer() },
+                    onProfileClick = { navigate(Route.PROFILE) },
+                )
+            }
+        },
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(18.dp))
+                            Text(
+                                "Brahm AI",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    color = BrahmGold,
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { openDrawer() }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = BrahmForeground)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White,
+                        scrolledContainerColor = Color.White,
+                    ),
+                )
+            },
+        ) { innerPadding ->
+            NavHost(
+                navController = tabNavController,
+                startDestination = "tab_today",
+                modifier = Modifier.padding(innerPadding),
+            ) {
+                composable("tab_today")   { TodayScreen(navController) }
+                composable("tab_kundali") { KundaliScreen(navController) }
+                composable("tab_chat")    { ChatScreen() }
+                composable("tab_more")    { MoreScreen(navController) }
+                composable("tab_profile") { ProfileScreen(navController) }
             }
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = tabNavController,
-            startDestination = BottomTab.Today.route,
-            modifier = Modifier.padding(innerPadding),
+    }
+}
+
+// ─── Drawer Content ───────────────────────────────────────────────────────────
+@Composable
+private fun DrawerContent(
+    currentRoute: String?,
+    onNavigate: (String) -> Unit,
+    onClose: () -> Unit,
+    onProfileClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        // Header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            composable(BottomTab.Today.route)   { TodayScreen(navController) }
-            composable(BottomTab.Kundali.route) { KundaliScreen(navController) }
-            composable(BottomTab.Chat.route)    { ChatScreen() }
-            composable(BottomTab.More.route)    { MoreScreen(navController) }
-            composable(BottomTab.Profile.route) { ProfileScreen(navController) }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Default.Nightlight, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(22.dp))
+                Text(
+                    "BRAHM AI",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = BrahmGold,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp,
+                    ),
+                )
+            }
+            IconButton(onClick = onClose) {
+                Icon(Icons.Default.Menu, contentDescription = "Close", tint = BrahmMutedForeground)
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // MAIN section
+        DrawerSectionLabel("MAIN")
+        mainItems.forEach { item ->
+            DrawerNavItem(
+                item = item,
+                selected = currentRoute == item.route,
+                onClick = { onNavigate(item.route) },
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // EXPLORE section
+        DrawerSectionLabel("EXPLORE")
+        exploreItems.forEach { item ->
+            DrawerNavItem(
+                item = item,
+                selected = currentRoute == item.route,
+                onClick = { onNavigate(item.route) },
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        // User card at bottom
+        HorizontalDivider(color = BrahmBorder)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onProfileClick() }
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(BrahmGold),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("TU", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+                Column {
+                    Text("Test User", style = MaterialTheme.typography.titleSmall)
+                    Text("Free", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                }
+            }
+            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = BrahmMutedForeground)
+        }
+    }
+}
+
+@Composable
+private fun DrawerSectionLabel(label: String) {
+    Text(
+        text = label,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+        style = MaterialTheme.typography.labelSmall.copy(
+            color = BrahmMutedForeground,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.2.sp,
+        ),
+    )
+}
+
+@Composable
+private fun DrawerNavItem(item: DrawerItem, selected: Boolean, onClick: () -> Unit) {
+    val bgColor = if (selected) Color(0xFFE8DFC8) else Color.Transparent
+    val contentColor = if (selected) BrahmGold else BrahmForeground
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Gold selection indicator bar
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(36.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(if (selected) BrahmGold else Color.Transparent),
+        )
+        Spacer(Modifier.width(4.dp))
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(bgColor)
+                .clickable { onClick() }
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Icon(item.icon, contentDescription = item.label, tint = contentColor, modifier = Modifier.size(20.dp))
+            Text(item.label, style = MaterialTheme.typography.bodyMedium.copy(color = contentColor, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal))
         }
     }
 }

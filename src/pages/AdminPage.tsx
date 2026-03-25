@@ -24,10 +24,10 @@ interface Stats {
   kundalis_today: number;
   palm_today: number;
   active_subscriptions: {
-    jyotishi_monthly: number;
-    jyotishi_yearly: number;
-    acharya_monthly: number;
-    acharya_yearly: number;
+    standard_monthly: number;
+    standard_yearly: number;
+    premium_monthly: number;
+    premium_yearly: number;
   };
   top_endpoints: { endpoint: string; count: number }[];
 }
@@ -194,9 +194,9 @@ function preloadAll() {
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 
 const PLAN_CLS: Record<string, string> = {
-  free:      "bg-gray-100 text-gray-500",
-  jyotishi:  "bg-blue-50 text-blue-600",
-  acharya:   "bg-amber-50 text-amber-700",
+  free:     "bg-gray-100 text-gray-500",
+  standard: "bg-blue-50 text-blue-600",
+  premium:  "bg-amber-50 text-amber-700",
 };
 const STATUS_CLS: Record<string, string> = {
   active:    "bg-emerald-50 text-emerald-700",
@@ -300,10 +300,10 @@ function DashboardTab() {
       <div>
         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Active Subscriptions</p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Jyotishi Monthly" value={s.active_subscriptions?.jyotishi_monthly ?? 0} icon="🌙" />
-          <StatCard label="Jyotishi Yearly"  value={s.active_subscriptions?.jyotishi_yearly  ?? 0} icon="🌙" />
-          <StatCard label="Acharya Monthly"  value={s.active_subscriptions?.acharya_monthly  ?? 0} icon="⚡" />
-          <StatCard label="Acharya Yearly"   value={s.active_subscriptions?.acharya_yearly   ?? 0} icon="⚡" />
+          <StatCard label="Standard Monthly" value={s.active_subscriptions?.standard_monthly ?? 0} icon="⭐" />
+          <StatCard label="Standard Yearly"  value={s.active_subscriptions?.standard_yearly  ?? 0} icon="⭐" />
+          <StatCard label="Premium Monthly"  value={s.active_subscriptions?.premium_monthly  ?? 0} icon="👑" />
+          <StatCard label="Premium Yearly"   value={s.active_subscriptions?.premium_yearly   ?? 0} icon="👑" />
         </div>
       </div>
       {/* Top Endpoints */}
@@ -448,12 +448,12 @@ function UserDetailModal({ userId, onClose }: { userId: string; onClose: () => v
         {user && (
           <div className="px-5 py-2.5 border-b border-border flex flex-wrap gap-2 shrink-0 bg-muted/30">
             <ActionBtn label="Change Plan" color="blue" onClick={() => {
-              const plan = window.prompt("New plan (free/jyotishi/acharya):", user.plan);
+              const plan = window.prompt("New plan (free/standard/premium):", user.plan);
               if (plan) action(`/api/admin/users/${userId}`, "PATCH", { plan, note: "admin override" });
             }} />
             <ActionBtn label="Grant Free Days" color="green" onClick={() => {
               const days = window.prompt("Grant how many free days?");
-              if (days) action(`/api/admin/users/${userId}/grant-plan`, "POST", { plan: user.plan || "jyotishi", days: Number(days), reason: "admin grant" });
+              if (days) action(`/api/admin/users/${userId}/grant-plan`, "POST", { plan: user.plan || "standard", days: Number(days), reason: "admin grant" });
             }} />
             <ActionBtn label="Extend Sub" color="green" onClick={() => {
               const days = window.prompt("Extend by how many days?");
@@ -798,8 +798,8 @@ function UsersTab() {
           className="bg-white border border-border rounded-lg px-3 py-1.5 text-foreground text-sm focus:outline-none">
           <option value="">All Plans</option>
           <option value="free">Free</option>
-          <option value="jyotishi">Jyotishi</option>
-          <option value="acharya">Acharya</option>
+          <option value="standard">Standard</option>
+          <option value="premium">Premium</option>
         </select>
         <select value={statusFilter} onChange={(e) => { setSt(e.target.value); setPage(1); }}
           className="bg-white border border-border rounded-lg px-3 py-1.5 text-foreground text-sm focus:outline-none">

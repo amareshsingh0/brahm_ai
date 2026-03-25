@@ -14,9 +14,9 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguageStore, LANG_META } from "@/store/languageStore";
 
 const PLAN_STYLE: Record<string, { icon: React.ElementType; color: string; bg: string; border: string }> = {
-  free:     { icon: Shield,   color: "text-muted-foreground",  bg: "bg-muted/20",        border: "border-border/30" },
-  jyotishi: { icon: Sparkles, color: "text-amber-400",         bg: "bg-amber-500/10",    border: "border-amber-500/30" },
-  acharya:  { icon: Crown,    color: "text-purple-400",        bg: "bg-purple-500/10",   border: "border-purple-500/30" },
+  free:     { icon: Shield,   color: "text-muted-foreground", bg: "bg-muted/20",      border: "border-border/30" },
+  standard: { icon: Sparkles, color: "text-blue-400",         bg: "bg-blue-500/10",   border: "border-blue-500/30" },
+  premium:  { icon: Crown,    color: "text-amber-400",        bg: "bg-amber-500/10",  border: "border-amber-500/30" },
 };
 
 export default function ProfilePage() {

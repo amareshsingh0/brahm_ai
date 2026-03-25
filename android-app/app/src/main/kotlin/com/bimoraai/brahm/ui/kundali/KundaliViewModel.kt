@@ -8,6 +8,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,8 +43,10 @@ class KundaliViewModel @Inject constructor(
             _error.value = null
             try {
                 val res = api.generateKundali(KundaliRequest(name, dob, tob, pob, lat, lon, "Asia/Kolkata"))
-                if (res.isSuccessful) _kundali.value = res.body()
-                else _error.value = "Failed to generate Kundali"
+                if (res.isSuccessful) {
+                    @Suppress("UNCHECKED_CAST")
+                    _kundali.value = res.body()?.let { jsonObjectToMap(it) } as? Map<String, Any?>
+                } else _error.value = "Failed to generate Kundali"
             } catch (e: Exception) {
                 _error.value = e.message ?: "Network error"
             } finally {
@@ -48,3 +55,13 @@ class KundaliViewModel @Inject constructor(
         }
     }
 }
+
+private fun jsonElementToAny(element: JsonElement): Any? = when (element) {
+    is JsonPrimitive -> element.contentOrNull
+    is JsonArray -> element.map { jsonElementToAny(it) }
+    is JsonObject -> jsonObjectToMap(element)
+    else -> null
+}
+
+private fun jsonObjectToMap(obj: JsonObject): Map<String, Any?> =
+    obj.entries.associate { (k, v) -> k to jsonElementToAny(v) }

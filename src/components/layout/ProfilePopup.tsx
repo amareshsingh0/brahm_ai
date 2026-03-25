@@ -29,8 +29,8 @@ import { motion, AnimatePresence } from "framer-motion";
 // ── Plan badge ────────────────────────────────────────────────────────────────
 const PLAN_BADGE: Record<string, { label: string; cls: string }> = {
   free:     { label: "Free",     cls: "bg-muted/40 text-muted-foreground" },
-  jyotishi: { label: "Jyotishi", cls: "bg-amber-500/20 text-amber-400" },
-  acharya:  { label: "Acharya",  cls: "bg-purple-500/20 text-purple-400" },
+  standard: { label: "Standard", cls: "bg-blue-500/20 text-blue-400" },
+  premium:  { label: "Premium",  cls: "bg-amber-500/20 text-amber-400" },
 };
 
 function initials(name: string) {
@@ -54,9 +54,9 @@ export function Avatar({ name, size }: { name: string; size: number }) {
 
 // ── Plan style ────────────────────────────────────────────────────────────────
 const PLAN_STYLE: Record<string, { icon: React.ElementType; color: string; bg: string; border: string }> = {
-  free:     { icon: Shield,   color: "text-muted-foreground", bg: "bg-muted/20",     border: "border-border/30" },
-  jyotishi: { icon: Sparkles, color: "text-amber-400",        bg: "bg-amber-500/10", border: "border-amber-500/30" },
-  acharya:  { icon: Crown,    color: "text-purple-400",       bg: "bg-purple-500/10",border: "border-purple-500/30" },
+  free:     { icon: Shield,   color: "text-muted-foreground", bg: "bg-muted/20",      border: "border-border/30" },
+  standard: { icon: Sparkles, color: "text-blue-400",         bg: "bg-blue-500/10",   border: "border-blue-500/30" },
+  premium:  { icon: Crown,    color: "text-amber-400",        bg: "bg-amber-500/10",  border: "border-amber-500/30" },
 };
 
 // ── Reusable full modal wrapper ────────────────────────────────────────────────
@@ -194,8 +194,8 @@ function SubscriptionModal({ onClose }: { onClose: () => void }) {
 
   const PLANS = [
     { id: "free",     name: "Free",     price: "₹0",    period: "/forever",  features: ["5 AI queries/day", "Basic Kundli", "Panchang"] },
-    { id: "jyotishi", name: "Jyotishi", price: "₹299",  period: "/month",    features: ["Unlimited AI", "Full Kundli", "All features", "Gochar", "Prashna"] },
-    { id: "acharya",  name: "Acharya",  price: "₹2499", period: "/year",     features: ["Everything in Jyotishi", "Priority support", "Early access"] },
+    { id: "standard", name: "Standard", price: "₹199",  period: "/month",    features: ["Unlimited AI Chat", "Full Kundali + 7 Tabs", "Gochar Transits", "Compatibility", "Muhurta"] },
+    { id: "premium",  name: "Premium",  price: "₹399",  period: "/month",    features: ["Everything in Standard", "Gemstone Guide", "Dosha & Sade Sati", "Varshphal", "KP System", "Scripture Library"] },
   ];
 
   return (

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from '@/lib/storage';
 
-export type AuthPlan = 'free' | 'jyotishi' | 'acharya';
+export type AuthPlan = 'free' | 'standard' | 'premium';
 
 export interface AuthUser {
   id: string;
