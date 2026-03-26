@@ -1,9 +1,13 @@
 package com.bimoraai.brahm.ui.main
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.bimoraai.brahm.core.theme.BrahmBackground
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.ui.auth.LoginScreen
 import com.bimoraai.brahm.ui.auth.OnboardingScreen
@@ -57,7 +61,11 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
     }
     val startDestination = if (hasToken) Route.MAIN else Route.ONBOARDING
 
-    NavHost(navController = navController, startDestination = startDestination) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = Modifier.fillMaxSize().background(BrahmBackground),
+    ) {
         composable(Route.ONBOARDING) {
             OnboardingScreen(
                 onFinished = { navController.navigate(Route.LOGIN) {

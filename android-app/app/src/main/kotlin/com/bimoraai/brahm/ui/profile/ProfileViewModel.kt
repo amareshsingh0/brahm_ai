@@ -7,6 +7,7 @@ import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.network.UpdateProfileRequest
+import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -28,39 +29,20 @@ class ProfileViewModel @Inject constructor(
     val saveState = _saveState.asStateFlow()
 
     // ── City search ──────────────────────────────────────────────────────────
-    private var allCities: List<City> = emptyList()
 
     val cityQuery = MutableStateFlow("")
 
     val citySuggestions: StateFlow<List<City>> = cityQuery
-        .debounce(200)
+        .debounce(300)
         .map { q ->
             if (q.length < 2) return@map emptyList()
-            val lower = q.lowercase()
-            val local = allCities.filter { it.name.lowercase().startsWith(lower) }
-                .take(6)
-            if (local.size >= 2) return@map local
-            // fallback: geocode API for international cities
             try {
-                val res = api.geocode(q)
-                if (res.isSuccessful) res.body()?.let { listOf(it) } ?: local
-                else local
-            } catch (_: Exception) { local }
+                val res = api.searchCities(q)
+                if (res.isSuccessful) res.body()?.results?.take(6) ?: emptyList()
+                else emptyList()
+            } catch (_: Exception) { emptyList() }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    init {
-        loadCities()
-    }
-
-    private fun loadCities() {
-        viewModelScope.launch {
-            try {
-                val res = api.getCities()
-                if (res.isSuccessful) allCities = res.body()?.cities ?: emptyList()
-            } catch (_: Exception) {}
-        }
-    }
 
     fun saveProfile(
         name: String,

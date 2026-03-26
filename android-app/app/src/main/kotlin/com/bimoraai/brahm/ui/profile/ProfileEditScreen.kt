@@ -45,11 +45,11 @@ fun ProfileEditScreen(
     var birthPlace by remember(user) { mutableStateOf(user?.place ?: "") }
     var gender     by remember(user) { mutableStateOf(user?.gender ?: "") }
 
-    // Selected city coords (updated when user picks from autocomplete)
-    var selectedLat by remember { mutableStateOf(0.0) }
-    var selectedLon by remember { mutableStateOf(0.0) }
-    var selectedTz  by remember { mutableStateOf(5.5) }
-    var cityConfirmed by remember { mutableStateOf(user?.place?.isNotEmpty() == true) }
+    // Selected city coords — pre-load from saved profile, updated when user picks from autocomplete
+    var selectedLat by remember(user) { mutableStateOf(user?.lat ?: 0.0) }
+    var selectedLon by remember(user) { mutableStateOf(user?.lon ?: 0.0) }
+    var selectedTz  by remember(user) { mutableStateOf(user?.tz ?: 5.5) }
+    var cityConfirmed by remember(user) { mutableStateOf(user?.place?.isNotEmpty() == true) }
 
     // ── Dialog visibility ────────────────────────────────────────────────────
     var showDatePicker   by remember { mutableStateOf(false) }
@@ -417,9 +417,14 @@ private fun CityRow(city: City, onClick: () -> Unit) {
     ) {
         Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(18.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(city.name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                "%.4f°N  %.4f°E".format(city.lat, city.lon),
+                if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
                 style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
             )
         }

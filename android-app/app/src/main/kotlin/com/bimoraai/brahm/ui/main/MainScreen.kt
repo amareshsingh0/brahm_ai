@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.layout.fillMaxSize
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.chat.ChatScreen
@@ -153,7 +154,10 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
             NavHost(
                 navController = tabNavController,
                 startDestination = "tab_today",
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BrahmBackground)
+                    .padding(innerPadding),
             ) {
                 composable("tab_today")   { TodayScreen(navController, tabNavController) }
                 composable("tab_kundali") { KundaliScreen(navController) }

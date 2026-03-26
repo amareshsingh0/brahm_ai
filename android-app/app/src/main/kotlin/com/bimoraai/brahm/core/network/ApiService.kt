@@ -38,6 +38,9 @@ import retrofit2.http.*
     val time: String = "",        // birth_time HH:MM
     val place: String = "",       // birth_place
     val gender: String = "",      // Male | Female | Other | Prefer not to say
+    val lat: Double = 0.0,
+    val lon: Double = 0.0,
+    val tz: Double = 5.5,
     val rashi: String = "",
     val nakshatra: String = "",
 )
@@ -83,11 +86,14 @@ import retrofit2.http.*
 // City search
 @Serializable data class City(
     val name: String,
+    val label: String = "",
+    val country: String = "",
     val lat: Double,
     val lon: Double,
     val tz: Double = 5.5,
 )
 @Serializable data class CitiesResponse(val cities: List<City>)
+@Serializable data class CitySearchResponse(val results: List<City>)
 
 // ─── API endpoints ────────────────────────────────────────────────────────────
 
@@ -109,9 +115,9 @@ interface ApiService {
     @POST("auth/logout")
     suspend fun logout(): Response<Unit>
 
-    // Cities
-    @GET("cities")
-    suspend fun getCities(): Response<CitiesResponse>
+    // Cities — use search endpoint (GeoNames 200K+ DB) instead of legacy 730-city JSON
+    @GET("cities/search")
+    suspend fun searchCities(@Query("q") query: String, @Query("limit") limit: Int = 8): Response<CitySearchResponse>
 
     @GET("geocode")
     suspend fun geocode(@Query("q") query: String): Response<City>
