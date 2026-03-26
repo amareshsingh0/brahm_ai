@@ -7,7 +7,6 @@ import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.network.UpdateProfileRequest
-import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -76,7 +75,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _saveState.value = SaveState.Loading
             try {
-                val current = _user.value
+                val current = userRepository.user.value
                 val req = UpdateProfileRequest(
                     session_id = current?.session_id ?: "",
                     name       = name,
