@@ -419,6 +419,7 @@ export interface HoroscopeResponse {
   prediction: string;
   lucky_number: number;
   lucky_color: string;
+  sign_ruler?: string;
 }
 
 // ── Muhurta ───────────────────────────────────────────────────

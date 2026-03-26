@@ -40,6 +40,7 @@ const DoshaPage    = lazy(() => import("./pages/DoshaPage"));
 const SadeSatiPage = lazy(() => import("./pages/SadeSatiPage"));
 const GemstoneRecommendationsPage = lazy(() => import("./pages/GemstoneRecommendationsPage"));
 const StoriesPage  = lazy(() => import("./pages/StoriesPage"));
+const ChatHistoryPage = lazy(() => import("./pages/ChatHistoryPage"));
 const AdminPage    = lazy(() => import("./pages/AdminPage"));
 const NotFound     = lazy(() => import("./pages/NotFound"));
 
@@ -134,6 +135,7 @@ function TransitionRoutes() {
           <Route path="/dosha"        element={<AppLayout><DoshaPage /></AppLayout>} />
           <Route path="/sade-sati"    element={<AppLayout><SadeSatiPage /></AppLayout>} />
           <Route path="/gemstones"    element={<AppLayout><GemstoneRecommendationsPage /></AppLayout>} />
+          <Route path="/chat-history" element={<AppLayout><ChatHistoryPage /></AppLayout>} />
         </Route>
 
         <Route path="/admin" element={<AdminPage />} />

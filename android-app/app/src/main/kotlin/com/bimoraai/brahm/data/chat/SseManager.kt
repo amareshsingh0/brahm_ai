@@ -11,6 +11,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,17 +20,18 @@ class SseManager @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val tokenDataStore: TokenDataStore,
 ) {
-    fun streamChat(message: String, conversationId: String?): Flow<String> = callbackFlow {
+    fun streamChat(message: String, history: List<Pair<String, String>>): Flow<String> = callbackFlow {
         val token = tokenDataStore.accessToken.firstOrNull()
-        val body = buildString {
-            append("{\"message\":\"${message.replace("\"", "\\\"")}\",")
-            append("\"stream\":true")
-            if (conversationId != null) append(",\"conversation_id\":\"$conversationId\"")
-            append("}")
+
+        // Build history JSON array
+        val historyJson = history.joinToString(",", "[", "]") { (role, content) ->
+            "{\"role\":\"${role}\",\"content\":\"${content.replace("\\", "\\\\").replace("\"", "\\\"")}\"}"
         }
+        val escapedMsg = message.replace("\\", "\\\\").replace("\"", "\\\"")
+        val body = "{\"message\":\"$escapedMsg\",\"history\":$historyJson,\"language\":\"hi\",\"page_context\":\"general\",\"page_data\":{}}"
 
         val request = Request.Builder()
-            .url("${BuildConfig.BASE_URL}chat/stream")
+            .url("${BuildConfig.BASE_URL}chat")
             .post(RequestBody.create("application/json".toMediaTypeOrNull(), body))
             .apply { if (token != null) header("Authorization", "Bearer $token") }
             .build()
@@ -38,8 +40,17 @@ class SseManager @Inject constructor(
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
                 if (data == "[DONE]") {
                     close()
-                } else {
-                    trySend(data)
+                    return
+                }
+                try {
+                    val json = JSONObject(data)
+                    if (json.optString("type") == "token") {
+                        val content = json.optString("content", "")
+                        if (content.isNotEmpty()) trySend(content)
+                    }
+                    // Ignore other event types (birth_form, save_kundali_prompt, etc.)
+                } catch (_: Exception) {
+                    // Not JSON — skip
                 }
             }
 

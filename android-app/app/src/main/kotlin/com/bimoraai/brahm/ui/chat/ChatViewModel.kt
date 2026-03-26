@@ -22,22 +22,21 @@ class ChatViewModel @Inject constructor(
     val messages = _messages.asStateFlow()
     val isStreaming = _isStreaming.asStateFlow()
 
-    private var conversationId: String? = null
-
     fun sendMessage(text: String) {
+        // Snapshot history before adding new user message
+        val historySnapshot = _messages.value.map { Pair(it.role, it.content) }
+
         // Add user message immediately
         _messages.value = _messages.value + ChatMessage("user", text)
         _isStreaming.value = true
 
-        // Start streaming assistant response
-        val assistantIndex = _messages.value.size
+        // Add empty assistant bubble
         _messages.value = _messages.value + ChatMessage("assistant", "")
 
         viewModelScope.launch {
             var buffer = ""
-            sseManager.streamChat(text, conversationId)
+            sseManager.streamChat(text, historySnapshot)
                 .catch { e ->
-                    // Replace last message with error
                     updateLast("Error: ${e.message ?: "Network error"}")
                     _isStreaming.value = false
                 }

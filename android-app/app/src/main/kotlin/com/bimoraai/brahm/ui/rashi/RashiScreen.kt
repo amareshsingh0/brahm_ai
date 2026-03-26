@@ -1,0 +1,164 @@
+package com.bimoraai.brahm.ui.rashi
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.bimoraai.brahm.core.theme.*
+
+data class RashiInfo(
+    val number: Int,
+    val name: String,
+    val sanskrit: String,
+    val symbol: String,
+    val lord: String,
+    val element: String,
+    val quality: String,       // Movable / Fixed / Dual
+    val nature: String,        // Male / Female
+    val bodyPart: String,
+    val luckyColor: String,
+    val traits: List<String>,
+    val gradStart: Color,
+    val gradEnd: Color,
+)
+
+private val rashiList = listOf(
+    RashiInfo(1,  "Aries",       "Mesha",     "♈", "Mars",    "Fire",  "Movable", "Male",   "Head & Face",       "Red",         listOf("Courageous", "Dynamic", "Impulsive", "Leadership", "Energetic"), Color(0xFFE53935), Color(0xFF8B0000)),
+    RashiInfo(2,  "Taurus",      "Vrishabha", "♉", "Venus",   "Earth", "Fixed",   "Female", "Neck & Throat",     "Green",       listOf("Patient", "Reliable", "Stubborn", "Practical", "Sensual"),     Color(0xFF43A047), Color(0xFF1B5E20)),
+    RashiInfo(3,  "Gemini",      "Mithuna",   "♊", "Mercury", "Air",   "Dual",    "Male",   "Arms & Shoulders",  "Yellow",      listOf("Curious", "Adaptable", "Witty", "Restless", "Communicative"), Color(0xFFFFB300), Color(0xFFE65100)),
+    RashiInfo(4,  "Cancer",      "Karka",     "♋", "Moon",    "Water", "Movable", "Female", "Chest & Stomach",   "White",       listOf("Intuitive", "Nurturing", "Moody", "Protective", "Empathetic"),  Color(0xFF1E88E5), Color(0xFF0D47A1)),
+    RashiInfo(5,  "Leo",         "Simha",     "♌", "Sun",     "Fire",  "Fixed",   "Male",   "Heart & Back",      "Gold",        listOf("Proud", "Generous", "Dramatic", "Creative", "Loyal"),           Color(0xFFFF8F00), Color(0xFFBF360C)),
+    RashiInfo(6,  "Virgo",       "Kanya",     "♍", "Mercury", "Earth", "Dual",    "Female", "Intestines & Waist","Navy Blue",   listOf("Analytical", "Precise", "Helpful", "Modest", "Perfectionist"),  Color(0xFF6D4C41), Color(0xFF3E2723)),
+    RashiInfo(7,  "Libra",       "Tula",      "♎", "Venus",   "Air",   "Movable", "Male",   "Kidneys & Lower Back","Pink",      listOf("Diplomatic", "Fair", "Indecisive", "Social", "Idealistic"),     Color(0xFFE91E63), Color(0xFF880E4F)),
+    RashiInfo(8,  "Scorpio",     "Vrishchika","♏", "Mars",    "Water", "Fixed",   "Female", "Genitals",          "Dark Red",    listOf("Intense", "Secretive", "Passionate", "Determined", "Magnetic"),  Color(0xFF6A1B9A), Color(0xFF4A148C)),
+    RashiInfo(9,  "Sagittarius", "Dhanu",     "♐", "Jupiter", "Fire",  "Dual",    "Male",   "Hips & Thighs",     "Purple",      listOf("Optimistic", "Freedom-loving", "Philosophical", "Blunt", "Adventurous"), Color(0xFF8E24AA), Color(0xFF4A148C)),
+    RashiInfo(10, "Capricorn",   "Makara",    "♑", "Saturn",  "Earth", "Movable", "Female", "Knees & Bones",     "Dark Brown",  listOf("Disciplined", "Ambitious", "Cautious", "Patient", "Responsible"),Color(0xFF546E7A), Color(0xFF263238)),
+    RashiInfo(11, "Aquarius",    "Kumbha",    "♒", "Saturn",  "Air",   "Fixed",   "Male",   "Ankles & Calves",   "Blue",        listOf("Independent", "Humanitarian", "Eccentric", "Intellectual", "Innovative"), Color(0xFF1565C0), Color(0xFF0D47A1)),
+    RashiInfo(12, "Pisces",      "Meena",     "♓", "Jupiter", "Water", "Dual",    "Female", "Feet",              "Sea Green",   listOf("Compassionate", "Dreamy", "Intuitive", "Artistic", "Escapist"),   Color(0xFF00897B), Color(0xFF004D40)),
+)
+
+@Composable
+fun RashiScreen(navController: NavController) {
+    var selectedRashi by remember { mutableStateOf<RashiInfo?>(null) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Rashi Explorer", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
+            )
+        },
+    ) { padding ->
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize().background(BrahmBackground).padding(padding),
+            contentPadding = PaddingValues(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            items(rashiList) { rashi ->
+                RashiCard(
+                    rashi = rashi,
+                    expanded = selectedRashi?.number == rashi.number,
+                    onClick = { selectedRashi = if (selectedRashi?.number == rashi.number) null else rashi },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RashiCard(rashi: RashiInfo, expanded: Boolean, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = BrahmCard),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (expanded) 4.dp else 1.dp),
+        border = if (expanded) androidx.compose.foundation.BorderStroke(1.5.dp, rashi.gradStart) else null,
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp))
+                        .background(Brush.linearGradient(listOf(rashi.gradStart, rashi.gradEnd))),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(rashi.symbol, fontSize = 22.sp)
+                }
+                Column {
+                    Text(rashi.name, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(rashi.sanskrit, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                InfoChip(rashi.element, rashi.gradStart)
+                InfoChip(rashi.quality, Color(0xFF6B7280))
+            }
+            Text(
+                "Lord: ${rashi.lord}",
+                style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
+            )
+            AnimatedVisibility(visible = expanded) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    HorizontalDivider(color = BrahmBorder)
+                    DetailRow("Body Part", rashi.bodyPart)
+                    DetailRow("Nature", "${rashi.nature} · ${rashi.quality}")
+                    DetailRow("Lucky Color", rashi.luckyColor)
+                    Text(
+                        "Traits",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontWeight = FontWeight.SemiBold),
+                    )
+                    TraitsList(rashi.traits, rashi.gradStart)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoChip(text: String, color: Color) {
+    Box(
+        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(color.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 3.dp),
+    ) {
+        Text(text, style = MaterialTheme.typography.labelSmall.copy(color = color, fontWeight = FontWeight.Medium))
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+        Text(value, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium))
+    }
+}
+
+@Composable
+private fun TraitsList(traits: List<String>, color: Color) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+        traits.take(3).forEach { trait ->
+            InfoChip(trait, color)
+        }
+    }
+}

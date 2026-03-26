@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 
 
@@ -15,6 +15,8 @@ class ChatRequest(BaseModel):
                                       # "sky" | "horoscope" | "palmistry" | "general"
     page_data: Dict[str, Any] = {}    # current page's rendered data
     include_user_chart: bool = False  # load user's kundali from DB
+    user_id: Optional[str] = None    # logged-in user ID for chat persistence
+    session_id: Optional[str] = None # conversation session UUID (groups messages)
 
 
 class Source(BaseModel):

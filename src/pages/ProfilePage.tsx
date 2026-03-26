@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import {
   User, Calendar, Clock, MapPin, Edit2,
   LogOut, CreditCard, ChevronRight, Crown, Shield, Sparkles, Phone, Globe,
+  MessageSquare, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -166,14 +167,38 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
-      {/* ─── Logout ─── */}
+      {/* ─── Account Actions ─── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors py-2"
-        >
-          <LogOut className="h-4 w-4" /> Logout
-        </button>
+        <div className="space-y-2">
+          <Link to="/chat-history" className="flex items-center justify-between w-full bg-muted/20 hover:bg-muted/40 rounded-lg px-4 py-3 transition-colors">
+            <div className="flex items-center gap-2 text-sm text-foreground">
+              <MessageSquare className="h-4 w-4 text-primary" />
+              Chat History
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors py-2 w-full"
+          >
+            <LogOut className="h-4 w-4" /> Logout
+          </button>
+          <button
+            onClick={() => {
+              if (confirm('Aapka account permanently delete ho jayega. Kya aap sure hain?\n\n30 din ke review ke baad data purge ho jayega.')) {
+                import('@/lib/api').then(({ api }) => {
+                  api.delete('/api/user/account').then(() => {
+                    logout();
+                    navigate('/');
+                  }).catch(() => alert('Account delete nahi hua. Please baad mein try karein.'));
+                });
+              }
+            }}
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors py-1 w-full"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Delete Account
+          </button>
+        </div>
       </motion.div>
     </div>
   );

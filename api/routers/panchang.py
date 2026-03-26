@@ -9,8 +9,8 @@ router = APIRouter()
 @router.get("/panchang", response_model=PanchangResponse)
 def panchang(
     date: str = Query(default=None, description="YYYY-MM-DD, defaults to today"),
-    lat: float = Query(default=28.6139),
-    lon: float = Query(default=77.209),
+    lat: float = Query(default=23.1765),   # Ujjain — traditional Vedic meridian
+    lon: float = Query(default=75.7885),
     tz: float = Query(default=5.5),
 ):
     if date is None:

@@ -108,6 +108,9 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = BrahmGold,
                         unfocusedBorderColor = BrahmBorder,
+                        focusedTextColor = BrahmForeground,
+                        unfocusedTextColor = BrahmForeground,
+                        cursorColor = BrahmGold,
                     ),
                 )
                 Spacer(Modifier.width(8.dp))

@@ -133,18 +133,18 @@ export const samplePlanets: PlanetData[] = [
 ];
 
 export const rashiData = [
-  { name: "Aries", symbol: "♈︎", element: "Fire", ruler: "Mars", traits: "Bold, Ambitious, Energetic", sanskritName: "Mesha" },
-  { name: "Taurus", symbol: "♉︎", element: "Earth", ruler: "Venus", traits: "Reliable, Patient, Devoted", sanskritName: "Vrishabha" },
-  { name: "Gemini", symbol: "♊︎", element: "Air", ruler: "Mercury", traits: "Curious, Adaptable, Communicative", sanskritName: "Mithuna" },
-  { name: "Cancer", symbol: "♋︎", element: "Water", ruler: "Moon", traits: "Intuitive, Emotional, Protective", sanskritName: "Karka" },
-  { name: "Leo", symbol: "♌︎", element: "Fire", ruler: "Sun", traits: "Creative, Passionate, Generous", sanskritName: "Simha" },
-  { name: "Virgo", symbol: "♍︎", element: "Earth", ruler: "Mercury", traits: "Analytical, Practical, Kind", sanskritName: "Kanya" },
-  { name: "Libra", symbol: "♎︎", element: "Air", ruler: "Venus", traits: "Diplomatic, Gracious, Fair", sanskritName: "Tula" },
-  { name: "Scorpio", symbol: "♏︎", element: "Water", ruler: "Mars", traits: "Resourceful, Powerful, Brave", sanskritName: "Vrishchika" },
-  { name: "Sagittarius", symbol: "♐︎", element: "Fire", ruler: "Jupiter", traits: "Optimistic, Adventurous, Free", sanskritName: "Dhanu" },
-  { name: "Capricorn", symbol: "♑︎", element: "Earth", ruler: "Saturn", traits: "Disciplined, Responsible, Patient", sanskritName: "Makara" },
-  { name: "Aquarius", symbol: "♒︎", element: "Air", ruler: "Saturn", traits: "Progressive, Original, Humanitarian", sanskritName: "Kumbha" },
-  { name: "Pisces", symbol: "♓︎", element: "Water", ruler: "Jupiter", traits: "Compassionate, Artistic, Wise", sanskritName: "Meena" },
+  { name: "Aries",       symbol: "♈︎", element: "Fire",  ruler: "Mars",    traits: "Bold, Ambitious, Energetic",          sanskritName: "Mesha",     quality: "Movable", nature: "Male",   bodyPart: "Head & Face",         luckyColor: "Red" },
+  { name: "Taurus",      symbol: "♉︎", element: "Earth", ruler: "Venus",   traits: "Reliable, Patient, Devoted",          sanskritName: "Vrishabha", quality: "Fixed",   nature: "Female", bodyPart: "Neck & Throat",       luckyColor: "White" },
+  { name: "Gemini",      symbol: "♊︎", element: "Air",   ruler: "Mercury", traits: "Curious, Adaptable, Communicative",   sanskritName: "Mithuna",   quality: "Dual",    nature: "Male",   bodyPart: "Arms & Shoulders",    luckyColor: "Green" },
+  { name: "Cancer",      symbol: "♋︎", element: "Water", ruler: "Moon",    traits: "Intuitive, Emotional, Protective",    sanskritName: "Karka",     quality: "Movable", nature: "Female", bodyPart: "Chest & Lungs",       luckyColor: "Silver" },
+  { name: "Leo",         symbol: "♌︎", element: "Fire",  ruler: "Sun",     traits: "Creative, Passionate, Generous",      sanskritName: "Simha",     quality: "Fixed",   nature: "Male",   bodyPart: "Heart & Spine",       luckyColor: "Gold" },
+  { name: "Virgo",       symbol: "♍︎", element: "Earth", ruler: "Mercury", traits: "Analytical, Practical, Kind",         sanskritName: "Kanya",     quality: "Dual",    nature: "Female", bodyPart: "Stomach & Intestines", luckyColor: "Green" },
+  { name: "Libra",       symbol: "♎︎", element: "Air",   ruler: "Venus",   traits: "Diplomatic, Gracious, Fair",          sanskritName: "Tula",      quality: "Movable", nature: "Male",   bodyPart: "Kidneys & Lower Back", luckyColor: "Pink" },
+  { name: "Scorpio",     symbol: "♏︎", element: "Water", ruler: "Mars",    traits: "Resourceful, Powerful, Brave",        sanskritName: "Vrishchika",quality: "Fixed",   nature: "Female", bodyPart: "Reproductive System", luckyColor: "Red" },
+  { name: "Sagittarius", symbol: "♐︎", element: "Fire",  ruler: "Jupiter", traits: "Optimistic, Adventurous, Free",       sanskritName: "Dhanu",     quality: "Dual",    nature: "Male",   bodyPart: "Thighs & Hips",       luckyColor: "Yellow" },
+  { name: "Capricorn",   symbol: "♑︎", element: "Earth", ruler: "Saturn",  traits: "Disciplined, Responsible, Patient",   sanskritName: "Makara",    quality: "Movable", nature: "Female", bodyPart: "Knees & Joints",      luckyColor: "Black" },
+  { name: "Aquarius",    symbol: "♒︎", element: "Air",   ruler: "Saturn",  traits: "Progressive, Original, Humanitarian", sanskritName: "Kumbha",    quality: "Fixed",   nature: "Male",   bodyPart: "Ankles & Calves",     luckyColor: "Blue" },
+  { name: "Pisces",      symbol: "♓︎", element: "Water", ruler: "Jupiter", traits: "Compassionate, Artistic, Wise",       sanskritName: "Meena",     quality: "Dual",    nature: "Female", bodyPart: "Feet & Lymphatics",   luckyColor: "Purple" },
 ];
 
 export const dashaData = [

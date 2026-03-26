@@ -1,17 +1,17 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, MessageSquare,
-  ClipboardList, ChevronLeft, ChevronRight,
+  ClipboardList, UserX, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard",    Icon: LayoutDashboard },
-  { to: "/users",     label: "Users",        Icon: Users           },
-  { to: "/payments",  label: "Payments",     Icon: CreditCard      },
-  { to: "/chats",     label: "Chat Monitor", Icon: MessageSquare   },
-  { to: "/logs",      label: "Admin Log",    Icon: ClipboardList   },
-  // ── Add new nav items here as features grow ──
+  { to: "/dashboard",        label: "Dashboard",         Icon: LayoutDashboard },
+  { to: "/users",            label: "Users",             Icon: Users           },
+  { to: "/payments",         label: "Payments",          Icon: CreditCard      },
+  { to: "/chats",            label: "Chat Monitor",      Icon: MessageSquare   },
+  { to: "/logs",             label: "Admin Log",         Icon: ClipboardList   },
+  { to: "/deleted-accounts", label: "Deleted Accounts",  Icon: UserX           },
 ];
 
 interface SidebarProps {

@@ -47,6 +47,10 @@ export const api = {
     });
   },
 
+  delete<T>(path: string): Promise<T> {
+    return request<T>(path, { method: 'DELETE' });
+  },
+
   /**
    * SSE streaming for /api/chat.
    * Calls onToken for each token, onSources when sources arrive, onDone at end.
@@ -58,11 +62,15 @@ export const api = {
       language?: string;
       page_context?: string;
       page_data?: Record<string, unknown>;
+      user_id?: string;
+      session_id?: string;
     },
     callbacks: {
       onToken: (token: string) => void;
       onSources: (sources: { book: string; source: string; language: string }[]) => void;
       onDone: () => void;
+      onBirthForm?: () => void;
+      onSaveKundaliPrompt?: (data: Record<string, unknown>) => void;
       onError?: (err: Error) => void;
     },
     signal?: AbortSignal
@@ -91,9 +99,11 @@ export const api = {
             if (!json) continue;
             try {
               const msg = JSON.parse(json);
-              if (msg.type === 'token')   callbacks.onToken(msg.content);
-              if (msg.type === 'sources') callbacks.onSources(msg.sources);
-              if (msg.type === 'done')    callbacks.onDone();
+              if (msg.type === 'token')               callbacks.onToken(msg.content);
+              if (msg.type === 'sources')             callbacks.onSources(msg.sources);
+              if (msg.type === 'done')                callbacks.onDone();
+              if (msg.type === 'birth_form')          callbacks.onBirthForm?.();
+              if (msg.type === 'save_kundali_prompt') callbacks.onSaveKundaliPrompt?.(msg.birth_data);
             } catch { /* skip malformed */ }
           }
         }

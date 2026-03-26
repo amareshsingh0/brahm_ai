@@ -26,7 +26,17 @@ fun KundaliScreen(
     val kundali by vm.kundali.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
     val error by vm.error.collectAsState()
+    val savedProfile by vm.savedProfile.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+
+    // Auto-generate kundali from saved profile on first open
+    LaunchedEffect(savedProfile) {
+        val u = savedProfile
+        if (kundali == null && !isLoading && u != null && u.date.isNotBlank() && u.place.isNotBlank()) {
+            vm.setInputs(u.name, u.date, u.time, u.place, 0.0, 0.0)
+            vm.generate()
+        }
+    }
 
     Column(
         modifier = Modifier

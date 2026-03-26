@@ -1109,7 +1109,8 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Parshuram",  "month": "Vaishakha",
      "significance": "Vaishakha Shukla Tritiya. Birthday of Lord Parshuram (6th Vishnu avatar). Coincides with Akshaya Tritiya — same self-illumined (Swayamsiddha) tithi. Parshuram is the only immortal (Chiranjeevi) Vishnu avatar. Observed with Parshuram Puja and fast.",
      "fast_note": "Fast until Parshuram Puja. Offer tulsi, curd, honey. Parshuram Stotram recitation.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 3, "approx_month": 4, "approx_day": 20}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 3, "approx_month": 4, "approx_day": 20,
+              "no_vridhi_shift": True, "date_from_start": True}},
 
     {"name": "Buddha Purnima",      "hindi": "बुद्ध पूर्णिमा",       "icon": "🪷",
      "deity": "Lord Buddha",    "month": "Vaishakha",
@@ -1139,7 +1140,7 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Lord Shani",      "month": "Jyeshtha",
      "significance": "Jyeshtha Amavasya. Birthday of Lord Shani (Saturn). Shani Puja with sesame oil, black sesame, blue/black flowers. Shani Stotra and Chalisa recitation. Visiting Shani Shingnapur and Shani temples. Also observed as Vat Savitri in Maharashtra and Gujarat.",
      "fast_note": "Vrat: Offer sesame oil, black sesame, blue cloth to Shani. Visit Shani temple. Shani Stotram, Chalisa, and Navagrah Puja. Donate black items to Brahmins.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 6, "approx_day": 15, "date_from_sunrise": True, "no_skip_adhika": True, "no_month_correction": True}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 15, "approx_month": 5, "approx_day": 26, "date_from_sunrise": True, "no_skip_adhika": True, "no_month_correction": True}},
 
     {"name": "Rath Yatra",           "hindi": "रथ यात्रा",               "icon": "🎡",
      "deity": "Lord Jagannath",  "month": "Ashadha",
@@ -1191,7 +1192,8 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Parvati / Shiva",  "month": "Shravana",
      "significance": "Bhadrapada Krishna Tritiya. Kajari Teej — harvest festival with Kajari folk songs about monsoon. Neem tree worshipped. Celebrated in Varanasi, Mirzapur, Madhya Pradesh, and Bihar. Women sing Kajari songs through the night.",
      "fast_note": "Vrat: Women fast and worship Neem tree for husband's long life. Kajari folk songs through the night. Break fast after Moon sighting.",
-     "rule": {"type": "tithi", "paksha": "K", "num": 3, "approx_month": 8, "approx_day": 14}},
+     "rule": {"type": "tithi", "paksha": "K", "num": 3, "approx_month": 8, "approx_day": 14,
+              "date_from_sunrise": True}},
 
     {"name": "Ganesh Chaturthi",    "hindi": "गणेश चतुर्थी",         "icon": "🐘",
      "deity": "Lord Ganesha",   "month": "Bhadrapada",
@@ -1429,19 +1431,19 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Saptami. First major day of Durga Puja (Bengal's greatest festival, also celebrated in Odisha, Assam, Jharkhand). Nabapatrika (9 plants representing 9 forms of Durga) installed and worshipped. Grand pandals (temporary temples) across Bengal light up. Goddess Durga idol (clay, 10-hands, with Lakshmi-Saraswati-Kartik-Ganesha) unveiled. Dhak drums fill the air.",
      "fast_note": "Partial fast on Saptami morning until Nabapatrika puja. Wear new clothes. Visit pandals. Dhuno daan (myrrh/incense offering). Anjali (flower offering) in morning at pandals. Prasad: khichdi, labra (mixed vegetables), payesh.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 10, "approx_day": 2, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 10, "approx_day": 17, "date_from_sunrise": True}},
 
     {"name": "Durga Puja (Ashtami)",     "hindi": "दुर्गा पूजा — अष्टमी",      "icon": "⚔️",
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Ashtami. Peak day of Durga Puja. Sandhi Puja at the junction of Ashtami-Navami (most powerful moment — Goddess destroys Chanda-Munda demons). 108 lamps lit. Pushpanjali in early morning with 108 lotus flowers or bel leaves. Kumari Puja (worship of young pre-pubescent girls as Devi). Dhunuchi Naach (clay pot dance with burning coconut husk). Sindur Khela for married women.",
      "fast_note": "Ashtami fast: no grains. Pushpanjali in morning (3 times: 5 AM, 8 AM, 10 AM approx). Sandhi Puja: fast until completion. Prasad only after puja. Kumari Puja: worship young girls with feet-washing, sindur, sweets. Break fast after Sandhi Puja.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 8, "approx_month": 10, "approx_day": 3, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 8, "approx_month": 10, "approx_day": 18, "date_from_sunrise": True}},
 
     {"name": "Durga Puja (Navami)",      "hindi": "दुर्गा पूजा — नवमी",        "icon": "🏺",
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Navami. Mahanavami — Durga's final battle victory day. Grand Navami Puja with Mahasnan (ritual bath of Durga idol). Havan and Bali (symbolic sacrifice with vegetables). Last Pushpanjali. Bhog (khichdi, labra, chutney, payesh) offered grandly. Devotees spend maximum time at pandals. Navami evening — families gather for final celebration.",
      "fast_note": "Navami fast until afternoon Havan. Mahanavami Havan with 108 ahutis. Final Pushpanjali with bel leaves. Grand Bhog distribution after puja. Evening: Navami feast with traditional Bengali dishes. Married women Sindur Khela begins tonight.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 9, "approx_month": 10, "approx_day": 4}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 9, "approx_month": 10, "approx_day": 19, "date_from_sunrise": True}},
 
     {"name": "Kali Puja",                "hindi": "काली पूजा",                  "icon": "🌑",
      "deity": "Goddess Kali",     "month": "Kartik",
@@ -1499,10 +1501,10 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
 
     # ─── Additional Vrat / Tithi ─────────────────────────────────────────────────
     {"name": "Vaikunta Ekadashi (South)", "hindi": "वैकुंठ एकादशी",             "icon": "🚪",
-     "deity": "Lord Vishnu",      "month": "Pausha",
+     "deity": "Lord Vishnu",      "month": "Margashirsha",
      "significance": "Margashirsha Shukla Ekadashi (same day as Geeta Jayanti in North). In South India (especially Tamil Nadu, Andhra, Karnataka), this is Vaikunta Ekadashi — the most important Ekadashi of all 24. The Vaikunta Dwaram (gate to heaven) at Srirangam and Tirupati is symbolically opened. Thousands queue overnight to enter the temple through the Swarga Vasal (heaven gate) at first light. Vishnu's grace is 1000x on this day.",
      "fast_note": "Ekadashi Vrat: no grains (most devotees do nirjala fast). At Srirangam, Tirupati, Parthasarathy (Chennai): arrive night before, queue overnight to enter through Swarga Vasal at dawn. Recite Vishnu Sahasranama, Thiruvaymoli (Divya Prabandham). Break fast on Dwadashi (Vaikunta Dwadashi) with Pancharatna Kootu and rice.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 12, "approx_day": 31, "special": "ekadashi_viddha"}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 11, "approx_month": 12, "approx_day": 7, "special": "ekadashi_viddha"}},
 
     # ─── Chaitra Chhath — 4-Day Breakdown ───────────────────────────────────────
     {"name": "Chaitra Chhath — Nahay Khay", "hindi": "चैत्र छठ — नहाय खाय",  "icon": "🛁",
@@ -1940,13 +1942,18 @@ def get_festival_calendar(
                         break
                 if purnima_jd is not None:
                     purnima_date = date.fromisoformat(_jd_to_date_str(purnima_jd, tz))
-                    # Find last Friday (weekday=4) on or before Purnima
-                    # If Purnima itself is a Friday, observe on that day (e.g. 2026: Aug 28 = Friday)
-                    check = purnima_date
-                    for _ in range(7):
-                        if check.weekday() == 4:  # Friday
-                            break
-                        check -= timedelta(days=1)
+                    # Find Friday nearest to Shravana Purnima (within 6 days before or 7 days after).
+                    # "Nearest" handles cases like 2026 where Purnima is Thursday — the next Friday
+                    # (1 day after) is closer than the previous Friday (6 days before).
+                    best_friday = None
+                    best_dist = 999
+                    for _off in range(-6, 8):
+                        _d = purnima_date + timedelta(days=_off)
+                        if _d.weekday() == 4:  # Friday
+                            if abs(_off) < best_dist:
+                                best_dist = abs(_off)
+                                best_friday = _d
+                    check = best_friday if best_friday else purnima_date
                     d = check.isoformat()
                 else:
                     d = f"{year}-{approx_month:02d}-{rule.get('approx_day', 10):02d}"

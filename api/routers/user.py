@@ -2,6 +2,7 @@
 User profile router — JWT-based (Bearer token), with legacy session_id fallback.
 """
 import os
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, Request
 from api.models.user import UserProfile
 from api.supabase_client import get_supabase
@@ -81,3 +82,106 @@ def upsert_user(profile: UserProfile, request: Request, session_id: str = Query(
         "language":    profile.language,
     }).eq("id", user_id).execute()
     return profile
+
+
+# ── Chat History ──────────────────────────────────────────────────────────────
+
+@router.get("/user/chats/sessions")
+def get_chat_sessions(request: Request, session_id: str = Query(default="")):
+    """Return user's chat sessions grouped by session_id + page_context."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    if not sb:
+        return {"sessions": []}
+    try:
+        rows = sb.table("chat_messages") \
+            .select("session_id, page_context, role, content, created_at") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
+            .limit(500) \
+            .execute().data or []
+
+        # Group by (session_id, page_context)
+        sessions: dict = {}
+        for r in rows:
+            key = (r.get("session_id") or "", r.get("page_context", "general"))
+            if key not in sessions:
+                sessions[key] = {
+                    "session_id": key[0],
+                    "page_context": key[1],
+                    "last_at": r["created_at"],
+                    "messages": [],
+                }
+            sessions[key]["messages"].append({
+                "role": r["role"],
+                "content": r["content"],
+                "created_at": r["created_at"],
+            })
+
+        result = sorted(sessions.values(), key=lambda x: x["last_at"], reverse=True)
+        return {"sessions": result}
+    except Exception as e:
+        raise HTTPException(500, f"Chat history error: {e}")
+
+
+@router.delete("/user/chats/session/{sess_id}")
+def delete_chat_session(sess_id: str, request: Request, session_id: str = Query(default="")):
+    """Delete all messages in a specific session."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    if sb:
+        sb.table("chat_messages") \
+            .delete() \
+            .eq("user_id", user_id) \
+            .eq("session_id", sess_id) \
+            .execute()
+    return {"deleted": True}
+
+
+@router.delete("/user/chats")
+def delete_all_chats(request: Request, session_id: str = Query(default=""),
+                     page_context: Optional[str] = Query(default=None)):
+    """Delete all (or page-specific) chat history for the authenticated user."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    if sb:
+        q = sb.table("chat_messages").delete().eq("user_id", user_id)
+        if page_context:
+            q = q.eq("page_context", page_context)
+        q.execute()
+    return {"deleted": True}
+
+
+@router.delete("/user/account")
+def delete_account(request: Request, session_id: str = Query(default=""),
+                   reason: str = Query(default="user_request")):
+    """Soft-delete user account. Visible in admin for 30 days, then purged."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    if not sb:
+        raise HTTPException(500, "Database unavailable")
+    try:
+        u = sb.table("users").select("name,phone,plan").eq("id", user_id).maybe_single().execute().data or {}
+        total_chats = sb.table("chat_messages").select("id", count="exact").eq("user_id", user_id).execute().count or 0
+        pay_r = sb.table("payment_log").select("id", count="exact").eq("user_id", user_id).eq("status", "SUCCESS").execute()
+        sb.table("deleted_accounts").insert({
+            "user_id": user_id, "phone": u.get("phone"), "name": u.get("name"),
+            "plan_at_delete": u.get("plan"), "total_chats": total_chats,
+            "total_payments": pay_r.count or 0, "delete_reason": reason, "deleted_by": "user",
+        }).execute()
+        sb.table("users").update({"status": "deleted"}).eq("id", user_id).execute()
+        return {"deleted": True}
+    except Exception as e:
+        raise HTTPException(500, f"Account deletion failed: {e}")

@@ -19,12 +19,21 @@ def get_cities():
     return {"cities": _load()}
 
 
+@router.get("/cities/search")
+def search_cities(q: str = Query(..., min_length=2), limit: int = Query(20, le=50)):
+    """
+    Autocomplete search — worldwide cities from GeoNames (200K+).
+    Returns [{name, label, country, lat, lon, tz}, ...]
+    """
+    from api.services.geo_service import search_cities as _search
+    return {"results": _search(q, limit=limit)}
+
+
 @router.get("/geocode")
 def geocode(q: str = Query(..., min_length=2)):
     """
     Resolve any city/place name worldwide → {name, lat, lon, tz}.
-    Uses geo_service: cities.json first (730 Indian cities), then
-    Nominatim/OpenStreetMap (worldwide, free), then timezonefinder.
+    Uses geo_service: cities.db (200K+ worldwide) → cities.json → Nominatim.
     """
     from api.services.geo_service import get_coords
     lat, lon, tz = get_coords(q)

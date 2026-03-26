@@ -10,8 +10,8 @@ _VALID_LUNAR_SYSTEMS = ["amanta", "purnimanta"]
 @router.get("/festivals")
 async def festivals(
     year:         int   = Query(default=2026),
-    lat:          float = Query(default=28.6139),
-    lon:          float = Query(default=77.209),
+    lat:          float = Query(default=23.1765),   # Ujjain — traditional Vedic meridian
+    lon:          float = Query(default=75.7885),
     tz:           float = Query(default=5.5),
     tradition:    str   = Query(default="smarta",  description=f"Tradition: {', '.join(list(TRADITION_RULES.keys()))}"),
     lunar_system: str   = Query(default="amanta",  description="lunar_system: amanta | purnimanta"),

@@ -24,23 +24,28 @@ export function clearCitiesCache(): void {
 }
 
 /**
- * Search cities worldwide:
- * 1. Local cities.json (730 Indian cities) — instant
- * 2. /api/geocode (Nominatim/OSM) — worldwide fallback if < 2 local matches
+ * Search cities worldwide via /api/cities/search (200K+ GeoNames DB).
+ * Falls back to local 730-city cache if server unavailable.
  */
 export async function searchCities(q: string): Promise<City[]> {
   if (q.length < 2) return [];
-  await getCities(); // ensure cache loaded
-  const local = (_cache ?? [])
-    .filter((c) => c.name.toLowerCase().includes(q.toLowerCase()))
-    .slice(0, 6);
-  if (local.length >= 2) return local;
   try {
-    const res = await api.get<City>(`/api/geocode?q=${encodeURIComponent(q)}`);
-    if (res?.lat) {
-      const geocoded: City = { name: q, lat: res.lat, lon: res.lon, tz: res.tz };
-      return [...local, geocoded].slice(0, 6);
+    const res = await api.get<{ results: Array<{ name: string; lat: number; lon: number; tz: number; label: string; country: string }> }>(
+      `/api/cities/search?q=${encodeURIComponent(q)}&limit=10`
+    );
+    if (res?.results?.length) {
+      return res.results.map((r) => ({
+        name: r.label ?? r.name,
+        lat: r.lat,
+        lon: r.lon,
+        tz: r.tz,
+      }));
     }
-  } catch { /* fallback to local results */ }
-  return local;
+  } catch { /* fallback below */ }
+
+  // Fallback: local 730 cities
+  await getCities();
+  return (_cache ?? [])
+    .filter((c) => c.name.toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 10);
 }

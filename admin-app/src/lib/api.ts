@@ -65,6 +65,7 @@ export function preloadAll() {
     "/admin/revenue",
     "/admin/chats?page=1&limit=40",
     "/admin/logs?page=1&limit=50",
+    "/admin/deleted-accounts?page=1&limit=30",
   ];
   paths.forEach((p) => aFetch(p).catch(() => {}));
 }

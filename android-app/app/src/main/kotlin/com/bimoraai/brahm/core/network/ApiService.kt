@@ -80,6 +80,15 @@ import retrofit2.http.*
 
 @Serializable data class RefreshRequest(val refresh_token: String)
 
+// City search
+@Serializable data class City(
+    val name: String,
+    val lat: Double,
+    val lon: Double,
+    val tz: Double = 5.5,
+)
+@Serializable data class CitiesResponse(val cities: List<City>)
+
 // ─── API endpoints ────────────────────────────────────────────────────────────
 
 interface ApiService {
@@ -99,6 +108,13 @@ interface ApiService {
 
     @POST("auth/logout")
     suspend fun logout(): Response<Unit>
+
+    // Cities
+    @GET("cities")
+    suspend fun getCities(): Response<CitiesResponse>
+
+    @GET("geocode")
+    suspend fun geocode(@Query("q") query: String): Response<City>
 
     // User profile
     @GET("user")
@@ -151,8 +167,11 @@ interface ApiService {
     @POST("rectification/analyze")
     suspend fun getRectification(@Body body: JsonObject): Response<JsonObject>
 
-    @POST("horoscope/daily")
-    suspend fun getHoroscope(@Body body: JsonObject): Response<JsonObject>
+    @GET("horoscope/{rashi}")
+    suspend fun getHoroscope(
+        @Path("rashi") rashi: String,
+        @Query("period") period: String = "daily",
+    ): Response<JsonObject>
 
     // Palmistry (multipart — image upload)
     @Multipart
@@ -160,4 +179,27 @@ interface ApiService {
     suspend fun analyzePalm(
         @Part image: okhttp3.MultipartBody.Part,
     ): Response<JsonObject>
+
+    // Sky — current planetary positions
+    @GET("planets/now")
+    suspend fun getPlanetsNow(): Response<JsonObject>
+
+    // Vedic Library — RAG search
+    @GET("search")
+    suspend fun searchVedicLibrary(@Query("q") query: String): Response<JsonObject>
+
+    // Festivals (for PanchangScreen)
+    @GET("festivals")
+    suspend fun getFestivals(
+        @Query("month") month: Int,
+        @Query("year")  year: Int,
+    ): Response<JsonObject>
+
+    // Grahan / Eclipse calendar (for PanchangScreen)
+    @GET("grahan")
+    suspend fun getGrahan(): Response<JsonObject>
+
+    // Gochar personal analysis
+    @POST("gochar/analyze")
+    suspend fun analyzeGochar(@Body body: JsonObject): Response<JsonObject>
 }

@@ -9,6 +9,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.automirrored.filled.LiveHelp
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,11 +28,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.chat.ChatScreen
 import com.bimoraai.brahm.ui.kundali.KundaliScreen
 import com.bimoraai.brahm.ui.more.MoreScreen
+import com.bimoraai.brahm.ui.profile.ProfileViewModel
 import com.bimoraai.brahm.ui.profile.ProfileScreen
 import com.bimoraai.brahm.ui.today.TodayScreen
 import kotlinx.coroutines.launch
@@ -38,10 +43,13 @@ import kotlinx.coroutines.launch
 data class DrawerItem(val route: String, val label: String, val icon: ImageVector)
 
 private val mainItems = listOf(
-    DrawerItem("tab_today",   "Dashboard",       Icons.Default.Dashboard),
-    DrawerItem("tab_chat",    "Brahm AI Chat",   Icons.AutoMirrored.Filled.Chat),
-    DrawerItem("tab_kundali", "My Kundli",       Icons.Default.Stars),
-    DrawerItem(Route.HOROSCOPE, "Daily Horoscope", Icons.Default.WbSunny),
+    DrawerItem("tab_today",      "Dashboard",       Icons.Default.Dashboard),
+    DrawerItem("tab_chat",       "Brahm AI Chat",   Icons.AutoMirrored.Filled.Chat),
+    DrawerItem("tab_kundali",    "My Kundli",       Icons.Default.Stars),
+    DrawerItem(Route.HOROSCOPE,  "Daily Horoscope", Icons.Default.WbSunny),
+    DrawerItem(Route.PANCHANG,   "Full Panchang",   Icons.Default.CalendarViewDay),
+    DrawerItem(Route.SKY,        "Live Sky",        Icons.Default.NightsStay),
+    DrawerItem(Route.STORIES,    "Vedic Stories",   Icons.AutoMirrored.Filled.MenuBook),
 )
 
 private val exploreItems = listOf(
@@ -53,14 +61,24 @@ private val exploreItems = listOf(
     DrawerItem(Route.GEMSTONE,       "Gemstone Guide",     Icons.Default.Diamond),
     DrawerItem(Route.MUHURTA,        "Muhurta",            Icons.Default.Schedule),
     DrawerItem(Route.KP,             "KP System",          Icons.Default.Science),
-    DrawerItem(Route.PRASHNA,        "Prashna",            Icons.Default.LiveHelp),
+    DrawerItem(Route.PRASHNA,        "Prashna",            Icons.AutoMirrored.Filled.LiveHelp),
     DrawerItem(Route.VARSHPHAL,      "Varshphal",          Icons.Default.CalendarMonth),
     DrawerItem(Route.RECTIFICATION,  "Rectification",      Icons.Default.Analytics),
+    DrawerItem(Route.RASHI,          "Rashi Explorer",     Icons.Default.Brightness5),
+    DrawerItem(Route.NAKSHATRA,      "Nakshatra",          Icons.Default.Stars),
+    DrawerItem(Route.YOGAS,          "Yogas",              Icons.Default.AutoAwesome),
+    DrawerItem(Route.REMEDIES,       "Remedies",           Icons.Default.Healing),
+    DrawerItem(Route.MANTRA,         "Mantras",            Icons.Default.MusicNote),
+    DrawerItem(Route.LIBRARY,        "Vedic Library",      Icons.AutoMirrored.Filled.LibraryBooks),
+    DrawerItem(Route.GOTRA,          "Gotra Finder",       Icons.Default.AccountTree),
 )
 
 // ─── Main Screen with Drawer nav ──────────────────────────────────────────────
 @Composable
 fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = null) {
+    val profileVm: ProfileViewModel = hiltViewModel()
+    val user by profileVm.user.collectAsState()
+
     val tabNavController = rememberNavController()
     val currentEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route
@@ -99,6 +117,8 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
                     onNavigate = { navigate(it) },
                     onClose = { closeDrawer() },
                     onProfileClick = { navigate(Route.PROFILE) },
+                    userName = user?.name?.takeIf { it.isNotBlank() } ?: user?.phone ?: "User",
+                    userPlan = "Free",
                 )
             }
         },
@@ -135,7 +155,7 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
                 startDestination = "tab_today",
                 modifier = Modifier.padding(innerPadding),
             ) {
-                composable("tab_today")   { TodayScreen(navController) }
+                composable("tab_today")   { TodayScreen(navController, tabNavController) }
                 composable("tab_kundali") { KundaliScreen(navController) }
                 composable("tab_chat")    { ChatScreen() }
                 composable("tab_more")    { MoreScreen(navController) }
@@ -152,6 +172,8 @@ private fun DrawerContent(
     onNavigate: (String) -> Unit,
     onClose: () -> Unit,
     onProfileClick: () -> Unit,
+    userName: String = "User",
+    userPlan: String = "Free",
 ) {
     Column(
         modifier = Modifier
@@ -226,11 +248,14 @@ private fun DrawerContent(
                         .background(BrahmGold),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("TU", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        userName.take(2).uppercase(),
+                        color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                    )
                 }
                 Column {
-                    Text("Test User", style = MaterialTheme.typography.titleSmall)
-                    Text("Free", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    Text(userName, style = MaterialTheme.typography.titleSmall)
+                    Text(userPlan, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                 }
             }
             Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = BrahmMutedForeground)

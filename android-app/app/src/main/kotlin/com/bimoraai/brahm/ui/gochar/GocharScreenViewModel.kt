@@ -2,58 +2,89 @@ package com.bimoraai.brahm.ui.gochar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.network.ApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.put
 import javax.inject.Inject
 
 @HiltViewModel
 class GocharScreenViewModel @Inject constructor(
     private val api: ApiService,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    private val _result = MutableStateFlow<Map<String, Any?>?>(null)
-    private val _isLoading = MutableStateFlow(false)
-    private val _error = MutableStateFlow<String?>(null)
+    private val _gocharData  = MutableStateFlow<JsonObject?>(null)
+    private val _analyzeData = MutableStateFlow<JsonObject?>(null)
+    private val _isLoading   = MutableStateFlow(false)
+    private val _error       = MutableStateFlow<String?>(null)
+    private val _hasData     = MutableStateFlow(false)
 
-    val result = _result.asStateFlow()
-    val isLoading = _isLoading.asStateFlow()
-    val error = _error.asStateFlow()
+    val gocharData:  StateFlow<JsonObject?> = _gocharData
+    val analyzeData: StateFlow<JsonObject?> = _analyzeData
+    val isLoading:   StateFlow<Boolean>     = _isLoading
+    val error:       StateFlow<String?>     = _error
+    val hasData:     StateFlow<Boolean>     = _hasData
 
-    private var lastParams: Map<String, Any?> = emptyMap()
+    // Input fields
+    val name = MutableStateFlow("")
+    val dob  = MutableStateFlow("")
+    val tob  = MutableStateFlow("")
+    val pob  = MutableStateFlow("")
+    val lat  = MutableStateFlow(0.0)
+    val lon  = MutableStateFlow(0.0)
+    val tz   = MutableStateFlow("5.5")
 
-    fun submit(params: Map<String, Any?>) {
-        lastParams = params
-        load()
+    init { prefillFromProfile() }
+
+    private fun prefillFromProfile() {
+        userRepository.user.value?.let { u ->
+            if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
+            if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
+            if (tob.value.isBlank() && u.time.isNotBlank()) tob.value = u.time
+            if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
+            if (u.date.isNotBlank() && u.place.isNotBlank()) calculate()
+        }
     }
 
-    fun load() {
+    fun calculate() {
+        if (dob.value.isBlank() || tob.value.isBlank()) {
+            _error.value = "Please enter date and time of birth"
+            return
+        }
         viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null
+            _error.value     = null
             try {
-                val jsonBody = buildJsonObject {
-                    lastParams.forEach { (k, v) ->
-                        when (v) {
-                            is String -> put(k, v)
-                            is Number -> put(k, v.toDouble())
-                            is Boolean -> put(k, v)
-                            else -> if (v != null) put(k, v.toString())
-                        }
-                    }
+                val body = buildJsonObject {
+                    put("name", JsonPrimitive(name.value.ifBlank { "User" }))
+                    put("dob",  JsonPrimitive(dob.value))
+                    put("tob",  JsonPrimitive(tob.value))
+                    put("pob",  JsonPrimitive(pob.value))
+                    put("lat",  JsonPrimitive(lat.value))
+                    put("lon",  JsonPrimitive(lon.value))
+                    put("tz",   JsonPrimitive(tz.value))
                 }
-                val res = api.getGochar(jsonBody)
-                if (res.isSuccessful) {
-                    _result.value = res.body()?.entries?.associate { (k, v) ->
-                        k to if (v is JsonPrimitive) v.contentOrNull else v.toString()
-                    }
-                } else _error.value = "Failed to load data"
+                val gocharResp = api.getGochar(body)
+                if (gocharResp.isSuccessful) {
+                    _gocharData.value = gocharResp.body()
+                }
+
+                val analyzeResp = api.analyzeGochar(body)
+                if (analyzeResp.isSuccessful) {
+                    _analyzeData.value = analyzeResp.body()
+                }
+
+                if (gocharResp.isSuccessful || analyzeResp.isSuccessful) {
+                    _hasData.value = true
+                } else {
+                    _error.value = "Calculation failed. Please check your birth details."
+                }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Network error"
             } finally {
@@ -61,4 +92,6 @@ class GocharScreenViewModel @Inject constructor(
             }
         }
     }
+
+    fun load() { if (hasData.value) calculate() }
 }

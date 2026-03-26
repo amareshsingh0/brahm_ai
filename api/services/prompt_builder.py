@@ -6,6 +6,7 @@ Builds the final answer prompt using:
   - Kundali compressed summary
   - Page context + data
   - RAG docs (only when needed)
+  - Conversation history (for follow-up context)
 
 4-Layer Analysis for predictions:
   Layer 1: KUNDALI   — natal potential (what's possible)
@@ -14,6 +15,7 @@ Builds the final answer prompt using:
   Layer 4: MUHURTA   — best moment to act (specific date/time)
 """
 import json
+from datetime import datetime
 from typing import List, Dict, Optional
 
 MASTER_PERSONA = """Tum Brahm AI ho — ek sampurna Vedic jyotishi aur aadhunik calculator ka sangam.
@@ -268,6 +270,20 @@ def _format_rag_docs(docs: list) -> str:
     return "\n".join(lines)
 
 
+def _format_history(history: list) -> str:
+    """Format last 6 conversation turns for Pass 2 context."""
+    if not history:
+        return ""
+    relevant = history[-6:]
+    lines = ["[Conversation History — last messages]"]
+    for msg in relevant:
+        role = "User" if msg.get("role") == "user" else "AI"
+        content = msg.get("content", "")[:400].strip()
+        if content:
+            lines.append(f"  {role}: {content}")
+    return "\n".join(lines)
+
+
 def build_pass2_prompt(
     query: str,
     decision: dict,
@@ -277,61 +293,62 @@ def build_pass2_prompt(
     page_data: dict,
     rag_docs: list,
     language: str = "hi",
+    history: list = None,
 ) -> str:
     """Build the final answer prompt for Pass 2."""
 
     query_type  = decision.get("query_type", "DEEP_VEDIC")
     intent      = decision.get("intent", "")
     lang_line   = _get_lang_instruction(decision)
+    today_str   = datetime.now().strftime("%A, %d %B %Y")   # e.g. "Thursday, 26 March 2026"
 
-    # Auto-analysis trigger
-    if query == "__auto_analyze__":
-        if page_context == "compatibility":
-            actual_query = (
-                "Is compatibility report ka complete analysis karo — "
-                "score ka matlab, har dosha ki explanation, strong/weak areas ka impact, "
-                "upay, aur vivah ke liye practical guidance."
-            )
-        elif page_context == "panchang":
-            actual_query = (
-                "Aaj ke panchang ka deep analysis karo — "
-                "tithi, nakshatra, yoga ka mahatva aur aaj ke liye practical guidance."
-            )
-        else:
-            actual_query = "Is report ka detailed analysis karo aur key insights do."
-    else:
-        actual_query = query
+    actual_query = query
 
-    # ── Conversational: short, warm, no data needed ──────────────────────────
+    # ── Conversational: short, warm ──────────────────────────────────────────
     if query_type == "CONVERSATIONAL":
         return f"""{MASTER_PERSONA}
 
 {lang_line}
 
+TODAY = {today_str}
+
 User: {actual_query}
 
-Short, warm jawab do — 1-2 sentences. Koi calculations ya books mat use karo."""
+Ek-do sentence mein warm jawab do. Koi calculations ya books mat use karo."""
 
     # ── Build all data sections ───────────────────────────────────────────────
+    history_section = _format_history(history or [])
     kundali_section = _format_kundali(kundali_summary)
     calc_section    = _format_tool_results(tool_results)
     page_section    = _format_page_data(page_context, page_data)
     rag_section     = _format_rag_docs(rag_docs)
     facts_section   = _format_user_facts(page_data.get("user_facts", []))
 
-    sections = [MASTER_PERSONA, "", lang_line, ""]
+    sections = [
+        MASTER_PERSONA,
+        "",
+        lang_line,
+        "",
+        f"TODAY = {today_str}  ← Yahi real current date hai. Agar user date/time pooche toh YAHI batao.",
+        "",
+    ]
 
-    # User facts (personal context — highest priority for personalization)
+    # Conversation history — critical for follow-up questions
+    if history_section:
+        sections.append(history_section)
+        sections.append("")
+
+    # User facts (personal context)
     if facts_section:
         sections.append(facts_section)
         sections.append("")
 
-    # Layer 1 — Kundali (always first if available)
+    # Layer 1 — Kundali
     if kundali_section:
         sections.append(kundali_section)
         sections.append("")
 
-    # Layers 2-4 — Calculation results (dasha, gochar, muhurta)
+    # Layers 2-4 — Calculation results
     if calc_section:
         sections.append(calc_section)
         sections.append("")
@@ -360,27 +377,48 @@ Short, warm jawab do — 1-2 sentences. Koi calculations ya books mat use karo."
         if has_dasha:        layers_available.append("Dasha (Layer 2)")
         if has_gochar:       layers_available.append("Gochar (Layer 3)")
         if "muhurta" in tool_results: layers_available.append("Muhurta (Layer 4)")
-
         sections.append(
             f"Available data: {', '.join(layers_available) if layers_available else 'general knowledge'}. "
-            "Sab layers use karo jo available hain. "
-            "Specific, insightful, aur actionable jawab do."
+            "Sab layers use karo jo available hain. Specific, insightful, actionable jawab do. Max 350 words."
         )
     elif depth == "basic":
-        sections.append("Short, clear, helpful jawab do. 2-3 sentences maximum.")
-    else:
-        sections.append("Detailed lekin focused jawab do. Unnecessary padding avoid karo.")
-
-    # Confidence tag — always add at end of non-conversational responses
-    if query_type != "CONVERSATIONAL":
-        has_gochar = "gochar" in tool_results and not tool_results.get("gochar_error")
-        has_dasha  = "dasha"  in tool_results and not tool_results.get("dasha_error")
         sections.append(
-            "\nResponse ke BILKUL AKHIR mein — sirf ek line — confidence tag likho:\n"
-            "[CONFIDENCE: HIGH] — jab kundali + dasha + gochar teeno available aur aligned hain\n"
-            "[CONFIDENCE: MEDIUM] — jab sirf kundali hai, ya dasha/gochar mein se ek\n"
-            "[CONFIDENCE: LOW] — jab birth data nahi, ya data partial/conflicting hai\n"
-            "Koi explanation nahi — sirf tag. Kuch aur text nahi us line mein."
+            "STRICT: 2-3 sentences ONLY. Direct answer pehle. Koi preamble, padding, ya extra context nahi."
         )
+    else:
+        sections.append("Focused jawab do. Sirf jo poochha hai usi ka jawab. Max 200 words. Padding avoid karo.")
+
+    # Confidence tag
+    if query_type != "CONVERSATIONAL":
+        sections.append(
+            "\nResponse ke BILKUL AKHIR mein — ek line — confidence tag:\n"
+            "[CONFIDENCE: HIGH] — kundali + dasha + gochar teeno available\n"
+            "[CONFIDENCE: MEDIUM] — sirf kundali, ya dasha/gochar mein se ek\n"
+            "[CONFIDENCE: LOW] — birth data nahi, ya partial data\n"
+            "Sirf tag — koi explanation nahi."
+        )
+
+    # ── Follow-up loop (MANDATORY — always include) ──────────────────────────
+    # These chips drive the infinite exploration experience like ChatGPT/Grok.
+    # Rules:
+    #  - ALWAYS include this tag — no exceptions, even for simple answers
+    #  - 3 questions, each max 7 words, in user's language
+    #  - Must be DIFFERENT from what was just asked — move the conversation forward
+    #  - Must be SPECIFIC to user's chart/situation, not generic astrology questions
+    #  - Vary the topics: timing | relationship | career | health | remedy | deeper analysis
+    #  - For chart questions: next logical step after the answer
+    #    e.g. asked about marriage → suggest: spouse qualities, children timing, 7th lord strength
+    #    e.g. asked about career → suggest: business vs job, income peak years, ideal field
+    #    e.g. asked about dasha → suggest: antardasha breakdown, gochar support, remedies
+    #  - For panchang/horoscope: tomorrow, weekly overview, lucky window this month
+    #  - For compatibility: specific dosha remedies, shaadi muhurta, children timing
+    #
+    sections.append(
+        "\n[MANDATORY] Response ke AKHIR mein — HAMESHA yeh tag add karo — koi exception nahi:\n"
+        "[FOLLOWUPS: \"question 1\" | \"question 2\" | \"question 3\"]\n"
+        "3 questions. User ki language. Max 7 words each. "
+        "Jo abhi discuss hua usse AAGE badhao — naya angle, naya topic. "
+        "Sirf yahi ek line — koi aur text nahi."
+    )
 
     return "\n".join(sections)

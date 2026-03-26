@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
 import javax.inject.Inject
@@ -48,5 +49,9 @@ class TodayViewModel @Inject constructor(
     }
 }
 
-fun JsonObject.str(key: String): String =
-    this[key]?.jsonPrimitive?.content?.takeIf { it.isNotBlank() && it != "null" } ?: "—"
+fun JsonObject.str(key: String): String {
+    val el = this[key] ?: return "—"
+    if (el !is JsonPrimitive) return "—"
+    val s = el.content
+    return if (s.isBlank() || s == "null") "—" else s
+}

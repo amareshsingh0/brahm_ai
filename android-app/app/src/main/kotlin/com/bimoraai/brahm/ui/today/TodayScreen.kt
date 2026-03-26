@@ -26,7 +26,8 @@ import com.bimoraai.brahm.ui.main.Route
 
 @Composable
 fun TodayScreen(
-    navController: NavController,
+    navController: NavController,          // outer — for full-screen routes (Compatibility, Palmistry…)
+    tabNavController: NavController? = null, // inner — for tab routes (Chat, Kundali)
     vm: TodayViewModel = hiltViewModel(),
 ) {
     val panchang by vm.panchang.collectAsState()
@@ -61,7 +62,7 @@ fun TodayScreen(
                     Spacer(Modifier.height(4.dp))
                     BrahmButton(
                         text = "Generate Your Kundali →",
-                        onClick = { navController.navigate(Route.KUNDALI) },
+                        onClick = { (tabNavController ?: navController).navigate("tab_kundali") },
                     )
                 }
             }
@@ -122,8 +123,8 @@ fun TodayScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    QuickLinkCard(Icons.AutoMirrored.Filled.Chat, Color(0xFF6C63FF), Color(0xFF3B2FBF), "Brahm AI Chat", "Ask anything", Route.CHAT, navController, Modifier.weight(1f))
-                    QuickLinkCard(Icons.Default.Stars,            Color(0xFFD4A017), Color(0xFF9A6E00), "My Kundali",    "Vedic birth chart", Route.KUNDALI, navController, Modifier.weight(1f))
+                    QuickLinkCard(Icons.AutoMirrored.Filled.Chat, Color(0xFF6C63FF), Color(0xFF3B2FBF), "Brahm AI Chat", "Ask anything",      "tab_chat",    tabNavController ?: navController, Modifier.weight(1f))
+                    QuickLinkCard(Icons.Default.Stars,            Color(0xFFD4A017), Color(0xFF9A6E00), "My Kundali",    "Vedic birth chart", "tab_kundali", tabNavController ?: navController, Modifier.weight(1f))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     QuickLinkCard(Icons.Default.Favorite,   Color(0xFFE8445A), Color(0xFFB0203A), "Compatibility", "Kundali matching", Route.COMPATIBILITY, navController, Modifier.weight(1f))

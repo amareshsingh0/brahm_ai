@@ -418,6 +418,32 @@ def ban_user(user_id: str, x_admin_key: str = Header(None), reason: str = Query(
     return {"banned": user_id}
 
 
+@router.get("/admin/deleted-accounts")
+def get_deleted_accounts(
+    x_admin_key: str = Header(None),
+    page:  int = Query(1, ge=1),
+    limit: int = Query(30, ge=1, le=100),
+):
+    """Return accounts deleted in the last 30 days (GDPR review window)."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        return {"items": [], "total": 0, "page": 1, "pages": 1}
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    try:
+        total = sb.table("deleted_accounts").select("id", count="exact") \
+            .gte("deleted_at", cutoff).execute().count or 0
+        offset = (page - 1) * limit
+        rows = sb.table("deleted_accounts").select("*") \
+            .gte("deleted_at", cutoff) \
+            .order("deleted_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute().data or []
+        return {"items": rows, "total": total, "page": page, "pages": max(1, (total + limit - 1) // limit)}
+    except Exception as e:
+        raise HTTPException(500, f"Deleted accounts error: {e}")
+
+
 @router.post("/admin/users/{user_id}/unban")
 def unban_user(user_id: str, x_admin_key: str = Header(None)):
     _check(x_admin_key)
@@ -527,18 +553,6 @@ def get_user_chats(
     except Exception as e:
         raise HTTPException(500, f"Chats error: {e}")
 
-
-@router.delete("/admin/users/{user_id}/chats")
-def delete_user_chats(user_id: str, x_admin_key: str = Header(None), page_context: str = Query("")):
-    _check(x_admin_key)
-    sb = _get_supabase()
-    if sb:
-        q = sb.table("chat_messages").delete().eq("user_id", user_id)
-        if page_context:
-            q = q.eq("page_context", page_context)
-        q.execute()
-        _admin_log("admin", "delete_chats", user_id, "chat_messages", {"page_context": page_context or "all"})
-    return {"deleted": True}
 
 
 @router.post("/admin/chats/{message_id}/flag")

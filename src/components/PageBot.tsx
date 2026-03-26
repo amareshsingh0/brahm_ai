@@ -1,13 +1,14 @@
 /**
  * PageBot — floating AI assistant for every page.
- * Sends current page context + data to chat automatically.
- * User's kundali from store is always included (via useChat).
+ * Features: birth data form, save kundali prompt, follow-up loop system.
  */
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Loader2, ChevronDown, Trash2, UserCircle, X as XIcon, Plus } from 'lucide-react';
-import { useChat } from '@/hooks/useChat';
+import { Bot, Send, Loader2, ChevronDown, Trash2, UserCircle, X as XIcon, Plus, BookOpen, Save, CheckCircle } from 'lucide-react';
+import { useChat, type BirthFormData, type SaveKundaliPromptData } from '@/hooks/useChat';
 import { useFactSheet } from '@/hooks/useFactSheet';
+import { useKundliStore } from '@/store/kundliStore';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -18,12 +19,146 @@ const PAGE_SUGGESTIONS: Record<string, string[]> = {
   sky:           ['Aaj ke graha mujhpe kaisa asar karenge?', 'Kaunsa graha vakri hai?', 'Shani ka asar kaisa rahega?'],
   palmistry:     ['Meri jeewan rekha kaisi hai?', 'Career line kya kehti hai?', 'Vivah rekha?'],
   horoscope:     ['Aaj ka din kaisa rahega?', 'Is mahine ka overview?', 'Lucky time kab hai?'],
-  general:       ['Meri kundali batao', 'Aaj ka panchang?', 'Shaadi ka shubh muhurta?'],
+  general:       ['Meri kundali banao', 'Aaj ka panchang?', 'Shaadi ka shubh muhurta?'],
 };
+
 
 interface PageBotProps {
   pageContext?: string;
   pageData?: Record<string, unknown>;
+}
+
+// ── Birth Data Form ────────────────────────────────────────────────────────────
+function BirthForm({ onSubmit }: { onSubmit: (data: BirthFormData) => void }) {
+  const [form, setForm] = useState<BirthFormData>({ name: '', gender: '', date: '', time: '', place: '' });
+  const set = (k: keyof BirthFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+  const valid = form.date && form.time && form.place;
+
+  return (
+    <div className="px-3 py-3 space-y-2 border-t border-border/30 bg-muted/10">
+      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Apna Janam Vivran daalo</p>
+      <div className="grid grid-cols-2 gap-1.5">
+        <input
+          value={form.name}
+          onChange={set('name')}
+          placeholder="Naam (optional)"
+          className="col-span-2 text-xs h-8 px-2 rounded-lg bg-muted/30 border border-border/30 outline-none focus:border-primary/50"
+        />
+        <select
+          value={form.gender}
+          onChange={set('gender') as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+          className="text-xs h-8 px-2 rounded-lg bg-muted/30 border border-border/30 outline-none focus:border-primary/50"
+        >
+          <option value="">Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+        <input
+          value={form.date}
+          onChange={set('date')}
+          type="date"
+          placeholder="Janam Tithi"
+          className="text-xs h-8 px-2 rounded-lg bg-muted/30 border border-border/30 outline-none focus:border-primary/50"
+        />
+        <input
+          value={form.time}
+          onChange={set('time')}
+          type="time"
+          placeholder="Janam Samay"
+          className="text-xs h-8 px-2 rounded-lg bg-muted/30 border border-border/30 outline-none focus:border-primary/50"
+        />
+        <input
+          value={form.place}
+          onChange={set('place')}
+          placeholder="Janam Sthan (city)"
+          className="text-xs h-8 px-2 rounded-lg bg-muted/30 border border-border/30 outline-none focus:border-primary/50"
+        />
+      </div>
+      <Button
+        size="sm"
+        className="w-full h-8 text-xs"
+        disabled={!valid}
+        onClick={() => onSubmit(form)}
+      >
+        <BookOpen className="h-3 w-3 mr-1.5" />
+        Kundali Banao
+      </Button>
+    </div>
+  );
+}
+
+// ── Save Kundali Prompt ────────────────────────────────────────────────────────
+function SaveKundaliCard({
+  data,
+  onConfirm,
+  onDismiss,
+}: {
+  data: SaveKundaliPromptData;
+  onConfirm: () => void;
+  onDismiss: () => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const { setBirthDetails, setKundaliData } = useKundliStore();
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const resp = await api.post<Record<string, unknown>>('/api/kundali', {
+        date: data.birth_date,
+        time: data.birth_time,
+        lat: data.birth_lat,
+        lon: data.birth_lon,
+        tz: data.birth_tz,
+        name: data.name,
+        place: data.place,
+      });
+      setBirthDetails({
+        name: data.name,
+        dateOfBirth: data.birth_date,
+        timeOfBirth: data.birth_time,
+        birthPlace: data.place,
+        lat: data.birth_lat,
+        lon: data.birth_lon,
+        tz: data.birth_tz,
+      });
+      setKundaliData(resp as Parameters<typeof setKundaliData>[0]);
+      setSaved(true);
+      setTimeout(onDismiss, 1800);
+    } catch {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mx-3 mb-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-2">
+      {saved ? (
+        <div className="flex items-center gap-2 text-xs text-green-600">
+          <CheckCircle className="h-3.5 w-3.5" />
+          Kundali save ho gayi! "My Kundali" mein dekh sakte ho.
+        </div>
+      ) : (
+        <>
+          <p className="text-xs text-foreground font-medium">
+            🌟 Kya aap is kundali ko <b>My Kundali</b> mein save karna chahoge?
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {data.name && `${data.name} · `}{data.birth_date} · {data.birth_time} · {data.place}
+          </p>
+          <div className="flex gap-2">
+            <Button size="sm" className="h-7 text-xs flex-1" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Save className="h-3 w-3 mr-1" /> Haan, save karo</>}
+            </Button>
+            <button onClick={onDismiss} className="text-xs text-muted-foreground hover:text-foreground px-2">
+              Nahi
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default function PageBot({ pageContext = 'general', pageData = {} }: PageBotProps) {
@@ -37,11 +172,11 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
 
   const { facts, addFact, removeFact } = useFactSheet();
 
-  const { messages, sources, streaming, sendMessage, clearHistory } = useChat({
-    pageContext,
-    pageData,
-    persistKey: pageContext,
-  });
+  const {
+    messages, sources, streaming,
+    showBirthForm, saveKundaliPrompt,
+    sendMessage, submitBirthForm, dismissSavePrompt, clearHistory,
+  } = useChat({ pageContext, pageData, persistKey: pageContext });
 
   const suggestions = PAGE_SUGGESTIONS[pageContext] ?? PAGE_SUGGESTIONS.general;
   const hasMessages = messages.length > 0;
@@ -50,10 +185,12 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
     if (open) {
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     }
-  }, [messages, open]);
+  }, [messages, open, showBirthForm, saveKundaliPrompt]);
 
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 100);
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
   }, [open]);
 
   const handleSend = () => {
@@ -93,10 +230,10 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-[340px] sm:w-[380px] h-[520px] flex flex-col rounded-2xl border border-border/40 shadow-2xl overflow-hidden bg-background"
+            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-[340px] sm:w-[380px] max-h-[580px] flex flex-col rounded-2xl border border-border/40 shadow-2xl overflow-hidden bg-background"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/30 bg-muted/20">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/30 bg-muted/20 shrink-0">
               <div className="flex items-center gap-2">
                 <Bot className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-primary">Brahm AI</span>
@@ -129,7 +266,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.18 }}
-                  className="overflow-hidden border-b border-border/30 bg-muted/10"
+                  className="overflow-hidden border-b border-border/30 bg-muted/10 shrink-0"
                 >
                   <div className="px-3 py-2 space-y-1.5">
                     <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Meri baatein (AI ko yaad rahega)</p>
@@ -165,8 +302,8 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             </AnimatePresence>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-              {!hasMessages && (
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+              {!hasMessages && !showBirthForm && (
                 <div className="space-y-3">
                   <p className="text-xs text-muted-foreground text-center pt-4">Kuch poochho...</p>
                   <div className="space-y-2">
@@ -184,33 +321,62 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
               )}
 
               {messages.map((msg, i) => {
-                // Parse confidence tag from assistant messages
+                const isLastMsg = i === messages.length - 1;
+                const isLastAssistant = msg.role === 'assistant' && isLastMsg;
+
                 let displayContent = msg.content;
                 let confidence: 'HIGH' | 'MEDIUM' | 'LOW' | null = null;
+                let followups: string[] = [];
+
                 if (msg.role === 'assistant' && msg.content) {
-                  const match = msg.content.match(/\[CONFIDENCE:\s*(HIGH|MEDIUM|LOW)\]/i);
-                  if (match) {
-                    confidence = match[1].toUpperCase() as 'HIGH' | 'MEDIUM' | 'LOW';
-                    displayContent = msg.content.replace(/\n?\[CONFIDENCE:\s*(HIGH|MEDIUM|LOW)\]\n?/i, '').trim();
+                  const confMatch = msg.content.match(/\[CONFIDENCE:\s*(HIGH|MEDIUM|LOW)\]/i);
+                  if (confMatch) {
+                    confidence = confMatch[1].toUpperCase() as 'HIGH' | 'MEDIUM' | 'LOW';
+                    displayContent = displayContent.replace(/\n?\[CONFIDENCE:\s*(HIGH|MEDIUM|LOW)\]\n?/gi, '').trim();
+                  }
+                  const fuMatch = displayContent.match(/\[FOLLOWUPS:\s*([^\]]+)\]/i);
+                  if (fuMatch) {
+                    followups = fuMatch[1]
+                      .split('|')
+                      .map((q) => q.trim().replace(/^["']|["']$/g, ''))
+                      .filter(Boolean)
+                      .slice(0, 3);
+                    displayContent = displayContent.replace(/\n?\[FOLLOWUPS:[^\]]*\]\n?/gi, '').trim();
                   }
                 }
-                const confColor = confidence === 'HIGH' ? 'text-green-400 bg-green-400/10' : confidence === 'MEDIUM' ? 'text-yellow-400 bg-yellow-400/10' : 'text-red-400 bg-red-400/10';
+
+                const confDot = confidence === 'HIGH' ? 'bg-green-400'
+                  : confidence === 'MEDIUM' ? 'bg-yellow-400'
+                  : confidence === 'LOW' ? 'bg-red-400' : null;
+
+                // Show followups:
+                // - On completed messages: show collapsed (only on last) for space, or always
+                // - Never show while streaming the current message
+                const showFollowups = followups.length > 0 && !(streaming && isLastAssistant);
+
                 return (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
-                      msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted/40 text-foreground'
+                  <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap relative ${
+                      msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/40 text-foreground'
                     }`}>
-                      {displayContent || (streaming && i === messages.length - 1 ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : '')}
-                      {confidence && (
-                        <span className={`inline-block mt-1.5 text-[9px] font-medium px-1.5 py-0.5 rounded ${confColor}`}>
-                          ◈ {confidence} confidence
-                        </span>
+                      {displayContent || (streaming && isLastAssistant ? <Loader2 className="h-3 w-3 animate-spin" /> : '')}
+                      {confDot && (
+                        <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${confDot}`} title={`${confidence} confidence`} />
                       )}
                     </div>
+                    {showFollowups && (
+                      <div className="flex flex-wrap gap-1.5 mt-1.5 max-w-[90%]">
+                        {followups.map((q, qi) => (
+                          <button
+                            key={qi}
+                            onClick={() => sendMessage(q)}
+                            className="text-[10px] px-2.5 py-1 rounded-full bg-muted/50 hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border/30 hover:border-primary/30 transition-all leading-none"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -224,23 +390,32 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
               <div ref={bottomRef} />
             </div>
 
-            {/* Input */}
-            <div className="px-3 py-3 border-t border-border/30 bg-muted/10">
-              <div className="flex gap-2">
-                <Input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKey}
-                  placeholder="Ask something..."
-                  className="text-xs h-9 bg-muted/20 border-border/30 flex-1"
-                  disabled={streaming}
-                />
-                <Button size="sm" className="h-9 w-9 p-0" onClick={handleSend} disabled={!input.trim() || streaming}>
-                  {streaming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                </Button>
+            {/* Save Kundali Prompt — above input */}
+            {saveKundaliPrompt && (
+              <SaveKundaliCard data={saveKundaliPrompt} onConfirm={() => {}} onDismiss={dismissSavePrompt} />
+            )}
+
+            {/* Birth Form OR Input */}
+            {showBirthForm ? (
+              <BirthForm onSubmit={submitBirthForm} />
+            ) : (
+              <div className="px-3 py-3 border-t border-border/30 bg-muted/10 shrink-0">
+                <div className="flex gap-2">
+                  <Input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKey}
+                    placeholder="Ask something..."
+                    className="text-xs h-9 bg-muted/20 border-border/30 flex-1"
+                    disabled={streaming}
+                  />
+                  <Button size="sm" className="h-9 w-9 p-0" onClick={handleSend} disabled={!input.trim() || streaming}>
+                    {streaming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

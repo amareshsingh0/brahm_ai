@@ -2,10 +2,13 @@ package com.bimoraai.brahm.ui.kundali
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.network.KundaliRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.bimoraai.brahm.core.network.UserDto
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
@@ -18,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class KundaliViewModel @Inject constructor(
     private val api: ApiService,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _kundali = MutableStateFlow<Map<String, Any?>?>(null)
@@ -27,6 +31,9 @@ class KundaliViewModel @Inject constructor(
     val kundali = _kundali.asStateFlow()
     val isLoading = _isLoading.asStateFlow()
     val error = _error.asStateFlow()
+
+    // Expose saved profile so KundaliScreen can pre-fill the form
+    val savedProfile: StateFlow<UserDto?> = userRepository.user
 
     // Birth inputs
     private var name = ""; private var dob = ""; private var tob = ""

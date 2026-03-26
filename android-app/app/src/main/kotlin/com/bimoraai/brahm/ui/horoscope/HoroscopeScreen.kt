@@ -1,46 +1,54 @@
 package com.bimoraai.brahm.ui.horoscope
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.*
+import com.bimoraai.brahm.core.components.BrahmErrorView
+import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
 import com.bimoraai.brahm.core.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HoroscopeScreen(navController: NavController, vm: HoroscopeScreenViewModel = hiltViewModel()) {
-    val result by vm.result.collectAsState()
-    val isLoading by vm.isLoading.collectAsState()
-    val error by vm.error.collectAsState()
+    val result        by vm.result.collectAsState()
+    val isLoading     by vm.isLoading.collectAsState()
+    val error         by vm.error.collectAsState()
+    val selectedRashi by vm.selectedRashi.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Daily Horoscope", style = MaterialTheme.typography.titleLarge.copy(color = BrahmGold)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                title = {
+                    Column {
+                        Text("Daily Horoscope", fontWeight = FontWeight.Bold)
+                        Text("Select your Rashi", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmCard),
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
             )
         },
-        containerColor = BrahmBackground,
     ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
-            when {
-                isLoading -> BrahmLoadingSpinner()
-                error != null -> BrahmErrorView(message = error!!, onRetry = { vm.load() })
-                result != null -> HoroscopeScreenContent(result!!)
-                else -> HoroscopeScreenInputForm { params -> vm.submit(params) }
-            }
+        when {
+            isLoading && result == null -> BrahmLoadingSpinner(modifier = Modifier.padding(padding).fillMaxSize())
+            error != null && result == null -> BrahmErrorView(message = error!!, onRetry = { vm.load() }, modifier = Modifier.padding(padding))
+            else -> HoroscopeContent(
+                result = result,
+                selectedRashi = selectedRashi,
+                isLoading = isLoading,
+                modifier = Modifier.padding(padding),
+                onRashiSelected = { vm.loadForRashi(it) },
+            )
         }
     }
 }

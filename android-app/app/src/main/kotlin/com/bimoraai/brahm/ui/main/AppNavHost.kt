@@ -34,6 +34,17 @@ object Route {
     const val PROFILE         = "profile"
     const val PROFILE_EDIT    = "profile_edit"
     const val BILLING         = "billing"
+    // New screens
+    const val PANCHANG        = "panchang"
+    const val RASHI           = "rashi"
+    const val NAKSHATRA       = "nakshatra"
+    const val YOGAS           = "yogas"
+    const val REMEDIES        = "remedies"
+    const val MANTRA          = "mantra"
+    const val GOTRA           = "gotra"
+    const val STORIES         = "stories"
+    const val SKY             = "sky"
+    const val LIBRARY         = "library"
 }
 
 @Composable
@@ -79,5 +90,15 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.PROFILE)        { com.bimoraai.brahm.ui.profile.ProfileScreen(navController) }
         composable(Route.PROFILE_EDIT)   { com.bimoraai.brahm.ui.profile.ProfileEditScreen(navController) }
         composable(Route.BILLING)        { com.bimoraai.brahm.ui.profile.BillingScreen(navController) }
+        composable(Route.PANCHANG)       { com.bimoraai.brahm.ui.panchang.PanchangScreen(navController) }
+        composable(Route.RASHI)          { com.bimoraai.brahm.ui.rashi.RashiScreen(navController) }
+        composable(Route.NAKSHATRA)      { com.bimoraai.brahm.ui.nakshatra.NakshatraScreen(navController) }
+        composable(Route.YOGAS)          { com.bimoraai.brahm.ui.yogas.YogasScreen(navController) }
+        composable(Route.REMEDIES)       { com.bimoraai.brahm.ui.remedies.RemediesScreen(navController) }
+        composable(Route.MANTRA)         { com.bimoraai.brahm.ui.mantra.MantraScreen(navController) }
+        composable(Route.GOTRA)          { com.bimoraai.brahm.ui.gotra.GotraScreen(navController) }
+        composable(Route.STORIES)        { com.bimoraai.brahm.ui.stories.StoriesScreen(navController) }
+        composable(Route.SKY)            { com.bimoraai.brahm.ui.sky.SkyScreen(navController) }
+        composable(Route.LIBRARY)        { com.bimoraai.brahm.ui.library.LibraryScreen(navController) }
     }
 }

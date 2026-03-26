@@ -198,7 +198,7 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <Moon className="h-10 w-10 text-primary zodiac-glow mx-auto mb-3" />
+          <img src="/android-chrome-192x192.png" alt="Brahm AI" className="h-16 w-16 rounded-2xl mx-auto mb-3" />
           <h1 className="font-display text-3xl text-primary text-glow-gold">{t('chat.title')}</h1>
           <p className="text-xs text-muted-foreground mt-1">{t('login.personal_guide')}</p>
         </div>

@@ -255,6 +255,7 @@ def generate_stream(
         page_data=page_data,
         rag_docs=retrieved,
         language=language,
+        history=history,
     )
 
     api_key = os.environ.get("GEMINI_API_KEY", "")

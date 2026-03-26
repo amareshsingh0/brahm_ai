@@ -10,8 +10,8 @@ router = APIRouter()
 def muhurta(
     event: str = Query(default="general"),
     date: str = Query(default=None),
-    lat: float = Query(default=28.6139),
-    lon: float = Query(default=77.209),
+    lat: float = Query(default=23.1765),   # Ujjain — traditional Vedic meridian
+    lon: float = Query(default=75.7885),
     tz: float = Query(default=5.5),
 ):
     from datetime import date as _d

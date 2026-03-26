@@ -4,18 +4,55 @@ import type { ChatMessage, Source } from '../types/api';
 import { useLanguageStore, LANG_TO_API } from '@/store/languageStore';
 import { useKundliStore } from '@/store/kundliStore';
 import { useFactSheet } from '@/hooks/useFactSheet';
+import { useAuthStore } from '@/store/authStore';
+
+function generateSessionId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function getOrCreateSessionId(storageKey: string): string {
+  const key = `brahm-session-${storageKey}`;
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const id = generateSessionId();
+  localStorage.setItem(key, id);
+  return id;
+}
+
+export interface BirthFormData {
+  name: string;
+  gender: string;
+  date: string;   // YYYY-MM-DD
+  time: string;   // HH:MM
+  place: string;
+}
+
+export interface SaveKundaliPromptData {
+  birth_date: string;
+  birth_time: string;
+  birth_lat: number;
+  birth_lon: number;
+  birth_tz: number;
+  name: string;
+  place: string;
+  gender: string;
+}
 
 export interface UseChatOptions {
   pageContext?: string;
   pageData?: Record<string, unknown>;
-  persistKey?: string; // localStorage key for history persistence
+  persistKey?: string;
 }
 
 export interface UseChatReturn {
   messages: ChatMessage[];
   sources: Source[];
   streaming: boolean;
-  sendMessage: (text: string) => void;
+  showBirthForm: boolean;
+  saveKundaliPrompt: SaveKundaliPromptData | null;
+  sendMessage: (text: string, extraPageData?: Record<string, unknown>) => void;
+  submitBirthForm: (data: BirthFormData) => void;
+  dismissSavePrompt: () => void;
   clearHistory: () => void;
 }
 
@@ -23,6 +60,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
   const { pageContext = 'general', pageData = {}, persistKey } = options;
 
   const storageKey = persistKey ? `brahm-chat-${persistKey}` : null;
+  const userId = useAuthStore((s) => s.userId);
 
   const loadInitialMessages = (): ChatMessage[] => {
     if (!storageKey) return [];
@@ -35,6 +73,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>(loadInitialMessages);
   const [sources, setSources] = useState<Source[]>([]);
   const [streaming, setStreaming] = useState(false);
+  const [showBirthForm, setShowBirthForm] = useState(false);
+  const [saveKundaliPrompt, setSaveKundaliPrompt] = useState<SaveKundaliPromptData | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const globalLang = useLanguageStore((s) => LANG_TO_API[s.lang]);
 
@@ -81,10 +121,13 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     return data;
   }, [pageData, birthDetails, kundaliData, facts]);
 
-  const sendMessage = useCallback((text: string) => {
+  const sendMessage = useCallback((text: string, extraPageData?: Record<string, unknown>) => {
     if (streaming) {
       abortRef.current?.abort();
     }
+
+    setShowBirthForm(false);
+    setSaveKundaliPrompt(null);
 
     const userMsg: ChatMessage = { role: 'user', content: text };
     const assistantMsg: ChatMessage = { role: 'assistant', content: '' };
@@ -96,8 +139,9 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
-    // Keep last 8 messages only — prevents 413 on large histories
     const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }));
+    const sessionId = storageKey ? getOrCreateSessionId(storageKey) : generateSessionId();
+    const pageData = { ...buildPageData(), ...extraPageData };
 
     api.streamChat(
       {
@@ -105,7 +149,9 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         history,
         language: globalLang,
         page_context: pageContext,
-        page_data: buildPageData(),
+        page_data: pageData,
+        user_id: userId ?? undefined,
+        session_id: sessionId,
       },
       {
         onToken: (token) => {
@@ -118,6 +164,16 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         },
         onSources: (srcs) => setSources(srcs),
         onDone: () => setStreaming(false),
+        onBirthForm: () => {
+          // Remove the empty assistant message, show form instead
+          setMessages((prev) => prev.slice(0, -1));
+          setStreaming(false);
+          setShowBirthForm(true);
+        },
+        onSaveKundaliPrompt: (data) => {
+          setSaveKundaliPrompt(data);
+          setStreaming(false);
+        },
         onError: (err) => {
           setStreaming(false);
           setMessages((prev) => {
@@ -129,15 +185,36 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       },
       ctrl.signal
     );
-  }, [messages, streaming, globalLang, pageContext, buildPageData]);
+  }, [messages, streaming, globalLang, pageContext, buildPageData, userId, storageKey]);
+
+  const submitBirthForm = useCallback((data: BirthFormData) => {
+    setShowBirthForm(false);
+    // Send structured birth data as a user message with extra page_data
+    const text = `${data.name ? `Name: ${data.name}, ` : ''}DOB: ${data.date}, Time: ${data.time}, Place: ${data.place}${data.gender ? `, Gender: ${data.gender}` : ''}`;
+    sendMessage(text, { birth_gender: data.gender });
+  }, [sendMessage]);
+
+  const dismissSavePrompt = useCallback(() => {
+    setSaveKundaliPrompt(null);
+  }, []);
 
   const clearHistory = useCallback(() => {
     abortRef.current?.abort();
     setMessages([]);
     setSources([]);
     setStreaming(false);
-    if (storageKey) localStorage.removeItem(storageKey);
-  }, [storageKey]);
+    if (storageKey) {
+      // Delete the session from backend if user is logged in
+      const sessionKey = `brahm-session-${storageKey}`;
+      const sessionId = localStorage.getItem(sessionKey);
+      if (userId && sessionId) {
+        api.delete(`/api/user/chats/session/${encodeURIComponent(sessionId)}`).catch(() => {});
+      }
+      localStorage.removeItem(storageKey);
+      // Generate a new session ID for the next conversation
+      localStorage.removeItem(sessionKey);
+    }
+  }, [storageKey, userId]);
 
-  return { messages, sources, streaming, sendMessage, clearHistory };
+  return { messages, sources, streaming, showBirthForm, saveKundaliPrompt, sendMessage, submitBirthForm, dismissSavePrompt, clearHistory };
 }

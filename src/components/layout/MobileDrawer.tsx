@@ -98,7 +98,7 @@ export function MobileDrawer() {
                 {/* Logo row */}
                 <div className="flex items-center justify-between px-4 h-14 shrink-0 border-b border-border/30">
                   <div className="flex items-center gap-2.5">
-                    <Moon className="h-6 w-6 text-primary zodiac-glow" />
+                    <img src="/android-chrome-192x192.png" alt="Brahm AI" className="h-7 w-7 rounded-lg shrink-0" />
                     <span className="font-display text-[15px] text-primary text-glow-gold tracking-wide">
                       {t("appTitle")}
                     </span>

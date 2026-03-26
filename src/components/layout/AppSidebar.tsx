@@ -70,7 +70,7 @@ export function AppSidebar() {
 
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-6 shrink-0">
-          <Moon className="h-8 w-8 text-primary zodiac-glow" />
+          <img src="/android-chrome-192x192.png" alt="Brahm AI" className="h-8 w-8 rounded-xl shrink-0" />
           {!collapsed && (
             <span className="font-display text-lg text-primary text-glow-gold">{t('appTitle')}</span>
           )}

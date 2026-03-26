@@ -28,6 +28,7 @@ Return ONLY valid JSON, no explanation, no markdown:
   "intent": "one line: what user actually wants",
   "query_type": "CONVERSATIONAL|SIMPLE_FACT|DEEP_VEDIC|CHART_ANALYSIS|REPORT_ANALYSIS|RECOMMENDATION",
   "needs_calculation": true or false,
+  "needs_birth_form": true or false,
   "calc_services": [],
   "needs_rag": true or false,
   "kundali_focus": [],
@@ -58,11 +59,17 @@ Rules for query_type:
 - REPORT_ANALYSIS: explaining a report currently visible (compatibility score, panchang data)
 - RECOMMENDATION: muhurta, auspicious date, remedy, what to do
 
+Rules for needs_birth_form:
+- true ONLY if: user clearly wants kundali/chart/personal prediction AND birth_data is incomplete (missing date or place) AND has_kundali is "no"
+- false in all other cases (including when has_kundali is "yes" — no need to collect data again)
+
 Rules for needs_calculation:
 - true if: CHART_ANALYSIS or RECOMMENDATION and birth_data has at least date+time+place
 - true if: dasha timing, muhurta, panchang needed fresh
+- false if: has_kundali is "yes" — kundali already available, no recalculation needed
 - false if: page_data already has the data, or CONVERSATIONAL/SIMPLE_FACT
 - false if: birth_data is incomplete (missing date or place)
+- false if: needs_birth_form is true
 
 Rules for needs_rag:
 - true ONLY if: user explicitly asks "shastra mein kya hai", scripture reference, shlok
