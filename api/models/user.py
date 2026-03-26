@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 class UserProfile(BaseModel):
-    session_id: str
+    session_id: str = ""
     name: str = ""
     date: str = ""        # YYYY-MM-DD (birth_date)
     time: str = ""        # HH:MM     (birth_time)

@@ -68,19 +68,22 @@ def upsert_user(profile: UserProfile, request: Request, session_id: str = Query(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     sb = get_supabase()
-    sb.table("users").update({
-        "name":        profile.name,
-        "birth_date":  profile.date,
-        "birth_time":  profile.time,
-        "birth_lat":   profile.lat,
-        "birth_lon":   profile.lon,
-        "birth_tz":    profile.tz,
-        "birth_place": profile.place,
-        "gender":      profile.gender,
-        "rashi":       profile.rashi,
-        "nakshatra":   profile.nakshatra,
-        "language":    profile.language,
-    }).eq("id", user_id).execute()
+    try:
+        sb.table("users").update({
+            "name":        profile.name,
+            "birth_date":  profile.date,
+            "birth_time":  profile.time,
+            "birth_lat":   profile.lat,
+            "birth_lon":   profile.lon,
+            "birth_tz":    profile.tz,
+            "birth_place": profile.place,
+            "gender":      profile.gender,
+            "rashi":       profile.rashi,
+            "nakshatra":   profile.nakshatra,
+            "language":    profile.language,
+        }).eq("id", user_id).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Profile update failed: {e}")
     return profile
 
 

@@ -1,6 +1,7 @@
 package com.bimoraai.brahm.ui.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,10 +12,7 @@ import com.bimoraai.brahm.core.theme.BrahmBackground
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.ui.auth.LoginScreen
 import com.bimoraai.brahm.ui.auth.OnboardingScreen
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 // ─── Route constants ──────────────────────────────────────────────────────────
 object Route {
@@ -55,15 +53,22 @@ object Route {
 fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose.hiltViewModel<MainViewModel>().tokenDataStore) {
     val navController = rememberNavController()
 
-    // Determine start destination based on stored token
-    val hasToken = remember {
-        runBlocking { tokenDataStore.accessToken.firstOrNull() } != null
+    // Determine start destination asynchronously — runBlocking on main thread causes ANR/blank
+    var startDestination by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        val hasToken = tokenDataStore.accessToken.firstOrNull() != null
+        startDestination = if (hasToken) Route.MAIN else Route.ONBOARDING
     }
-    val startDestination = if (hasToken) Route.MAIN else Route.ONBOARDING
+
+    // Show blank background while checking token (replaces splash screen delay)
+    if (startDestination == null) {
+        Box(modifier = Modifier.fillMaxSize().background(BrahmBackground))
+        return
+    }
 
     NavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = startDestination!!,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
     ) {
         composable(Route.ONBOARDING) {

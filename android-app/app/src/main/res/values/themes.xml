@@ -13,7 +13,7 @@
     <!-- Splash screen — shows animated icon before Compose loads -->
     <style name="Theme.BrahmAI.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#F7F7F8</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_brahm_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="postSplashScreenTheme">@style/Theme.BrahmAI</item>
     </style>
 </resources>

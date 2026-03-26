@@ -80,7 +80,8 @@ class ProfileViewModel @Inject constructor(
                     userRepository.refresh()   // update shared cache
                     _saveState.value = SaveState.Success
                 } else {
-                    _saveState.value = SaveState.Error("Save failed (${res.code()})")
+                    val detail = res.errorBody()?.string() ?: ""
+                    _saveState.value = SaveState.Error("Save failed (${res.code()}): $detail")
                 }
             } catch (e: Exception) {
                 _saveState.value = SaveState.Error(e.message ?: "Unknown error")
