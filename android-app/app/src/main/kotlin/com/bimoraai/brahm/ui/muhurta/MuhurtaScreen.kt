@@ -12,6 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 @Composable
@@ -27,6 +28,7 @@ fun MuhurtaScreen(navController: NavController, vm: MuhurtaScreenViewModel = hil
     val fromDate  by vm.fromDate.collectAsState()
     val toDate    by vm.toDate.collectAsState()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,4 +67,5 @@ fun MuhurtaScreen(navController: NavController, vm: MuhurtaScreenViewModel = hil
             }
         }
     }
+    } // SwipeBackLayout
 }

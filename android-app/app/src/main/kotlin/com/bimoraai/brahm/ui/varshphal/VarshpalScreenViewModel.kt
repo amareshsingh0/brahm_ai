@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.network.ApiService
+import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -34,14 +37,27 @@ class VarshpalScreenViewModel @Inject constructor(
     val tob        = MutableStateFlow("")
     val pob        = MutableStateFlow("")
     val targetYear = MutableStateFlow("")
+    val lat        = MutableStateFlow(0.0)
+    val lon        = MutableStateFlow(0.0)
+    val tz         = MutableStateFlow("5.5")
 
     init {
-        userRepository.user.value?.let { u ->
-            if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
-            if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
-            if (tob.value.isBlank() && u.time.isNotBlank()) tob.value = u.time
-            if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
+        viewModelScope.launch {
+            userRepository.user
+                .filterNotNull()
+                .first()
+                .let { u -> prefillFromProfile(u) }
         }
+    }
+
+    private fun prefillFromProfile(u: UserDto) {
+        if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
+        if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
+        if (tob.value.isBlank() && u.time.isNotBlank()) tob.value = u.time
+        if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
+        if (lat.value == 0.0 && u.lat != 0.0) lat.value = u.lat
+        if (lon.value == 0.0 && u.lon != 0.0) lon.value = u.lon
+        if (u.tz != 0.0) tz.value = u.tz.toString()
     }
 
     fun calculate() {
@@ -59,9 +75,9 @@ class VarshpalScreenViewModel @Inject constructor(
                     put("tob",         JsonPrimitive(tob.value))
                     put("pob",         JsonPrimitive(pob.value))
                     put("target_year", JsonPrimitive(targetYear.value.ifBlank { "2025" }))
-                    put("lat",         JsonPrimitive(0.0))
-                    put("lon",         JsonPrimitive(0.0))
-                    put("tz",          JsonPrimitive("5.5"))
+                    put("lat",         JsonPrimitive(lat.value))
+                    put("lon",         JsonPrimitive(lon.value))
+                    put("tz",          JsonPrimitive(tz.value))
                 }
                 val resp = api.getVarshphal(body)
                 if (resp.isSuccessful) {

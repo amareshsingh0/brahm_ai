@@ -37,11 +37,11 @@ class KundaliViewModel @Inject constructor(
 
     // Birth inputs
     private var name = ""; private var dob = ""; private var tob = ""
-    private var pob = ""; private var lat = 0.0; private var lon = 0.0
+    private var pob = ""; private var lat = 0.0; private var lon = 0.0; private var tz = "5.5"
 
-    fun setInputs(name: String, dob: String, tob: String, pob: String, lat: Double, lon: Double) {
+    fun setInputs(name: String, dob: String, tob: String, pob: String, lat: Double, lon: Double, tz: String = "5.5") {
         this.name = name; this.dob = dob; this.tob = tob
-        this.pob = pob; this.lat = lat; this.lon = lon
+        this.pob = pob; this.lat = lat; this.lon = lon; this.tz = tz
     }
 
     fun generate() {
@@ -49,7 +49,7 @@ class KundaliViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
             try {
-                val res = api.generateKundali(KundaliRequest(name, dob, tob, pob, lat, lon, "Asia/Kolkata"))
+                val res = api.generateKundali(KundaliRequest(name, dob, tob, pob, lat, lon, tz))
                 if (res.isSuccessful) {
                     @Suppress("UNCHECKED_CAST")
                     _kundali.value = res.body()?.let { jsonObjectToMap(it) } as? Map<String, Any?>

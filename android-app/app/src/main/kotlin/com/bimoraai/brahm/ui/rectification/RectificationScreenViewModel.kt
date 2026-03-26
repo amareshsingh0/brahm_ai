@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.network.ApiService
+import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -30,25 +33,38 @@ class RectificationScreenViewModel @Inject constructor(
     val error:     StateFlow<String?>    = _error
     val hasData:   StateFlow<Boolean>    = _hasData
 
-    val name        = MutableStateFlow("")
-    val dob         = MutableStateFlow("")
-    val approxTob   = MutableStateFlow("")
-    val pob         = MutableStateFlow("")
+    val name      = MutableStateFlow("")
+    val dob       = MutableStateFlow("")
+    val approxTob = MutableStateFlow("")
+    val pob       = MutableStateFlow("")
+    val lat       = MutableStateFlow(0.0)
+    val lon       = MutableStateFlow(0.0)
+    val tz        = MutableStateFlow("5.5")
 
-    init {
-        userRepository.user.value?.let { u ->
-            if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
-            if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
-            if (approxTob.value.isBlank() && u.time.isNotBlank()) approxTob.value = u.time
-            if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
-        }
-    }
     val uncertainty = MutableStateFlow("±1 Hour")
-    // Life events
     val event1Type  = MutableStateFlow("Marriage")
     val event1Date  = MutableStateFlow("")
     val event2Type  = MutableStateFlow("Career Change")
     val event2Date  = MutableStateFlow("")
+
+    init {
+        viewModelScope.launch {
+            userRepository.user
+                .filterNotNull()
+                .first()
+                .let { u -> prefillFromProfile(u) }
+        }
+    }
+
+    private fun prefillFromProfile(u: UserDto) {
+        if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
+        if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
+        if (approxTob.value.isBlank() && u.time.isNotBlank()) approxTob.value = u.time
+        if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
+        if (lat.value == 0.0 && u.lat != 0.0) lat.value = u.lat
+        if (lon.value == 0.0 && u.lon != 0.0) lon.value = u.lon
+        if (u.tz != 0.0) tz.value = u.tz.toString()
+    }
 
     fun calculate() {
         if (dob.value.isBlank() || approxTob.value.isBlank()) {
@@ -65,9 +81,9 @@ class RectificationScreenViewModel @Inject constructor(
                     put("approx_tob",  JsonPrimitive(approxTob.value))
                     put("pob",         JsonPrimitive(pob.value))
                     put("uncertainty", JsonPrimitive(uncertainty.value))
-                    put("lat",         JsonPrimitive(0.0))
-                    put("lon",         JsonPrimitive(0.0))
-                    put("tz",          JsonPrimitive("5.5"))
+                    put("lat",         JsonPrimitive(lat.value))
+                    put("lon",         JsonPrimitive(lon.value))
+                    put("tz",          JsonPrimitive(tz.value))
                     put("events",      buildJsonObject {
                         if (event1Date.value.isNotBlank()) put("event1", buildJsonObject {
                             put("type", JsonPrimitive(event1Type.value))

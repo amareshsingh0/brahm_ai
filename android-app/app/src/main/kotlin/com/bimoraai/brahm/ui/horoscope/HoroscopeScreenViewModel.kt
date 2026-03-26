@@ -25,15 +25,21 @@ class HoroscopeScreenViewModel @Inject constructor(
 
     val selectedRashi = MutableStateFlow("Aries")
 
+    // In-memory cache: rashi → result (shared across rashi switches in same session)
+    private val cache = mutableMapOf<String, JsonObject>()
+
     fun loadForRashi(rashi: String) {
         selectedRashi.value = rashi
+        // Return instantly from cache if available
+        cache[rashi]?.let { _result.value = it; return }
+
         viewModelScope.launch {
             _isLoading.value = true
             _error.value     = null
             try {
                 val resp = api.getHoroscope(rashi = rashi)
                 if (resp.isSuccessful) {
-                    _result.value = resp.body()
+                    resp.body()?.let { cache[rashi] = it; _result.value = it }
                 } else {
                     _error.value = "Failed to load horoscope. Please try again."
                 }

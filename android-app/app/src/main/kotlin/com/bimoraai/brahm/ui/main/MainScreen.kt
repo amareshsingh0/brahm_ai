@@ -29,6 +29,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.theme.*
@@ -100,7 +103,11 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
                 restoreState = true
             }
         } else {
-            // Full-screen routes go to outer NavController
+            // Reset inner tab to today so back press returns to Today, not Kundali/other tab
+            tabNavController.navigate("tab_today") {
+                popUpTo("tab_today") { inclusive = false }
+                launchSingleTop = true
+            }
             navController.navigate(route)
         }
     }
@@ -158,6 +165,10 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
                     .fillMaxSize()
                     .background(BrahmBackground)
                     .padding(innerPadding),
+                enterTransition    = { fadeIn(tween(150)) },
+                exitTransition     = { fadeOut(tween(100)) },
+                popEnterTransition = { fadeIn(tween(150)) },
+                popExitTransition  = { fadeOut(tween(100)) },
             ) {
                 composable("tab_today")   { TodayScreen(navController, tabNavController) }
                 composable("tab_kundali") { KundaliScreen(navController) }

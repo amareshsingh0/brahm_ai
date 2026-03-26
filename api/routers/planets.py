@@ -1,10 +1,16 @@
 """
 Current planetary positions (sidereal, Lahiri).
 """
+import time as _time
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import JSONResponse
 from api.config import EPHE_PATH, RASHI_NAMES, NAKSHATRAS
 
 router = APIRouter()
+
+# Cache: key = (rounded_lat, rounded_lon, 5-min bucket), value = (result, ts)
+_PLANETS_CACHE: dict = {}
+_PLANETS_TTL = 300  # 5 minutes
 
 
 @router.get("/planets/now")
@@ -13,6 +19,13 @@ def planets_now(
     lon: float = Query(default=75.7885),
     tz: float = Query(default=5.5),
 ):
+    # Check cache first (5-min bucket shared across users at same ~location)
+    cache_key = (round(lat, 1), round(lon, 1), int(_time.time() // _PLANETS_TTL))
+    cached = _PLANETS_CACHE.get(cache_key)
+    if cached:
+        result, _ = cached
+        return JSONResponse(content=result, headers={"Cache-Control": "public, max-age=300"})
+
     try:
         import swisseph as swe
         from datetime import datetime, timezone
@@ -58,7 +71,13 @@ def planets_now(
             "degree": round(lagna_lon_sid % 30, 2),
         }
 
-        return {"grahas": grahas, "lagna": lagna, "computed_at": now.isoformat()}
+        result = {"grahas": grahas, "lagna": lagna, "computed_at": now.isoformat()}
+        _PLANETS_CACHE[cache_key] = (result, _time.time())
+        # Evict old entries (keep cache lean)
+        cutoff = int(_time.time() // _PLANETS_TTL) - 2
+        for k in [k for k in _PLANETS_CACHE if k[2] < cutoff]:
+            _PLANETS_CACHE.pop(k, None)
+        return JSONResponse(content=result, headers={"Cache-Control": "public, max-age=300"})
     except ImportError:
         raise HTTPException(status_code=503, detail="pyswisseph not installed")
     except Exception as e:

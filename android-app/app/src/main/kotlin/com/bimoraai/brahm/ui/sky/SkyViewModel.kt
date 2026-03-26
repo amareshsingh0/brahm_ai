@@ -27,25 +27,25 @@ class SkyViewModel @Inject constructor(
 
     init {
         load()
-        // Auto-refresh every 60 seconds
+        // Auto-refresh every 5 minutes silently (no loading spinner)
         viewModelScope.launch {
             while (isActive) {
-                delay(60_000)
-                load()
+                delay(5 * 60_000)
+                load(showLoading = false)
             }
         }
     }
 
-    fun load() {
+    fun load(showLoading: Boolean = _planets.value == null) {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value     = null
+            if (showLoading) _isLoading.value = true
+            _error.value = null
             try {
                 val resp = api.getPlanetsNow()
                 if (resp.isSuccessful) _planets.value = resp.body()
-                else _error.value = "Failed to load sky data"
+                else if (_planets.value == null) _error.value = "Failed to load sky data"
             } catch (e: Exception) {
-                _error.value = e.message ?: "Network error"
+                if (_planets.value == null) _error.value = e.message ?: "Network error"
             } finally {
                 _isLoading.value = false
             }

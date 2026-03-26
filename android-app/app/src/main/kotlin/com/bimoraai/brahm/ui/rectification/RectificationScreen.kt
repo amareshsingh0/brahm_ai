@@ -12,6 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 @Composable
@@ -30,6 +31,7 @@ fun RectificationScreen(navController: NavController, vm: RectificationScreenVie
     val event2Type  by vm.event2Type.collectAsState()
     val event2Date  by vm.event2Date.collectAsState()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -73,4 +75,5 @@ fun RectificationScreen(navController: NavController, vm: RectificationScreenVie
             }
         }
     }
+    } // SwipeBackLayout
 }

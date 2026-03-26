@@ -33,7 +33,7 @@ fun KundaliScreen(
     LaunchedEffect(savedProfile) {
         val u = savedProfile
         if (kundali == null && !isLoading && u != null && u.date.isNotBlank() && u.place.isNotBlank()) {
-            vm.setInputs(u.name, u.date, u.time, u.place, 0.0, 0.0)
+            vm.setInputs(u.name, u.date, u.time, u.place, u.lat, u.lon, u.tz.toString())
             vm.generate()
         }
     }

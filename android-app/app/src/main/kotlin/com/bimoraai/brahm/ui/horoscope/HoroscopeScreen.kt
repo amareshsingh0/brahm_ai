@@ -12,6 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 @Composable
@@ -21,6 +22,7 @@ fun HoroscopeScreen(navController: NavController, vm: HoroscopeScreenViewModel =
     val error         by vm.error.collectAsState()
     val selectedRashi by vm.selectedRashi.collectAsState()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -51,4 +53,5 @@ fun HoroscopeScreen(navController: NavController, vm: HoroscopeScreenViewModel =
             )
         }
     }
+    } // SwipeBackLayout
 }

@@ -1,4 +1,21 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
+
+const CONFIDENCE_RE = /\[CONFIDENCE:\s*\w+\]/g;
+const FOLLOWUPS_RE  = /\[FOLLOWUPS:\s*(.*?)\]/s;
+
+function stripTags(raw: string): string {
+  return raw.replace(CONFIDENCE_RE, '').replace(FOLLOWUPS_RE, '').trim();
+}
+
+function parseFollowUps(raw: string): string[] {
+  const match = FOLLOWUPS_RE.exec(raw);
+  if (!match) return [];
+  return match[1]
+    .split('|')
+    .map((s) => s.trim().replace(/^"|"$/g, ''))
+    .filter(Boolean)
+    .slice(0, 3);
+}
 import { api } from '../lib/api';
 import type { ChatMessage, Source } from '../types/api';
 import { useLanguageStore, LANG_TO_API } from '@/store/languageStore';
@@ -76,6 +93,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
   const [showBirthForm, setShowBirthForm] = useState(false);
   const [saveKundaliPrompt, setSaveKundaliPrompt] = useState<SaveKundaliPromptData | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const rawBufferRef = useRef<string>('');
   const globalLang = useLanguageStore((s) => LANG_TO_API[s.lang]);
 
   // Auto-read user profile from store
@@ -138,6 +156,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    rawBufferRef.current = '';
 
     const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }));
     const sessionId = storageKey ? getOrCreateSessionId(storageKey) : generateSessionId();
@@ -155,15 +174,27 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       },
       {
         onToken: (token) => {
+          rawBufferRef.current += token;
+          const cleanContent = stripTags(rawBufferRef.current);
           setMessages((prev) => {
             const updated = [...prev];
             const last = updated[updated.length - 1];
-            updated[updated.length - 1] = { ...last, content: last.content + token };
+            updated[updated.length - 1] = { ...last, content: cleanContent };
             return updated;
           });
         },
         onSources: (srcs) => setSources(srcs),
-        onDone: () => setStreaming(false),
+        onDone: () => {
+          const followUps = parseFollowUps(rawBufferRef.current);
+          const cleanContent = stripTags(rawBufferRef.current);
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            updated[updated.length - 1] = { ...last, content: cleanContent, followUps, isComplete: true };
+            return updated;
+          });
+          setStreaming(false);
+        },
         onBirthForm: () => {
           // Remove the empty assistant message, show form instead
           setMessages((prev) => prev.slice(0, -1));

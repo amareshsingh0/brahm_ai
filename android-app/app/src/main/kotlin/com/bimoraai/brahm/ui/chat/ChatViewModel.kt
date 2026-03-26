@@ -11,6 +11,31 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class ChatMessage(
+    val role: String,
+    val content: String,
+    val followUps: List<String> = emptyList(),
+    val isComplete: Boolean = false,
+)
+
+// Strips [CONFIDENCE: HIGH/MEDIUM/LOW] and [FOLLOWUPS: "q1" | "q2"] from display text
+private val CONFIDENCE_REGEX = Regex("""\[CONFIDENCE:\s*\w+\]""")
+private val FOLLOWUPS_REGEX  = Regex("""\[FOLLOWUPS:\s*(.*?)\]""", RegexOption.DOT_MATCHES_ALL)
+
+private fun stripTags(raw: String): String =
+    raw.replace(CONFIDENCE_REGEX, "")
+       .replace(FOLLOWUPS_REGEX, "")
+       .trim()
+
+private fun parseFollowUps(raw: String): List<String> {
+    val match = FOLLOWUPS_REGEX.find(raw) ?: return emptyList()
+    return match.groupValues[1]
+        .split("|")
+        .map { it.trim().trim('"') }
+        .filter { it.isNotBlank() }
+        .take(3)
+}
+
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val sseManager: SseManager,
@@ -23,35 +48,48 @@ class ChatViewModel @Inject constructor(
     val isStreaming = _isStreaming.asStateFlow()
 
     fun sendMessage(text: String) {
-        // Snapshot history before adding new user message
         val historySnapshot = _messages.value.map { Pair(it.role, it.content) }
 
-        // Add user message immediately
-        _messages.value = _messages.value + ChatMessage("user", text)
+        _messages.value = _messages.value + ChatMessage("user", text, isComplete = true)
         _isStreaming.value = true
-
-        // Add empty assistant bubble
+        // Empty assistant bubble — typing indicator shows until first token
         _messages.value = _messages.value + ChatMessage("assistant", "")
 
         viewModelScope.launch {
-            var buffer = ""
+            var rawBuffer = ""
             sseManager.streamChat(text, historySnapshot)
                 .catch { e ->
-                    updateLast("Error: ${e.message ?: "Network error"}")
+                    updateLast("Error: ${e.message ?: "Network error"}", isComplete = true)
                     _isStreaming.value = false
                 }
-                .onCompletion { _isStreaming.value = false }
+                .onCompletion {
+                    // Final parse: extract follow-ups + fully clean text
+                    val followUps = parseFollowUps(rawBuffer)
+                    updateLast(stripTags(rawBuffer), followUps = followUps, isComplete = true)
+                    _isStreaming.value = false
+                }
                 .collect { token ->
-                    buffer += token
-                    updateLast(buffer)
+                    rawBuffer += token
+                    // Show clean text during streaming (no tags flicker)
+                    updateLast(stripTags(rawBuffer))
                 }
         }
     }
 
-    private fun updateLast(content: String) {
+    fun sendFollowUp(question: String) = sendMessage(question)
+
+    private fun updateLast(
+        content: String,
+        followUps: List<String> = emptyList(),
+        isComplete: Boolean = false,
+    ) {
         val list = _messages.value.toMutableList()
         if (list.isNotEmpty()) {
-            list[list.size - 1] = list.last().copy(content = content)
+            list[list.size - 1] = list.last().copy(
+                content = content,
+                followUps = followUps,
+                isComplete = isComplete,
+            )
             _messages.value = list
         }
     }

@@ -8,6 +8,8 @@ import com.bimoraai.brahm.core.network.KundaliRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import javax.inject.Inject
@@ -37,16 +39,24 @@ class YogasViewModel @Inject constructor(
     val lon   = MutableStateFlow(0.0)
     val tz    = MutableStateFlow("5.5")
 
-    init { prefillFromProfile() }
-
-    private fun prefillFromProfile() {
-        userRepository.user.value?.let { u ->
-            if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
-            if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
-            if (tob.value.isBlank() && u.time.isNotBlank()) tob.value = u.time
-            if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
-            if (u.date.isNotBlank() && u.place.isNotBlank()) calculate()
+    init {
+        viewModelScope.launch {
+            userRepository.user
+                .filterNotNull()
+                .first { it.date.isNotBlank() && it.place.isNotBlank() }
+                .let { u -> prefillFromProfile(u) }
         }
+    }
+
+    private fun prefillFromProfile(u: com.bimoraai.brahm.core.network.UserDto) {
+        if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
+        if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
+        if (tob.value.isBlank() && u.time.isNotBlank()) tob.value = u.time
+        if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
+        if (lat.value == 0.0 && u.lat != 0.0) lat.value = u.lat
+        if (lon.value == 0.0 && u.lon != 0.0) lon.value = u.lon
+        if (u.tz != 0.0) tz.value = u.tz.toString()
+        calculate()
     }
 
     fun calculate() {

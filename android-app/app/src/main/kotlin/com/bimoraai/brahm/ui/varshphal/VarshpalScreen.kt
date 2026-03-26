@@ -12,6 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 @Composable
@@ -26,6 +27,7 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
     val pob        by vm.pob.collectAsState()
     val targetYear by vm.targetYear.collectAsState()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -62,4 +64,5 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
             }
         }
     }
+    } // SwipeBackLayout
 }

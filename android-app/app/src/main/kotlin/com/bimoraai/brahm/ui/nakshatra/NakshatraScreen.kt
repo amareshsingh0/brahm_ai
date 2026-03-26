@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 data class NakshatraInfo(
@@ -72,6 +73,7 @@ private val nakshatraList = listOf(
 fun NakshatraScreen(navController: NavController) {
     var selectedNakshatra by remember { mutableStateOf<NakshatraInfo?>(null) }
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,7 +83,7 @@ fun NakshatraScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
@@ -99,6 +101,7 @@ fun NakshatraScreen(navController: NavController) {
             }
         }
     }
+    } // SwipeBackLayout
 }
 
 @Composable

@@ -274,6 +274,8 @@ export interface PanchangResponse {
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  followUps?: string[];
+  isComplete?: boolean;
 }
 export interface Source {
   book: string;

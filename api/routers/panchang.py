@@ -1,12 +1,13 @@
 from datetime import date as _date
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import JSONResponse
 from api.models.panchang import PanchangResponse
 from api.services.panchang_service import get_panchang
 
 router = APIRouter()
 
 
-@router.get("/panchang", response_model=PanchangResponse)
+@router.get("/panchang")
 def panchang(
     date: str = Query(default=None, description="YYYY-MM-DD, defaults to today"),
     lat: float = Query(default=23.1765),   # Ujjain — traditional Vedic meridian
@@ -24,7 +25,9 @@ def panchang(
             raise HTTPException(status_code=422, detail="date must be YYYY-MM-DD")
 
     try:
-        return get_panchang(year, month, day, lat, lon, tz)
+        result = get_panchang(year, month, day, lat, lon, tz)
+        # Panchang is daily data — cache for 6 hours (CDN/browser)
+        return JSONResponse(content=result, headers={"Cache-Control": "public, max-age=21600"})
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:

@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -32,6 +33,20 @@ private fun JsonObject.str(key: String): String {
     val el = this[key] ?: return "—"
     if (el !is JsonPrimitive) return "—"
     return el.contentOrNull?.takeIf { it.isNotBlank() && it != "null" } ?: "—"
+}
+
+private fun JsonObject.nested(outer: String, inner: String): String {
+    val obj = this[outer]?.let { try { it.jsonObject } catch (_: Exception) { null } } ?: return "—"
+    val el  = obj[inner] ?: return "—"
+    if (el !is JsonPrimitive) return "—"
+    return (el as JsonPrimitive).contentOrNull?.takeIf { it.isNotBlank() && it != "null" } ?: "—"
+}
+
+private fun JsonObject.timeRange(key: String): String {
+    val obj = this[key]?.let { try { it.jsonObject } catch (_: Exception) { null } } ?: return "—"
+    val s = obj["start"]?.let { if (it is JsonPrimitive) it.contentOrNull else null } ?: "?"
+    val e = obj["end"]?.let   { if (it is JsonPrimitive) it.contentOrNull else null } ?: "?"
+    return "$s – $e"
 }
 
 // Choghadiya periods — static for day (calculated dynamically by backend; shown as placeholder if not returned)
@@ -59,6 +74,7 @@ fun PanchangScreen(
     val isLoading by vm.isLoading.collectAsState()
     val error     by vm.error.collectAsState()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,7 +84,7 @@ fun PanchangScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
@@ -78,6 +94,7 @@ fun PanchangScreen(
             else -> PanchangContent(panchang, festivals, grahan, Modifier.padding(padding))
         }
     }
+    } // SwipeBackLayout
 }
 
 @Composable
@@ -102,19 +119,17 @@ private fun PanchangContent(
             Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        PanchangStatCard("Tithi",    p.str("tithi"),          p.str("tithi_lord"),       Color(0xFFFF8F00), Modifier.weight(1f))
-                        PanchangStatCard("Nakshatra",p.str("nakshatra"),      p.str("nakshatra_lord"),   Color(0xFF5C6BC0), Modifier.weight(1f))
+                        PanchangStatCard("Tithi",    p.nested("tithi",    "name"), p.nested("tithi",    "paksha"), Color(0xFFFF8F00), Modifier.weight(1f))
+                        PanchangStatCard("Nakshatra",p.nested("nakshatra","name"), p.nested("nakshatra","lord"),   Color(0xFF5C6BC0), Modifier.weight(1f))
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        PanchangStatCard("Yoga",    p.str("yoga"),            "—",                       Color(0xFF43A047), Modifier.weight(1f))
-                        PanchangStatCard("Karan",   p.str("karan"),           "—",                       Color(0xFF8E24AA), Modifier.weight(1f))
+                        PanchangStatCard("Yoga",  p.nested("yoga",   "name"), p.nested("yoga",  "hindi"), Color(0xFF43A047), Modifier.weight(1f))
+                        PanchangStatCard("Karan", p.nested("karana", "name"), p.nested("karana","hindi"), Color(0xFF8E24AA), Modifier.weight(1f))
                     }
                     HorizontalDivider(color = BrahmBorder)
-                    PanchangRow("Var (Day)",    p.str("var"))
-                    PanchangRow("Moon Rashi",   p.str("chandra_rashi"))
-                    PanchangRow("Sun Rashi",    p.str("surya_rashi"))
-                    PanchangRow("Sunrise",      p.str("sunrise"))
-                    PanchangRow("Sunset",       p.str("sunset"))
+                    PanchangRow("Var (Day)", p.nested("vara", "name"))
+                    PanchangRow("Sunrise",   p.str("sunrise"))
+                    PanchangRow("Sunset",    p.str("sunset"))
                 }
             }
         }
@@ -124,10 +139,10 @@ private fun PanchangContent(
         item {
             Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    InauspiciousRow("Rahu Kaal",   p.str("rahu_kaal"),   Color(0xFFE53935))
-                    InauspiciousRow("Yamagandam",  p.str("yamagandam"),  Color(0xFF8E24AA))
-                    InauspiciousRow("Gulika Kaal", p.str("gulika_kaal"), Color(0xFF546E7A))
-                    InauspiciousRow("Dur Muhurta", p.str("dur_muhurta"), Color(0xFFFF6F00))
+                    InauspiciousRow("Rahu Kaal",   p.timeRange("rahukaal"),    Color(0xFFE53935))
+                    InauspiciousRow("Yamagandam",  p.timeRange("yamagandam"),  Color(0xFF8E24AA))
+                    InauspiciousRow("Gulika Kaal", p.timeRange("gulika_kaal"), Color(0xFF546E7A))
+                    InauspiciousRow("Brahma Muhurta", p.timeRange("brahma_muhurta"), Color(0xFF1565C0))
                 }
             }
         }
@@ -139,10 +154,12 @@ private fun PanchangContent(
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     val chogs = panchang?.get("choghadiya")?.let { el ->
                         try {
-                            el.jsonArray.mapIndexed { i, item ->
-                                val obj = item.jsonObject
-                                val name = obj["name"]?.jsonPrimitive?.contentOrNull ?: staticChoghadiya[i % 8].name
-                                val type = if (name in auspiciousNames) "Auspicious" else "Inauspicious"
+                            val chogObj = el.jsonObject
+                            val dayList = chogObj["day"]?.jsonArray ?: return@let null
+                            dayList.map { item ->
+                                val obj   = item.jsonObject
+                                val name  = obj["name"]?.jsonPrimitive?.contentOrNull ?: "—"
+                                val type  = if (name in auspiciousNames) "Auspicious" else "Inauspicious"
                                 val start = obj["start"]?.jsonPrimitive?.contentOrNull ?: "—"
                                 val end   = obj["end"]?.jsonPrimitive?.contentOrNull ?: "—"
                                 Triple(name, type, "$start – $end")

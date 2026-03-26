@@ -22,7 +22,9 @@ export function usePanchang(params: PanchangParams = {}) {
       api.get<PanchangResponse>(
         `/api/panchang?date=${queryDate}&lat=${lat}&lon=${lon}&tz=${tz}`
       ),
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000, // auto-refetch every 5 min
+    staleTime: 6 * 60 * 60 * 1000,  // 6 hours — panchang is daily data
+    gcTime:    6 * 60 * 60 * 1000,
+    refetchInterval: false,          // no polling — data doesn't change mid-day
+    refetchOnWindowFocus: false,
   });
 }

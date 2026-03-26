@@ -12,6 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 @Composable
@@ -25,6 +26,7 @@ fun GemstoneScreen(navController: NavController, vm: GemstoneScreenViewModel = h
     val tob       by vm.tob.collectAsState()
     val pob       by vm.pob.collectAsState()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -60,4 +62,5 @@ fun GemstoneScreen(navController: NavController, vm: GemstoneScreenViewModel = h
             }
         }
     }
+    } // SwipeBackLayout
 }

@@ -321,56 +321,23 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
               )}
 
               {messages.map((msg, i) => {
-                const isLastMsg = i === messages.length - 1;
-                const isLastAssistant = msg.role === 'assistant' && isLastMsg;
-
-                let displayContent = msg.content;
-                let confidence: 'HIGH' | 'MEDIUM' | 'LOW' | null = null;
-                let followups: string[] = [];
-
-                if (msg.role === 'assistant' && msg.content) {
-                  const confMatch = msg.content.match(/\[CONFIDENCE:\s*(HIGH|MEDIUM|LOW)\]/i);
-                  if (confMatch) {
-                    confidence = confMatch[1].toUpperCase() as 'HIGH' | 'MEDIUM' | 'LOW';
-                    displayContent = displayContent.replace(/\n?\[CONFIDENCE:\s*(HIGH|MEDIUM|LOW)\]\n?/gi, '').trim();
-                  }
-                  const fuMatch = displayContent.match(/\[FOLLOWUPS:\s*([^\]]+)\]/i);
-                  if (fuMatch) {
-                    followups = fuMatch[1]
-                      .split('|')
-                      .map((q) => q.trim().replace(/^["']|["']$/g, ''))
-                      .filter(Boolean)
-                      .slice(0, 3);
-                    displayContent = displayContent.replace(/\n?\[FOLLOWUPS:[^\]]*\]\n?/gi, '').trim();
-                  }
-                }
-
-                const confDot = confidence === 'HIGH' ? 'bg-green-400'
-                  : confidence === 'MEDIUM' ? 'bg-yellow-400'
-                  : confidence === 'LOW' ? 'bg-red-400' : null;
-
-                // Show followups:
-                // - On completed messages: show collapsed (only on last) for space, or always
-                // - Never show while streaming the current message
-                const showFollowups = followups.length > 0 && !(streaming && isLastAssistant);
+                const isLastAssistant = msg.role === 'assistant' && i === messages.length - 1;
+                const showFollowups = msg.isComplete && (msg.followUps?.length ?? 0) > 0;
 
                 return (
                   <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    <div className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap relative ${
+                    <div className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
                       msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/40 text-foreground'
                     }`}>
-                      {displayContent || (streaming && isLastAssistant ? <Loader2 className="h-3 w-3 animate-spin" /> : '')}
-                      {confDot && (
-                        <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${confDot}`} title={`${confidence} confidence`} />
-                      )}
+                      {msg.content || (streaming && isLastAssistant ? <Loader2 className="h-3 w-3 animate-spin" /> : '')}
                     </div>
                     {showFollowups && (
                       <div className="flex flex-wrap gap-1.5 mt-1.5 max-w-[90%]">
-                        {followups.map((q, qi) => (
+                        {msg.followUps!.map((q, qi) => (
                           <button
                             key={qi}
                             onClick={() => sendMessage(q)}
-                            className="text-[10px] px-2.5 py-1 rounded-full bg-muted/50 hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border/30 hover:border-primary/30 transition-all leading-none"
+                            className="text-[10px] px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 hover:border-amber-300 transition-all leading-none"
                           >
                             {q}
                           </button>

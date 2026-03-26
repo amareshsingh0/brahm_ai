@@ -12,6 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 @Composable
@@ -29,6 +30,7 @@ fun CompatibilityScreen(navController: NavController, vm: CompatibilityScreenVie
     val tob2      by vm.tob2.collectAsState()
     val pob2      by vm.pob2.collectAsState()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -69,4 +71,5 @@ fun CompatibilityScreen(navController: NavController, vm: CompatibilityScreenVie
             }
         }
     }
+    } // SwipeBackLayout
 }

@@ -13,7 +13,10 @@ import kotlinx.serialization.json.Json
 import okhttp3.ConnectionPool
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
+import org.json.JSONObject
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -38,11 +41,16 @@ object NetworkModule {
                 HttpLoggingInterceptor.Level.NONE
         }
 
+        // Minimal plain client used only for token refresh (avoids circular dependency)
+        val refreshClient = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+
         return OkHttpClient.Builder()
-            // Connection pool — handles millions of concurrent users efficiently
             .connectionPool(ConnectionPool(20, 5, TimeUnit.MINUTES))
             .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)  // longer for SSE/AI streaming
+            .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             // Auto-attach JWT token to every request
             .addInterceptor { chain ->
@@ -53,6 +61,39 @@ object NetworkModule {
                         .build()
                 } else chain.request()
                 chain.proceed(request)
+            }
+            // Auto-refresh expired JWT on 401 — retries the original request once
+            .authenticator { _, response ->
+                // Don't retry if already retried, or if no auth was sent
+                if (response.request.header("X-Auth-Retry") != null) return@authenticator null
+                val refreshToken = runBlocking { tokenDataStore.refreshToken.firstOrNull() }
+                    ?: return@authenticator null
+
+                val body = """{"refresh_token":"$refreshToken"}"""
+                    .toRequestBody("application/json".toMediaType())
+                val refreshRequest = Request.Builder()
+                    .url("${BuildConfig.BASE_URL}auth/refresh")
+                    .post(body)
+                    .build()
+
+                val refreshResponse = try {
+                    refreshClient.newCall(refreshRequest).execute()
+                } catch (_: Exception) { return@authenticator null }
+
+                if (!refreshResponse.isSuccessful) return@authenticator null
+
+                val bodyStr = refreshResponse.body?.string() ?: return@authenticator null
+                val newAccess  = try { JSONObject(bodyStr).optString("access_token")  } catch (_: Exception) { null }
+                val newRefresh = try { JSONObject(bodyStr).optString("refresh_token") } catch (_: Exception) { null }
+
+                if (newAccess.isNullOrBlank()) return@authenticator null
+
+                runBlocking { tokenDataStore.saveTokens(newAccess, newRefresh ?: refreshToken) }
+
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer $newAccess")
+                    .header("X-Auth-Retry", "true")
+                    .build()
             }
             .addInterceptor(logging)
             .build()

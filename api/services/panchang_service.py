@@ -2,7 +2,7 @@
 Panchang service — wraps scripts/panchang.py Panchang class (v2).
 Single source of calculation truth (no duplicate logic here).
 """
-import sys, os
+import sys, os, time
 from typing import Optional
 
 # Import Panchang from the scripts directory on the VM
@@ -18,6 +18,18 @@ except Exception as _e:
     PANCHANG_AVAILABLE = False
     print(f"WARNING: panchang.py import failed — {_e}")
 
+# ── In-process cache ──────────────────────────────────────────────────────────
+# Key: (year, month, day, rounded_lat, rounded_lon, tz)
+# Value: (result_dict, timestamp)
+# TTL: 24 hours — panchang for a given date never changes.
+_PANCHANG_CACHE: dict = {}
+_PANCHANG_TTL = 24 * 3600  # 24 hours
+
+
+def _cache_key(year, month, day, lat, lon, tz):
+    # Round lat/lon to 1 decimal (~11 km grid) so nearby locations share cache
+    return (year, month, day, round(lat, 1), round(lon, 1), round(tz * 2) / 2)
+
 
 def get_panchang(year: int, month: int, day: int, lat: float, lon: float, tz: float) -> dict:
     """
@@ -26,6 +38,14 @@ def get_panchang(year: int, month: int, day: int, lat: float, lon: float, tz: fl
     """
     if not PANCHANG_AVAILABLE:
         raise RuntimeError("Panchang module unavailable (pyswisseph not installed)")
+
+    # Return cached result if still fresh
+    key = _cache_key(year, month, day, lat, lon, tz)
+    cached = _PANCHANG_CACHE.get(key)
+    if cached:
+        result, ts = cached
+        if time.time() - ts < _PANCHANG_TTL:
+            return result
 
     p   = Panchang(year, month, day, lat=lat, lon=lon, tz=tz)
     raw = p.to_dict()
@@ -70,7 +90,7 @@ def get_panchang(year: int, month: int, day: int, lat: float, lon: float, tz: fl
         "midpoint": nishita.get("midpoint", ""),
     } if nishita else None
 
-    return {
+    result = {
         "vara": {
             "name":  vara.get("name", ""),
             "hindi": vara.get("hindi", ""),
@@ -113,3 +133,6 @@ def get_panchang(year: int, month: int, day: int, lat: float, lon: float, tz: fl
         "choghadiya":      choghadiya_out,
         "panchaka":        raw.get("panchaka", False),
     }
+
+    _PANCHANG_CACHE[key] = (result, time.time())
+    return result

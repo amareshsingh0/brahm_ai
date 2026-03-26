@@ -1,5 +1,8 @@
 package com.bimoraai.brahm.ui.main
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,6 +73,10 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         navController = navController,
         startDestination = startDestination!!,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
+        enterTransition    = { fadeIn(tween(180)) },
+        exitTransition     = { fadeOut(tween(120)) },
+        popEnterTransition = { fadeIn(tween(180)) },
+        popExitTransition  = { fadeOut(tween(120)) },
     ) {
         composable(Route.ONBOARDING) {
             OnboardingScreen(

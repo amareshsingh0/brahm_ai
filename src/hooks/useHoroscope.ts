@@ -7,6 +7,8 @@ export function useHoroscope(rashi: string, period = 'daily') {
     queryKey: ['horoscope', rashi, period],
     queryFn: () => api.get<HoroscopeResponse>(`/api/horoscope/${rashi}?period=${period}`),
     enabled: Boolean(rashi),
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 6 * 60 * 60 * 1000,  // 6 hours — horoscope is daily data
+    gcTime:    6 * 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }

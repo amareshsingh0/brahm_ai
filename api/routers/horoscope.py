@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import JSONResponse
 from api.services.horoscope_service import get_horoscope
 
 router = APIRouter()
@@ -16,6 +17,8 @@ def horoscope(rashi: str, period: str = Query(default="daily")):
         r for r in VALID_RASHIS if r.lower() == rashi.lower()
     )
     try:
-        return get_horoscope(rashi, period)
+        result = get_horoscope(rashi, period)
+        # Horoscope is daily — cache for 1 hour (browser/CDN)
+        return JSONResponse(content=result, headers={"Cache-Control": "public, max-age=3600"})
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
