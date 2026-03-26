@@ -107,9 +107,7 @@ export default function RectificationPage() {
   const handlePlaceInput = async (val: string) => {
     setPlace(val);
     if (val.length < 2) { setCitySuggestions([]); return; }
-    const results = val.length < 4
-      ? getCities().filter(c => c.name.toLowerCase().startsWith(val.toLowerCase())).slice(0, 6)
-      : await searchCities(val);
+    const results = await searchCities(val);
     setCitySuggestions(results.slice(0, 6));
     setShowSuggestions(true);
   };

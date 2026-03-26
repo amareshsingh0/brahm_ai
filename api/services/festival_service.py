@@ -1431,19 +1431,19 @@ FESTIVAL_RULES: List[Dict[str, Any]] = [
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Saptami. First major day of Durga Puja (Bengal's greatest festival, also celebrated in Odisha, Assam, Jharkhand). Nabapatrika (9 plants representing 9 forms of Durga) installed and worshipped. Grand pandals (temporary temples) across Bengal light up. Goddess Durga idol (clay, 10-hands, with Lakshmi-Saraswati-Kartik-Ganesha) unveiled. Dhak drums fill the air.",
      "fast_note": "Partial fast on Saptami morning until Nabapatrika puja. Wear new clothes. Visit pandals. Dhuno daan (myrrh/incense offering). Anjali (flower offering) in morning at pandals. Prasad: khichdi, labra (mixed vegetables), payesh.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 10, "approx_day": 17, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 7, "approx_month": 10, "approx_day": 17, "date_from_sunrise": True, "no_vridhi_shift": True}},
 
     {"name": "Durga Puja (Ashtami)",     "hindi": "दुर्गा पूजा — अष्टमी",      "icon": "⚔️",
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Ashtami. Peak day of Durga Puja. Sandhi Puja at the junction of Ashtami-Navami (most powerful moment — Goddess destroys Chanda-Munda demons). 108 lamps lit. Pushpanjali in early morning with 108 lotus flowers or bel leaves. Kumari Puja (worship of young pre-pubescent girls as Devi). Dhunuchi Naach (clay pot dance with burning coconut husk). Sindur Khela for married women.",
      "fast_note": "Ashtami fast: no grains. Pushpanjali in morning (3 times: 5 AM, 8 AM, 10 AM approx). Sandhi Puja: fast until completion. Prasad only after puja. Kumari Puja: worship young girls with feet-washing, sindur, sweets. Break fast after Sandhi Puja.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 8, "approx_month": 10, "approx_day": 18, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 8, "approx_month": 10, "approx_day": 18, "date_from_sunrise": True, "no_vridhi_shift": True}},
 
     {"name": "Durga Puja (Navami)",      "hindi": "दुर्गा पूजा — नवमी",        "icon": "🏺",
      "deity": "Goddess Durga",    "month": "Ashwin",
      "significance": "Ashwin Shukla Navami. Mahanavami — Durga's final battle victory day. Grand Navami Puja with Mahasnan (ritual bath of Durga idol). Havan and Bali (symbolic sacrifice with vegetables). Last Pushpanjali. Bhog (khichdi, labra, chutney, payesh) offered grandly. Devotees spend maximum time at pandals. Navami evening — families gather for final celebration.",
      "fast_note": "Navami fast until afternoon Havan. Mahanavami Havan with 108 ahutis. Final Pushpanjali with bel leaves. Grand Bhog distribution after puja. Evening: Navami feast with traditional Bengali dishes. Married women Sindur Khela begins tonight.",
-     "rule": {"type": "tithi", "paksha": "S", "num": 9, "approx_month": 10, "approx_day": 19, "date_from_sunrise": True}},
+     "rule": {"type": "tithi", "paksha": "S", "num": 9, "approx_month": 10, "approx_day": 19, "date_from_sunrise": True, "no_vridhi_shift": True}},
 
     {"name": "Kali Puja",                "hindi": "काली पूजा",                  "icon": "🌑",
      "deity": "Goddess Kali",     "month": "Kartik",

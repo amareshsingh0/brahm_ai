@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useGrahan } from "@/hooks/useGrahan";
-import { getCities, type City } from "@/lib/cities";
+import { searchCities, type City } from "@/lib/cities";
 import type { CalendarDayData, FestivalEntry, Eclipse } from "@/types/api";
 import { useTranslation } from "react-i18next";
 
@@ -533,7 +533,6 @@ export default function CalendarPage() {
   const [tradition,  setTradition]  = useState("smarta");
   const [lunarSystem,setLunarSystem]= useState("amanta");
   const [viewMode,   setViewMode]   = useState<"grid" | "list">("grid");
-  const [cities,     setCities]     = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState<City>({
     name: "New Delhi", lat: 28.6139, lon: 77.209, tz: 5.5,
   });
@@ -542,7 +541,6 @@ export default function CalendarPage() {
   const [selectedDay, setSelectedDay]         = useState<CalendarDayData | null>(null);
   const [yearInput,  setYearInput]            = useState(String(now.getFullYear()));
 
-  useEffect(() => { getCities().then(setCities).catch(() => {}); }, []);
 
   const { data, isLoading, isError } = useCalendar({
     year, month,
@@ -583,12 +581,11 @@ export default function CalendarPage() {
     else setYearInput(String(year));
   };
 
-  const handleCitySearch = (v: string) => {
+  const handleCitySearch = async (v: string) => {
     setCitySearch(v);
     if (v.length < 2) { setCitySuggestions([]); return; }
-    setCitySuggestions(
-      cities.filter(c => c.name.toLowerCase().includes(v.toLowerCase())).slice(0, 8)
-    );
+    const results = await searchCities(v);
+    setCitySuggestions(results.slice(0, 8));
   };
 
   const firstWeekday = data?.first_weekday ?? 0;
