@@ -19,8 +19,12 @@ interface AuthState {
   phone: string | null;
   plan: AuthPlan;
   isLoggedIn: boolean;
+  /** true once user has saved or explicitly skipped profile setup */
+  profileSetupSeen: boolean;
   setAuth: (token: string, user: AuthUser) => void;
   setRefreshToken: (token: string) => void;
+  setName: (name: string) => void;
+  setProfileSetupSeen: () => void;
   logout: () => void;
 }
 
@@ -34,6 +38,7 @@ export const useAuthStore = create<AuthState>()(
       phone: null,
       plan: 'free',
       isLoggedIn: false,
+      profileSetupSeen: false,
       setAuth: (token, user) => {
         set({
           token,
@@ -45,6 +50,8 @@ export const useAuthStore = create<AuthState>()(
         });
       },
       setRefreshToken: (token) => set({ refreshToken: token }),
+      setName: (name) => set({ name }),
+      setProfileSetupSeen: () => set({ profileSetupSeen: true }),
       logout: () => {
         set({
           token: null,
@@ -54,6 +61,7 @@ export const useAuthStore = create<AuthState>()(
           phone: null,
           plan: 'free',
           isLoggedIn: false,
+          profileSetupSeen: false,
         });
       },
     }),

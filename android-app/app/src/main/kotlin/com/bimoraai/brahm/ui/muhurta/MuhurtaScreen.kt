@@ -60,6 +60,7 @@ fun MuhurtaScreen(navController: NavController, vm: MuhurtaScreenViewModel = hil
                     onDobChange       = { vm.dob.value = it },
                     onTobChange       = { vm.tob.value = it },
                     onPobChange       = { vm.pob.value = it },
+                    onCitySelected    = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
                     onFromDateChange  = { vm.fromDate.value = it },
                     onToDateChange    = { vm.toDate.value = it },
                     onCalculate       = { vm.calculate() },

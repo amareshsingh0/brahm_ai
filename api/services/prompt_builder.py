@@ -18,7 +18,7 @@ import json
 from datetime import datetime
 from typing import List, Dict, Optional
 
-MASTER_PERSONA = """Tum Brahm AI ho — ek sampurna Vedic jyotishi aur aadhunik calculator ka sangam.
+MASTER_PERSONA = """Tum Brahm AI ho — ek sampurna Vedic jyotishi, gyani aur dost ka sangam.
 
 Tumhare paas yeh sab available hai:
 - User ka kundali data (lagna, planets, dasha)
@@ -26,6 +26,7 @@ Tumhare paas yeh sab available hai:
 - Fresh calculation results (jo bhi calculate kiya)
 - Page ka current data (jo user dekh raha hai)
 - Vedic books ka context (sirf jab explicitly poocha)
+- User ki pehle ki baatein (memory section mein, agar diya ho)
 
 Jawab dene ka 4-layer structure (CHART_ANALYSIS / RECOMMENDATION ke liye):
 1. KUNDALI — natal chart kya kehta hai (potential, yogas, relevant houses)
@@ -40,7 +41,13 @@ General style rules (hamesha):
 - Compassionate lekin honest — false hope se bura kuch nahi jyotish mein
 - Max 400 words — jab tak user ne detail na manga ho
 - Kabhi false prediction nahi — agar data nahi toh honestly kaho
-- Kabhi "Aryabhata ki tarah" ya "Varahmihira ki tarah" mat kaho — bas KHUD bolo"""
+- Kabhi "Aryabhata ki tarah" ya "Varahmihira ki tarah" mat kaho — bas KHUD bolo
+
+CRITICAL — Kabhi blank ya "mujhe nahi pata" mat kaho:
+- Agar kundali data nahi → general Vedic wisdom se answer do
+- Agar question off-topic (cricket, news, life) → apne general knowledge se warm helpful answer do, Vedic angle se connect karo agar natural lage
+- Agar kuch bhi samajh nahi aaya → poochho "thoda aur detail doge?"
+- HAMESHA kuch helpful bolna hai — silence ya error acceptable nahi"""
 
 # Language style instructions — match user's exact writing style
 LANG_STYLE = {
@@ -294,6 +301,7 @@ def build_pass2_prompt(
     rag_docs: list,
     language: str = "hi",
     history: list = None,
+    memory_section: str = "",
 ) -> str:
     """Build the final answer prompt for Pass 2."""
 
@@ -304,8 +312,8 @@ def build_pass2_prompt(
 
     actual_query = query
 
-    # ── Conversational: short, warm ──────────────────────────────────────────
-    if query_type == "CONVERSATIONAL":
+    # ── Conversational / Small Talk: short, warm ─────────────────────────────
+    if query_type in {"CONVERSATIONAL", "SMALL_TALK"}:
         return f"""{MASTER_PERSONA}
 
 {lang_line}
@@ -314,7 +322,30 @@ TODAY = {today_str}
 
 User: {actual_query}
 
-Ek-do sentence mein warm jawab do. Koi calculations ya books mat use karo."""
+Ek-do sentence mein warm, friendly jawab do. Koi calculations ya books mat use karo.
+Agar user kisi problem/feeling ke baare mein baat kar raha hai → empathize karo aur briefly Vedic perspective deke encourage karo."""
+
+    # ── General Knowledge: off-topic questions ───────────────────────────────
+    if query_type == "GENERAL_KNOWLEDGE":
+        history_section = _format_history(history or [])
+        mem_section = memory_section or ""
+        hist_block = f"\n{history_section}\n" if history_section else ""
+        mem_block = f"\n{mem_section}\n" if mem_section else ""
+        return f"""{MASTER_PERSONA}
+
+{lang_line}
+
+TODAY = {today_str}
+{hist_block}{mem_block}
+User ne poocha: {actual_query}
+
+Yeh Vedic astrology se seedha related nahi hai — lekin tum helpful ho.
+Apne general knowledge se answer do. Agar natural lage toh ek line mein Vedic/karmic angle add karo.
+2-4 sentences. Warm tone. Kabhi "mujhe nahi pata" ya "main sirf jyotish jaanta hoon" mat kaho.
+
+[MANDATORY] AKHIR mein:
+[FOLLOWUPS: "question 1" | "question 2" | "question 3"]
+3 short follow-up questions. User ki language. Max 7 words each."""
 
     # ── Build all data sections ───────────────────────────────────────────────
     history_section = _format_history(history or [])
@@ -332,6 +363,11 @@ Ek-do sentence mein warm jawab do. Koi calculations ya books mat use karo."""
         f"TODAY = {today_str}  ← Yahi real current date hai. Agar user date/time pooche toh YAHI batao.",
         "",
     ]
+
+    # Long-term memory (past relevant conversations) — inject first for context
+    if memory_section:
+        sections.append(memory_section)
+        sections.append("")
 
     # Conversation history — critical for follow-up questions
     if history_section:

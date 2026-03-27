@@ -8,6 +8,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProfileSetupModal from "@/components/ProfileSetupModal";
+import { useAuthStore } from "@/store/authStore";
 
 // ── Lazy pages (code-split per route) ─────────────────────────────────────────
 const LandingPage  = lazy(() => import("./pages/LandingPage"));
@@ -150,6 +152,23 @@ function AuthRedirect() {
   return isLoggedIn ? <Navigate to="/dashboard" /> : <LandingPage />;
 }
 
+/** Shows ProfileSetupModal once after login if profile not yet saved/skipped */
+function ProfileSetupGate() {
+  const { isLoggedIn, profileSetupSeen } = useAuthStore();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    // Small delay so login page transition finishes first
+    if (isLoggedIn && !profileSetupSeen) {
+      const t = setTimeout(() => setOpen(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [isLoggedIn, profileSetupSeen]);
+
+  if (!open) return null;
+  return <ProfileSetupModal onClose={() => setOpen(false)} />;
+}
+
 // ── Query client ──────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
@@ -164,6 +183,7 @@ const App = () => (
         <ErrorBoundary>
           <Suspense fallback={null}>
             <TransitionRoutes />
+            <ProfileSetupGate />
           </Suspense>
         </ErrorBoundary>
       </BrowserRouter>

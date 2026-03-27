@@ -27,15 +27,24 @@ class TodayViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
 
+    // User-derived state for Today screen personalization
+    private val _userName = MutableStateFlow<String?>(null)
+    private val _smartAlert = MutableStateFlow<SmartAlert?>(null)
+    private val _hasBirthData = MutableStateFlow(false)
+
     val panchang = _panchang.asStateFlow()
     val isLoading = _isLoading.asStateFlow()
     val error = _error.asStateFlow()
+    val userName = _userName.asStateFlow()
+    val smartAlert = _smartAlert.asStateFlow()
+    val hasBirthData = _hasBirthData.asStateFlow()
 
     // Cache today's panchang — it won't change until midnight
     private var cachedDate: String? = null
 
     init {
         load()
+        observeUser()
         // Reload once user location arrives (in case profile loads after first load)
         viewModelScope.launch {
             userRepository.user
@@ -45,9 +54,40 @@ class TodayViewModel @Inject constructor(
         }
     }
 
+    private fun observeUser() {
+        viewModelScope.launch {
+            userRepository.user.collect { user ->
+                if (user != null) {
+                    _userName.value = user.name.takeIf { it.isNotBlank() }
+                    _hasBirthData.value = user.date.isNotBlank() && user.place.isNotBlank()
+                    _smartAlert.value = deriveSmartAlert(user.nakshatra, user.rashi)
+                }
+            }
+        }
+    }
+
+    /**
+     * Derives a contextual alert based on user's birth nakshatra/rashi.
+     * Saturn transits ~2.5 years per sign — detect if it's near the user's Moon sign.
+     * This is a simplified approximation. Full logic requires current gochar data.
+     */
+    private fun deriveSmartAlert(nakshatra: String, rashi: String): SmartAlert? {
+        if (rashi.isBlank()) return null
+        // Sade Sati rashis are approximate for 2025-2026 (Saturn in Aquarius/Kumbha)
+        val saturnRashis = setOf("Capricorn", "Makar", "Aquarius", "Kumbha", "Pisces", "Meen")
+        if (saturnRashis.any { it.equals(rashi, ignoreCase = true) }) {
+            return SmartAlert(
+                icon = "⚠️",
+                message = "Saturn transiting near your Moon sign ($rashi) — Sade Sati may be active",
+                route = "sade_sati",
+                actionLabel = "View Analysis →",
+            )
+        }
+        return null
+    }
+
     fun load() {
         val today = LocalDate.now().toString()
-        // Return instantly if we already have today's data
         if (cachedDate == today && _panchang.value != null) return
 
         val u = userRepository.user.value
@@ -74,6 +114,13 @@ class TodayViewModel @Inject constructor(
         }
     }
 }
+
+data class SmartAlert(
+    val icon: String,
+    val message: String,
+    val route: String,
+    val actionLabel: String,
+)
 
 fun JsonObject.str(key: String): String {
     val el = this[key] ?: return "—"

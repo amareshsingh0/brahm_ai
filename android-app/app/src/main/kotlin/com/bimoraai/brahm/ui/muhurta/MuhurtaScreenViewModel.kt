@@ -70,15 +70,12 @@ class MuhurtaScreenViewModel @Inject constructor(
             _error.value     = null
             try {
                 val body = buildJsonObject {
-                    put("activity",  JsonPrimitive(activity.value))
-                    put("dob",       JsonPrimitive(dob.value))
-                    put("tob",       JsonPrimitive(tob.value))
-                    put("pob",       JsonPrimitive(pob.value))
-                    put("from_date", JsonPrimitive(fromDate.value))
-                    put("to_date",   JsonPrimitive(toDate.value))
-                    put("lat",       JsonPrimitive(lat.value))
-                    put("lon",       JsonPrimitive(lon.value))
-                    put("tz",        JsonPrimitive(tz.value))
+                    put("activity",   JsonPrimitive(activity.value.lowercase()))
+                    put("start_date", JsonPrimitive(fromDate.value))
+                    put("days",       JsonPrimitive(7))
+                    put("lat",        JsonPrimitive(lat.value))
+                    put("lon",        JsonPrimitive(lon.value))
+                    put("tz",         JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
                 }
                 val resp = api.getMuhurta(body)
                 if (resp.isSuccessful) {

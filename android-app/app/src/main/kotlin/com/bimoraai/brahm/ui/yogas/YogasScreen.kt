@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
 import com.bimoraai.brahm.core.components.SwipeBackLayout
@@ -67,29 +68,12 @@ fun YogasScreen(
                     Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("Enter Birth Details", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                            OutlinedTextField(
-                                value = name, onValueChange = { vm.name.value = it },
-                                label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold),
-                            )
-                            OutlinedTextField(
-                                value = dob, onValueChange = { vm.dob.value = it },
-                                label = { Text("Date of Birth (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold),
-                            )
-                            OutlinedTextField(
-                                value = tob, onValueChange = { vm.tob.value = it },
-                                label = { Text("Time of Birth (HH:MM)") }, modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold),
-                            )
-                            OutlinedTextField(
-                                value = pob, onValueChange = { vm.pob.value = it },
-                                label = { Text("Place of Birth") }, modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold),
+                            BirthInputFields(
+                                name = name, onNameChange = { vm.name.value = it },
+                                dob = dob, onDobChange = { vm.dob.value = it },
+                                tob = tob, onTobChange = { vm.tob.value = it },
+                                pob = pob, onPobChange = { vm.pob.value = it },
+                                onCitySelected = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
                             )
                             if (error != null) {
                                 Text(error!!, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFE53935)))

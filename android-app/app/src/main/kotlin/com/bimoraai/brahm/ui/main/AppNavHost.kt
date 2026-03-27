@@ -11,17 +11,21 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.bimoraai.brahm.core.components.WithAiFab
 import com.bimoraai.brahm.core.theme.BrahmBackground
 import com.bimoraai.brahm.core.datastore.TokenDataStore
+import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.ui.auth.LoginScreen
 import com.bimoraai.brahm.ui.auth.OnboardingScreen
+import com.bimoraai.brahm.ui.profile.ProfileSetupScreen
 import kotlinx.coroutines.flow.firstOrNull
 
 // ─── Route constants ──────────────────────────────────────────────────────────
 object Route {
-    const val ONBOARDING = "onboarding"
-    const val LOGIN      = "login"
-    const val MAIN       = "main"
+    const val ONBOARDING   = "onboarding"
+    const val LOGIN        = "login"
+    const val PROFILE_SETUP = "profile_setup"
+    const val MAIN         = "main"
     const val KUNDALI    = "kundali"
     const val CHAT       = "chat"
     const val GOCHAR     = "gochar"
@@ -50,6 +54,7 @@ object Route {
     const val STORIES         = "stories"
     const val SKY             = "sky"
     const val LIBRARY         = "library"
+    const val CALENDAR        = "calendar"
 }
 
 @Composable
@@ -86,39 +91,48 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
             )
         }
         composable(Route.LOGIN) {
+            val userRepository: UserRepository = androidx.hilt.navigation.compose.hiltViewModel<MainViewModel>().userRepository
             LoginScreen(
-                onLoggedIn = { navController.navigate(Route.MAIN) {
-                    popUpTo(Route.LOGIN) { inclusive = true }
-                }}
+                onLoggedIn = {
+                    // After login: check if birth profile exists → if not → show setup screen
+                    val dest = if (userRepository.hasBirthData()) Route.MAIN else Route.PROFILE_SETUP
+                    navController.navigate(dest) {
+                        popUpTo(Route.LOGIN) { inclusive = true }
+                    }
+                }
             )
+        }
+        composable(Route.PROFILE_SETUP) {
+            ProfileSetupScreen(navController = navController)
         }
         composable(Route.MAIN) {
             MainScreen(navController = navController)
         }
-        composable(Route.GOCHAR)         { com.bimoraai.brahm.ui.gochar.GocharScreen(navController) }
-        composable(Route.COMPATIBILITY)  { com.bimoraai.brahm.ui.compatibility.CompatibilityScreen(navController) }
-        composable(Route.MUHURTA)        { com.bimoraai.brahm.ui.muhurta.MuhurtaScreen(navController) }
-        composable(Route.SADE_SATI)      { com.bimoraai.brahm.ui.sadesati.SadeSatiScreen(navController) }
-        composable(Route.DOSHA)          { com.bimoraai.brahm.ui.dosha.DoshaScreen(navController) }
-        composable(Route.GEMSTONE)       { com.bimoraai.brahm.ui.gemstone.GemstoneScreen(navController) }
-        composable(Route.KP)             { com.bimoraai.brahm.ui.kp.KPScreen(navController) }
-        composable(Route.PRASHNA)        { com.bimoraai.brahm.ui.prashna.PrashnaScreen(navController) }
-        composable(Route.VARSHPHAL)      { com.bimoraai.brahm.ui.varshphal.VarshpalScreen(navController) }
-        composable(Route.RECTIFICATION)  { com.bimoraai.brahm.ui.rectification.RectificationScreen(navController) }
-        composable(Route.PALMISTRY)      { com.bimoraai.brahm.ui.palmistry.PalmistryScreen(navController) }
-        composable(Route.HOROSCOPE)      { com.bimoraai.brahm.ui.horoscope.HoroscopeScreen(navController) }
+        composable(Route.GOCHAR)         { WithAiFab("gochar")         { com.bimoraai.brahm.ui.gochar.GocharScreen(navController) } }
+        composable(Route.COMPATIBILITY)  { WithAiFab("compatibility")  { com.bimoraai.brahm.ui.compatibility.CompatibilityScreen(navController) } }
+        composable(Route.MUHURTA)        { WithAiFab("muhurta")        { com.bimoraai.brahm.ui.muhurta.MuhurtaScreen(navController) } }
+        composable(Route.SADE_SATI)      { WithAiFab("sade_sati")      { com.bimoraai.brahm.ui.sadesati.SadeSatiScreen(navController) } }
+        composable(Route.DOSHA)          { WithAiFab("dosha")          { com.bimoraai.brahm.ui.dosha.DoshaScreen(navController) } }
+        composable(Route.GEMSTONE)       { WithAiFab("gemstone")       { com.bimoraai.brahm.ui.gemstone.GemstoneScreen(navController) } }
+        composable(Route.KP)             { WithAiFab("kp")             { com.bimoraai.brahm.ui.kp.KPScreen(navController) } }
+        composable(Route.PRASHNA)        { WithAiFab("prashna")        { com.bimoraai.brahm.ui.prashna.PrashnaScreen(navController) } }
+        composable(Route.VARSHPHAL)      { WithAiFab("varshphal")      { com.bimoraai.brahm.ui.varshphal.VarshpalScreen(navController) } }
+        composable(Route.RECTIFICATION)  { WithAiFab("rectification")  { com.bimoraai.brahm.ui.rectification.RectificationScreen(navController) } }
+        composable(Route.PALMISTRY)      { WithAiFab("palmistry")      { com.bimoraai.brahm.ui.palmistry.PalmistryScreen(navController) } }
+        composable(Route.HOROSCOPE)      { WithAiFab("horoscope")      { com.bimoraai.brahm.ui.horoscope.HoroscopeScreen(navController) } }
         composable(Route.PROFILE)        { com.bimoraai.brahm.ui.profile.ProfileScreen(navController) }
         composable(Route.PROFILE_EDIT)   { com.bimoraai.brahm.ui.profile.ProfileEditScreen(navController) }
         composable(Route.BILLING)        { com.bimoraai.brahm.ui.profile.BillingScreen(navController) }
-        composable(Route.PANCHANG)       { com.bimoraai.brahm.ui.panchang.PanchangScreen(navController) }
-        composable(Route.RASHI)          { com.bimoraai.brahm.ui.rashi.RashiScreen(navController) }
-        composable(Route.NAKSHATRA)      { com.bimoraai.brahm.ui.nakshatra.NakshatraScreen(navController) }
-        composable(Route.YOGAS)          { com.bimoraai.brahm.ui.yogas.YogasScreen(navController) }
-        composable(Route.REMEDIES)       { com.bimoraai.brahm.ui.remedies.RemediesScreen(navController) }
-        composable(Route.MANTRA)         { com.bimoraai.brahm.ui.mantra.MantraScreen(navController) }
-        composable(Route.GOTRA)          { com.bimoraai.brahm.ui.gotra.GotraScreen(navController) }
-        composable(Route.STORIES)        { com.bimoraai.brahm.ui.stories.StoriesScreen(navController) }
-        composable(Route.SKY)            { com.bimoraai.brahm.ui.sky.SkyScreen(navController) }
-        composable(Route.LIBRARY)        { com.bimoraai.brahm.ui.library.LibraryScreen(navController) }
+        composable(Route.PANCHANG)       { WithAiFab("panchang")       { com.bimoraai.brahm.ui.panchang.PanchangScreen(navController) } }
+        composable(Route.RASHI)          { WithAiFab("rashi")          { com.bimoraai.brahm.ui.rashi.RashiScreen(navController) } }
+        composable(Route.NAKSHATRA)      { WithAiFab("nakshatra")      { com.bimoraai.brahm.ui.nakshatra.NakshatraScreen(navController) } }
+        composable(Route.YOGAS)          { WithAiFab("yogas")          { com.bimoraai.brahm.ui.yogas.YogasScreen(navController) } }
+        composable(Route.REMEDIES)       { WithAiFab("remedies")       { com.bimoraai.brahm.ui.remedies.RemediesScreen(navController) } }
+        composable(Route.MANTRA)         { WithAiFab("mantra")         { com.bimoraai.brahm.ui.mantra.MantraScreen(navController) } }
+        composable(Route.GOTRA)          { WithAiFab("gotra")          { com.bimoraai.brahm.ui.gotra.GotraScreen(navController) } }
+        composable(Route.STORIES)        { WithAiFab("stories")        { com.bimoraai.brahm.ui.stories.StoriesScreen(navController) } }
+        composable(Route.SKY)            { WithAiFab("sky")            { com.bimoraai.brahm.ui.sky.SkyScreen(navController) } }
+        composable(Route.LIBRARY)        { WithAiFab("library")        { com.bimoraai.brahm.ui.library.LibraryScreen(navController) } }
+        composable(Route.CALENDAR)       { WithAiFab("calendar")       { com.bimoraai.brahm.ui.calendar.CalendarScreen(navController) } }
     }
 }

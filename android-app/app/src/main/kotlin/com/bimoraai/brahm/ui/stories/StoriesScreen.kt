@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.coroutines.launch
 
@@ -96,6 +97,7 @@ fun StoriesScreen(navController: NavController) {
 
     LaunchedEffect(pagerState.currentPage) { storyPageIndex = 0 }
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -105,7 +107,7 @@ fun StoriesScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
@@ -206,4 +208,5 @@ fun StoriesScreen(navController: NavController) {
             }
         }
     }
+    } // SwipeBackLayout
 }

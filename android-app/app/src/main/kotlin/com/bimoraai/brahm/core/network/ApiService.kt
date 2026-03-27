@@ -67,13 +67,15 @@ import retrofit2.http.*
 // PanchangRequest removed — backend uses GET with query params, not POST body
 
 @Serializable data class KundaliRequest(
-    val name: String,
-    val dob: String,             // YYYY-MM-DD
-    val tob: String,             // HH:MM
-    val pob: String,
+    val name: String = "",
+    val date: String,            // YYYY-MM-DD
+    val time: String,            // HH:MM
+    val place: String = "",
     val lat: Double,
     val lon: Double,
-    val tz: String,
+    val tz: Double = 5.5,
+    val ayanamsha: String = "lahiri",
+    val rahu_mode: String = "mean",
 )
 
 @Serializable data class ChatRequest(
@@ -126,6 +128,10 @@ interface ApiService {
     @GET("user")
     suspend fun getMe(): Response<UserDto>
 
+    // Chat history sessions
+    @GET("user/chats/sessions")
+    suspend fun getChatSessions(): Response<JsonObject>
+
     @POST("user")
     suspend fun updateProfile(@Body body: UpdateProfileRequest): Response<UserDto>
 
@@ -139,38 +145,30 @@ interface ApiService {
     ): Response<JsonObject>
 
     // Kundali
-    @POST("kundali/generate")
+    @POST("kundali")
     suspend fun generateKundali(@Body body: KundaliRequest): Response<JsonObject>
 
-    // All other astrology endpoints — POST with dynamic bodies
-    @POST("gochar/calculate")
-    suspend fun getGochar(@Body body: JsonObject): Response<JsonObject>
+    // Gochar — current sky (GET, no body)
+    @GET("gochar")
+    suspend fun getGocharNow(): Response<JsonObject>
 
-    @POST("compatibility/calculate")
+    // All other astrology endpoints — POST with dynamic bodies
+    @POST("compatibility")
     suspend fun getCompatibility(@Body body: JsonObject): Response<JsonObject>
 
-    @POST("muhurta/find")
+    @POST("muhurta/activity")
     suspend fun getMuhurta(@Body body: JsonObject): Response<JsonObject>
 
-    @POST("sade-sati/calculate")
-    suspend fun getSadeSati(@Body body: JsonObject): Response<JsonObject>
-
-    @POST("dosha/check")
-    suspend fun getDosha(@Body body: JsonObject): Response<JsonObject>
-
-    @POST("gemstone/recommend")
-    suspend fun getGemstone(@Body body: JsonObject): Response<JsonObject>
-
-    @POST("kp/generate")
+    @POST("kp")
     suspend fun getKP(@Body body: JsonObject): Response<JsonObject>
 
-    @POST("prashna/generate")
+    @POST("prashna")
     suspend fun getPrashna(@Body body: JsonObject): Response<JsonObject>
 
-    @POST("varshphal/generate")
+    @POST("varshphal")
     suspend fun getVarshphal(@Body body: JsonObject): Response<JsonObject>
 
-    @POST("rectification/analyze")
+    @POST("rectification")
     suspend fun getRectification(@Body body: JsonObject): Response<JsonObject>
 
     @GET("horoscope/{rashi}")
@@ -208,4 +206,16 @@ interface ApiService {
     // Gochar personal analysis
     @POST("gochar/analyze")
     suspend fun analyzeGochar(@Body body: JsonObject): Response<JsonObject>
+
+    // Calendar — monthly grid with per-day tithi, festivals, special day flags
+    @GET("calendar")
+    suspend fun getCalendar(
+        @Query("year")         year: Int,
+        @Query("month")        month: Int,
+        @Query("lat")          lat: Double,
+        @Query("lon")          lon: Double,
+        @Query("tz")           tz: Double = 5.5,
+        @Query("tradition")    tradition: String = "smarta",
+        @Query("lunar_system") lunarSystem: String = "amanta",
+    ): Response<JsonObject>
 }

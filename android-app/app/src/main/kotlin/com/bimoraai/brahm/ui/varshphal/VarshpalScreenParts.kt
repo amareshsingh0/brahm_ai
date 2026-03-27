@@ -14,7 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -144,6 +146,7 @@ fun VarshpalInputForm(
     onDobChange: (String) -> Unit,
     onTobChange: (String) -> Unit,
     onPobChange: (String) -> Unit,
+    onCitySelected: (City) -> Unit,
     onTargetYearChange: (String) -> Unit,
     onCalculate: () -> Unit,
 ) {
@@ -156,10 +159,13 @@ fun VarshpalInputForm(
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Birth Details", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                    OutlinedTextField(value = name, onValueChange = onNameChange, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = dob, onValueChange = onDobChange, label = { Text("Date of Birth (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = tob, onValueChange = onTobChange, label = { Text("Time of Birth (HH:MM)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = pob, onValueChange = onPobChange, label = { Text("Place of Birth") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+                    BirthInputFields(
+                        name = name, onNameChange = onNameChange,
+                        dob = dob, onDobChange = onDobChange,
+                        tob = tob, onTobChange = onTobChange,
+                        pob = pob, onPobChange = onPobChange,
+                        onCitySelected = onCitySelected,
+                    )
                     OutlinedTextField(value = targetYear, onValueChange = onTargetYearChange, label = { Text("Target Year (e.g. 2025)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
                     if (error != null) Text(error, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFE53935)))
                     BrahmButton(text = "Calculate Varshphal", onClick = onCalculate)

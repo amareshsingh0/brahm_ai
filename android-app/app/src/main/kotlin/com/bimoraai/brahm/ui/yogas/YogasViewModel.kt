@@ -70,13 +70,13 @@ class YogasViewModel @Inject constructor(
             try {
                 val resp = api.generateKundali(
                     KundaliRequest(
-                        name = name.value.ifBlank { "User" },
-                        dob  = dob.value,
-                        tob  = tob.value,
-                        pob  = pob.value,
-                        lat  = lat.value,
-                        lon  = lon.value,
-                        tz   = tz.value,
+                        name  = name.value.ifBlank { "User" },
+                        date  = dob.value,
+                        time  = tob.value,
+                        place = pob.value,
+                        lat   = lat.value,
+                        lon   = lon.value,
+                        tz    = tz.value.toDoubleOrNull() ?: 5.5,
                     )
                 )
                 if (resp.isSuccessful) {

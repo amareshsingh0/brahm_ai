@@ -31,9 +31,36 @@ class UserRepository @Inject constructor(
         scope.launch {
             try {
                 val res = api.getMe()
-                if (res.isSuccessful) _user.value = res.body()
-            } catch (_: Exception) {}
+                if (res.isSuccessful && res.body() != null) {
+                    _user.value = res.body()
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("UserRepository", "refresh failed: ${e.message}")
+            }
         }
+    }
+
+    /** Called immediately after login — stores name/plan from auth response without a network round-trip */
+    fun setFromAuth(name: String?, plan: String, phone: String?, email: String?) {
+        val current = _user.value
+        _user.value = UserDto(
+            session_id = current?.session_id ?: "",
+            name       = name?.takeIf { it.isNotBlank() } ?: current?.name ?: "",
+            plan       = plan,
+            phone      = phone ?: current?.phone,
+            email      = email ?: current?.email,
+            date       = current?.date ?: "",
+            time       = current?.time ?: "",
+            place      = current?.place ?: "",
+            gender     = current?.gender ?: "",
+            lat        = current?.lat ?: 0.0,
+            lon        = current?.lon ?: 0.0,
+            tz         = current?.tz ?: 5.5,
+            rashi      = current?.rashi ?: "",
+            nakshatra  = current?.nakshatra ?: "",
+        )
+        // Also do a full refresh in background to get complete profile
+        refresh()
     }
 
     /** Returns true only if the user has complete birth data saved */

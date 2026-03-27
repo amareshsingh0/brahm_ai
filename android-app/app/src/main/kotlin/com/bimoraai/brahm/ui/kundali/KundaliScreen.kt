@@ -1,35 +1,51 @@
 package com.bimoraai.brahm.ui.kundali
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.*
 import com.bimoraai.brahm.core.theme.*
-import com.bimoraai.brahm.ui.kundali.chart.KundaliChartView
 import com.bimoraai.brahm.ui.kundali.tabs.*
 
-private val tabs = listOf("Chart", "Planets", "Dashas", "Yogas", "Alerts", "Shadbala", "Navamsha")
+private val TABS = listOf("Charts", "Grahas", "Dashas", "Bhavas", "Yogas", "Strength", "Navamsha")
+
+private val DASHA_COLORS = mapOf(
+    "Ketu" to Color(0xFFf97316), "Shukra" to Color(0xFFa855f7), "Surya" to Color(0xFFf59e0b),
+    "Chandra" to Color(0xFF94a3b8), "Mangal" to Color(0xFFef4444), "Rahu" to Color(0xFF6366f1),
+    "Guru" to Color(0xFFeab308), "Shani" to Color(0xFF64748b), "Budha" to Color(0xFF22c55e),
+)
 
 @Composable
 fun KundaliScreen(
     navController: NavController,
     vm: KundaliViewModel = hiltViewModel(),
 ) {
-    val kundali by vm.kundali.collectAsState()
-    val isLoading by vm.isLoading.collectAsState()
-    val error by vm.error.collectAsState()
+    val kundali     by vm.kundali.collectAsState()
+    val isLoading   by vm.isLoading.collectAsState()
+    val error       by vm.error.collectAsState()
     val savedProfile by vm.savedProfile.collectAsState()
+    val settings    by vm.settings.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+    var showForm    by remember { mutableStateOf(false) }
 
-    // Auto-generate kundali from saved profile on first open
+    // Auto-generate from saved profile on first open
     LaunchedEffect(savedProfile) {
         val u = savedProfile
         if (kundali == null && !isLoading && u != null && u.date.isNotBlank() && u.place.isNotBlank()) {
@@ -38,59 +54,338 @@ fun KundaliScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BrahmBackground)
-    ) {
-        // Header
-        Surface(color = BrahmCard, shadowElevation = 1.dp) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Kundali", style = MaterialTheme.typography.headlineSmall.copy(color = BrahmGold))
-                Text("Vedic Birth Chart Analysis", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+    Column(modifier = Modifier.fillMaxSize().background(BrahmBackground)) {
+
+        when {
+            isLoading -> BrahmLoadingSpinner()
+            error != null && kundali == null ->
+                BrahmErrorView(message = error!!, onRetry = { vm.generate() })
+            showForm || kundali == null ->
+                KundaliInputForm(onSubmit = { name, dob, tob, pob, lat, lon ->
+                    vm.setInputs(name, dob, tob, pob, lat, lon)
+                    vm.generate()
+                    showForm = false
+                })
+            else -> {
+                val data = kundali!!
+                KundaliResultView(
+                    data        = data,
+                    settings    = settings,
+                    selectedTab = selectedTab,
+                    onTabChange = { selectedTab = it },
+                    onEditClick = { showForm = true },
+                    onSettings  = { vm.updateSettings(it) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun KundaliResultView(
+    data: Map<String, Any?>,
+    settings: KundaliSettings,
+    selectedTab: Int,
+    onTabChange: (Int) -> Unit,
+    onEditClick: () -> Unit,
+    onSettings: (KundaliSettings) -> Unit,
+) {
+    val name      = data["name"]?.toString() ?: ""
+    val place     = data["place"]?.toString() ?: data["birth_place"]?.toString() ?: ""
+    val birthDate = data["birth_date"]?.toString() ?: ""
+
+    // Key position helpers
+    fun graha(planet: String): Map<String, Any?>? {
+        @Suppress("UNCHECKED_CAST")
+        return (data["grahas"] as? Map<String, Any?>)?.get(planet) as? Map<String, Any?>
+    }
+    val lagnaMap  = data["lagna"] as? Map<String, Any?>
+    val lagnaRashi = lagnaMap?.get("rashi")?.toString() ?: "—"
+    val moonRashi  = graha("Chandra")?.get("rashi")?.toString() ?: "—"
+    val sunRashi   = graha("Surya")?.get("rashi")?.toString() ?: "—"
+    val jupiRashi  = graha("Guru")?.get("rashi")?.toString() ?: "—"
+    val jupiHouse  = graha("Guru")?.get("house")?.toString() ?: "—"
+    val jupiStatus = graha("Guru")?.get("status")?.toString()?.split(" ")?.firstOrNull() ?: ""
+
+    // Current dasha
+    val today = try { java.time.LocalDate.now().toString() } catch (_: Exception) { "" }
+    @Suppress("UNCHECKED_CAST")
+    val dashas = data["dasha"] as? List<Map<String, Any?>> ?: emptyList()
+    val currentDasha = dashas.find { d ->
+        val s = d["start"]?.toString() ?: ""; val e = d["end"]?.toString() ?: ""
+        today.isNotEmpty() && s.isNotEmpty() && e.isNotEmpty() && today >= s && today <= e
+    }
+
+    // Alerts
+    @Suppress("UNCHECKED_CAST")
+    val alerts = data["alerts"] as? List<Map<String, Any?>> ?: emptyList()
+
+    Column(Modifier.fillMaxSize()) {
+        // ── Header ──────────────────────────────────────────────────────────
+        Surface(color = Color.White, shadowElevation = 1.dp) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (name.isNotBlank()) "$name's Kundali" else "Janam Kundali",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = BrahmGold),
+                            maxLines = 1,
+                        )
+                        if (place.isNotBlank() || birthDate.isNotBlank()) {
+                            Text(
+                                listOfNotNull(place.takeIf { it.isNotBlank() }, birthDate.takeIf { it.isNotBlank() }).joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
+                            )
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = onEditClick,
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(32.dp),
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Edit", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
         }
 
-        if (isLoading) {
-            BrahmLoadingSpinner()
-        } else if (error != null) {
-            BrahmErrorView(message = error!!, onRetry = { vm.generate() })
-        } else if (kundali == null) {
-            // Birth data input form
-            KundaliInputForm(onSubmit = { name, dob, tob, pob, lat, lon ->
-                vm.setInputs(name, dob, tob, pob, lat, lon)
-                vm.generate()
-            })
-        } else {
-            // Tab row
-            ScrollableTabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = BrahmCard,
-                contentColor = BrahmGold,
-                edgePadding = 0.dp,
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title, style = MaterialTheme.typography.labelMedium) },
-                        selectedContentColor = BrahmGold,
-                        unselectedContentColor = BrahmMutedForeground,
+        // Scrollable content
+        androidx.compose.foundation.lazy.LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            // ── Settings strip ───────────────────────────────────────────────
+            item {
+                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(1.dp)) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        // Ayanamsha
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("AYANAMSHA", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, letterSpacing = 1.sp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                listOf("lahiri" to "Lahiri", "raman" to "Raman", "kp" to "KP", "true_citra" to "True Citra").forEach { (v, lbl) ->
+                                    SettingChip(label = lbl, selected = settings.ayanamsha == v) {
+                                        onSettings(settings.copy(ayanamsha = v))
+                                    }
+                                }
+                            }
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                            // Rahu mode
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("RAHU/KETU", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, letterSpacing = 1.sp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    listOf("mean" to "Mean", "true" to "True").forEach { (v, lbl) ->
+                                        SettingChip(label = lbl, selected = settings.rahuMode == v) {
+                                            onSettings(settings.copy(rahuMode = v))
+                                        }
+                                    }
+                                }
+                            }
+                            // Name lang
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("NAMES", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, letterSpacing = 1.sp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    listOf("vedic" to "Vedic", "en" to "English").forEach { (v, lbl) ->
+                                        SettingChip(label = lbl, selected = settings.nameLang == v) {
+                                            onSettings(settings.copy(nameLang = v))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Key positions 4-col ──────────────────────────────────────────
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KeyPositionCard(
+                        icon = "⬆", label = "Lagna",
+                        value = lagnaRashi,
+                        sub = "${lagnaMap?.get("nakshatra")?.toString() ?: ""} P${lagnaMap?.get("pada")?.toString() ?: ""}".trim().trimStart('P'),
+                        color = BrahmGold, modifier = Modifier.weight(1f),
+                    )
+                    KeyPositionCard(
+                        icon = "☽", label = "Moon",
+                        value = moonRashi,
+                        sub = graha("Chandra")?.get("nakshatra")?.toString() ?: "",
+                        color = Color(0xFF4F46E5), modifier = Modifier.weight(1f),
+                    )
+                    KeyPositionCard(
+                        icon = "☉", label = "Sun",
+                        value = sunRashi,
+                        sub = graha("Surya")?.get("status")?.toString()?.split(" ")?.firstOrNull() ?: "",
+                        color = Color(0xFFD97706), modifier = Modifier.weight(1f),
+                    )
+                    KeyPositionCard(
+                        icon = "♃", label = "Jupiter",
+                        value = jupiRashi,
+                        sub = "H$jupiHouse · $jupiStatus",
+                        color = Color(0xFFCA8A04), modifier = Modifier.weight(1f),
                     )
                 }
             }
 
-            // Tab content
-            val data = kundali!!
-            when (selectedTab) {
-                0 -> ChartTab(data)
-                1 -> PlanetsTab(data)
-                2 -> DashasTab(data)
-                3 -> YogasTab(data)
-                4 -> AlertsTab(data)
-                5 -> ShadbalaTab(data)
-                6 -> NavamshaTab(data)
+            // ── Current Mahadasha strip ──────────────────────────────────────
+            currentDasha?.let { d ->
+                item {
+                    val lord  = d["lord"]?.toString() ?: "—"
+                    val color = DASHA_COLORS[lord] ?: BrahmGold
+                    @Suppress("UNCHECKED_CAST")
+                    val antardashas = d["antardashas"] as? List<Map<String, Any?>> ?: emptyList()
+                    val curAntar = antardashas.find { a ->
+                        val s = a["start"]?.toString() ?: ""; val e = a["end"]?.toString() ?: ""
+                        today.isNotEmpty() && s.isNotEmpty() && e.isNotEmpty() && today >= s && today <= e
+                    }
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E7)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFDE68A)),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+                            Column(Modifier.weight(1f)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text("Mahadasha ·", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                                    Text("$lord Dasha", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground))
+                                }
+                                Text(
+                                    "${d["start"]?.toString()?.take(10) ?: ""} → ${d["end"]?.toString()?.take(10) ?: ""}",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
+                                )
+                            }
+                            curAntar?.let { a ->
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text("Antardasha", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp))
+                                    Text(a["lord"]?.toString() ?: "—", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground))
+                                }
+                            }
+                        }
+                    }
+                }
             }
+
+            // ── Alerts strip ────────────────────────────────────────────────
+            if (alerts.isNotEmpty()) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        alerts.forEach { alert ->
+                            val type = alert["type"]?.toString() ?: ""
+                            val isYuddha = type.contains("yuddha", ignoreCase = true)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isYuddha) Color(0xFFFEF3C7) else Color(0xFFFFF7ED))
+                                    .border(1.dp, if (isYuddha) Color(0xFFFDE68A) else Color(0xFFFED7AA), RoundedCornerShape(10.dp))
+                                    .padding(10.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(Icons.Default.Warning, contentDescription = null,
+                                    tint = if (isYuddha) Color(0xFFD97706) else Color(0xFFEA580C),
+                                    modifier = Modifier.size(14.dp))
+                                Text(
+                                    alert["message"]?.toString() ?: "",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (isYuddha) Color(0xFF92400E) else Color(0xFF9A3412),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Scrollable Tab Row ───────────────────────────────────────────
+            item {
+                ScrollableTabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = Color.White,
+                    contentColor = BrahmGold,
+                    edgePadding = 0.dp,
+                    modifier = Modifier.clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp)),
+                ) {
+                    TABS.forEachIndexed { i, title ->
+                        Tab(
+                            selected = selectedTab == i,
+                            onClick = { /* handled by card below */ },
+                            modifier = Modifier.clickable { onTabChange(i) },
+                            text = {
+                                Text(title, style = MaterialTheme.typography.labelMedium,
+                                    color = if (selectedTab == i) BrahmGold else BrahmMutedForeground)
+                            },
+                        )
+                    }
+                }
+            }
+
+            // ── Tab Content ─────────────────────────────────────────────────
+            item {
+                Card(
+                    shape = RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(1.dp),
+                ) {
+                    when (selectedTab) {
+                        0 -> ChartTab(data)
+                        1 -> GrahasTab(data)
+                        2 -> DashasTab(data)
+                        3 -> BhavasTab(data)
+                        4 -> YogasTab(data)
+                        5 -> ShadbalaTab(data)
+                        6 -> NavamshaTab(data)
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(16.dp)) }
+        }
+    }
+}
+
+// ── Setting chip ──────────────────────────────────────────────────────────────
+@Composable
+private fun SettingChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (selected) BrahmGold.copy(0.15f) else Color.Transparent)
+            .border(1.dp, if (selected) BrahmGold.copy(0.5f) else Color(0xFFE0E0E0), RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(
+            color = if (selected) BrahmGold else BrahmMutedForeground,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+        ))
+    }
+}
+
+// ── Key position card ─────────────────────────────────────────────────────────
+@Composable
+private fun KeyPositionCard(icon: String, label: String, value: String, sub: String, color: Color, modifier: Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp),
+    ) {
+        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(icon, fontSize = 11.sp, color = color.copy(0.7f))
+                Text(label, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp))
+            }
+            Text(value, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold, color = color), maxLines = 1)
+            if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp), maxLines = 1)
         }
     }
 }

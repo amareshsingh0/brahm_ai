@@ -1,7 +1,39 @@
 import { useAuthStore, type AuthUser } from '@/store/authStore';
+import { useKundliStore } from '@/store/kundliStore';
 import { apiFetch } from '@/lib/apiFetch';
 
 const API = "/api";
+
+/** After login, load saved profile from backend → populate kundliStore */
+async function loadProfileIntoStore(token: string) {
+  try {
+    const res = await fetch(`${API}/user`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const hasBirth = data.date && data.place;
+    if (hasBirth) {
+      const { setBirthDetails, setProfileSetupSeen } = useKundliStore.getState();
+      setBirthDetails({
+        name:         data.name || '',
+        dateOfBirth:  data.date,
+        timeOfBirth:  data.time || '',
+        birthPlace:   data.place,
+        lat:          data.lat,
+        lon:          data.lon,
+        tz:           data.tz,
+      });
+      // Profile already exists → no need to show setup modal
+      useAuthStore.getState().setProfileSetupSeen();
+    }
+    // Update name in authStore if backend has a better one
+    if (data.name) useAuthStore.getState().setName(data.name);
+  } catch {
+    // Silently ignore — non-critical
+  }
+}
 
 export const useAuth = () => {
   const { setAuth, setRefreshToken, logout: storeLogout, ...user } = useAuthStore();
@@ -39,6 +71,8 @@ export const useAuth = () => {
     };
     setAuth(data.access_token, authUser);
     setRefreshToken(data.refresh_token);
+    // Load existing birth profile in background
+    loadProfileIntoStore(data.access_token);
     return { token: data.access_token, user: authUser };
   };
 
@@ -61,6 +95,8 @@ export const useAuth = () => {
     };
     setAuth(data.access_token, authUser);
     setRefreshToken(data.refresh_token);
+    // Load existing birth profile in background
+    loadProfileIntoStore(data.access_token);
     return { token: data.access_token, user: authUser };
   };
 
@@ -74,6 +110,9 @@ export const useAuth = () => {
         body: JSON.stringify({ refresh_token: refreshToken }),
       }).catch(() => {});
     }
+    // Clear birth details from kundliStore on logout
+    useKundliStore.getState().setBirthDetails({ name: '', dateOfBirth: '', timeOfBirth: '', birthPlace: '' });
+    useKundliStore.getState().setHasKundli(false);
     storeLogout();
   };
 

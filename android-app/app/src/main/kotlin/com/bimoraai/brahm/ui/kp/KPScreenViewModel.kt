@@ -71,12 +71,11 @@ class KPScreenViewModel @Inject constructor(
             try {
                 val body = buildJsonObject {
                     put("name", JsonPrimitive(name.value.ifBlank { "User" }))
-                    put("dob",  JsonPrimitive(dob.value))
-                    put("tob",  JsonPrimitive(tob.value))
-                    put("pob",  JsonPrimitive(pob.value))
+                    put("date", JsonPrimitive(dob.value))
+                    put("time", JsonPrimitive(tob.value))
                     put("lat",  JsonPrimitive(lat.value))
                     put("lon",  JsonPrimitive(lon.value))
-                    put("tz",   JsonPrimitive(tz.value))
+                    put("tz",   JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
                 }
                 val resp = api.getKP(body)
                 if (resp.isSuccessful) {

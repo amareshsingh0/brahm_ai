@@ -2,6 +2,7 @@ package com.bimoraai.brahm.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.network.GoogleAuthRequest
@@ -25,6 +26,7 @@ sealed class AuthState {
 class AuthViewModel @Inject constructor(
     private val api: ApiService,
     private val tokenDataStore: TokenDataStore,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -59,6 +61,7 @@ class AuthViewModel @Inject constructor(
                 if (res.isSuccessful && body != null) {
                     tokenDataStore.saveTokens(body.access_token, body.refresh_token)
                     tokenDataStore.saveUserId(body.user_id, body.plan)
+                    userRepository.setFromAuth(body.name, body.plan, body.phone, null)
                     _state.value = AuthState.LoggedIn
                 } else {
                     val errBody = res.errorBody()?.string()?.take(300)
@@ -79,6 +82,7 @@ class AuthViewModel @Inject constructor(
                 if (res.isSuccessful && body != null) {
                     tokenDataStore.saveTokens(body.access_token, body.refresh_token)
                     tokenDataStore.saveUserId(body.user_id, body.plan)
+                    userRepository.refresh()
                     _state.value = AuthState.LoggedIn
                 } else {
                     val errBody = res.errorBody()?.string()?.take(300)
@@ -91,4 +95,5 @@ class AuthViewModel @Inject constructor(
     }
 
     fun resetState() { _state.value = AuthState.Idle }
+    fun setError(msg: String) { _state.value = AuthState.Error(msg) }
 }

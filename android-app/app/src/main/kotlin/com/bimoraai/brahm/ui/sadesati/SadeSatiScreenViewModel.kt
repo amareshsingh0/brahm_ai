@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.network.ApiService
+import com.bimoraai.brahm.core.network.KundaliRequest
 import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,8 +13,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,16 +68,15 @@ class SadeSatiScreenViewModel @Inject constructor(
             _isLoading.value = true
             _error.value     = null
             try {
-                val body = buildJsonObject {
-                    put("name", JsonPrimitive(name.value.ifBlank { "User" }))
-                    put("dob",  JsonPrimitive(dob.value))
-                    put("tob",  JsonPrimitive(tob.value))
-                    put("pob",  JsonPrimitive(pob.value))
-                    put("lat",  JsonPrimitive(lat.value))
-                    put("lon",  JsonPrimitive(lon.value))
-                    put("tz",   JsonPrimitive(tz.value))
-                }
-                val resp = api.getSadeSati(body)
+                val resp = api.generateKundali(KundaliRequest(
+                    name  = name.value.ifBlank { "User" },
+                    date  = dob.value,
+                    time  = tob.value,
+                    place = pob.value,
+                    lat   = lat.value,
+                    lon   = lon.value,
+                    tz    = tz.value.toDoubleOrNull() ?: 5.5,
+                ))
                 if (resp.isSuccessful) {
                     _result.value  = resp.body()
                     _hasData.value = true

@@ -13,7 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -63,8 +65,15 @@ fun CompatibilityContent(data: JsonObject) {
         try { el.jsonObject } catch (_: Exception) { null }
     }
     val doshas      = data["doshas"]?.let { el -> try { el.jsonObject } catch (_: Exception) { null } }
-    val mangalDosha = data["mangal_dosha"]?.jsonPrimitive?.contentOrNull
-    val kaalSarp    = data["kaal_sarp"]?.jsonPrimitive?.contentOrNull
+    // These fields may be primitives or objects depending on API version — handle both
+    val mangalDosha = data["mangal_dosha"]?.let { el ->
+        try { el.jsonPrimitive.contentOrNull }
+        catch (_: Exception) { try { el.jsonObject["result"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null } }
+    }
+    val kaalSarp = data["kaal_sarp"]?.let { el ->
+        try { el.jsonPrimitive.contentOrNull }
+        catch (_: Exception) { try { el.jsonObject["result"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null } }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
@@ -260,8 +269,10 @@ fun CompatibilityInputForm(
     error: String?,
     onName1Change: (String) -> Unit, onDob1Change: (String) -> Unit,
     onTob1Change: (String) -> Unit,  onPob1Change: (String) -> Unit,
+    onCityASelected: (City) -> Unit,
     onName2Change: (String) -> Unit, onDob2Change: (String) -> Unit,
     onTob2Change: (String) -> Unit,  onPob2Change: (String) -> Unit,
+    onCityBSelected: (City) -> Unit,
     onCalculate: () -> Unit,
 ) {
     LazyColumn(
@@ -273,18 +284,14 @@ fun CompatibilityInputForm(
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("👨 Person A — Groom / Partner 1", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                    OutlinedTextField(value = name1, onValueChange = onName1Change, label = { Text("Full Name") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = dob1, onValueChange = onDob1Change, label = { Text("Date of Birth (YYYY-MM-DD)") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = tob1, onValueChange = onTob1Change, label = { Text("Time of Birth (HH:MM)") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = pob1, onValueChange = onPob1Change, label = { Text("Place of Birth") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+                    BirthInputFields(
+                        name = name1, onNameChange = onName1Change,
+                        dob = dob1, onDobChange = onDob1Change,
+                        tob = tob1, onTobChange = onTob1Change,
+                        pob = pob1, onPobChange = onPob1Change,
+                        onCitySelected = onCityASelected,
+                        cityVmKey = "personA",
+                    )
                 }
             }
         }
@@ -293,18 +300,14 @@ fun CompatibilityInputForm(
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("👩 Person B — Bride / Partner 2", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                    OutlinedTextField(value = name2, onValueChange = onName2Change, label = { Text("Full Name") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = dob2, onValueChange = onDob2Change, label = { Text("Date of Birth (YYYY-MM-DD)") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = tob2, onValueChange = onTob2Change, label = { Text("Time of Birth (HH:MM)") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = pob2, onValueChange = onPob2Change, label = { Text("Place of Birth") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+                    BirthInputFields(
+                        name = name2, onNameChange = onName2Change,
+                        dob = dob2, onDobChange = onDob2Change,
+                        tob = tob2, onTobChange = onTob2Change,
+                        pob = pob2, onPobChange = onPob2Change,
+                        onCitySelected = onCityBSelected,
+                        cityVmKey = "personB",
+                    )
                 }
             }
         }

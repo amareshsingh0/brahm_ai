@@ -58,6 +58,7 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
                     onDobChange        = { vm.dob.value = it },
                     onTobChange        = { vm.tob.value = it },
                     onPobChange        = { vm.pob.value = it },
+                    onCitySelected     = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
                     onTargetYearChange = { vm.targetYear.value = it },
                     onCalculate        = { vm.calculate() },
                 )

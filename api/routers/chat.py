@@ -1,6 +1,7 @@
 """
 Chat Router — Two-pass reasoning flow:
   Pass 1: Gemini decides intent + what tools to run (query_router.py)
+  Memory: Relevant past conversations fetched from Supabase (memory_service.py)
   Tools:  Python services run calculations if needed (tool_executor.py)
   Pass 2: Gemini streams final expert answer (prompt_builder + rag_service)
 """
@@ -15,6 +16,7 @@ from api.services.rag_service import hybrid_search, generate_stream
 from api.services.query_router import get_pass1_decision
 from api.services.tool_executor import execute_tools, compress_kundali
 from api.services.geo_service import get_coords
+from api.services.memory_service import get_relevant_memory, format_memory_for_prompt
 
 router = APIRouter()
 
@@ -52,6 +54,12 @@ def _normalize_birth_data(bd: dict) -> dict:
     }
 
 
+def _error_stream(message: str = "Kuch problem ho gayi, thoda baad mein try karo. 🙏"):
+    """Yield a graceful error SSE response instead of crashing."""
+    yield f"data: {_json.dumps({'type': 'token', 'content': message})}\n\n"
+    yield f"data: {_json.dumps({'type': 'done'})}\n\n"
+
+
 @router.post("/chat")
 async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
     history = [{"role": m.role, "content": m.content} for m in req.history]
@@ -61,22 +69,53 @@ async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
     kundali_summary = compress_kundali(user_kundali_raw) if user_kundali_raw else None
 
     # ── PASS 1: Gemini decides what to do ──────────────────────────────
-    decision = await asyncio.get_event_loop().run_in_executor(
-        None,
-        lambda: get_pass1_decision(
-            query=req.message,
-            page_context=req.page_context,
-            kundali_summary=kundali_summary,
-            page_data=req.page_data,
-            history=history,
+    try:
+        decision = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: get_pass1_decision(
+                query=req.message,
+                page_context=req.page_context,
+                kundali_summary=kundali_summary,
+                page_data=req.page_data,
+                history=history,
+            )
         )
-    )
+    except Exception:
+        # Nuclear fallback — should never reach here since query_router never raises
+        decision = {
+            "intent": req.message[:80],
+            "query_type": "CONVERSATIONAL",
+            "needs_calculation": False,
+            "needs_birth_form": False,
+            "calc_services": [],
+            "needs_rag": False,
+            "response_depth": "basic",
+            "response_lang": "hi",
+            "user_language_style": "hinglish",
+        }
 
     # ── Birth form needed — user wants kundali but no birth data ────────
     if decision.get("needs_birth_form"):
         def _birth_form_event():
             yield f"data: {_json.dumps({'type': 'birth_form'})}\n\n"
         return StreamingResponse(_birth_form_event(), media_type="text/event-stream")
+
+    # ── LONG-TERM MEMORY: Fetch relevant past exchanges ─────────────────
+    # Skip memory for pure greetings/small talk (not useful, wastes context)
+    query_type = decision.get("query_type", "CONVERSATIONAL")
+    memory_exchanges = []
+    if query_type not in {"CONVERSATIONAL", "SMALL_TALK"} and req.user_id:
+        try:
+            memory_exchanges = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: get_relevant_memory(
+                    user_id=req.user_id,
+                    query=req.message,
+                    current_session_id=req.session_id or "",
+                )
+            )
+        except Exception:
+            memory_exchanges = []
 
     # ── TOOL EXECUTION ──────────────────────────────────────────────────
     # Priority: 1) Gemini-extracted birth_data  2) page_data.user_birth_data
@@ -100,11 +139,14 @@ async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
     kundali_freshly_calculated = False
     tool_results = {}
     if decision.get("needs_calculation") and decision.get("calc_services"):
-        tool_results = await execute_tools(
-            decision=decision,
-            user_birth_data=user_birth_data,
-            page_data=req.page_data,
-        )
+        try:
+            tool_results = await execute_tools(
+                decision=decision,
+                user_birth_data=user_birth_data,
+                page_data=req.page_data,
+            )
+        except Exception:
+            tool_results = {}
         if not kundali_summary and tool_results.get("kundali"):
             kundali_summary = tool_results["kundali"]
             kundali_freshly_calculated = True
@@ -112,14 +154,20 @@ async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
     # ── RAG SEARCH ──────────────────────────────────────────────────────
     retrieved = []
     if decision.get("needs_rag"):
-        rag_query = decision.get("rag_query") or req.message
-        retrieved = await asyncio.get_event_loop().run_in_executor(
-            None, lambda: hybrid_search(rag_query, req.language)
-        )
-        retrieved = retrieved[:3]
+        try:
+            rag_query = decision.get("rag_query") or req.message
+            retrieved = await asyncio.get_event_loop().run_in_executor(
+                None, lambda: hybrid_search(rag_query, req.language)
+            )
+            retrieved = retrieved[:3]
+        except Exception:
+            retrieved = []
 
     # ── PASS 2: Stream final answer ──────────────────────────────────────
     assistant_tokens: list[str] = []
+
+    # Inject memory into page_data for prompt_builder
+    memory_section = format_memory_for_prompt(memory_exchanges)
 
     # If kundali was freshly calculated from form input, include birth_data for save prompt
     save_prompt_data = None
@@ -136,24 +184,30 @@ async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
         }
 
     def event_generator():
-        for chunk in generate_stream(
-            query=req.message,
-            retrieved=retrieved,
-            history=history,
-            decision=decision,
-            tool_results=tool_results,
-            kundali_summary=kundali_summary,
-            page_context=req.page_context,
-            page_data=req.page_data,
-            language=req.language,
-        ):
-            yield f"data: {chunk}\n\n"
-            try:
-                parsed = _json.loads(chunk)
-                if parsed.get("type") == "token":
-                    assistant_tokens.append(parsed.get("content", ""))
-            except Exception:
-                pass
+        try:
+            for chunk in generate_stream(
+                query=req.message,
+                retrieved=retrieved,
+                history=history,
+                decision=decision,
+                tool_results=tool_results,
+                kundali_summary=kundali_summary,
+                page_context=req.page_context,
+                page_data=req.page_data,
+                language=req.language,
+                memory_section=memory_section,
+            ):
+                yield f"data: {chunk}\n\n"
+                try:
+                    parsed = _json.loads(chunk)
+                    if parsed.get("type") == "token":
+                        assistant_tokens.append(parsed.get("content", ""))
+                except Exception:
+                    pass
+        except Exception:
+            yield from _error_stream()
+            return
+
         # After streaming: send save prompt if kundali was freshly calculated
         if save_prompt_data and not req.page_data.get("kundali_raw"):
             yield f"data: {_json.dumps({'type': 'save_kundali_prompt', 'birth_data': save_prompt_data})}\n\n"

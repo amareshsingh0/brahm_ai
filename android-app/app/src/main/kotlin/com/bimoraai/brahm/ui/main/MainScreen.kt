@@ -1,328 +1,217 @@
 package com.bimoraai.brahm.ui.main
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.filled.LibraryBooks
-import androidx.compose.material.icons.automirrored.filled.LiveHelp
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.fillMaxSize
+import com.bimoraai.brahm.core.components.PageBotFab
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.chat.ChatScreen
 import com.bimoraai.brahm.ui.kundali.KundaliScreen
 import com.bimoraai.brahm.ui.more.MoreScreen
-import com.bimoraai.brahm.ui.profile.ProfileViewModel
 import com.bimoraai.brahm.ui.profile.ProfileScreen
 import com.bimoraai.brahm.ui.today.TodayScreen
-import kotlinx.coroutines.launch
 
-// ─── Drawer nav item ──────────────────────────────────────────────────────────
-data class DrawerItem(val route: String, val label: String, val icon: ImageVector)
-
-private val mainItems = listOf(
-    DrawerItem("tab_today",      "Dashboard",       Icons.Default.Dashboard),
-    DrawerItem("tab_chat",       "Brahm AI Chat",   Icons.AutoMirrored.Filled.Chat),
-    DrawerItem("tab_kundali",    "My Kundli",       Icons.Default.Stars),
-    DrawerItem(Route.HOROSCOPE,  "Daily Horoscope", Icons.Default.WbSunny),
-    DrawerItem(Route.PANCHANG,   "Full Panchang",   Icons.Default.CalendarViewDay),
-    DrawerItem(Route.SKY,        "Live Sky",        Icons.Default.NightsStay),
-    DrawerItem(Route.STORIES,    "Vedic Stories",   Icons.AutoMirrored.Filled.MenuBook),
+// ─── Bottom nav tab definition ────────────────────────────────────────────────
+private data class BottomTab(
+    val route: String,
+    val label: String,
+    val icon: ImageVector,
+    val selectedIcon: ImageVector = icon,
 )
 
-private val exploreItems = listOf(
-    DrawerItem(Route.GOCHAR,         "Gochar (Transits)",  Icons.Default.Explore),
-    DrawerItem(Route.COMPATIBILITY,  "Compatibility",      Icons.Default.Favorite),
-    DrawerItem(Route.PALMISTRY,      "Palmistry",          Icons.Default.FrontHand),
-    DrawerItem(Route.SADE_SATI,      "Sade Sati",          Icons.Default.Timelapse),
-    DrawerItem(Route.DOSHA,          "Dosha Check",        Icons.Default.HealthAndSafety),
-    DrawerItem(Route.GEMSTONE,       "Gemstone Guide",     Icons.Default.Diamond),
-    DrawerItem(Route.MUHURTA,        "Muhurta",            Icons.Default.Schedule),
-    DrawerItem(Route.KP,             "KP System",          Icons.Default.Science),
-    DrawerItem(Route.PRASHNA,        "Prashna",            Icons.AutoMirrored.Filled.LiveHelp),
-    DrawerItem(Route.VARSHPHAL,      "Varshphal",          Icons.Default.CalendarMonth),
-    DrawerItem(Route.RECTIFICATION,  "Rectification",      Icons.Default.Analytics),
-    DrawerItem(Route.RASHI,          "Rashi Explorer",     Icons.Default.Brightness5),
-    DrawerItem(Route.NAKSHATRA,      "Nakshatra",          Icons.Default.Stars),
-    DrawerItem(Route.YOGAS,          "Yogas",              Icons.Default.AutoAwesome),
-    DrawerItem(Route.REMEDIES,       "Remedies",           Icons.Default.Healing),
-    DrawerItem(Route.MANTRA,         "Mantras",            Icons.Default.MusicNote),
-    DrawerItem(Route.LIBRARY,        "Vedic Library",      Icons.AutoMirrored.Filled.LibraryBooks),
-    DrawerItem(Route.GOTRA,          "Gotra Finder",       Icons.Default.AccountTree),
+private val bottomTabs = listOf(
+    BottomTab("tab_today",   "Today",   Icons.Default.Home),
+    BottomTab("tab_kundali", "Kundali", Icons.Default.AutoAwesome),
+    BottomTab("tab_chat",    "Chat",    Icons.AutoMirrored.Filled.Chat),
+    BottomTab("tab_more",    "Explore", Icons.Default.Apps),
+    BottomTab("tab_profile", "Profile", Icons.Default.Person),
 )
 
-// ─── Main Screen with Drawer nav ──────────────────────────────────────────────
+// ─── Main Screen ──────────────────────────────────────────────────────────────
 @Composable
 fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = null) {
-    val profileVm: ProfileViewModel = hiltViewModel()
-    val user by profileVm.user.collectAsState()
-
     val tabNavController = rememberNavController()
     val currentEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route
 
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
 
-    fun openDrawer() { scope.launch { drawerState.open() } }
-    fun closeDrawer() { scope.launch { drawerState.close() } }
-
-    fun navigate(route: String) {
-        closeDrawer()
-        // Tab routes stay inside the inner NavHost
-        if (route.startsWith("tab_")) {
-            tabNavController.navigate(route) {
-                popUpTo("tab_today") { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }
-        } else {
-            // Reset inner tab to today so back press returns to Today, not Kundali/other tab
-            tabNavController.navigate("tab_today") {
-                popUpTo("tab_today") { inclusive = false }
-                launchSingleTop = true
-            }
-            navController.navigate(route)
+    fun navigateTab(route: String) {
+        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        tabNavController.navigate(route) {
+            popUpTo("tab_today") { saveState = true }
+            launchSingleTop = true
+            restoreState = true
         }
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                modifier = Modifier.width(300.dp),
-                drawerContainerColor = Color(0xFFF0F0F2),
-                drawerShape = RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp),
-            ) {
-                DrawerContent(
-                    currentRoute = currentRoute,
-                    onNavigate = { navigate(it) },
-                    onClose = { closeDrawer() },
-                    onProfileClick = { navigate(Route.PROFILE) },
-                    userName = user?.name?.takeIf { it.isNotBlank() } ?: user?.phone ?: "User",
-                    userPlan = "Free",
-                )
+    Scaffold(
+        containerColor = BrahmBackground,
+        bottomBar = {
+            BrahmBottomNav(
+                currentRoute = currentRoute,
+                onTabSelected = { navigateTab(it) },
+            )
+        },
+        floatingActionButton = {
+            // AI FAB on all tabs except Chat (which is already a chat screen)
+            if (currentRoute != "tab_chat") {
+                val ctx = when (currentRoute) {
+                    "tab_kundali" -> "kundali"
+                    "tab_today"   -> "today"
+                    "tab_more"    -> "explore"
+                    "tab_profile" -> "profile"
+                    else          -> "general"
+                }
+                PageBotFab(pageContext = ctx)
             }
         },
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(18.dp))
-                            Text(
-                                "Brahm AI",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    color = BrahmGold,
-                                    fontWeight = FontWeight.Bold,
-                                ),
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { openDrawer() }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = BrahmForeground)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White,
-                        scrolledContainerColor = Color.White,
-                    ),
-                )
-            },
-        ) { innerPadding ->
-            NavHost(
-                navController = tabNavController,
-                startDestination = "tab_today",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(BrahmBackground)
-                    .padding(innerPadding),
-                enterTransition    = { fadeIn(tween(150)) },
-                exitTransition     = { fadeOut(tween(100)) },
-                popEnterTransition = { fadeIn(tween(150)) },
-                popExitTransition  = { fadeOut(tween(100)) },
-            ) {
-                composable("tab_today")   { TodayScreen(navController, tabNavController) }
-                composable("tab_kundali") { KundaliScreen(navController) }
-                composable("tab_chat")    { ChatScreen() }
-                composable("tab_more")    { MoreScreen(navController) }
-                composable("tab_profile") { ProfileScreen(navController) }
-            }
+    ) { innerPadding ->
+        NavHost(
+            navController = tabNavController,
+            startDestination = "tab_today",
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BrahmBackground)
+                .padding(innerPadding),
+            enterTransition    = { fadeIn(tween(180)) + slideInVertically { it / 25 } },
+            exitTransition     = { fadeOut(tween(130)) },
+            popEnterTransition = { fadeIn(tween(180)) },
+            popExitTransition  = { fadeOut(tween(130)) + slideOutVertically { it / 25 } },
+        ) {
+            composable("tab_today")   { TodayScreen(navController, onNavigateTab = { navigateTab(it) }) }
+            composable("tab_kundali") { KundaliScreen(navController) }
+            composable("tab_chat")    { ChatScreen() }
+            composable("tab_more")    { MoreScreen(navController) }
+            composable("tab_profile") { ProfileScreen(navController) }
         }
     }
 }
 
-// ─── Drawer Content ───────────────────────────────────────────────────────────
+// ─── Bottom Navigation Bar ────────────────────────────────────────────────────
 @Composable
-private fun DrawerContent(
+private fun BrahmBottomNav(
     currentRoute: String?,
-    onNavigate: (String) -> Unit,
-    onClose: () -> Unit,
-    onProfileClick: () -> Unit,
-    userName: String = "User",
-    userPlan: String = "Free",
+    onTabSelected: (String) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .verticalScroll(rememberScrollState()),
+    Surface(
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        color = Color.White,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Icon(Icons.Default.Nightlight, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(22.dp))
-                Text(
-                    "BRAHM AI",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = BrahmGold,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp,
-                    ),
-                )
-            }
-            IconButton(onClick = onClose) {
-                Icon(Icons.Default.Menu, contentDescription = "Close", tint = BrahmMutedForeground)
-            }
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        // MAIN section
-        DrawerSectionLabel("MAIN")
-        mainItems.forEach { item ->
-            DrawerNavItem(
-                item = item,
-                selected = currentRoute == item.route,
-                onClick = { onNavigate(item.route) },
+        Column {
+            // Top divider — thin 1dp line separating content from nav
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = BrahmBorder,
             )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // EXPLORE section
-        DrawerSectionLabel("EXPLORE")
-        exploreItems.forEach { item ->
-            DrawerNavItem(
-                item = item,
-                selected = currentRoute == item.route,
-                onClick = { onNavigate(item.route) },
-            )
-        }
-
-        Spacer(Modifier.weight(1f))
-
-        // User card at bottom
-        HorizontalDivider(color = BrahmBorder)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onProfileClick() }
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(BrahmGold),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        userName.take(2).uppercase(),
-                        color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .height(62.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                bottomTabs.forEach { tab ->
+                    val selected = currentRoute == tab.route
+                    BrahmNavItem(
+                        tab = tab,
+                        selected = selected,
+                        onClick = { onTabSelected(tab.route) },
+                        modifier = Modifier.weight(1f),
                     )
                 }
-                Column {
-                    Text(userName, style = MaterialTheme.typography.titleSmall)
-                    Text(userPlan, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                }
             }
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = BrahmMutedForeground)
         }
     }
 }
 
 @Composable
-private fun DrawerSectionLabel(label: String) {
-    Text(
-        text = label,
-        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-        style = MaterialTheme.typography.labelSmall.copy(
-            color = BrahmMutedForeground,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.2.sp,
-        ),
+private fun BrahmNavItem(
+    tab: BottomTab,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.08f else 1f,
+        animationSpec = spring(dampingRatio = 0.5f, stiffness = 400f),
+        label = "tabScale",
     )
-}
 
-@Composable
-private fun DrawerNavItem(item: DrawerItem, selected: Boolean, onClick: () -> Unit) {
-    val bgColor = if (selected) Color(0xFFE8DFC8) else Color.Transparent
-    val contentColor = if (selected) BrahmGold else BrahmForeground
+    val iconColor = if (selected) BrahmGold else Color(0xFF9E9E9E)
+    val labelColor = if (selected) BrahmGold else Color(0xFF9E9E9E)
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val interactionSource = remember { MutableInteractionSource() }
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(indication = null, interactionSource = interactionSource, onClick = onClick)
+            .padding(horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        // Gold selection indicator bar
+        // Gold indicator line at top of selected tab
         Box(
             modifier = Modifier
-                .width(3.dp)
-                .height(36.dp)
-                .clip(RoundedCornerShape(2.dp))
+                .width(if (selected) 28.dp else 0.dp)
+                .height(2.dp)
+                .clip(RoundedCornerShape(1.dp))
                 .background(if (selected) BrahmGold else Color.Transparent),
         )
-        Spacer(Modifier.width(4.dp))
-        Row(
+        Spacer(Modifier.height(6.dp))
+        Icon(
+            imageVector = tab.icon,
+            contentDescription = tab.label,
+            tint = iconColor,
             modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(bgColor)
-                .clickable { onClick() }
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Icon(item.icon, contentDescription = item.label, tint = contentColor, modifier = Modifier.size(20.dp))
-            Text(item.label, style = MaterialTheme.typography.bodyMedium.copy(color = contentColor, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal))
-        }
+                .size(22.dp)
+                .scale(scale),
+        )
+        Spacer(Modifier.height(3.dp))
+        Text(
+            text = tab.label,
+            fontSize = 10.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = labelColor,
+            maxLines = 1,
+        )
+        Spacer(Modifier.height(4.dp))
     }
 }
+

@@ -13,8 +13,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.add
 import javax.inject.Inject
 
 @HiltViewModel
@@ -75,23 +77,27 @@ class RectificationScreenViewModel @Inject constructor(
             _isLoading.value = true
             _error.value     = null
             try {
+                val uncertaintyMinutes = when {
+                    uncertainty.value.contains("30") -> 30
+                    uncertainty.value.contains("2")  -> 120
+                    uncertainty.value.contains("3")  -> 180
+                    else                             -> 60
+                }
                 val body = buildJsonObject {
-                    put("name",        JsonPrimitive(name.value.ifBlank { "User" }))
-                    put("dob",         JsonPrimitive(dob.value))
-                    put("approx_tob",  JsonPrimitive(approxTob.value))
-                    put("pob",         JsonPrimitive(pob.value))
-                    put("uncertainty", JsonPrimitive(uncertainty.value))
-                    put("lat",         JsonPrimitive(lat.value))
-                    put("lon",         JsonPrimitive(lon.value))
-                    put("tz",          JsonPrimitive(tz.value))
-                    put("events",      buildJsonObject {
-                        if (event1Date.value.isNotBlank()) put("event1", buildJsonObject {
-                            put("type", JsonPrimitive(event1Type.value))
+                    put("date",                 JsonPrimitive(dob.value))
+                    put("approx_time",          JsonPrimitive(approxTob.value))
+                    put("uncertainty_minutes",  JsonPrimitive(uncertaintyMinutes))
+                    put("lat",                  JsonPrimitive(lat.value))
+                    put("lon",                  JsonPrimitive(lon.value))
+                    put("tz",                   JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
+                    put("events", buildJsonArray {
+                        if (event1Date.value.isNotBlank()) add(buildJsonObject {
                             put("date", JsonPrimitive(event1Date.value))
+                            put("type", JsonPrimitive(event1Type.value.lowercase().replace(" ", "_")))
                         })
-                        if (event2Date.value.isNotBlank()) put("event2", buildJsonObject {
-                            put("type", JsonPrimitive(event2Type.value))
+                        if (event2Date.value.isNotBlank()) add(buildJsonObject {
                             put("date", JsonPrimitive(event2Date.value))
+                            put("type", JsonPrimitive(event2Type.value.lowercase().replace(" ", "_")))
                         })
                     })
                 }

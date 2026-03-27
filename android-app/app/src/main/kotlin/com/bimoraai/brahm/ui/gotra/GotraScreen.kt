@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 data class GotraInfo(
@@ -47,6 +48,7 @@ private val gotras = listOf(
 fun GotraScreen(navController: NavController) {
     var expandedGotra by remember { mutableStateOf<String?>(null) }
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -56,7 +58,7 @@ fun GotraScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
@@ -94,6 +96,7 @@ fun GotraScreen(navController: NavController) {
             }
         }
     }
+    } // SwipeBackLayout
 }
 
 @Composable

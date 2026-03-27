@@ -241,6 +241,7 @@ def generate_stream(
     page_context: str = "general",
     page_data: dict = {},
     language: str = "hi",
+    memory_section: str = "",
 ) -> Generator[str, None, None]:
     """Pass 2: Build final prompt from all context and stream from Gemini."""
     from google import genai
@@ -256,6 +257,7 @@ def generate_stream(
         rag_docs=retrieved,
         language=language,
         history=history,
+        memory_section=memory_section,
     )
 
     api_key = os.environ.get("GEMINI_API_KEY", "")

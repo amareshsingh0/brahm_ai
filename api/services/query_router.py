@@ -15,7 +15,7 @@ OBVIOUS_GREETINGS = [
     r"^(thanks|thank you|shukriya|dhanyawad|bahut shukriya)\s*[!?.]*$",
 ]
 
-PASS1_PROMPT = """You are the decision engine for Brahm AI — a Vedic astrology AI.
+PASS1_PROMPT = """You are the decision engine for Brahm AI — a Vedic astrology AI assistant.
 
 User query: "{query}"
 Conversation history (last 6 messages): {history_summary}
@@ -26,7 +26,7 @@ Page data keys: {page_data_keys}
 Return ONLY valid JSON, no explanation, no markdown:
 {{
   "intent": "one line: what user actually wants",
-  "query_type": "CONVERSATIONAL|SIMPLE_FACT|DEEP_VEDIC|CHART_ANALYSIS|REPORT_ANALYSIS|RECOMMENDATION",
+  "query_type": "CONVERSATIONAL|SIMPLE_FACT|DEEP_VEDIC|CHART_ANALYSIS|REPORT_ANALYSIS|RECOMMENDATION|GENERAL_KNOWLEDGE|SMALL_TALK",
   "needs_calculation": true or false,
   "needs_birth_form": true or false,
   "calc_services": [],
@@ -52,12 +52,15 @@ Rules for birth_data extraction:
 - If not found anywhere, use null
 
 Rules for query_type:
-- CONVERSATIONAL: greetings, thanks, small talk, one-word replies
+- CONVERSATIONAL: greetings, thanks, short replies, follow-up affirmations
+- SMALL_TALK: casual chitchat, personal feelings, mood, "kya chal raha hai" etc.
 - SIMPLE_FACT: basic planet/rashi/nakshatra info, no personal chart needed
 - DEEP_VEDIC: scripture quote/shlok meaning, complex yoga theory — needs book search
 - CHART_ANALYSIS: about user's personal life, future, dasha, career, health, marriage
 - REPORT_ANALYSIS: explaining a report currently visible (compatibility score, panchang data)
 - RECOMMENDATION: muhurta, auspicious date, remedy, what to do
+- GENERAL_KNOWLEDGE: non-Vedic questions (news, sports, general life advice, science, etc.)
+  → Brahm AI answers these from its general knowledge + links to Vedic wisdom if possible
 
 Rules for needs_birth_form:
 - true ONLY if: user clearly wants kundali/chart/personal prediction AND birth_data is incomplete (missing date or place) AND has_kundali is "no"
@@ -67,13 +70,13 @@ Rules for needs_calculation:
 - true if: CHART_ANALYSIS or RECOMMENDATION and birth_data has at least date+time+place
 - true if: dasha timing, muhurta, panchang needed fresh
 - false if: has_kundali is "yes" — kundali already available, no recalculation needed
-- false if: page_data already has the data, or CONVERSATIONAL/SIMPLE_FACT
+- false if: page_data already has the data, or CONVERSATIONAL/SIMPLE_FACT/SMALL_TALK/GENERAL_KNOWLEDGE
 - false if: birth_data is incomplete (missing date or place)
 - false if: needs_birth_form is true
 
 Rules for needs_rag:
 - true ONLY if: user explicitly asks "shastra mein kya hai", scripture reference, shlok
-- false for: 90% of queries — personal predictions, calculations, report analysis, conversation
+- false for: 90% of queries — personal predictions, calculations, report analysis, conversation, general knowledge
 
 Rules for calc_services (only fill if needs_calculation=true):
 - "dasha": vimshottari dasha timeline — for timing questions
@@ -83,7 +86,7 @@ Rules for calc_services (only fill if needs_calculation=true):
 - "gochar": current transit positions
 
 Rules for response_depth:
-- basic: CONVERSATIONAL, SIMPLE_FACT
+- basic: CONVERSATIONAL, SIMPLE_FACT, SMALL_TALK, GENERAL_KNOWLEDGE
 - deep: DEEP_VEDIC, REPORT_ANALYSIS
 - master: CHART_ANALYSIS, RECOMMENDATION (personal, needs full analysis)
 
@@ -92,6 +95,21 @@ Rules for user_language_style:
 - pure_english: user wrote entirely in English with no Hindi words
 - hinglish: user mixed Hindi+English (roman Hindi, e.g. "meri shaadi kb hogi")
   Note: most Indian users write hinglish — "kb", "kya", "meri", "btao" etc. = hinglish"""
+
+# Safe CONVERSATIONAL fallback — always gives a response, never blank
+_CONVERSATIONAL_FALLBACK = {
+    "intent": "general query",
+    "query_type": "CONVERSATIONAL",
+    "needs_calculation": False,
+    "needs_birth_form": False,
+    "calc_services": [],
+    "needs_rag": False,
+    "kundali_focus": [],
+    "response_depth": "basic",
+    "response_lang": "hi",
+    "user_language_style": "hinglish",
+    "birth_data": {"date": None, "time": None, "place": None, "name": None},
+}
 
 
 def get_pass1_decision(
@@ -104,24 +122,14 @@ def get_pass1_decision(
     """
     Pass 1: Gemini decides how to handle the query.
     Returns decision dict. Fast regex for obvious greetings, Gemini for everything else.
+    Guaranteed to return a valid dict — never raises.
     """
     q = query.strip().lower()
 
     # Fast path for obvious greetings — saves Gemini API call
     for pattern in OBVIOUS_GREETINGS:
         if re.match(pattern, q):
-            return {
-                "intent": "greeting or small talk",
-                "query_type": "CONVERSATIONAL",
-                "needs_calculation": False,
-                "calc_services": [],
-                "needs_rag": False,
-                "kundali_focus": [],
-                "response_depth": "basic",
-                "response_lang": "hi",
-                "user_language_style": "hinglish",
-                "birth_data": {"date": None, "time": None, "place": None, "name": None},
-            }
+            return {**_CONVERSATIONAL_FALLBACK, "intent": "greeting or small talk"}
 
     # Everything else: Gemini decides
     return _gemini_pass1(query, page_context, kundali_summary, page_data, history or [])
@@ -135,6 +143,7 @@ def _gemini_pass1(
     history: list,
 ) -> dict:
     from google import genai
+    from google.genai import types
 
     # Summarize last 6 messages for context
     history_summary = ""
@@ -160,9 +169,12 @@ def _gemini_pass1(
         response = client.models.generate_content(
             model="models/gemini-2.5-flash",
             contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+            ),
         )
         text = response.text.strip()
-        # Strip markdown code blocks if present
+        # Strip markdown code blocks if somehow present
         text = re.sub(r"^```json\s*", "", text)
         text = re.sub(r"\s*```$", "", text)
         decision = json.loads(text)
@@ -172,15 +184,6 @@ def _gemini_pass1(
             if key not in decision:
                 raise ValueError(f"Missing key: {key}")
         return decision
-    except Exception as e:
-        # Safe fallback
-        return {
-            "intent": query[:80],
-            "query_type": "DEEP_VEDIC",
-            "needs_calculation": False,
-            "calc_services": [],
-            "needs_rag": True,
-            "kundali_focus": [],
-            "response_depth": "deep",
-            "response_lang": "hi",
-        }
+    except Exception:
+        # Safe fallback — CONVERSATIONAL so Gemini always gives a helpful response
+        return {**_CONVERSATIONAL_FALLBACK, "intent": query[:80]}

@@ -76,20 +76,24 @@ class CompatibilityScreenViewModel @Inject constructor(
             _error.value     = null
             try {
                 val body = buildJsonObject {
-                    put("name1", JsonPrimitive(name1.value.ifBlank { "Person A" }))
-                    put("dob1",  JsonPrimitive(dob1.value))
-                    put("tob1",  JsonPrimitive(tob1.value))
-                    put("pob1",  JsonPrimitive(pob1.value))
-                    put("lat1",  JsonPrimitive(lat1.value))
-                    put("lon1",  JsonPrimitive(lon1.value))
-                    put("tz1",   JsonPrimitive(tz1.value))
-                    put("name2", JsonPrimitive(name2.value.ifBlank { "Person B" }))
-                    put("dob2",  JsonPrimitive(dob2.value))
-                    put("tob2",  JsonPrimitive(tob2.value))
-                    put("pob2",  JsonPrimitive(pob2.value))
-                    put("lat2",  JsonPrimitive(lat2.value))
-                    put("lon2",  JsonPrimitive(lon2.value))
-                    put("tz2",   JsonPrimitive(tz2.value))
+                    put("person_a", buildJsonObject {
+                        put("name",  JsonPrimitive(name1.value.ifBlank { "Person A" }))
+                        put("date",  JsonPrimitive(dob1.value))
+                        put("time",  JsonPrimitive(tob1.value))
+                        put("place", JsonPrimitive(pob1.value))
+                        put("lat",   JsonPrimitive(lat1.value))
+                        put("lon",   JsonPrimitive(lon1.value))
+                        put("tz",    JsonPrimitive(tz1.value.toDoubleOrNull() ?: 5.5))
+                    })
+                    put("person_b", buildJsonObject {
+                        put("name",  JsonPrimitive(name2.value.ifBlank { "Person B" }))
+                        put("date",  JsonPrimitive(dob2.value))
+                        put("time",  JsonPrimitive(tob2.value))
+                        put("place", JsonPrimitive(pob2.value))
+                        put("lat",   JsonPrimitive(lat2.value))
+                        put("lon",   JsonPrimitive(lon2.value))
+                        put("tz",    JsonPrimitive(tz2.value.toDoubleOrNull() ?: 5.5))
+                    })
                 }
                 val resp = api.getCompatibility(body)
                 if (resp.isSuccessful) {

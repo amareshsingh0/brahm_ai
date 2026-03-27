@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 data class MantraInfo(
@@ -106,6 +107,7 @@ fun MantraScreen(navController: NavController) {
         if (selectedCategory == "All") mantras else mantras.filter { it.category == selectedCategory }
     }
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -115,7 +117,7 @@ fun MantraScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
@@ -153,6 +155,7 @@ fun MantraScreen(navController: NavController) {
             }
         }
     }
+    } // SwipeBackLayout
 }
 
 @Composable

@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.network.ApiService
+import com.bimoraai.brahm.core.network.KundaliRequest
 import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -14,6 +16,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
 @HiltViewModel
@@ -71,28 +76,42 @@ class GocharScreenViewModel @Inject constructor(
             _isLoading.value = true
             _error.value     = null
             try {
-                val body = buildJsonObject {
-                    put("name", JsonPrimitive(name.value.ifBlank { "User" }))
-                    put("dob",  JsonPrimitive(dob.value))
-                    put("tob",  JsonPrimitive(tob.value))
-                    put("pob",  JsonPrimitive(pob.value))
-                    put("lat",  JsonPrimitive(lat.value))
-                    put("lon",  JsonPrimitive(lon.value))
-                    put("tz",   JsonPrimitive(tz.value))
+                // Step 1 + 2 in parallel: current sky AND kundali for lagna/moon rashi
+                val skyDef = async { api.getGocharNow() }
+                val kundaliDef = async {
+                    api.generateKundali(KundaliRequest(
+                        name  = name.value.ifBlank { "User" },
+                        date  = dob.value,
+                        time  = tob.value,
+                        place = pob.value,
+                        lat   = lat.value,
+                        lon   = lon.value,
+                        tz    = tz.value.toDoubleOrNull() ?: 5.5,
+                    ))
                 }
-                val gocharResp = api.getGochar(body)
-                if (gocharResp.isSuccessful) {
-                    _gocharData.value = gocharResp.body()
+
+                val skyResp = skyDef.await()
+                if (skyResp.isSuccessful) _gocharData.value = skyResp.body()
+
+                // Step 3: extract lagna + moon rashi → call gochar/analyze
+                val kundaliResp = kundaliDef.await()
+                if (kundaliResp.isSuccessful) {
+                    val k = kundaliResp.body()
+                    val lagnaRashi = k?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                    val moonRashi  = k?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                    if (lagnaRashi.isNotBlank() && moonRashi.isNotBlank()) {
+                        val analyzeBody = buildJsonObject {
+                            put("lagna_rashi", JsonPrimitive(lagnaRashi))
+                            put("moon_rashi",  JsonPrimitive(moonRashi))
+                            put("name",        JsonPrimitive(name.value.ifBlank { "User" }))
+                        }
+                        val analyzeResp = api.analyzeGochar(analyzeBody)
+                        if (analyzeResp.isSuccessful) _analyzeData.value = analyzeResp.body()
+                    }
                 }
-                val analyzeResp = api.analyzeGochar(body)
-                if (analyzeResp.isSuccessful) {
-                    _analyzeData.value = analyzeResp.body()
-                }
-                if (gocharResp.isSuccessful || analyzeResp.isSuccessful) {
-                    _hasData.value = true
-                } else {
-                    _error.value = "Calculation failed. Please check your birth details."
-                }
+
+                _hasData.value = _gocharData.value != null || _analyzeData.value != null
+                if (!_hasData.value) _error.value = "Calculation failed. Please check your birth details."
             } catch (e: Exception) {
                 _error.value = e.message ?: "Network error"
             } finally {

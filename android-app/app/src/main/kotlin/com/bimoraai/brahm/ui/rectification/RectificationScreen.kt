@@ -65,6 +65,7 @@ fun RectificationScreen(navController: NavController, vm: RectificationScreenVie
                     onDobChange         = { vm.dob.value = it },
                     onApproxTobChange   = { vm.approxTob.value = it },
                     onPobChange         = { vm.pob.value = it },
+                    onCitySelected      = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
                     onUncertaintyChange = { vm.uncertainty.value = it },
                     onEvent1TypeChange  = { vm.event1Type.value = it },
                     onEvent1DateChange  = { vm.event1Date.value = it },

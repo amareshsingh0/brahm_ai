@@ -53,11 +53,12 @@ fun KPScreen(navController: NavController, vm: KPScreenViewModel = hiltViewModel
                 else -> KPInputForm(
                     name = name, dob = dob, tob = tob, pob = pob,
                     error = error,
-                    onNameChange = { vm.name.value = it },
-                    onDobChange  = { vm.dob.value = it },
-                    onTobChange  = { vm.tob.value = it },
-                    onPobChange  = { vm.pob.value = it },
-                    onCalculate  = { vm.calculate() },
+                    onNameChange   = { vm.name.value = it },
+                    onDobChange    = { vm.dob.value = it },
+                    onTobChange    = { vm.tob.value = it },
+                    onPobChange    = { vm.pob.value = it },
+                    onCitySelected = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
+                    onCalculate    = { vm.calculate() },
                 )
             }
         }

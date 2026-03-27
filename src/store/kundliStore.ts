@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { KundaliResponse } from '../types/api';
 
 export interface BirthDetails {
@@ -100,25 +101,38 @@ export interface KundliState {
   setKundaliSettings: (settings: Partial<KundaliSettings>) => void;
 }
 
-export const useKundliStore = create<KundliState>((set) => ({
-  birthDetails: null,
-  selectedPlanet: null,
-  hasKundli: false,
-  kundaliData: null,
-  kundaliSettings: loadSettings(),
-  setBirthDetails: (details) => set({ birthDetails: details, hasKundli: true }),
-  setSelectedPlanet: (planet) => set({ selectedPlanet: planet }),
-  setHasKundli: (val) => set({ hasKundli: val }),
-  setKundaliData: (data) => set({ kundaliData: data, hasKundli: true }),
-  setCity: (lat, lon, tz) => set((s) => ({
-    birthDetails: s.birthDetails ? { ...s.birthDetails, lat, lon, tz } : null,
-  })),
-  setKundaliSettings: (partial) => set((s) => {
-    const next = { ...s.kundaliSettings, ...partial };
-    localStorage.setItem("kundali_settings", JSON.stringify(next));
-    return { kundaliSettings: next };
-  }),
-}));
+export const useKundliStore = create<KundliState>()(
+  persist(
+    (set) => ({
+      birthDetails: null,
+      selectedPlanet: null,
+      hasKundli: false,
+      kundaliData: null,
+      kundaliSettings: loadSettings(),
+      setBirthDetails: (details) => set({ birthDetails: details, hasKundli: true }),
+      setSelectedPlanet: (planet) => set({ selectedPlanet: planet }),
+      setHasKundli: (val) => set({ hasKundli: val }),
+      setKundaliData: (data) => set({ kundaliData: data, hasKundli: true }),
+      setCity: (lat, lon, tz) => set((s) => ({
+        birthDetails: s.birthDetails ? { ...s.birthDetails, lat, lon, tz } : null,
+      })),
+      setKundaliSettings: (partial) => set((s) => {
+        const next = { ...s.kundaliSettings, ...partial };
+        localStorage.setItem("kundali_settings", JSON.stringify(next));
+        return { kundaliSettings: next };
+      }),
+    }),
+    {
+      name: 'brahm-birth',
+      storage: createJSONStorage(() => localStorage),
+      // Only persist birth details — not large kundaliData (recalculated as needed)
+      partialize: (s) => ({
+        birthDetails: s.birthDetails,
+        hasKundli: s.hasKundli,
+      }),
+    }
+  )
+);
 
 export const samplePlanets: PlanetData[] = [
   { name: "Sun", symbol: "☉︎", rashi: "Leo", house: 5, degree: "15°23'", nakshatra: "Magha", color: "hsl(42 90% 64%)", sanskritName: "Surya" },

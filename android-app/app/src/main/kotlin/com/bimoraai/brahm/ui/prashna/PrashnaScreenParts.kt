@@ -15,7 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -159,6 +161,7 @@ fun PrashnaInputForm(
     onQuestionChange: (String) -> Unit,
     onQuestionTypeChange: (String) -> Unit,
     onPobChange: (String) -> Unit,
+    onCitySelected: (City) -> Unit,
     onCalculate: () -> Unit,
 ) {
     LazyColumn(
@@ -189,11 +192,13 @@ fun PrashnaInputForm(
                             )
                         }
                     }
-                    OutlinedTextField(
-                        value = pob, onValueChange = onPobChange,
-                        label = { Text("Current Location (optional)") },
-                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold),
+                    BirthInputFields(
+                        dob = "", onDobChange = {},
+                        tob = "", onTobChange = {},
+                        pob = pob, onPobChange = onPobChange,
+                        onCitySelected = onCitySelected,
+                        showName = false,
+                        cityVmKey = "prashna",
                     )
                     if (error != null) Text(error, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFE53935)))
                     BrahmButton(text = "Get Prashna Answer", onClick = onCalculate)

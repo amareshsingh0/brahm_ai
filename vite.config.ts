@@ -12,7 +12,10 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://34.134.231.111:8000",
+        // Dev: SSH tunnel → ssh -L 8000:localhost:8000 photogeniusai@34.134.231.111
+        // Then set target to http://localhost:8000
+        // Prod VM: http://34.134.231.111:8000
+        target: process.env.VITE_API_TARGET || "http://34.134.231.111:8000",
         changeOrigin: true,
       },
     },

@@ -1,9 +1,13 @@
 package com.bimoraai.brahm.ui.profile
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,6 +42,17 @@ fun ProfileScreen(
     val user by vm.user.collectAsState()
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
+    val savedLang = remember {
+        context.getSharedPreferences("brahm_prefs", Context.MODE_PRIVATE)
+            .getString("language", null)
+    }
+    val currentLangLabel = when (savedLang) {
+        "hi" -> "हिंदी (Hindi)"
+        "en" -> "English"
+        else -> "System Default"
+    }
 
     val plan = user?.plan ?: "free"
     val isPaid    = plan != "free"
@@ -46,12 +62,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+                title = { Text("Profile & Settings", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmCard),
             )
         },
@@ -144,6 +155,22 @@ fun ProfileScreen(
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
                 SettingsItem(
+                    icon = Icons.Default.Language,
+                    iconColor = Color(0xFF7B1FA2),
+                    label = "Language",
+                    subtitle = currentLangLabel,
+                    onClick = { showLanguageDialog = true },
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
+                SettingsItem(
+                    icon = Icons.Default.DarkMode,
+                    iconColor = Color(0xFF37474F),
+                    label = "Dark Mode",
+                    subtitle = "Coming soon — light theme active",
+                    onClick = { /* Phase 2 */ },
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
+                SettingsItem(
                     icon = Icons.Default.Share,
                     iconColor = Color(0xFF00ACC1),
                     label = "Share App",
@@ -192,13 +219,60 @@ fun ProfileScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Icon(Icons.Default.Logout, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                     Text("Sign Out", style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Medium))
                 }
             }
 
             Spacer(Modifier.height(32.dp))
         }
+    }
+
+    // Language picker dialog
+    if (showLanguageDialog) {
+        val languages = listOf(
+            null   to "System Default",
+            "en"   to "English",
+            "hi"   to "हिंदी (Hindi)",
+        )
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text("Select Language", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)) },
+            text = {
+                Column {
+                    languages.forEach { (code, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    showLanguageDialog = false
+                                    val prefs = context.getSharedPreferences("brahm_prefs", Context.MODE_PRIVATE)
+                                    if (code == null) {
+                                        prefs.edit().remove("language").apply()
+                                    } else {
+                                        prefs.edit().putString("language", code).apply()
+                                    }
+                                    // Restart activity to apply new locale
+                                    (context as? Activity)?.recreate()
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            RadioButton(
+                                selected = savedLang == code,
+                                onClick = null,
+                                colors = RadioButtonDefaults.colors(selectedColor = BrahmGold),
+                            )
+                            Text(label, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) { Text("Cancel") }
+            },
+        )
     }
 
     // Logout confirmation dialog

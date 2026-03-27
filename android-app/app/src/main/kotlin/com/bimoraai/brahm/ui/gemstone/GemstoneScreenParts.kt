@@ -15,7 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -41,7 +43,10 @@ fun GemstoneContent(data: JsonObject) {
     val primaryGem    = data["primary_gem"]?.let { try { it.jsonObject } catch (_: Exception) { null } }
     val supportingGems= data["supporting_gems"]?.let { el -> try { el.jsonArray.map { it.jsonObject } } catch (_: Exception) { null } }
     val avoidGems     = data["avoid_gems"]?.let { el -> try { el.jsonArray.map { it.jsonPrimitive.contentOrNull ?: "" } } catch (_: Exception) { null } }
-    val lagna         = data["lagna"]?.jsonPrimitive?.contentOrNull ?: "—"
+    val lagna = data["lagna"]?.let { el ->
+        try { el.jsonPrimitive.contentOrNull }
+        catch (_: Exception) { try { el.jsonObject["name"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null } }
+    } ?: "—"
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
@@ -187,6 +192,7 @@ fun GemstoneInputForm(
     onDobChange: (String) -> Unit,
     onTobChange: (String) -> Unit,
     onPobChange: (String) -> Unit,
+    onCitySelected: (City) -> Unit,
     onCalculate: () -> Unit,
 ) {
     LazyColumn(
@@ -198,10 +204,13 @@ fun GemstoneInputForm(
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Enter Birth Details", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                    OutlinedTextField(value = name, onValueChange = onNameChange, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = dob, onValueChange = onDobChange, label = { Text("Date of Birth (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = tob, onValueChange = onTobChange, label = { Text("Time of Birth (HH:MM)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = pob, onValueChange = onPobChange, label = { Text("Place of Birth") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+                    BirthInputFields(
+                        name = name, onNameChange = onNameChange,
+                        dob = dob, onDobChange = onDobChange,
+                        tob = tob, onTobChange = onTobChange,
+                        pob = pob, onPobChange = onPobChange,
+                        onCitySelected = onCitySelected,
+                    )
                     if (error != null) Text(error, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFE53935)))
                     BrahmButton(text = "Get Gemstone Recommendations", onClick = onCalculate)
                 }

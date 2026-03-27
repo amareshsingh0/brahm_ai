@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.coroutines.launch
 
@@ -50,6 +51,7 @@ fun RemediesScreen(navController: NavController) {
     val pagerState = androidx.compose.foundation.pager.rememberPagerState { planetRemedies.size }
     val scope = rememberCoroutineScope()
 
+    SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -59,7 +61,7 @@ fun RemediesScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
@@ -69,7 +71,7 @@ fun RemediesScreen(navController: NavController) {
             // Planet tab row
             ScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage,
-                containerColor = Color.White,
+                containerColor = BrahmBackground,
                 contentColor = BrahmGold,
                 edgePadding = 12.dp,
             ) {
@@ -89,6 +91,7 @@ fun RemediesScreen(navController: NavController) {
             }
         }
     }
+    } // SwipeBackLayout
 }
 
 @Composable

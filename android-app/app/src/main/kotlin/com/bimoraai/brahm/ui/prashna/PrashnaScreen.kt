@@ -55,6 +55,7 @@ fun PrashnaScreen(navController: NavController, vm: PrashnaScreenViewModel = hil
                     onQuestionChange     = { vm.question.value = it },
                     onQuestionTypeChange = { vm.questionType.value = it },
                     onPobChange          = { vm.pob.value = it },
+                    onCitySelected       = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
                     onCalculate          = { vm.calculate() },
                 )
             }

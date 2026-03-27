@@ -60,11 +60,10 @@ class PrashnaScreenViewModel @Inject constructor(
             try {
                 val body = buildJsonObject {
                     put("question",      JsonPrimitive(question.value))
-                    put("question_type", JsonPrimitive(questionType.value))
-                    put("pob",           JsonPrimitive(pob.value))
+                    put("question_type", JsonPrimitive(questionType.value.lowercase()))
                     put("lat",           JsonPrimitive(lat.value))
                     put("lon",           JsonPrimitive(lon.value))
-                    put("tz",            JsonPrimitive(tz.value))
+                    put("tz",            JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
                 }
                 val resp = api.getPrashna(body)
                 if (resp.isSuccessful) {

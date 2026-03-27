@@ -70,14 +70,12 @@ class VarshpalScreenViewModel @Inject constructor(
             _error.value     = null
             try {
                 val body = buildJsonObject {
-                    put("name",        JsonPrimitive(name.value.ifBlank { "User" }))
-                    put("dob",         JsonPrimitive(dob.value))
-                    put("tob",         JsonPrimitive(tob.value))
-                    put("pob",         JsonPrimitive(pob.value))
-                    put("target_year", JsonPrimitive(targetYear.value.ifBlank { "2025" }))
-                    put("lat",         JsonPrimitive(lat.value))
-                    put("lon",         JsonPrimitive(lon.value))
-                    put("tz",          JsonPrimitive(tz.value))
+                    put("birth_date",  JsonPrimitive(dob.value))
+                    put("birth_time",  JsonPrimitive(tob.value))
+                    put("birth_lat",   JsonPrimitive(lat.value))
+                    put("birth_lon",   JsonPrimitive(lon.value))
+                    put("birth_tz",    JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
+                    put("target_year", JsonPrimitive(targetYear.value.toIntOrNull() ?: java.time.LocalDate.now().year))
                 }
                 val resp = api.getVarshphal(body)
                 if (resp.isSuccessful) {

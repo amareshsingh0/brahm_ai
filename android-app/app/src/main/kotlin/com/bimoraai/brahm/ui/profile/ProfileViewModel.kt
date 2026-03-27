@@ -25,6 +25,11 @@ class ProfileViewModel @Inject constructor(
     // Expose the shared repository's user so all screens see the same cached data
     val user: StateFlow<UserDto?> = userRepository.user
 
+    init {
+        // Re-fetch on every profile screen open — startup fetch may have fired before token was ready
+        userRepository.refresh()
+    }
+
     private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
     val saveState = _saveState.asStateFlow()
 

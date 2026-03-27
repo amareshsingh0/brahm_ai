@@ -14,7 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -127,6 +129,7 @@ fun RectificationInputForm(
     onDobChange: (String) -> Unit,
     onApproxTobChange: (String) -> Unit,
     onPobChange: (String) -> Unit,
+    onCitySelected: (City) -> Unit,
     onUncertaintyChange: (String) -> Unit,
     onEvent1TypeChange: (String) -> Unit,
     onEvent1DateChange: (String) -> Unit,
@@ -143,10 +146,13 @@ fun RectificationInputForm(
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Birth Details", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                    OutlinedTextField(value = name, onValueChange = onNameChange, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = dob, onValueChange = onDobChange, label = { Text("Date of Birth (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = approxTob, onValueChange = onApproxTobChange, label = { Text("Approximate Time (HH:MM)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
-                    OutlinedTextField(value = pob, onValueChange = onPobChange, label = { Text("Place of Birth") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+                    BirthInputFields(
+                        name = name, onNameChange = onNameChange,
+                        dob = dob, onDobChange = onDobChange,
+                        tob = approxTob, onTobChange = onApproxTobChange,
+                        pob = pob, onPobChange = onPobChange,
+                        onCitySelected = onCitySelected,
+                    )
                     Text("Time Uncertainty", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         uncertaintyOptions.forEach { opt ->
