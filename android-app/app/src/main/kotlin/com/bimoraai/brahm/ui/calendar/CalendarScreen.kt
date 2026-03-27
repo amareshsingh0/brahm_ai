@@ -33,7 +33,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmCard
@@ -161,8 +160,8 @@ fun CalendarScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 12.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
 
@@ -388,36 +387,26 @@ fun CalendarScreen(
                                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
                                 ),
                             )
-                            if (suggestions.isNotEmpty()) {
-                                Popup(alignment = Alignment.TopStart) {
-                                    Surface(
-                                        modifier = Modifier.width(220.dp),
-                                        shape = RoundedCornerShape(8.dp),
-                                        shadowElevation = 8.dp,
-                                        color = MaterialTheme.colorScheme.surface,
-                                        border = androidx.compose.foundation.BorderStroke(
-                                            0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                                        ),
-                                    ) {
-                                        Column {
-                                            suggestions.forEach { city ->
-                                                Text(
-                                                    text = city.label.ifBlank { city.name },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            vm.setCity(city)
-                                                            cityVm.cityQuery.value = ""
-                                                        }
-                                                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                                                    fontSize = 12.sp,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
-                                            }
-                                        }
-                                    }
+                            DropdownMenu(
+                                expanded = suggestions.isNotEmpty(),
+                                onDismissRequest = { cityVm.cityQuery.value = "" },
+                                modifier = Modifier.fillMaxWidth(0.7f),
+                            ) {
+                                suggestions.forEach { city ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                text = city.label.ifBlank { city.name },
+                                                fontSize = 13.sp,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                        },
+                                        onClick = {
+                                            vm.setCity(city)
+                                            cityVm.cityQuery.value = ""
+                                        },
+                                    )
                                 }
                             }
                         }
@@ -491,13 +480,15 @@ fun CalendarScreen(
 
             // ── Legend ────────────────────────────────────────────────────────
             item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    item { LegendChip(Color(0xFFF59E0B).copy(0.15f), "Festival") }
-                    item { LegendChip(Color(0xFF3B82F6).copy(0.15f), "🌕 Purnima") }
-                    item { LegendChip(Color(0xFF64748B).copy(0.15f), "🌑 Amavasya") }
-                    item { LegendChip(Color(0xFF10B981).copy(0.15f), "✦ Ekadashi") }
-                    item { LegendChip(Color(0xFFA855F7).copy(0.15f), "☽ Pradosh") }
-                    item { LegendChip(Color(0xFFB71C1C).copy(0.15f), "🌑 Eclipse") }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    LegendChip(Color(0xFFF59E0B).copy(0.20f), "Festival")
+                    LegendChip(Color(0xFF3B82F6).copy(0.20f), "Purnima")
+                    LegendChip(Color(0xFF64748B).copy(0.20f), "Amavasya")
+                    LegendChip(Color(0xFF10B981).copy(0.20f), "Ekadashi")
+                    LegendChip(Color(0xFFB71C1C).copy(0.20f), "Eclipse")
                 }
             }
 
@@ -607,17 +598,20 @@ private fun CalendarGridView(
     eclipseMap: Map<String, JsonObject>,
     onDayClick: (JsonObject) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         // Week headers
         Row(modifier = Modifier.fillMaxWidth()) {
             WEEK_HEADERS.forEach { h ->
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text(h, fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(h, fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
             }
         }
-        Spacer(Modifier.height(4.dp))
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 2.dp),
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+        )
 
         // Build 6-row grid
         val totalCells = 42
@@ -630,12 +624,12 @@ private fun CalendarGridView(
         cells.chunked(7).forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 row.forEach { day ->
                     Box(modifier = Modifier.weight(1f)) {
                         if (day == null) {
-                            Spacer(modifier = Modifier.fillMaxWidth().height(72.dp))
+                            Spacer(modifier = Modifier.fillMaxWidth().height(84.dp))
                         } else {
                             DayCell(
                                 day = day,
@@ -646,7 +640,6 @@ private fun CalendarGridView(
                     }
                 }
             }
-            Spacer(Modifier.height(3.dp))
         }
     }
 }
@@ -671,75 +664,79 @@ private fun DayCell(
     val tithiName     = day.str("tithi")
     val festivals     = day.arr("festivals") ?: JsonArray(emptyList())
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 72.dp)
-            .clip(RoundedCornerShape(6.dp))
+            .heightIn(min = 84.dp)
+            .clip(RoundedCornerShape(7.dp))
             .background(bgColor)
             .border(
                 width = if (isToday) 2.dp else 0.5.dp,
                 color = if (isToday) BrahmGold else borderColor,
-                shape = RoundedCornerShape(6.dp),
+                shape = RoundedCornerShape(7.dp),
             )
             .clickable { onClick() }
-            .padding(3.dp),
+            .padding(horizontal = 4.dp, vertical = 4.dp),
     ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
-            ) {
-                Text(
-                    dayNum,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = when {
-                        isToday -> BrahmGold
-                        hasEclipse -> Color(0xFFF87171)
-                        else -> MaterialTheme.colorScheme.onSurface
-                    },
-                )
-                if (icon != null) {
-                    Text(icon, fontSize = 9.sp)
-                }
-            }
+        // Day number row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                "$paksha$tithiNum ${shortTithi(tithiName)}",
+                dayNum,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = when {
+                    isToday -> BrahmGold
+                    hasEclipse -> Color(0xFFF87171)
+                    else -> MaterialTheme.colorScheme.onSurface
+                },
+            )
+            if (icon != null) {
+                Text(icon, fontSize = 10.sp, lineHeight = 12.sp)
+            }
+        }
+        // Tithi
+        Text(
+            "$paksha$tithiNum · ${shortTithi(tithiName)}",
+            fontSize = 9.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            lineHeight = 11.sp,
+        )
+        if (hasEclipse) {
+            Text(
+                if (isSolarEcl) "☀ Surya" else "🌕 Chandra",
                 fontSize = 9.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = Color(0xFFF87171),
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                lineHeight = 11.sp,
             )
-            if (hasEclipse) {
-                Text(
-                    if (isSolarEcl) "Surya Grahan" else "Chandra Grahan",
-                    fontSize = 8.sp,
-                    color = Color(0xFFF87171),
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            val showCount = if (hasEclipse) 1 else 2
-            festivals.take(showCount).forEach { el ->
-                val f = el.jsonObject
-                Text(
-                    "${f.str("icon")} ${f.str("name").split(" ").take(2).joinToString(" ")}",
-                    fontSize = 8.sp,
-                    color = Color(0xFFD97706),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (festivals.size > showCount) {
-                Text(
-                    "+${festivals.size - showCount} more",
-                    fontSize = 8.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                )
-            }
+        }
+        val showCount = if (hasEclipse) 1 else 2
+        festivals.take(showCount).forEach { el ->
+            val f = el.jsonObject
+            Text(
+                "${f.str("icon")} ${f.str("name").split(" ").first()}",
+                fontSize = 9.sp,
+                color = Color(0xFFD97706),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 11.sp,
+            )
+        }
+        if (festivals.size > showCount) {
+            Text(
+                "+${festivals.size - showCount}",
+                fontSize = 9.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                lineHeight = 11.sp,
+            )
         }
     }
 }
@@ -1368,15 +1365,21 @@ private fun CalStatChip(icon: String, label: String) {
 
 @Composable
 private fun LegendChip(color: Color, label: String) {
-    Surface(
-        shape = RoundedCornerShape(4.dp),
-        color = color,
+    Row(
+        modifier = Modifier.padding(end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color)
+        )
         Text(
             label,
-            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
-            fontSize = 9.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
         )
     }
 }

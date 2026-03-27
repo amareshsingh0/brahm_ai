@@ -124,7 +124,12 @@ async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
     if extracted_bd.get("date") and extracted_bd.get("place"):
         user_birth_data = _normalize_birth_data(extracted_bd)
     elif req.page_data.get("user_birth_data"):
-        user_birth_data = req.page_data["user_birth_data"]
+        bd = req.page_data["user_birth_data"]
+        # Resolve lat/lon from place name if missing (profile saved without geocoding)
+        if (not bd.get("birth_lat") or bd.get("birth_lat") == 0) and bd.get("place"):
+            lat, lon, tz = get_coords(bd["place"])
+            bd = {**bd, "birth_lat": lat, "birth_lon": lon, "birth_tz": tz}
+        user_birth_data = bd
     elif req.page_data.get("birth_data"):
         user_birth_data = req.page_data["birth_data"]
     elif req.page_context in {"kundali", "timeline"} and req.page_data:

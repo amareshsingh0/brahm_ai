@@ -8,17 +8,19 @@ import { Loader } from "@/components/ui/Loader";
 import { ActionBtn } from "@/components/ui/Loader";
 import { Pagination } from "@/components/ui/Pagination";
 import type { UserDetail, ChatMsg, KundaliEntry, PalmEntry, PaymentRow, LoginEntry } from "@/lib/types";
-import { ProfileTab }  from "@/user-detail-tabs/ProfileTab";
-import { ChatsTab }    from "@/user-detail-tabs/ChatsTab";
-import { KundalisTab } from "@/user-detail-tabs/KundalisTab";
-import { PalmistryTab }from "@/user-detail-tabs/PalmistryTab";
-import { PaymentsTab } from "@/user-detail-tabs/PaymentsTab";
-import { UsageTab }    from "@/user-detail-tabs/UsageTab";
-import { LoginsTab }   from "@/user-detail-tabs/LoginsTab";
+import { ProfileTab }   from "@/user-detail-tabs/ProfileTab";
+import { ChatsTab }     from "@/user-detail-tabs/ChatsTab";
+import { KundalisTab }  from "@/user-detail-tabs/KundalisTab";
+import { PalmistryTab } from "@/user-detail-tabs/PalmistryTab";
+import { PaymentsTab }  from "@/user-detail-tabs/PaymentsTab";
+import { UsageTab }     from "@/user-detail-tabs/UsageTab";
+import { LoginsTab }    from "@/user-detail-tabs/LoginsTab";
+import { ActivityTab }  from "@/user-detail-tabs/ActivityTab";
 
-type Tab = "profile" | "chats" | "kundalis" | "palmistry" | "payments" | "usage" | "logins";
+type Tab = "profile" | "activity" | "chats" | "kundalis" | "palmistry" | "payments" | "usage" | "logins";
 const TABS: { id: Tab; label: string }[] = [
   { id: "profile",   label: "Profile"    },
+  { id: "activity",  label: "🕐 Activity" },
   { id: "chats",     label: "Chats"      },
   { id: "kundalis",  label: "Kundalis"   },
   { id: "palmistry", label: "Palmistry"  },
@@ -48,6 +50,15 @@ export default function UserDetailPage() {
   const [payments,  setPayments]  = useState<PaymentRow[]>([]);
   const [logins,    setLogins]    = useState<LoginEntry[]>([]);
 
+  // Activity timeline
+  const [activity,      setActivity]      = useState<unknown[]>([]);
+  const [activityPage,  setActivityPage]  = useState(1);
+  const [activityPages, setActivityPages] = useState(1);
+  const [activityTotal, setActivityTotal] = useState(0);
+  const [activityDays,  setActivityDays]  = useState(30);
+  const [activityLoad,  setActivityLoad]  = useState(false);
+
+  const [loginLoad, setLoginLoad] = useState(false);
   const [actioning, setActioning] = useState(false);
 
   // ── Load ALL data in parallel on mount ───────────────────────────────────────
@@ -73,6 +84,26 @@ export default function UserDetailPage() {
       setLogins(loginData as LoginEntry[]);
     }).finally(() => setLoading(false));
   }, [id]);
+
+  // ── Load activity timeline ────────────────────────────────────────────────────
+  const loadActivity = useCallback(async (p: number, d: number) => {
+    if (!id) return;
+    setActivityLoad(true);
+    const res = await aFetch<{ events: unknown[]; total: number; page: number; pages: number }>(
+      `/admin/users/${id}/activity?days=${d}&page=${p}&limit=60`
+    ).finally(() => setActivityLoad(false));
+    setActivity(res.events ?? []);
+    setActivityPage(res.page ?? 1);
+    setActivityPages(res.pages ?? 1);
+    setActivityTotal(res.total ?? 0);
+  }, [id]);
+
+  // Lazy-load activity when tab is first opened
+  const [activityLoaded, setActivityLoaded] = useState(false);
+  function openActivity(p: number, d: number) {
+    setActivityLoaded(true);
+    loadActivity(p, d);
+  }
 
   // ── Reload chats (pagination / ctx filter) ────────────────────────────────────
   const loadChats = useCallback(async (p: number, ctx: string) => {
@@ -190,7 +221,10 @@ export default function UserDetailPage() {
       {/* ── Tabs ─────────────────────────────────────────────────────────────────── */}
       <div className="flex gap-1 flex-wrap border-b border-border/60 pb-0">
         {TABS.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)}
+          <button key={t.id} onClick={() => {
+            setTab(t.id);
+            if (t.id === "activity" && !activityLoaded) openActivity(1, activityDays);
+          }}
             className={`px-4 py-2 text-xs font-medium transition-colors rounded-t -mb-px ${
               tab === t.id
                 ? "bg-background border border-border/60 border-b-background text-amber-700"
@@ -204,6 +238,18 @@ export default function UserDetailPage() {
       {/* ── Tab panels ───────────────────────────────────────────────────────────── */}
       <div className="pt-1">
         {tab === "profile"   && <ProfileTab   user={user} />}
+        {tab === "activity"  && (
+          <ActivityTab
+            events={activity as never[]}
+            loading={activityLoad}
+            page={activityPage}
+            pages={activityPages}
+            total={activityTotal}
+            days={activityDays}
+            onDaysChange={(d) => { setActivityDays(d); openActivity(1, d); }}
+            onPage={(p) => loadActivity(p, activityDays)}
+          />
+        )}
         {tab === "chats"     && (
           <>
             <ChatsTab

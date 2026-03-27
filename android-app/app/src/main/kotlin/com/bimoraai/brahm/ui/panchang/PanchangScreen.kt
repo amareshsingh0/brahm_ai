@@ -26,7 +26,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.SwipeBackLayout
@@ -158,6 +157,8 @@ private fun monthKeyShort(key: String): String {
         .format(java.time.format.DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH))
 }
 
+private data class TimelineItem(val kind: String, val date: String, val data: JsonObject)
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -178,8 +179,6 @@ fun PanchangScreen(
     val year = LocalDate.now().year
 
     // Build unified sorted allItems list: festivals + eclipses
-    data class TimelineItem(val kind: String, val date: String, val data: JsonObject)
-
     val allItems: List<TimelineItem> = remember(festivals, grahan) {
         val list = mutableListOf<TimelineItem>()
         festivals?.arr("festivals")?.forEach { el ->
@@ -233,53 +232,53 @@ fun PanchangScreen(
                         }
                     },
                     actions = {
-                        // City search icon
+                        // City search
                         Box {
-                            var showCityField by remember { mutableStateOf(false) }
-                            IconButton(onClick = { showCityField = !showCityField }) {
-                                Icon(Icons.Default.LocationOn, contentDescription = "City",
-                                    tint = BrahmGold)
+                            var showCitySearch by remember { mutableStateOf(false) }
+                            IconButton(onClick = { showCitySearch = !showCitySearch }) {
+                                Icon(Icons.Default.LocationOn, contentDescription = "City", tint = BrahmGold)
                             }
-                            if (showCityField) {
-                                Popup(alignment = Alignment.TopEnd) {
-                                    Surface(
-                                        modifier = Modifier.width(240.dp),
-                                        shape = RoundedCornerShape(10.dp),
-                                        shadowElevation = 8.dp,
-                                        color = MaterialTheme.colorScheme.surface,
-                                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(0.3f)),
-                                    ) {
-                                        Column {
-                                            OutlinedTextField(
-                                                value = cityQuery,
-                                                onValueChange = { cityVm.cityQuery.value = it },
-                                                placeholder = { Text(cityName ?: "Search city…", fontSize = 12.sp) },
-                                                leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp)) },
-                                                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                                singleLine = true,
-                                                textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
-                                                colors = OutlinedTextFieldDefaults.colors(
-                                                    focusedBorderColor = BrahmGold,
-                                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.3f),
-                                                ),
-                                            )
-                                            suggestions.forEach { city ->
-                                                Text(
-                                                    city.label.ifBlank { city.name },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            vm.loadForCity(city.lat, city.lon, city.tz, city.name)
-                                                            cityVm.cityQuery.value = ""
-                                                            showCityField = false
-                                                        }
-                                                        .padding(horizontal = 12.dp, vertical = 9.dp),
-                                                    fontSize = 12.sp,
-                                                )
-                                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.1f))
-                                            }
-                                        }
-                                    }
+                            DropdownMenu(
+                                expanded = showCitySearch,
+                                onDismissRequest = { showCitySearch = false; cityVm.cityQuery.value = "" },
+                            ) {
+                                // Search field inside dropdown
+                                OutlinedTextField(
+                                    value = cityQuery,
+                                    onValueChange = { cityVm.cityQuery.value = it },
+                                    placeholder = { Text(cityName ?: "Search city…", fontSize = 12.sp) },
+                                    leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp)) },
+                                    modifier = Modifier
+                                        .width(220.dp)
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    singleLine = true,
+                                    textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = BrahmGold,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.3f),
+                                    ),
+                                )
+                                if (suggestions.isEmpty() && cityQuery.isBlank()) {
+                                    DropdownMenuItem(
+                                        text = { Text("Type a city name…", fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(0.5f)) },
+                                        onClick = {},
+                                        enabled = false,
+                                    )
+                                }
+                                suggestions.forEach { city ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(city.label.ifBlank { city.name },
+                                                fontSize = 13.sp, maxLines = 1,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                        },
+                                        onClick = {
+                                            vm.loadForCity(city.lat, city.lon, city.tz, city.name)
+                                            cityVm.cityQuery.value = ""
+                                            showCitySearch = false
+                                        },
+                                    )
                                 }
                             }
                         }
@@ -370,12 +369,10 @@ fun PanchangScreen(
 
 // ─── Festivals Tab ────────────────────────────────────────────────────────────
 
-private data class TimelineItemLocal(val kind: String, val date: String, val data: JsonObject)
-
 @Composable
 private fun FestivalsTab(
-    allItems: List<Any>, // TimelineItem
-    monthGroups: List<Pair<String, List<Any>>>,
+    allItems: List<TimelineItem>,
+    monthGroups: List<Pair<String, List<TimelineItem>>>,
     curMonthKey: String,
     upcomingCount: Int,
     pastCount: Int,
@@ -386,12 +383,6 @@ private fun FestivalsTab(
     error: String?,
     onRetry: () -> Unit,
 ) {
-    // Re-typed for internal use
-    @Suppress("UNCHECKED_CAST")
-    val items = allItems as List<Triple<String,String,JsonObject>>  // kind, date, data
-    @Suppress("UNCHECKED_CAST")
-    val groups = monthGroups as List<Pair<String, List<Triple<String,String,JsonObject>>>>
-
     if (isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = BrahmGold)
@@ -497,10 +488,8 @@ private fun FestivalsTab(
             // Flat search results
             val q = searchQuery.trim().lowercase()
             val results = allItems.filter { item ->
-                @Suppress("UNCHECKED_CAST")
-                val triple = item as Triple<String,String,JsonObject>
-                val d = triple.third
-                if (triple.first == "eclipse") d.str("type").lowercase().contains(q)
+                val d = item.data
+                if (item.kind == "eclipse") d.str("type").lowercase().contains(q)
                 else d.str("name").lowercase().contains(q) ||
                      d.str("hindi").contains(q) ||
                      d.str("deity").lowercase().contains(q)
@@ -514,22 +503,18 @@ private fun FestivalsTab(
                 }
             } else {
                 items(results) { item ->
-                    @Suppress("UNCHECKED_CAST")
-                    val triple = item as Triple<String,String,JsonObject>
-                    if (triple.first == "eclipse") GrahanCard(triple.third)
-                    else FestivalCard(triple.third)
+                    if (item.kind == "eclipse") GrahanCard(item.data)
+                    else FestivalCard(item.data)
                 }
             }
         } else {
             // Month-grouped sections
             items(monthGroups) { (key, groupItems) ->
-                val keyStr = key as String
-                @Suppress("UNCHECKED_CAST")
                 MonthSection(
-                    monthKey = keyStr,
-                    items = groupItems as List<Triple<String,String,JsonObject>>,
-                    isCurrent = keyStr == curMonthKey,
-                    isPastMonth = keyStr < curMonthKey,
+                    monthKey = key,
+                    items = groupItems,
+                    isCurrent = key == curMonthKey,
+                    isPastMonth = key < curMonthKey,
                 )
             }
         }
@@ -539,12 +524,12 @@ private fun FestivalsTab(
 @Composable
 private fun MonthSection(
     monthKey: String,
-    items: List<Triple<String, String, JsonObject>>,
+    items: List<TimelineItem>,
     isCurrent: Boolean,
     isPastMonth: Boolean,
 ) {
     var open by remember(monthKey) { mutableStateOf(!isPastMonth) }
-    val upcomingCount = items.count { !isPastDate(it.second) }
+    val upcomingCount = items.count { !isPastDate(it.date) }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         // Month header
@@ -603,9 +588,9 @@ private fun MonthSection(
 
         AnimatedVisibility(visible = open, enter = expandVertically(), exit = shrinkVertically()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items.forEach { (kind, _, data) ->
-                    if (kind == "eclipse") GrahanCard(data)
-                    else FestivalCard(data)
+                items.forEach { item ->
+                    if (item.kind == "eclipse") GrahanCard(item.data)
+                    else FestivalCard(item.data)
                 }
             }
         }

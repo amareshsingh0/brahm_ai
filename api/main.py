@@ -2,6 +2,13 @@
 Brahm AI FastAPI — Entry Point
 Run: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1
      (--workers 1 is MANDATORY: Qwen LLM cannot be loaded in multiple processes)
+
+API Versioning:
+  /api/v1/...  — current stable version (all clients should migrate here)
+  /api/...     — legacy aliases (kept for backward compat — website + Android v1.x)
+  /api/admin   — admin panel (unversioned — internal tool only)
+
+To add v2: import new routers, mount at /api/v2 only. v1 stays unchanged.
 """
 import time, threading
 from contextlib import asynccontextmanager
@@ -50,6 +57,9 @@ app = FastAPI(
     description="Vedic scriptures RAG + Jyotish calculations",
     version="1.0.0",
     lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
 )
 
 app.add_middleware(
@@ -66,8 +76,11 @@ async def _check_user_status(request: Request, call_next):
     """Block suspended or banned users. Supports both JWT (Bearer) and legacy session_id."""
     from fastapi.responses import JSONResponse
     path = request.url.path
-    # Skip auth/admin routes
-    if not path.startswith("/api/") or path.startswith("/api/admin") or path.startswith("/api/auth"):
+    # Skip non-API, admin, and auth routes
+    is_api = path.startswith("/api/")
+    is_admin = path.startswith("/api/admin") or path.startswith("/api/v1/admin")
+    is_auth  = path.startswith("/api/auth")  or path.startswith("/api/v1/auth")
+    if not is_api or is_admin or is_auth:
         return await call_next(request)
 
     user_id = None
@@ -124,7 +137,7 @@ async def _check_user_status(request: Request, call_next):
 async def _activity_log(request: Request, call_next):
     """Log every /api/ request (non-admin) asynchronously."""
     path = request.url.path
-    if path.startswith("/api/") and not path.startswith("/api/admin"):
+    if path.startswith("/api/") and not path.startswith("/api/admin") and not path.startswith("/api/v1/admin"):
         # Try JWT first, fallback to session_id
         user_id = request.query_params.get("session_id", "")
         try:
@@ -141,40 +154,63 @@ async def _activity_log(request: Request, call_next):
             pass
 
         method = request.method
+        client = request.headers.get("X-Client", "unknown")
         start  = time.time()
         response = await call_next(request)
         duration_ms = int((time.time() - start) * 1000)
         threading.Thread(
             target=admin.log_request,
-            args=(method, path, user_id, response.status_code, duration_ms),
+            args=(method, path, user_id, response.status_code, duration_ms, client),
             daemon=True,
         ).start()
         return response
     return await call_next(request)
 
-PREFIX = "/api"
+# ── Versioned routers (current stable: v1) ───────────────────────────────────
+# All new clients (website v2+, Android v2+) should call /api/v1/...
+# Admin panel and auth are unversioned (internal / auth flows don't need versioning)
 
-app.include_router(cities.router,        prefix=PREFIX, tags=["Reference"])
-app.include_router(kundali.router,       prefix=PREFIX, tags=["Jyotish"])
-app.include_router(panchang.router,      prefix=PREFIX, tags=["Jyotish"])
-app.include_router(compatibility.router, prefix=PREFIX, tags=["Jyotish"])
-app.include_router(planets.router,       prefix=PREFIX, tags=["Jyotish"])
-app.include_router(grahan.router,        prefix=PREFIX, tags=["Jyotish"])
-app.include_router(festivals.router,     prefix=PREFIX, tags=["Jyotish"])
-app.include_router(calendar.router,      prefix=PREFIX, tags=["Jyotish"])
-app.include_router(muhurta.router,       prefix=PREFIX, tags=["Jyotish"])
-app.include_router(horoscope.router,     prefix=PREFIX, tags=["Jyotish"])
-app.include_router(chat.router,          prefix=PREFIX, tags=["RAG"])
-app.include_router(search.router,        prefix=PREFIX, tags=["RAG"])
-app.include_router(user.router,          prefix=PREFIX, tags=["User"])
-app.include_router(palmistry.router,     prefix=PREFIX, tags=["Palmistry"])
-app.include_router(gochar.router,        prefix=PREFIX, tags=["Jyotish"])
-app.include_router(rectification.router, prefix=PREFIX, tags=["Jyotish"])
-app.include_router(prashna.router,      prefix=PREFIX, tags=["Jyotish"])
-app.include_router(varshphal.router,    prefix=PREFIX, tags=["Jyotish"])
-app.include_router(kp.router,           prefix=PREFIX, tags=["Jyotish"])
-app.include_router(admin.router,        prefix=PREFIX, tags=["Admin"])
-app.include_router(auth.router,         prefix=PREFIX, tags=["Auth"])
+V1 = "/api/v1"
+
+_JYOTISH_ROUTERS = [
+    (cities.router,        "Reference"),
+    (kundali.router,       "Jyotish"),
+    (panchang.router,      "Jyotish"),
+    (compatibility.router, "Jyotish"),
+    (planets.router,       "Jyotish"),
+    (grahan.router,        "Jyotish"),
+    (festivals.router,     "Jyotish"),
+    (calendar.router,      "Jyotish"),
+    (muhurta.router,       "Jyotish"),
+    (horoscope.router,     "Jyotish"),
+    (gochar.router,        "Jyotish"),
+    (rectification.router, "Jyotish"),
+    (prashna.router,       "Jyotish"),
+    (varshphal.router,     "Jyotish"),
+    (kp.router,            "Jyotish"),
+    (chat.router,          "RAG"),
+    (search.router,        "RAG"),
+    (user.router,          "User"),
+    (palmistry.router,     "Palmistry"),
+]
+
+# Mount at /api/v1 (current version)
+for _router, _tag in _JYOTISH_ROUTERS:
+    app.include_router(_router, prefix=V1, tags=[_tag])
+
+# ── Legacy aliases /api/... — kept for backward compat ───────────────────────
+# Existing website + Android v1.x clients call /api/... — keep working forever.
+# Do NOT remove these. When a future Android/web version ships with /api/v1,
+# these aliases can be deprecated (log a warning) and eventually removed.
+
+LEGACY = "/api"
+
+for _router, _tag in _JYOTISH_ROUTERS:
+    app.include_router(_router, prefix=LEGACY, tags=[f"{_tag} (legacy)"])
+
+# ── Admin + Auth — always unversioned ────────────────────────────────────────
+app.include_router(admin.router, prefix="/api", tags=["Admin"])
+app.include_router(auth.router,  prefix="/api", tags=["Auth"])
 
 
 @app.get("/health")

@@ -55,12 +55,10 @@ object NetworkModule {
             // Auto-attach JWT token to every request
             .addInterceptor { chain ->
                 val token = runBlocking { tokenDataStore.accessToken.firstOrNull() }
-                val request = if (token != null) {
-                    chain.request().newBuilder()
-                        .header("Authorization", "Bearer $token")
-                        .build()
-                } else chain.request()
-                chain.proceed(request)
+                val builder = chain.request().newBuilder()
+                    .header("X-Client", "android")
+                if (token != null) builder.header("Authorization", "Bearer $token")
+                chain.proceed(builder.build())
             }
             // Auto-refresh expired JWT on 401 — retries the original request once
             .authenticator { _, response ->

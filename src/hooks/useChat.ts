@@ -114,14 +114,15 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     const data: Record<string, unknown> = { ...pageData };
 
     // Auto-attach user birth data from store (profile)
-    if (birthDetails?.dateOfBirth && birthDetails?.lat) {
+    // Only require dateOfBirth + birthPlace — lat/lon is resolved by backend geo_service if missing
+    if (birthDetails?.dateOfBirth && birthDetails?.birthPlace) {
       data.user_birth_data = {
         birth_date: birthDetails.dateOfBirth,
-        birth_time: birthDetails.timeOfBirth,
-        birth_lat: birthDetails.lat,
-        birth_lon: birthDetails.lon,
+        birth_time: birthDetails.timeOfBirth || "12:00",
+        birth_lat: birthDetails.lat || 0,
+        birth_lon: birthDetails.lon || 0,
         birth_tz: birthDetails.tz ?? 5.5,
-        name: birthDetails.name,
+        name: birthDetails.name || "",
         place: birthDetails.birthPlace,
       };
     }

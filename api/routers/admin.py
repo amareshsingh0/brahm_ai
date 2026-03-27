@@ -1,12 +1,18 @@
 """
 Admin panel router — Brahm AI v2
-Protected by X-Admin-Key header (set ADMIN_SECRET in env, default: brahm-admin-2024).
+Protected by X-Admin-Key header.
+Format: base64(username:secret_key)
 
-All endpoints require header: X-Admin-Key: <secret>
+Env vars:
+  ADMIN_USERNAME  — admin login username  (default: brahm_admin)
+  ADMIN_SECRET    — admin secret key      (default: brahm-admin-2024)
+
+All endpoints require header: X-Admin-Key: <base64(username:secret_key)>
 All mutating actions logged to admin_log table in Supabase.
 """
 import os
 import json
+import base64
 import threading
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -17,13 +23,31 @@ from typing import Optional
 
 router = APIRouter()
 
-ADMIN_SECRET = os.getenv("ADMIN_SECRET", "brahm-admin-2024")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "brahm_admin")
+ADMIN_SECRET   = os.getenv("ADMIN_SECRET",   "brahm-admin-2024")
 
 # ─── Auth ─────────────────────────────────────────────────────────────────────
 
 def _check(key: str | None):
-    if not key or key != ADMIN_SECRET:
-        raise HTTPException(status_code=401, detail="Unauthorized — wrong admin key")
+    """Accept base64(username:secret_key) or legacy plain secret key."""
+    if not key:
+        raise HTTPException(status_code=401, detail="Unauthorized — missing admin key")
+
+    # Try new format: base64(username:secret_key)
+    try:
+        decoded = base64.b64decode(key.encode()).decode("utf-8")
+        if ":" in decoded:
+            username, secret = decoded.split(":", 1)
+            if username == ADMIN_USERNAME and secret == ADMIN_SECRET:
+                return  # ✓ valid
+    except Exception:
+        pass
+
+    # Legacy fallback: plain secret key (for backward compatibility)
+    if key == ADMIN_SECRET:
+        return  # ✓ valid
+
+    raise HTTPException(status_code=401, detail="Unauthorized — invalid credentials")
 
 
 # ─── DB backend: try Supabase first, fall back to SQLite ─────────────────────
@@ -77,23 +101,29 @@ def _logs_conn():
             endpoint    TEXT,
             session_id  TEXT DEFAULT '',
             status_code INTEGER DEFAULT 0,
-            duration_ms INTEGER DEFAULT 0
+            duration_ms INTEGER DEFAULT 0,
+            client      TEXT DEFAULT 'unknown'
         )
     """)
+    # migrate: add client column if upgrading from older DB without it
+    try:
+        conn.execute("ALTER TABLE activity_logs ADD COLUMN client TEXT DEFAULT 'unknown'")
+    except Exception:
+        pass  # column already exists
     conn.commit()
     return conn
 
 
-def log_request(method: str, endpoint: str, session_id: str, status_code: int, duration_ms: int):
+def log_request(method: str, endpoint: str, session_id: str, status_code: int, duration_ms: int, client: str = "unknown"):
     """Called from logging middleware — fire-and-forget."""
     try:
         ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         with _log_lock:
             with _logs_conn() as conn:
                 conn.execute(
-                    "INSERT INTO activity_logs (ts,method,endpoint,session_id,status_code,duration_ms)"
-                    " VALUES (?,?,?,?,?,?)",
-                    (ts, method, endpoint, session_id or "", status_code, duration_ms),
+                    "INSERT INTO activity_logs (ts,method,endpoint,session_id,status_code,duration_ms,client)"
+                    " VALUES (?,?,?,?,?,?,?)",
+                    (ts, method, endpoint, session_id or "", status_code, duration_ms, client),
                 )
                 conn.commit()
     except Exception:
@@ -213,6 +243,115 @@ def _top_endpoints():
         return []
 
 
+# ─── API MONITOR ──────────────────────────────────────────────────────────────
+
+@router.get("/admin/api-stats")
+def get_api_stats(
+    x_admin_key: str = Header(None),
+    period: str = Query("today", regex="^(today|7d|30d)$"),
+):
+    """Dedicated API stats endpoint — top endpoints, error rates, avg latency, method breakdown."""
+    _check(x_admin_key)
+
+    try:
+        with _logs_conn() as lc:
+            # Time filter
+            if period == "today":
+                ts_filter = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                where = f"WHERE ts >= '{ts_filter}'"
+            elif period == "7d":
+                ts_filter = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+                where = f"WHERE ts >= '{ts_filter}'"
+            else:
+                ts_filter = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
+                where = f"WHERE ts >= '{ts_filter}'"
+
+            # Total requests
+            total = lc.execute(f"SELECT COUNT(*) FROM activity_logs {where}").fetchone()[0]
+
+            # Top endpoints by hits
+            top_endpoints = lc.execute(
+                f"SELECT endpoint, COUNT(*) cnt, "
+                f"AVG(duration_ms) avg_ms, "
+                f"SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END) errors "
+                f"FROM activity_logs {where} "
+                f"GROUP BY endpoint ORDER BY cnt DESC LIMIT 20"
+            ).fetchall()
+
+            # Error rate by endpoint
+            errors_by_ep = lc.execute(
+                f"SELECT endpoint, COUNT(*) cnt, status_code "
+                f"FROM activity_logs {where} AND status_code >= 400 "
+                f"GROUP BY endpoint, status_code ORDER BY cnt DESC LIMIT 15"
+            ).fetchall()
+
+            # Method breakdown
+            methods = lc.execute(
+                f"SELECT method, COUNT(*) cnt FROM activity_logs {where} GROUP BY method"
+            ).fetchall()
+
+            # Status code distribution
+            status_dist = lc.execute(
+                f"SELECT status_code, COUNT(*) cnt FROM activity_logs {where} "
+                f"GROUP BY status_code ORDER BY cnt DESC"
+            ).fetchall()
+
+            # Slowest endpoints (avg latency)
+            slowest = lc.execute(
+                f"SELECT endpoint, AVG(duration_ms) avg_ms, COUNT(*) cnt "
+                f"FROM activity_logs {where} "
+                f"GROUP BY endpoint HAVING cnt >= 3 ORDER BY avg_ms DESC LIMIT 10"
+            ).fetchall()
+
+            # Client breakdown (web / android / unknown)
+            client_breakdown = lc.execute(
+                f"SELECT client, COUNT(*) cnt FROM activity_logs {where} GROUP BY client ORDER BY cnt DESC"
+            ).fetchall()
+
+            # Requests over time (hourly for today, daily for 7d/30d)
+            if period == "today":
+                timeline = lc.execute(
+                    f"SELECT strftime('%H:00', ts) hour, COUNT(*) cnt "
+                    f"FROM activity_logs {where} GROUP BY hour ORDER BY hour"
+                ).fetchall()
+                timeline_data = [{"label": r["hour"], "count": r["cnt"]} for r in timeline]
+            else:
+                timeline = lc.execute(
+                    f"SELECT strftime('%Y-%m-%d', ts) day, COUNT(*) cnt "
+                    f"FROM activity_logs {where} GROUP BY day ORDER BY day"
+                ).fetchall()
+                timeline_data = [{"label": r["day"], "count": r["cnt"]} for r in timeline]
+
+            return {
+                "period": period,
+                "total_requests": total,
+                "top_endpoints": [
+                    {
+                        "endpoint": r["endpoint"],
+                        "count": r["cnt"],
+                        "avg_ms": round(r["avg_ms"] or 0),
+                        "errors": r["errors"],
+                        "error_rate": round((r["errors"] / r["cnt"]) * 100, 1) if r["cnt"] else 0,
+                    }
+                    for r in top_endpoints
+                ],
+                "errors_by_endpoint": [
+                    {"endpoint": r["endpoint"], "status_code": r["status_code"], "count": r["cnt"]}
+                    for r in errors_by_ep
+                ],
+                "method_breakdown": [{"method": r["method"], "count": r["cnt"]} for r in methods],
+                "status_distribution": [{"status": r["status_code"], "count": r["cnt"]} for r in status_dist],
+                "slowest_endpoints": [
+                    {"endpoint": r["endpoint"], "avg_ms": round(r["avg_ms"]), "count": r["cnt"]}
+                    for r in slowest
+                ],
+                "timeline": timeline_data,
+                "client_breakdown": [{"client": r["client"] or "unknown", "count": r["cnt"]} for r in client_breakdown],
+            }
+    except Exception as e:
+        raise HTTPException(500, f"API stats error: {e}")
+
+
 # ─── USERS ────────────────────────────────────────────────────────────────────
 
 @router.get("/admin/users")
@@ -227,7 +366,7 @@ def list_users(
     _check(x_admin_key)
     sb = _get_supabase()
     if sb:
-        try:
+        def _build_user_query():
             q = sb.table("users").select(
                 "id, session_id, name, phone, email, role, status, plan, lang_pref, "
                 "birth_city, birth_date, created_at, last_login"
@@ -238,7 +377,6 @@ def list_users(
                 q = q.eq("plan", plan)
             if status:
                 q = q.eq("status", status)
-            # Get total count
             count_q = sb.table("users").select("id", count="exact")
             if search:
                 count_q = count_q.or_(f"name.ilike.%{search}%,phone.ilike.%{search}%")
@@ -247,22 +385,54 @@ def list_users(
             if status:
                 count_q = count_q.eq("status", status)
             total = count_q.execute().count or 0
-
             offset = (page - 1) * limit
             rows = q.order("created_at", desc=True).range(offset, offset + limit - 1).execute().data or []
+            return total, rows
 
-            # Enrich with aggregate counts
+        try:
+            try:
+                total, rows = _build_user_query()
+            except Exception:
+                # Retry once on HTTP/2 connection drop
+                total, rows = _build_user_query()
+
+            # Batch-fetch aggregate counts using IN queries (avoids N+1 HTTP/2 calls)
+            uids = [u.get("id") or u.get("session_id", "") for u in rows if u.get("id") or u.get("session_id")]
+            chat_counts: dict = {}
+            kundali_counts: dict = {}
+            palm_counts: dict = {}
+            pay_totals: dict = {}
+            if uids:
+                try:
+                    for row in (sb.table("chat_messages").select("user_id", count="exact").in_("user_id", uids).execute().data or []):
+                        chat_counts[row["user_id"]] = chat_counts.get(row["user_id"], 0) + 1
+                except Exception:
+                    pass
+                try:
+                    for row in (sb.table("kundali_log").select("user_id", count="exact").in_("user_id", uids).execute().data or []):
+                        kundali_counts[row["user_id"]] = kundali_counts.get(row["user_id"], 0) + 1
+                except Exception:
+                    pass
+                try:
+                    for row in (sb.table("palmistry_log").select("user_id", count="exact").in_("user_id", uids).execute().data or []):
+                        palm_counts[row["user_id"]] = palm_counts.get(row["user_id"], 0) + 1
+                except Exception:
+                    pass
+                try:
+                    for row in (sb.table("payment_log").select("user_id,amount").in_("user_id", uids).eq("status", "SUCCESS").execute().data or []):
+                        pay_totals[row["user_id"]] = pay_totals.get(row["user_id"], 0) + (row.get("amount") or 0)
+                except Exception:
+                    pass
+
             users = []
             for u in rows:
                 uid = u.get("id") or u.get("session_id", "")
-                total_chats    = sb.table("chat_messages").select("id", count="exact").eq("user_id", uid).execute().count or 0
-                total_kundalis = sb.table("kundali_log").select("id", count="exact").eq("user_id", uid).execute().count or 0
-                total_palm     = sb.table("palmistry_log").select("id", count="exact").eq("user_id", uid).execute().count or 0
-                pay_r          = sb.table("payment_log").select("amount").eq("user_id", uid).eq("status", "SUCCESS").execute()
-                lifetime_paid  = sum(r.get("amount", 0) or 0 for r in (pay_r.data or [])) / 100
-
-                users.append({**u, "total_chats": total_chats, "total_kundalis": total_kundalis,
-                               "total_palm": total_palm, "lifetime_paid_inr": lifetime_paid})
+                users.append({**u,
+                    "total_chats": chat_counts.get(uid, 0),
+                    "total_kundalis": kundali_counts.get(uid, 0),
+                    "total_palm": palm_counts.get(uid, 0),
+                    "lifetime_paid_inr": pay_totals.get(uid, 0) / 100,
+                })
 
             return {"users": users, "total": total, "page": page, "pages": max(1, (total + limit - 1) // limit)}
         except Exception as e:
@@ -578,28 +748,43 @@ def list_all_chats(
     sb = _get_supabase()
     if not sb:
         return {"items": [], "total": 0, "page": 1, "pages": 1}
-    try:
+    def _fetch_chats():
         q = sb.table("chat_messages").select(
             "id, user_id, page_context, role, content, confidence, tokens_used, response_ms, flagged, flag_reason, created_at"
         )
         if flagged:
             q = q.eq("flagged", True)
-        total = (sb.table("chat_messages").select("id", count="exact")
-                   .eq("flagged", True) if flagged else sb.table("chat_messages").select("id", count="exact")).execute().count or 0
+        cnt_q = sb.table("chat_messages").select("id", count="exact")
+        if flagged:
+            cnt_q = cnt_q.eq("flagged", True)
+        total = cnt_q.execute().count or 0
         offset = (page - 1) * limit
         rows = q.order("created_at", desc=True).range(offset, offset + limit - 1).execute().data or []
+        return total, rows
 
-        # Enrich with user name/phone
+    try:
+        try:
+            total, rows = _fetch_chats()
+        except Exception:
+            # Retry once — HTTP/2 connections to Supabase occasionally drop
+            total, rows = _fetch_chats()
+
+        # Batch-fetch user info for all unique user_ids in one query
+        user_ids = list({r["user_id"] for r in rows if r.get("user_id")})
+        user_map: dict = {}
+        if user_ids:
+            try:
+                users = sb.table("users").select("id,name,phone").in_("id", user_ids).execute().data or []
+                user_map = {u["id"]: u for u in users}
+            except Exception:
+                pass
+
         enriched = []
         for row in rows:
             uid = row.get("user_id")
-            if uid:
-                try:
-                    u = sb.table("users").select("name,phone").eq("id", uid).single().execute().data or {}
-                    row = {**row, "user_name": u.get("name"), "user_phone": u.get("phone")}
-                except Exception:
-                    pass
-            enriched.append(row)
+            u = user_map.get(uid, {})
+            enriched.append({**row, "user_name": u.get("name"), "user_phone": u.get("phone")})
+
         return {"items": enriched, "total": total, "page": page, "pages": max(1, (total + limit - 1) // limit)}
     except Exception as e:
         raise HTTPException(500, f"Chats error: {e}")
@@ -725,6 +910,103 @@ def get_revenue(x_admin_key: str = Header(None)):
         raise HTTPException(500, f"Revenue error: {e}")
 
 
+# ─── SUBSCRIPTIONS (dedicated section) ───────────────────────────────────────
+
+@router.get("/admin/subscriptions")
+def list_subscriptions(
+    x_admin_key: str = Header(None),
+    status:  str = Query(""),   # active | cancelled | expired | all
+    plan:    str = Query(""),   # free | standard | premium
+    period:  str = Query(""),   # monthly | yearly | manual
+    page:    int = Query(1, ge=1),
+    limit:   int = Query(30, ge=1, le=100),
+    search:  str = Query(""),   # name or phone
+):
+    """Full subscription list with user enrichment, revenue, churn metrics."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        return {"items": [], "total": 0, "page": 1, "pages": 1, "summary": {}}
+    try:
+        q = sb.table("subscriptions").select(
+            "id, user_id, plan, period, status, amount_paid, "
+            "started_at, expires_at, cancelled_at, cancel_reason, cancelled_by"
+        )
+        if status:  q = q.eq("status", status)
+        if plan:    q = q.eq("plan", plan)
+        if period:  q = q.eq("period", period)
+
+        count_q = sb.table("subscriptions").select("id", count="exact")
+        if status:  count_q = count_q.eq("status", status)
+        if plan:    count_q = count_q.eq("plan", plan)
+        if period:  count_q = count_q.eq("period", period)
+        total = count_q.execute().count or 0
+
+        offset = (page - 1) * limit
+        rows = q.order("started_at", desc=True).range(offset, offset + limit - 1).execute().data or []
+
+        # Batch-fetch user info
+        uids = list({r["user_id"] for r in rows if r.get("user_id")})
+        user_map: dict = {}
+        if uids:
+            try:
+                users = sb.table("users").select("id,name,phone,email").in_("id", uids).execute().data or []
+                user_map = {u["id"]: u for u in users}
+            except Exception:
+                pass
+
+        # Apply search filter post-fetch (name/phone)
+        enriched = []
+        for r in rows:
+            u = user_map.get(r.get("user_id", ""), {})
+            name  = u.get("name", "")
+            phone = u.get("phone", "")
+            if search and search.lower() not in (name + phone).lower():
+                continue
+            days_left = None
+            if r.get("expires_at"):
+                try:
+                    exp = datetime.fromisoformat(r["expires_at"].replace("Z", "+00:00"))
+                    days_left = (exp - datetime.now(timezone.utc)).days
+                except Exception:
+                    pass
+            enriched.append({**r, "user_name": name, "user_phone": phone,
+                              "user_email": u.get("email"), "days_left": days_left})
+
+        # Summary metrics (always over full dataset, ignore page filter)
+        try:
+            now_iso = datetime.now(timezone.utc).isoformat()
+            month_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+            active_count  = sb.table("subscriptions").select("id", count="exact").eq("status","active").execute().count or 0
+            new_this_month= sb.table("subscriptions").select("id", count="exact").gte("started_at", month_ago).execute().count or 0
+            cancelled_mo  = sb.table("subscriptions").select("id", count="exact").eq("status","cancelled").gte("cancelled_at", month_ago).execute().count or 0
+            expiring_7d   = sb.table("subscriptions").select("id", count="exact").eq("status","active").lte("expires_at", (datetime.now(timezone.utc)+timedelta(days=7)).isoformat()).gte("expires_at", now_iso).execute().count or 0
+            rev_rows      = sb.table("payment_log").select("amount").eq("status","SUCCESS").execute().data or []
+            total_rev     = sum(r.get("amount",0) or 0 for r in rev_rows)
+            plan_dist_raw = sb.table("subscriptions").select("plan,period,status").eq("status","active").execute().data or []
+            plan_dist: dict = {}
+            for r in plan_dist_raw:
+                k = f"{r['plan']}_{r['period']}"
+                plan_dist[k] = plan_dist.get(k, 0) + 1
+            summary = {
+                "active": active_count,
+                "new_month": new_this_month,
+                "cancelled_month": cancelled_mo,
+                "expiring_7d": expiring_7d,
+                "total_revenue_paise": total_rev,
+                "plan_distribution": plan_dist,
+            }
+        except Exception:
+            summary = {}
+
+        if search:
+            total = len(enriched)
+        return {"items": enriched, "total": total, "page": page,
+                "pages": max(1, (total + limit - 1) // limit), "summary": summary}
+    except Exception as e:
+        raise HTTPException(500, f"Subscriptions error: {e}")
+
+
 # ─── LOGINS ───────────────────────────────────────────────────────────────────
 
 @router.get("/admin/users/{user_id}/logins")
@@ -738,6 +1020,216 @@ def get_user_logins(user_id: str, x_admin_key: str = Header(None)):
         return {"items": rows}
     except Exception as e:
         raise HTTPException(500, f"Logins error: {e}")
+
+
+# ─── USER ACTIVITY TIMELINE ───────────────────────────────────────────────────
+
+@router.get("/admin/users/{user_id}/activity")
+def get_user_activity(
+    user_id: str,
+    days:  int = Query(90, ge=1, le=365),
+    page:  int = Query(1, ge=1),
+    limit: int = Query(60, ge=1, le=200),
+    x_admin_key: str = Header(None),
+):
+    """
+    Unified activity timeline for a single user.
+    Merges: logins, kundali calculations, saved kundalis, palmistry,
+            chat messages (paired as Q→A conversations), payments.
+    Returns events sorted newest-first, grouped by date on the frontend.
+    """
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        return {"events": [], "total": 0, "page": page, "pages": 1}
+
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+
+    try:
+        def q(fn):
+            return fn()
+
+        queries = {
+            "logins": lambda: sb.table("login_log")
+                .select("id,logged_at,ip,device,success,fail_reason")
+                .eq("user_id", user_id).gte("logged_at", since)
+                .order("logged_at", desc=True).limit(500).execute().data or [],
+
+            "kundalis": lambda: sb.table("kundali_log")
+                .select("id,created_at,birth_date,birth_time,birth_city,source,calc_ms,is_saved")
+                .eq("user_id", user_id).gte("created_at", since)
+                .order("created_at", desc=True).limit(200).execute().data or [],
+
+            "saved_kundalis": lambda: sb.table("saved_kundalis")
+                .select("id,created_at,label,birth_date,birth_time,birth_place")
+                .eq("user_id", user_id).gte("created_at", since)
+                .order("created_at", desc=True).limit(200).execute().data or [],
+
+            "palmistry": lambda: sb.table("palmistry_log")
+                .select("id,created_at,confidence,lines_found,tokens_used,response_ms")
+                .eq("user_id", user_id).gte("created_at", since)
+                .order("created_at", desc=True).limit(100).execute().data or [],
+
+            "chats": lambda: sb.table("chat_messages")
+                .select("id,created_at,session_id,page_context,role,content,confidence,tokens_used,response_ms,flagged,flag_reason")
+                .eq("user_id", user_id).gte("created_at", since)
+                .order("created_at", desc=False).limit(2000).execute().data or [],
+
+            "payments": lambda: sb.table("payment_log")
+                .select("id,paid_at,amount,status,payment_method,fail_reason")
+                .eq("user_id", user_id).gte("paid_at", since)
+                .order("paid_at", desc=True).limit(100).execute().data or [],
+        }
+
+        results = {}
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            futs = {ex.submit(q, fn): key for key, fn in queries.items()}
+            for fut in as_completed(futs):
+                results[futs[fut]] = fut.result()
+
+        events = []
+
+        # ── Logins ────────────────────────────────────────────────────────────
+        for r in results["logins"]:
+            events.append({
+                "type":    "login",
+                "ts":      r.get("logged_at"),
+                "icon":    "🔑",
+                "title":   "Login" if r.get("success") else "Failed Login",
+                "detail": {
+                    "success":    r.get("success"),
+                    "ip":         r.get("ip"),
+                    "device":     r.get("device"),
+                    "fail_reason": r.get("fail_reason"),
+                },
+            })
+
+        # ── Kundali calculations ───────────────────────────────────────────────
+        for r in results["kundalis"]:
+            events.append({
+                "type":  "kundali",
+                "ts":    r.get("created_at"),
+                "icon":  "🪐",
+                "title": f"Kundali Calculated — {r.get('birth_date','?')} {r.get('birth_time','')}",
+                "detail": {
+                    "birth_date":  r.get("birth_date"),
+                    "birth_time":  r.get("birth_time"),
+                    "birth_city":  r.get("birth_city"),
+                    "source":      r.get("source"),
+                    "calc_ms":     r.get("calc_ms"),
+                    "is_saved":    r.get("is_saved"),
+                },
+            })
+
+        # ── Saved kundalis ─────────────────────────────────────────────────────
+        for r in results["saved_kundalis"]:
+            events.append({
+                "type":  "saved_kundali",
+                "ts":    r.get("created_at"),
+                "icon":  "💾",
+                "title": f"Kundali Saved — {r.get('label','My Chart')}",
+                "detail": {
+                    "label":       r.get("label"),
+                    "birth_date":  r.get("birth_date"),
+                    "birth_time":  r.get("birth_time"),
+                    "birth_place": r.get("birth_place"),
+                },
+            })
+
+        # ── Palmistry ─────────────────────────────────────────────────────────
+        for r in results["palmistry"]:
+            lines = r.get("lines_found") or {}
+            line_names = ", ".join(lines.keys()) if isinstance(lines, dict) else str(lines)
+            events.append({
+                "type":  "palmistry",
+                "ts":    r.get("created_at"),
+                "icon":  "✋",
+                "title": f"Palm Read — {r.get('confidence','?')} confidence",
+                "detail": {
+                    "confidence":  r.get("confidence"),
+                    "lines_found": line_names,
+                    "tokens_used": r.get("tokens_used"),
+                    "response_ms": r.get("response_ms"),
+                },
+            })
+
+        # ── Payments ──────────────────────────────────────────────────────────
+        for r in results["payments"]:
+            amt = r.get("amount", 0) or 0
+            events.append({
+                "type":  "payment",
+                "ts":    r.get("paid_at"),
+                "icon":  "💳",
+                "title": f"Payment ₹{amt//100 if amt > 1000 else amt} — {r.get('status','?')}",
+                "detail": {
+                    "amount":         amt,
+                    "status":         r.get("status"),
+                    "payment_method": r.get("payment_method"),
+                    "fail_reason":    r.get("fail_reason"),
+                },
+            })
+
+        # ── Chat conversations — pair user+assistant by session ───────────────
+        # Group messages by session_id, then pair consecutive user→assistant turns
+        from collections import defaultdict
+        sessions: dict = defaultdict(list)
+        for m in results["chats"]:
+            sessions[m["session_id"]].append(m)
+
+        for sid, msgs in sessions.items():
+            # Walk through messages pairing user question → next assistant reply
+            i = 0
+            while i < len(msgs):
+                m = msgs[i]
+                if m["role"] == "user":
+                    question = m["content"]
+                    reply    = None
+                    reply_meta = {}
+                    if i + 1 < len(msgs) and msgs[i + 1]["role"] == "assistant":
+                        r2 = msgs[i + 1]
+                        reply = r2["content"]
+                        reply_meta = {
+                            "confidence": r2.get("confidence"),
+                            "tokens_used": r2.get("tokens_used"),
+                            "response_ms": r2.get("response_ms"),
+                        }
+                        i += 2
+                    else:
+                        i += 1
+                    # Truncate for summary title (first 80 chars)
+                    title_q = question[:80] + ("…" if len(question) > 80 else "")
+                    events.append({
+                        "type":  "chat",
+                        "ts":    m["created_at"],
+                        "icon":  "💬",
+                        "title": title_q,
+                        "detail": {
+                            "page_context": m.get("page_context"),
+                            "session_id":   sid,
+                            "question":     question,
+                            "reply":        reply,
+                            "flagged":      m.get("flagged") or (reply_meta and msgs[i-1].get("flagged")),
+                            "flag_reason":  m.get("flag_reason"),
+                            **reply_meta,
+                        },
+                    })
+                else:
+                    i += 1  # orphan assistant message — skip
+
+        # ── Sort newest-first ─────────────────────────────────────────────────
+        events.sort(key=lambda e: e["ts"] or "", reverse=True)
+
+        # ── Paginate ──────────────────────────────────────────────────────────
+        total  = len(events)
+        pages  = max(1, (total + limit - 1) // limit)
+        offset = (page - 1) * limit
+        paged  = events[offset: offset + limit]
+
+        return {"events": paged, "total": total, "page": page, "pages": pages}
+
+    except Exception as e:
+        import traceback
+        raise HTTPException(500, f"Activity error: {e}\n{traceback.format_exc()}")
 
 
 # ─── ANALYTICS ────────────────────────────────────────────────────────────────

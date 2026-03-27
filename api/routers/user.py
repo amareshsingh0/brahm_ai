@@ -4,6 +4,7 @@ User profile router — JWT-based (Bearer token), with legacy session_id fallbac
 import os
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, Request
+from pydantic import BaseModel
 from api.models.user import UserProfile
 from api.supabase_client import get_supabase
 
@@ -89,9 +90,21 @@ def upsert_user(profile: UserProfile, request: Request, session_id: str = Query(
 
 # ── Chat History ──────────────────────────────────────────────────────────────
 
+def _ensure_meta_table(sb):
+    """No-op — table must exist in Supabase. Silently skip if missing."""
+    pass
+
+
 @router.get("/user/chats/sessions")
-def get_chat_sessions(request: Request, session_id: str = Query(default="")):
-    """Return user's chat sessions grouped by session_id + page_context."""
+def get_chat_sessions(
+    request: Request,
+    session_id: str = Query(default=""),
+    include_archived: bool = Query(default=False),
+):
+    """Return user's chat sessions grouped by session_id + page_context.
+    Includes is_pinned, is_archived, custom_name from chat_session_meta.
+    Pinned sessions come first; archived sessions excluded unless include_archived=True.
+    """
     user_id = _get_user_id(request, session_id)
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -107,27 +120,105 @@ def get_chat_sessions(request: Request, session_id: str = Query(default="")):
             .limit(500) \
             .execute().data or []
 
+        # Load session metadata
+        meta_rows = []
+        try:
+            meta_rows = sb.table("chat_session_meta") \
+                .select("session_id, is_pinned, is_archived, custom_name") \
+                .eq("user_id", user_id) \
+                .execute().data or []
+        except Exception:
+            pass
+        meta_map = {r["session_id"]: r for r in meta_rows}
+
         # Group by (session_id, page_context)
         sessions: dict = {}
         for r in rows:
             key = (r.get("session_id") or "", r.get("page_context", "general"))
             if key not in sessions:
+                meta = meta_map.get(key[0], {})
                 sessions[key] = {
-                    "session_id": key[0],
+                    "session_id":   key[0],
                     "page_context": key[1],
-                    "last_at": r["created_at"],
+                    "last_at":      r["created_at"],
+                    "is_pinned":    meta.get("is_pinned", False),
+                    "is_archived":  meta.get("is_archived", False),
+                    "custom_name":  meta.get("custom_name"),
                     "messages": [],
                 }
             sessions[key]["messages"].append({
-                "role": r["role"],
-                "content": r["content"],
+                "role":       r["role"],
+                "content":    r["content"],
                 "created_at": r["created_at"],
             })
 
-        result = sorted(sessions.values(), key=lambda x: x["last_at"], reverse=True)
-        return {"sessions": result}
+        all_sessions = list(sessions.values())
+
+        # Filter archived
+        if not include_archived:
+            all_sessions = [s for s in all_sessions if not s.get("is_archived")]
+        else:
+            all_sessions = [s for s in all_sessions if s.get("is_archived")]
+
+        # Sort: pinned first, then by last_at desc
+        result = sorted(
+            all_sessions,
+            key=lambda x: (0 if x.get("is_pinned") else 1, x["last_at"]),
+            reverse=False,
+        )
+        # Fix: pinned first (ascending by pin=0/1), but last_at should be descending within each group
+        pinned   = sorted([s for s in result if     s.get("is_pinned")], key=lambda x: x["last_at"], reverse=True)
+        unpinned = sorted([s for s in result if not s.get("is_pinned")], key=lambda x: x["last_at"], reverse=True)
+        return {"sessions": pinned + unpinned}
+
     except Exception as e:
         raise HTTPException(500, f"Chat history error: {e}")
+
+
+class SessionMetaUpdate(BaseModel):
+    action: str          # "pin" | "unpin" | "archive" | "unarchive" | "rename"
+    name: Optional[str] = None
+
+@router.patch("/user/chats/session/{sess_id}/meta")
+def update_session_meta(
+    sess_id: str,
+    body: SessionMetaUpdate,
+    request: Request,
+    session_id: str = Query(default=""),
+):
+    """Pin, unpin, archive, unarchive, or rename a chat session."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    if not sb:
+        raise HTTPException(500, "Database unavailable")
+
+    update: dict = {"user_id": user_id, "session_id": sess_id}
+
+    if body.action == "pin":
+        update["is_pinned"] = True
+    elif body.action == "unpin":
+        update["is_pinned"] = False
+    elif body.action == "archive":
+        update["is_archived"] = True
+        update["is_pinned"]   = False   # unpin when archiving
+    elif body.action == "unarchive":
+        update["is_archived"] = False
+    elif body.action == "rename":
+        if not body.name:
+            raise HTTPException(400, "name required for rename")
+        update["custom_name"] = body.name.strip()[:100]
+    else:
+        raise HTTPException(400, f"Unknown action: {body.action}")
+
+    try:
+        # Upsert by (user_id, session_id)
+        sb.table("chat_session_meta").upsert(update, on_conflict="user_id,session_id").execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(500, f"Meta update error: {e}")
 
 
 @router.delete("/user/chats/session/{sess_id}")

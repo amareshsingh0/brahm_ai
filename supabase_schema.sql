@@ -180,6 +180,20 @@ CREATE TABLE IF NOT EXISTS palmistry_log (
   created_at   TIMESTAMPTZ DEFAULT now()
 );
 
+-- ── CHAT SESSION METADATA (pin / archive / rename) ───────────
+CREATE TABLE IF NOT EXISTS chat_session_meta (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     TEXT REFERENCES users(id) ON DELETE CASCADE,
+  session_id  TEXT NOT NULL,
+  is_pinned   BOOLEAN DEFAULT FALSE,
+  is_archived BOOLEAN DEFAULT FALSE,
+  custom_name TEXT,
+  updated_at  TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, session_id)
+);
+CREATE INDEX IF NOT EXISTS idx_meta_user ON chat_session_meta(user_id);
+ALTER TABLE chat_session_meta ENABLE ROW LEVEL SECURITY;
+
 -- ── DELETED ACCOUNTS (audit) ──────────────────────────────────
 CREATE TABLE IF NOT EXISTS deleted_accounts (
   id             BIGSERIAL PRIMARY KEY,

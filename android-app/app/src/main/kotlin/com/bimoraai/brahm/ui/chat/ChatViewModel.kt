@@ -12,9 +12,12 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,10 +33,13 @@ data class ChatMessage(
 
 data class ChatSession(
     val sessionId: String,
-    val preview: String,     // first user message
+    val preview: String,     // first user message or custom_name
     val lastAt: String,      // ISO timestamp
     val messageCount: Int,
     val messages: List<ChatMessage>,
+    val isPinned: Boolean    = false,
+    val isArchived: Boolean  = false,
+    val customName: String?  = null,
 )
 
 private val CONFIDENCE_REGEX = Regex("""\[CONFIDENCE:\s*\w+\]""")
@@ -68,15 +74,17 @@ class ChatViewModel @Inject constructor(
     private val api: ApiService,
 ) : ViewModel() {
 
-    private val _messages       = MutableStateFlow<List<ChatMessage>>(emptyList())
-    private val _isStreaming    = MutableStateFlow(false)
-    private val _sessions       = MutableStateFlow<List<ChatSession>>(emptyList())
-    private val _sessionsLoading = MutableStateFlow(false)
+    private val _messages          = MutableStateFlow<List<ChatMessage>>(emptyList())
+    private val _isStreaming       = MutableStateFlow(false)
+    private val _sessions          = MutableStateFlow<List<ChatSession>>(emptyList())
+    private val _archivedSessions  = MutableStateFlow<List<ChatSession>>(emptyList())
+    private val _sessionsLoading   = MutableStateFlow(false)
 
-    val messages        = _messages.asStateFlow()
-    val isStreaming     = _isStreaming.asStateFlow()
-    val sessions        = _sessions.asStateFlow()
-    val sessionsLoading = _sessionsLoading.asStateFlow()
+    val messages          = _messages.asStateFlow()
+    val isStreaming       = _isStreaming.asStateFlow()
+    val sessions          = _sessions.asStateFlow()
+    val archivedSessions  = _archivedSessions.asStateFlow()
+    val sessionsLoading   = _sessionsLoading.asStateFlow()
 
     private var sessionId = ""
     private var userId    = ""
@@ -101,39 +109,49 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             _sessionsLoading.value = true
             try {
-                val resp = api.getChatSessions()
-                if (!resp.isSuccessful) return@launch
-                val sessionsArr = resp.body()?.get("sessions")?.jsonArray ?: return@launch
+                val respNormal   = api.getChatSessions(includeArchived = false)
+                val respArchived = api.getChatSessions(includeArchived = true)
 
-                val parsed = sessionsArr.mapNotNull { el ->
-                    val obj = el.jsonObject
-                    val sid     = obj["session_id"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                    val ctx     = obj["page_context"]?.jsonPrimitive?.content ?: "general"
-                    if (ctx != "general") return@mapNotNull null   // only show general chat sessions
-                    val lastAt  = obj["last_at"]?.jsonPrimitive?.content ?: ""
-                    val msgs    = obj["messages"]?.jsonArray?.mapNotNull { m ->
-                        val o = m.jsonObject
-                        val role    = o["role"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                        val content = o["content"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                        if (content.isBlank()) null
-                        else ChatMessage(role = role, content = stripTags(content), isComplete = true)
-                    } ?: emptyList()
+                fun parseArr(resp: retrofit2.Response<JsonObject>): List<ChatSession> {
+                    if (!resp.isSuccessful) return emptyList()
+                    val arr = resp.body()?.get("sessions")?.jsonArray ?: return emptyList()
+                    return arr.mapNotNull { el ->
+                        val obj        = el.jsonObject
+                        val sid        = obj["session_id"]?.jsonPrimitive?.content ?: return@mapNotNull null
+                        val ctx        = obj["page_context"]?.jsonPrimitive?.content ?: "general"
+                        if (ctx != "general") return@mapNotNull null
+                        val lastAt     = obj["last_at"]?.jsonPrimitive?.content ?: ""
+                        val isPinned   = obj["is_pinned"]?.jsonPrimitive?.booleanOrNull ?: false
+                        val isArchived = obj["is_archived"]?.jsonPrimitive?.booleanOrNull ?: false
+                        val customName = obj["custom_name"]?.jsonPrimitive?.contentOrNull
 
-                    val preview = msgs.firstOrNull { it.role == "user" }?.content
-                        ?.take(60) ?: "Chat session"
+                        val msgs = obj["messages"]?.jsonArray?.mapNotNull { m ->
+                            val o       = m.jsonObject
+                            val role    = o["role"]?.jsonPrimitive?.content ?: return@mapNotNull null
+                            val content = o["content"]?.jsonPrimitive?.content ?: return@mapNotNull null
+                            if (content.isBlank()) null
+                            else ChatMessage(role = role, content = stripTags(content), isComplete = true)
+                        } ?: emptyList()
 
-                    ChatSession(
-                        sessionId    = sid,
-                        preview      = preview,
-                        lastAt       = lastAt,
-                        messageCount = msgs.size,
-                        messages     = msgs,
-                    )
+                        val rawPreview = msgs.firstOrNull { it.role == "user" }?.content?.take(60) ?: "Chat session"
+                        ChatSession(
+                            sessionId    = sid,
+                            preview      = customName?.takeIf { it.isNotBlank() } ?: rawPreview,
+                            lastAt       = lastAt,
+                            messageCount = msgs.size,
+                            messages     = msgs,
+                            isPinned     = isPinned,
+                            isArchived   = isArchived,
+                            customName   = customName,
+                        )
+                    }
                 }
 
-                _sessions.value = parsed
+                val parsed   = parseArr(respNormal)
+                val archived = parseArr(respArchived)
+                _sessions.value         = parsed
+                _archivedSessions.value = archived
 
-                // If current session_id matches a saved session, load its messages
                 if (_messages.value.isEmpty()) {
                     val current = parsed.firstOrNull { it.sessionId == sessionId }
                     if (current != null && current.messages.isNotEmpty()) {
@@ -144,6 +162,68 @@ class ChatViewModel @Inject constructor(
             } finally {
                 _sessionsLoading.value = false
             }
+        }
+    }
+
+    // ── Session actions ───────────────────────────────────────────────────────
+
+    fun deleteSession(session: ChatSession) {
+        viewModelScope.launch {
+            try {
+                api.deleteChatSession(session.sessionId)
+                _sessions.value         = _sessions.value.filter { it.sessionId != session.sessionId }
+                _archivedSessions.value = _archivedSessions.value.filter { it.sessionId != session.sessionId }
+                if (sessionId == session.sessionId) startNewChat()
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun patchMeta(session: ChatSession, body: JsonObject, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val resp = api.patchSessionMeta(session.sessionId, body)
+                if (resp.isSuccessful) onSuccess()
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun pinSession(session: ChatSession) {
+        val pinned = !session.isPinned
+        val body   = buildJsonObject { put("action", if (pinned) "pin" else "unpin") }
+        patchMeta(session, body) {
+            _sessions.value = _sessions.value.map {
+                if (it.sessionId == session.sessionId) it.copy(isPinned = pinned) else it
+            }.sortedWith(compareBy({ if (it.isPinned) 0 else 1 }, { it.lastAt })).reversed()
+                .let { list -> list.filter { it.isPinned } + list.filter { !it.isPinned } }
+        }
+    }
+
+    fun archiveSession(session: ChatSession) {
+        val body = buildJsonObject { put("action", "archive") }
+        patchMeta(session, body) {
+            val updated = session.copy(isPinned = false, isArchived = true)
+            _sessions.value         = _sessions.value.filter { it.sessionId != session.sessionId }
+            _archivedSessions.value = listOf(updated) + _archivedSessions.value
+        }
+    }
+
+    fun unarchiveSession(session: ChatSession) {
+        val body = buildJsonObject { put("action", "unarchive") }
+        patchMeta(session, body) {
+            val updated = session.copy(isArchived = false)
+            _archivedSessions.value = _archivedSessions.value.filter { it.sessionId != session.sessionId }
+            _sessions.value = listOf(updated) + _sessions.value
+        }
+    }
+
+    fun renameSession(session: ChatSession, newName: String) {
+        val body = buildJsonObject { put("action", "rename"); put("name", newName) }
+        patchMeta(session, body) {
+            val update = { list: List<ChatSession> ->
+                list.map { if (it.sessionId == session.sessionId) it.copy(customName = newName, preview = newName) else it }
+            }
+            _sessions.value         = update(_sessions.value)
+            _archivedSessions.value = update(_archivedSessions.value)
         }
     }
 

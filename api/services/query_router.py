@@ -20,7 +20,8 @@ PASS1_PROMPT = """You are the decision engine for Brahm AI — a Vedic astrology
 User query: "{query}"
 Conversation history (last 6 messages): {history_summary}
 Page context: {page_context}
-Kundali available: {has_kundali}
+Kundali already calculated: {has_kundali}
+User profile birth data saved: {has_profile_birth_data}
 Page data keys: {page_data_keys}
 
 Return ONLY valid JSON, no explanation, no markdown:
@@ -63,15 +64,18 @@ Rules for query_type:
   → Brahm AI answers these from its general knowledge + links to Vedic wisdom if possible
 
 Rules for needs_birth_form:
-- true ONLY if: user clearly wants kundali/chart/personal prediction AND birth_data is incomplete (missing date or place) AND has_kundali is "no"
-- false in all other cases (including when has_kundali is "yes" — no need to collect data again)
+- true ONLY if ALL of these are true: user wants kundali/personal prediction AND birth_data has no date/place AND has_kundali is "no" AND has_profile_birth_data is "no"
+- false if: has_kundali is "yes" — already have chart
+- false if: has_profile_birth_data is "yes" — will use saved profile data directly, no form needed
+- false if: birth_data extracted from conversation has date + place
+- When in doubt → false (never ask for birth data that may already be saved)
 
 Rules for needs_calculation:
-- true if: CHART_ANALYSIS or RECOMMENDATION and birth_data has at least date+time+place
+- true if: CHART_ANALYSIS or RECOMMENDATION and (has_kundali is "yes" OR has_profile_birth_data is "yes" OR birth_data has date+place)
 - true if: dasha timing, muhurta, panchang needed fresh
-- false if: has_kundali is "yes" — kundali already available, no recalculation needed
-- false if: page_data already has the data, or CONVERSATIONAL/SIMPLE_FACT/SMALL_TALK/GENERAL_KNOWLEDGE
-- false if: birth_data is incomplete (missing date or place)
+- false if: has_kundali is "yes" AND query is just asking to analyse existing chart (no recalculation needed)
+- false if: CONVERSATIONAL/SIMPLE_FACT/SMALL_TALK/GENERAL_KNOWLEDGE
+- false if: birth_data is incomplete AND has_profile_birth_data is "no" AND has_kundali is "no"
 - false if: needs_birth_form is true
 
 Rules for needs_rag:
@@ -154,11 +158,13 @@ def _gemini_pass1(
             history_summary += f"{role}: {content}\n"
     history_summary = history_summary.strip() or "none"
 
+    has_profile = bool(page_data and page_data.get("user_birth_data"))
     prompt = PASS1_PROMPT.format(
         query=query,
         history_summary=history_summary,
         page_context=page_context,
         has_kundali="yes" if kundali_summary else "no",
+        has_profile_birth_data="yes" if has_profile else "no",
         page_data_keys=list(page_data.keys()) if page_data else [],
     )
 

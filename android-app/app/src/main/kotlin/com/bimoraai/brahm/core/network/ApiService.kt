@@ -130,7 +130,18 @@ interface ApiService {
 
     // Chat history sessions
     @GET("user/chats/sessions")
-    suspend fun getChatSessions(): Response<JsonObject>
+    suspend fun getChatSessions(
+        @Query("include_archived") includeArchived: Boolean = false,
+    ): Response<JsonObject>
+
+    @DELETE("user/chats/session/{sessId}")
+    suspend fun deleteChatSession(@Path("sessId") sessId: String): Response<JsonObject>
+
+    @PATCH("user/chats/session/{sessId}/meta")
+    suspend fun patchSessionMeta(
+        @Path("sessId") sessId: String,
+        @Body body: JsonObject,
+    ): Response<JsonObject>
 
     @POST("user")
     suspend fun updateProfile(@Body body: UpdateProfileRequest): Response<UserDto>

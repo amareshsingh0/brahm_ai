@@ -72,34 +72,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Top Endpoints */}
-      {s.top_endpoints?.length > 0 && (
-        <section>
-          <div className="rounded-xl border border-border bg-white overflow-hidden shadow-sm">
-            <p className="px-5 py-3 border-b border-border text-sm font-semibold text-foreground">
-              Top Endpoints (Today)
-            </p>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left px-5 py-2 text-muted-foreground font-medium w-8">#</th>
-                  <th className="text-left px-5 py-2 text-muted-foreground font-medium">Endpoint</th>
-                  <th className="text-right px-5 py-2 text-muted-foreground font-medium">Hits</th>
-                </tr>
-              </thead>
-              <tbody>
-                {s.top_endpoints.map((ep, i) => (
-                  <tr key={ep.endpoint} className="border-b border-border/50 hover:bg-muted/40">
-                    <td className="px-5 py-2 text-muted-foreground">{i + 1}</td>
-                    <td className="px-5 py-2 font-mono text-foreground/70 text-xs">{ep.endpoint}</td>
-                    <td className="px-5 py-2 text-right text-amber-700 font-semibold">{ep.count}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

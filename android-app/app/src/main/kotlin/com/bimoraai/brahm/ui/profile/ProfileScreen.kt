@@ -188,6 +188,20 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // ── CHATS section ────────────────────────────────────────────────────
+            SettingsSectionLabel("Chats")
+            SettingsGroup {
+                SettingsItem(
+                    icon = Icons.Default.Archive,
+                    iconColor = Color(0xFF6D4C41),
+                    label = "Archived Chats",
+                    subtitle = "View your archived conversations",
+                    onClick = { navController.navigate(com.bimoraai.brahm.ui.main.Route.ARCHIVED_CHATS) },
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
             // ── LEGAL section ───────────────────────────────────────────────────
             SettingsSectionLabel("Legal")
             SettingsGroup {

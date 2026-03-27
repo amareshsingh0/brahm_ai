@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, MessageSquare,
-  ClipboardList, UserX, ChevronLeft, ChevronRight,
+  ClipboardList, UserX, ChevronLeft, ChevronRight, Activity, BadgeCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,9 @@ const NAV = [
   { to: "/dashboard",        label: "Dashboard",         Icon: LayoutDashboard },
   { to: "/users",            label: "Users",             Icon: Users           },
   { to: "/payments",         label: "Payments",          Icon: CreditCard      },
+  { to: "/subscriptions",    label: "Subscriptions",     Icon: BadgeCheck      },
   { to: "/chats",            label: "Chat Monitor",      Icon: MessageSquare   },
+  { to: "/api-monitor",      label: "API Monitor",       Icon: Activity        },
   { to: "/logs",             label: "Admin Log",         Icon: ClipboardList   },
   { to: "/deleted-accounts", label: "Deleted Accounts",  Icon: UserX           },
 ];

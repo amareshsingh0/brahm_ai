@@ -16,7 +16,7 @@ import {
   User, CreditCard, Settings, Globe, LogOut, HelpCircle,
   ChevronRight, ExternalLink, MessageSquare, FileText,
   RefreshCw, Users, X, Bell, Lock, Palette,
-  Calendar, Clock, MapPin, Edit2, Phone, Shield, Sparkles, Crown,
+  Calendar, Clock, MapPin, Edit2, Phone, Shield, Sparkles, Crown, Archive,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -398,6 +398,7 @@ export function ProfilePopup({ className = "", style, onClose }: ProfilePopupPro
           <div className="py-1">
             <MenuItem icon={User}       label={t("nav.profile")}      onClick={() => setProfileOpen(true)} showArrow />
             <MenuItem icon={CreditCard} label={t("nav.subscription")} onClick={() => setSubscriptionOpen(true)} showArrow />
+            <MenuItem icon={Archive}    label="Archived Chats"        onClick={() => { onClose(); navigate("/chat-history?archived=1"); }} showArrow />
             <MenuItem icon={Settings}   label="Settings"              onClick={() => setSettingsOpen(true)} showArrow />
 
             {/* Help with hover submenu */}

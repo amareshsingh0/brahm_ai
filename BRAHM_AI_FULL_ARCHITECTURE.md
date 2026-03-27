@@ -1,5 +1,5 @@
 # Brahm AI — Full Architecture Document
-# Last Updated: 2026-03-25 (v6.0 — Separate Admin App + Domain Separation)
+# Last Updated: 2026-03-27 (v7.0 — API Versioning + Admin Subscriptions + Chat Monitor Upgrade + Auth Upgrade)
 
 ---
 
@@ -115,12 +115,15 @@ C:\desktop\Brahm AI\              (local project root)
 │       │       ├── Badge.tsx
 │       │       └── Loader.tsx       Loader + Empty + ActionBtn
 │       ├── pages/
-│       │   ├── LoginPage.tsx        X-Admin-Key input → sessionStorage → preloadAll
-│       │   ├── DashboardPage.tsx    Stats grid + revenue + top endpoints
+│       │   ├── LoginPage.tsx        Username + Secret Key → btoa(user:key) → sessionStorage → preloadAll
+│       │   ├── DashboardPage.tsx    Stats grid + revenue (Top Endpoints moved to ApiMonitorPage)
 │       │   ├── UsersPage.tsx        Paginated table → navigate /users/:id on click
 │       │   ├── UserDetailPage.tsx   useParams(:id) + 7 sub-tabs + action buttons
 │       │   ├── PaymentsPage.tsx     Revenue StatCards + filter + refund action
-│       │   ├── ChatsPage.tsx        Recent / Flagged / Analytics switcher
+│       │   ├── SubscriptionsPage.tsx Full subscription list: summary metrics, plan chart, extend/cancel/grant
+│       │   ├── ChatsPage.tsx        Conversations grouped by session_id; user+AI turn pairs; confidence badges
+│       │   ├── ApiMonitorPage.tsx   Top endpoints, latency, errors, status dist, timeline (today/7d/30d)
+│       │   ├── DeletedAccountsPage.tsx 30-day grace window review
 │       │   └── LogsPage.tsx         Admin action log (DataTable + ACTION_CLS)
 │       └── user-detail-tabs/
 │           ├── ProfileTab.tsx       User fields grid
@@ -432,7 +435,18 @@ C:\desktop\Brahm AI\              (local project root)
 | PATCH | `/api/user/me` | Bearer JWT | Update profile / preferences / language |
 | DELETE | `/api/user/me` | Bearer JWT | Delete account (GDPR) |
 
-#### Core Feature Endpoints (unchanged)
+#### API Versioning (v7.0)
+All Jyotish feature routers are mounted at **both** `/api/v1/...` (versioned) and `/api/...` (legacy alias):
+```python
+# api/main.py
+for router, prefix, tags in _JYOTISH_ROUTERS:
+    app.include_router(router, prefix=f"/api/v1{prefix}", tags=tags)
+    app.include_router(router, prefix=f"/api{prefix}",    tags=tags)  # legacy
+# Admin + Auth stay unversioned at /api/admin and /api/auth
+```
+Mobile clients can migrate to `/api/v1/...` at their own pace. Swagger: `/api/docs`.
+
+#### Core Feature Endpoints (unchanged — available at both `/api/...` and `/api/v1/...`)
 | Method | Endpoint | Auth | Description | Speed |
 |--------|----------|------|-------------|-------|
 | POST | `/api/chat` | Bearer JWT (Jyotishi+) | RAG chat SSE stream | ~14s first |
@@ -448,13 +462,14 @@ C:\desktop\Brahm AI\              (local project root)
 | GET | `/api/horoscope/{rashi}` | — | Daily prediction (public) | <0.5s |
 | GET | `/api/cities` | — | City lookup (public) | <0.1s |
 
-#### Admin Endpoints (X-Admin-Key header auth)
+#### Admin Endpoints (X-Admin-Key header auth — `btoa("username:secret_key")`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/admin/stats` | MAU, DAU, revenue, subscriptions, top endpoints |
-| GET | `/api/admin/users` | Paginated users list with filters |
+| GET | `/api/admin/stats` | MAU, DAU, revenue, subscriptions summary |
+| GET | `/api/admin/users` | Paginated users list; batch-enriched (4 IN queries, no N+1) |
 | GET | `/api/admin/users/{id}` | Full user profile + subscription + usage_today |
-| POST | `/api/admin/users/{id}/action` | suspend / reactivate / ban / reset_key / delete |
+| PATCH | `/api/admin/users/{id}` | suspend / reactivate / ban / unban (status field only) |
+| POST | `/api/admin/users/{id}/action` | grant_plan / extend_sub / cancel_sub / clear_chats / delete |
 | GET | `/api/admin/users/{id}/chats` | Paginated chat messages (ctx filter) |
 | GET | `/api/admin/users/{id}/kundalis` | Kundali history |
 | GET | `/api/admin/users/{id}/palms` | Palmistry history |
@@ -464,9 +479,12 @@ C:\desktop\Brahm AI\              (local project root)
 | GET | `/api/admin/payments` | All payments + revenue stats |
 | POST | `/api/admin/payments/{id}/refund` | Issue refund |
 | GET | `/api/admin/revenue` | Revenue breakdown (today/month/total) |
-| GET | `/api/admin/chats` | Recent chats (all users) |
+| GET | `/api/admin/chats` | Recent chats; batch-enriched (no N+1 HTTP/2 drops) |
 | GET | `/api/admin/chats/flagged` | Flagged chats |
 | GET | `/api/admin/chats/analytics` | Top questions + context distribution |
+| GET | `/api/admin/api-stats` | Top endpoints, latency, errors, timeline (period=today/7d/30d) |
+| GET | `/api/admin/subscriptions` | All subscriptions: user enriched, days_left, summary metrics |
+| GET | `/api/admin/deleted-accounts` | 30-day grace window accounts |
 | GET | `/api/admin/logs` | Admin action log |
 
 ---
@@ -2980,89 +2998,99 @@ POST /api/admin/export/users
 
 ---
 
-### 27.4 Admin Panel UI (`/admin` — React Page) ✅ BUILT
+### 27.4 Admin Panel UI (`api.brahmasmi.bimoraai.com/admin`) ✅ BUILT
 
-**File:** `src/pages/AdminPage.tsx`
-**Auth:** X-Admin-Key header (sessionStorage, clears on browser close)
-**Style:** Standalone dark UI — does NOT use AppLayout (no sidebar/header interference)
+**Location:** `admin-app/` — separate React+Vite build, deployed to `/var/www/brahm-admin/`
+**Auth:** `btoa("username:secret_key")` → `X-Admin-Key` header (sessionStorage). Legacy plain-key still works as fallback.
+**Style:** Light theme — white/warm-off-white, gold (#B07A00) + saffron (#D4540A) accents. Collapsible sidebar (w-56/w-14).
 
 ```
-/admin
-├── 📊 Dashboard
-│   ├── Users row (5 cards): Total | New Today | New Week | DAU | MAU
-│   ├── Revenue row (4 cards): Today | Month | Total | Paid Users
-│   ├── Activity row (3 cards): Chats Today | Kundalis Today | Palm Today
-│   ├── Subscriptions row (4 cards): Jyotishi Monthly/Yearly | Acharya Monthly/Yearly
-│   └── Top Endpoints table
+api.brahmasmi.bimoraai.com/admin
 │
-├── 👥 Users
-│   ├── Search: phone/name
-│   ├── Filter: All Plans | Free | Jyotishi | Acharya
-│   ├── Filter: All Status | Active | Suspended | Banned
-│   ├── Table: Name | Phone | Plan | Status | Joined | Chats | Kundalis | Paid ₹ | View
-│   └── Click row → User Detail Modal (full overlay)
-│       ├── Header: name, phone, plan badge, status badge, admin badge
-│       ├── Action Bar:
-│       │   ├── [Change Plan] [Grant Free Days] [Extend Sub] [Cancel Sub]
-│       │   ├── [Suspend / Unsuspend] [Ban / Unban]
-│       │   └── [Clear Chats] [Delete Account]
-│       └── 7 Sub-tabs:
-│           ├── 👤 Profile     — all fields: ID, phone, birth details, sub, Cashfree order ID, lifetime paid
-│           ├── 💬 Chats       — all messages, filter by page_context, flag button per message
-│           ├── ⭐ Kundalis    — every calculation: birth details, calc_ms, expandable JSON
-│           ├── 🖐 Palmistry   — all palm readings: lines_found, confidence, tokens
-│           ├── 💳 Payments    — user's transactions with Refund button per payment
-│           ├── 📊 Usage       — feature usage breakdown today
-│           └── 🔐 Logins      — login history: IP, device, success/fail, fail reason
+├── /login              Username + Secret Key form → btoa encode → preloadAll() on success
 │
-├── 💳 Payments
-│   ├── Revenue summary: Today | Month | Total (from /api/admin/revenue)
-│   ├── Filter: All | SUCCESS | FAILED | PENDING | REFUNDED
-│   ├── Table: User | Phone | Order ID | Amount | Status | Method | Fail Reason | Date
-│   └── [Refund] button on SUCCESS rows → calls /api/admin/payments/{id}/refund
+├── /dashboard          Stats grid (users/revenue/activity) + revenue cards
 │
-├── 💬 Chat Monitor
-│   ├── Recent tab — latest messages across all users (user + phone shown)
-│   ├── ⚑ Flagged tab — only flagged messages
-│   └── 📊 Analytics tab — Top 15 questions (30d) + Page context distribution
+├── /users              Paginated table (search + plan/status filter) → /users/:id
+│   └── /users/:id      7-tab user detail page (replaces old modal)
+│       ├── Profile     — all fields grid: ID, phone, birth, plan, Cashfree order, lifetime paid
+│       ├── Chats       — page_context filter + flag per message + pagination
+│       ├── Kundalis    — calc history + expandable raw JSON
+│       ├── Palmistry   — lines_found chips + confidence + tokens
+│       ├── Payments    — transaction history + Refund button
+│       ├── Usage       — today's feature usage bar chart
+│       └── Logins      — IP + device + success/fail + fail reason
 │
-└── 📋 Admin Log
-    └── Every admin action: Time | Admin | Action (color-coded) | Target | Details JSON
+├── /payments           Revenue summary (Today/Month/Total) + all transactions + Refund action
+│
+├── /subscriptions      ← NEW (v7.0)
+│   ├── Summary cards: Active | New This Month | Cancelled (30d) | Expiring 7d | Total Revenue
+│   ├── Plan distribution chart (premium/standard × monthly/yearly/manual)
+│   ├── Filter: search name/phone | status | plan | period
+│   ├── SubRow (expandable): full detail grid + days_left badge (red/amber/green)
+│   └── ActionModal: Extend (days + reason) | Cancel (reason) | Grant Plan (plan + days + reason)
+│
+├── /chats              ← UPGRADED (v7.0)
+│   ├── Conversations grouped by session_id (user+AI turn pairs)
+│   ├── ConversationCard: user name/phone, page context icon, turn count, flag indicator
+│   ├── TurnRow: numbered | user msg (blue) + AI response (amber) | expand/collapse
+│   │   ├── Confidence badge: GREEN / AMBER / RED
+│   │   ├── response_ms + tokens_used
+│   │   └── Copy button
+│   ├── Flagged tab — only sessions containing flagged messages
+│   └── Analytics tab — context distribution with % progress bars
+│
+├── /api-monitor        ← NEW (v7.0) — moved from Dashboard
+│   ├── Summary: Total Requests | Avg Latency | Total Errors | Success Rate
+│   ├── Request volume chart (inline SVG — hourly for today, daily for 7d/30d)
+│   ├── Top endpoints table: hits + avg_ms (color-coded) + error %
+│   ├── Slowest endpoints ranked by avg latency
+│   ├── Status distribution (2xx green / 4xx amber / 5xx red) with progress bars
+│   ├── Method breakdown (GET/POST/DELETE counts)
+│   ├── Errors by endpoint table
+│   └── Period filter: Today | Last 7 Days | Last 30 Days
+│
+├── /logs               Admin action log — Time | Admin | Action (color-coded) | Target | Details JSON
+└── /deleted-accounts   30-day grace window accounts for review
 ```
 
-**Mobile:** Bottom tab bar (5 tabs) replaces sidebar on small screens.
+**Performance:** `preloadAll()` warms cache for all tabs on login. 10-min GET cache. No spinners on nav.
+**N+1 fix:** `/admin/users` and `/admin/chats` use batch `IN` queries + retry-once wrapper (eliminates HTTP/2 `RemoteProtocolError`).
 
 ---
 
 ### 27.5 Admin Access Control
 
+**Auth:** `X-Admin-Key` header = `btoa("username:secret_key")`
+
 ```python
-# api/services/auth_service.py
+# api/routers/admin.py
 
-ADMIN_PHONES = os.getenv("ADMIN_PHONES", "").split(",")
+ADMIN_KEY      = os.getenv("ADMIN_SECRET_KEY", "")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 
-def upsert_user(phone: str) -> dict:
-    role = "admin" if phone in ADMIN_PHONES else "user"
-    # ...
-
-# api/dependencies.py
-def get_admin_user(user = Depends(get_current_user)):
-    if user["role"] not in ("admin",):
-        raise HTTPException(403, "Admin access required")
-    return user
+def _check(request: Request):
+    token = request.headers.get("X-Admin-Key", "")
+    try:
+        decoded = base64.b64decode(token).decode()
+        username, secret = decoded.split(":", 1)
+        if username == ADMIN_USERNAME and secret == ADMIN_KEY:
+            return  # ✅ new format
+    except Exception:
+        pass
+    # Legacy fallback: plain secret key (backward compat)
+    if token == ADMIN_KEY:
+        return
+    raise HTTPException(401, "Unauthorized")
 ```
 
 ```
-# VM /etc/environment
-ADMIN_PHONES=+91XXXXXXXXXX,+91YYYYYYYYYY
+# /etc/systemd/system/brahm-api.service
+Environment=ADMIN_SECRET_KEY=your_secret_key_here
+Environment=ADMIN_USERNAME=your_admin_username
 ```
 
-**Admin route protection (React):**
-```typescript
-// src/pages/AdminPage.tsx
-const { plan, role } = useAuthStore()
-if (role !== 'admin') return <Navigate to="/dashboard" />
-```
+**React guard:** `AdminLayout.tsx` checks `sessionStorage.getItem("admin-key")` → redirects to `/login` if missing.
 
 ---
 

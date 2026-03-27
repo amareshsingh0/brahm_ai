@@ -18,6 +18,7 @@ function createHeaders(headers?: HeadersInit): Headers {
   if (token && !merged.has('Authorization')) {
     merged.set('Authorization', `Bearer ${token}`);
   }
+  merged.set('X-Client', 'web');
 
   return merged;
 }
@@ -49,6 +50,10 @@ export const api = {
 
   delete<T>(path: string): Promise<T> {
     return request<T>(path, { method: 'DELETE' });
+  },
+
+  patch<T>(path: string, body: unknown): Promise<T> {
+    return request<T>(path, { method: 'PATCH', body: JSON.stringify(body) });
   },
 
   /**

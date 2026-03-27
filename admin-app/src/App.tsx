@@ -8,6 +8,8 @@ import PaymentsPage    from "@/pages/PaymentsPage";
 import ChatsPage       from "@/pages/ChatsPage";
 import LogsPage        from "@/pages/LogsPage";
 import DeletedAccountsPage from "@/pages/DeletedAccountsPage";
+import ApiMonitorPage     from "@/pages/ApiMonitorPage";
+import SubscriptionsPage  from "@/pages/SubscriptionsPage";
 
 export default function App() {
   return (
@@ -24,7 +26,9 @@ export default function App() {
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/payments"  element={<PaymentsPage />} />
           <Route path="/chats"     element={<ChatsPage />} />
-          <Route path="/logs"      element={<LogsPage />} />
+          <Route path="/api-monitor"    element={<ApiMonitorPage />} />
+          <Route path="/subscriptions"  element={<SubscriptionsPage />} />
+          <Route path="/logs"        element={<LogsPage />} />
           <Route path="/deleted-accounts" element={<DeletedAccountsPage />} />
         </Route>
 

@@ -314,16 +314,22 @@ def build_pass2_prompt(
 
     # ── Conversational / Small Talk: short, warm ─────────────────────────────
     if query_type in {"CONVERSATIONAL", "SMALL_TALK"}:
+        history_section = _format_history(history or [])
+        hist_block = f"\n{history_section}\n" if history_section else ""
         return f"""{MASTER_PERSONA}
 
 {lang_line}
 
 TODAY = {today_str}
-
+{hist_block}
 User: {actual_query}
 
-Ek-do sentence mein warm, friendly jawab do. Koi calculations ya books mat use karo.
-Agar user kisi problem/feeling ke baare mein baat kar raha hai → empathize karo aur briefly Vedic perspective deke encourage karo."""
+Conversation history ke context mein jawab do. Ek-do sentence mein warm, friendly jawab do.
+Agar user pehle kisi kaam ke baare mein baat kar raha tha (jaise kundali banana, koi question) toh uska reference do.
+Koi calculations ya books mat use karo.
+
+[MANDATORY] AKHIR mein:
+[FOLLOWUPS: "question 1" | "question 2" | "question 3"]"""
 
     # ── General Knowledge: off-topic questions ───────────────────────────────
     if query_type == "GENERAL_KNOWLEDGE":

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
@@ -123,16 +122,16 @@ data class SmartAlert(
 )
 
 fun JsonObject.str(key: String): String {
-    val el = this[key] ?: return "—"
-    if (el !is JsonPrimitive) return "—"
-    val s = el.content
-    return if (s.isBlank() || s == "null") "—" else s
+    val s = try {
+        this[key]?.jsonPrimitive?.contentOrNull
+    } catch (_: Exception) { null }
+    return if (s.isNullOrBlank() || s == "null") "—" else s
 }
 
 /** Read a primitive field from a nested object: obj.nested("tithi", "name") */
 fun JsonObject.nested(outer: String, inner: String): String {
-    val obj = this[outer]?.let {
-        try { it.jsonObject } catch (_: Exception) { null }
-    } ?: return "—"
+    val obj = try {
+        this[outer]?.jsonObject
+    } catch (_: Exception) { null } ?: return "—"
     return obj.str(inner)
 }

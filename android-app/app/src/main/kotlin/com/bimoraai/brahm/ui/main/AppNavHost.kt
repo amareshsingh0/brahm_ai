@@ -54,7 +54,8 @@ object Route {
     const val STORIES         = "stories"
     const val SKY             = "sky"
     const val LIBRARY         = "library"
-    const val CALENDAR        = "calendar"
+    const val CALENDAR           = "calendar"
+    const val ARCHIVED_CHATS     = "archived_chats"
 }
 
 @Composable
@@ -134,5 +135,6 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.SKY)            { WithAiFab("sky")            { com.bimoraai.brahm.ui.sky.SkyScreen(navController) } }
         composable(Route.LIBRARY)        { WithAiFab("library")        { com.bimoraai.brahm.ui.library.LibraryScreen(navController) } }
         composable(Route.CALENDAR)       { WithAiFab("calendar")       { com.bimoraai.brahm.ui.calendar.CalendarScreen(navController) } }
+        composable(Route.ARCHIVED_CHATS) { com.bimoraai.brahm.ui.chat.ArchivedChatsScreen(navController) }
     }
 }

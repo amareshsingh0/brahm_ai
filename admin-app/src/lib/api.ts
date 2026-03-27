@@ -64,8 +64,10 @@ export function preloadAll() {
     "/admin/payments?page=1&limit=30",
     "/admin/revenue",
     "/admin/chats?page=1&limit=40",
+    "/admin/api-stats?period=today",
     "/admin/logs?page=1&limit=50",
     "/admin/deleted-accounts?page=1&limit=30",
+    "/admin/subscriptions?page=1&limit=30",
   ];
   paths.forEach((p) => aFetch(p).catch(() => {}));
 }
