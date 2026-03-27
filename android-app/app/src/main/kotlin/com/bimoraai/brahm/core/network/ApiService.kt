@@ -192,7 +192,16 @@ interface ApiService {
     @GET("search")
     suspend fun searchVedicLibrary(@Query("q") query: String): Response<JsonObject>
 
-    // Festivals (for PanchangScreen)
+    // Festivals — full year (for PanchangScreen Festivals tab)
+    @GET("festivals")
+    suspend fun getFestivalsYear(
+        @Query("year") year: Int,
+        @Query("lat")  lat: Double,
+        @Query("lon")  lon: Double,
+        @Query("tz")   tz: Double = 5.5,
+    ): Response<JsonObject>
+
+    // Festivals — per month (legacy, kept for compatibility)
     @GET("festivals")
     suspend fun getFestivals(
         @Query("month") month: Int,
@@ -208,7 +217,7 @@ interface ApiService {
     suspend fun analyzeGochar(@Body body: JsonObject): Response<JsonObject>
 
     // Calendar — monthly grid with per-day tithi, festivals, special day flags
-    @GET("calendar")
+    @GET("calendar/month")
     suspend fun getCalendar(
         @Query("year")         year: Int,
         @Query("month")        month: Int,

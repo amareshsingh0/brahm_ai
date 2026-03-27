@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useKundliStore } from "@/store/kundliStore";
 import { useAuthStore } from "@/store/authStore";
@@ -6,13 +7,16 @@ import { useNavigate, Link } from "react-router-dom";
 import { useSubscriptionStatus } from "@/hooks/useSubscription";
 import { useTranslation } from "react-i18next";
 import {
-  User, Calendar, Clock, MapPin, Edit2,
+  User, Calendar, Clock, MapPin, Edit2, Check, X,
   LogOut, CreditCard, ChevronRight, Crown, Shield, Sparkles, Phone, Globe,
-  MessageSquare, Trash2,
+  MessageSquare, Trash2, ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguageStore, LANG_META } from "@/store/languageStore";
+import { apiFetch } from "@/lib/apiFetch";
+import { searchCities } from "@/lib/cities";
+import type { City } from "@/lib/cities";
 
 const PLAN_STYLE: Record<string, { icon: React.ElementType; color: string; bg: string; border: string }> = {
   free:     { icon: Shield,   color: "text-muted-foreground", bg: "bg-muted/20",      border: "border-border/30" },
@@ -20,25 +24,109 @@ const PLAN_STYLE: Record<string, { icon: React.ElementType; color: string; bg: s
   premium:  { icon: Crown,    color: "text-amber-400",        bg: "bg-amber-500/10",  border: "border-amber-500/30" },
 };
 
+const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
+
 export default function ProfilePage() {
   const { t } = useTranslation();
   const birthDetails = useKundliStore((s) => s.birthDetails);
+  const kundaliData  = useKundliStore((s) => s.kundaliData);
+  const { setBirthDetails } = useKundliStore();
   const name   = useAuthStore((s) => s.name);
   const phone  = useAuthStore((s) => s.phone);
   const plan   = useAuthStore((s) => s.plan);
+  const userId = useAuthStore((s) => s.userId);
+  const { setName } = useAuthStore();
   const { lang } = useLanguageStore();
   const currentLangName = LANG_META[lang]?.nativeName ?? "English";
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { data: sub } = useSubscriptionStatus();
 
-  const planStyle = PLAN_STYLE[plan] ?? PLAN_STYLE.free;
-  const PlanIcon = planStyle.icon;
+  // ── Edit state ───────────────────────────────────────────────
+  const [editing, setEditing]   = useState(false);
+  const [saving,  setSaving]    = useState(false);
+  const [saveErr, setSaveErr]   = useState("");
+  const [savedOk, setSavedOk]   = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const [eName,   setEName]   = useState("");
+  const [eGender, setEGender] = useState("");
+  const [eDob,    setEDob]    = useState("");
+  const [eTob,    setETob]    = useState("");
+  const [ePlace,  setEPlace]  = useState("");
+  const [eCity,   setECity]   = useState<City | null>(null);
+  const [citySugg, setCitySugg] = useState<City[]>([]);
+  const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Pre-fill edit form from store
+  useEffect(() => {
+    if (editing && birthDetails) {
+      setEName(birthDetails.name || name || "");
+      setEDob(birthDetails.dateOfBirth || "");
+      setETob(birthDetails.timeOfBirth || "");
+      setEPlace(birthDetails.birthPlace || "");
+      setECity({ name: birthDetails.birthPlace || "", lat: birthDetails.lat ?? 0, lon: birthDetails.lon ?? 0, tz: birthDetails.tz ?? 5.5, label: "", country: "" });
+    }
+  }, [editing]);
+
+  // City autocomplete
+  useEffect(() => {
+    if (ePlace.length < 2 || eCity?.name === ePlace) { setCitySugg([]); return; }
+    if (searchRef.current) clearTimeout(searchRef.current);
+    searchRef.current = setTimeout(async () => {
+      const r = await searchCities(ePlace).catch(() => []);
+      setCitySugg(r.slice(0, 6));
+    }, 300);
+  }, [ePlace, eCity]);
+
+  const handleSave = async () => {
+    if (!eDob || !ePlace) { setSaveErr("Date and place are required."); return; }
+    setSaving(true); setSaveErr(""); setSavedOk(false);
+    try {
+      const city = eCity?.name === ePlace ? eCity : null;
+      const body = {
+        session_id: userId || "",
+        name:    eName.trim(),
+        gender:  eGender,
+        date:    eDob,
+        time:    eTob,
+        place:   ePlace,
+        lat:     city?.lat ?? birthDetails?.lat ?? 28.61,
+        lon:     city?.lon ?? birthDetails?.lon ?? 77.20,
+        tz:      city?.tz  ?? birthDetails?.tz  ?? 5.5,
+        language: "english",
+        plan:    "free",
+      };
+      const res = await apiFetch("/api/user", { method: "POST", body: JSON.stringify(body) });
+      if (!res.ok) throw new Error("Save failed");
+
+      setBirthDetails({
+        name:        eName.trim(),
+        dateOfBirth: eDob,
+        timeOfBirth: eTob,
+        birthPlace:  ePlace,
+        lat:         body.lat,
+        lon:         body.lon,
+        tz:          body.tz,
+      });
+      if (eName.trim()) setName(eName.trim());
+      setSavedOk(true);
+      setTimeout(() => { setEditing(false); setSavedOk(false); }, 1000);
+    } catch {
+      setSaveErr("Could not save. Try again.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const handleLogout = () => { logout(); navigate("/"); };
+
+  const planStyle = PLAN_STYLE[plan] ?? PLAN_STYLE.free;
+  const PlanIcon  = planStyle.icon;
+
+  // Quick stats from actual kundali data
+  const moonRashi  = kundaliData?.planets?.find((p: any) => p.name === "Moon")?.rashi  || kundaliData?.moon_rashi  || "—";
+  const nakshatra  = kundaliData?.planets?.find((p: any) => p.name === "Moon")?.nakshatra || kundaliData?.moon_nakshatra || "—";
+  const lagna      = kundaliData?.lagna || kundaliData?.ascendant || "—";
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-xl mx-auto w-full">
@@ -51,14 +139,14 @@ export default function ProfilePage() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <div className="cosmic-card rounded-xl p-5 space-y-3">
           <h2 className="text-xs uppercase tracking-wider text-muted-foreground">{t('profile.account')}</h2>
-          {name && <DetailRow icon={<User className="h-4 w-4" />} label={t('profile.name')} value={name} />}
+          {name  && <DetailRow icon={<User  className="h-4 w-4" />} label={t('profile.name')}   value={name} />}
           {phone && <DetailRow icon={<Phone className="h-4 w-4" />} label={t('profile.mobile')} value={phone} />}
         </div>
       </motion.div>
 
       {/* ─── Subscription Card ─── */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <div className={`cosmic-card rounded-xl p-5 space-y-4 bg-gradient-to-br ${planStyle.bg} border ${planStyle.border}`}>
+        <div className={`cosmic-card rounded-xl p-5 space-y-4 border ${planStyle.border}`}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg ${planStyle.bg} border ${planStyle.border} flex items-center justify-center`}>
@@ -78,7 +166,6 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-
           {plan === "free" ? (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">{t('profile.upgrade_desc')}</p>
@@ -105,43 +192,160 @@ export default function ProfilePage() {
 
       {/* ─── Birth Details ─── */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-        {birthDetails ? (
-          <div className="cosmic-card rounded-xl p-5 space-y-3">
+        {!editing ? (
+          /* View mode */
+          birthDetails ? (
+            <div className="cosmic-card rounded-xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs uppercase tracking-wider text-muted-foreground">{t('profile.birth_details')}</h2>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="text-xs text-amber-700 hover:text-amber-900 flex items-center gap-1 transition-colors"
+                >
+                  <Edit2 className="h-3 w-3" /> Edit
+                </button>
+              </div>
+              <DetailRow icon={<User     className="h-4 w-4" />} label="Name"          value={birthDetails.name || "—"} />
+              <DetailRow icon={<Calendar className="h-4 w-4" />} label={t('profile.dob')}  value={birthDetails.dateOfBirth} />
+              <DetailRow icon={<Clock    className="h-4 w-4" />} label={t('profile.tob')}  value={birthDetails.timeOfBirth || "—"} />
+              <DetailRow icon={<MapPin   className="h-4 w-4" />} label={t('profile.birth_place')} value={birthDetails.birthPlace} />
+            </div>
+          ) : (
+            <div className="cosmic-card rounded-xl p-6 text-center space-y-3">
+              <span className="text-3xl block">🌟</span>
+              <h2 className="font-display text-base text-foreground">{t('profile.no_birth')}</h2>
+              <p className="text-xs text-muted-foreground">{t('profile.no_birth_desc')}</p>
+              <Button size="sm" onClick={() => setEditing(true)}>
+                Add Birth Details
+              </Button>
+            </div>
+          )
+        ) : (
+          /* Edit mode — inline form */
+          <div className="cosmic-card rounded-xl p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs uppercase tracking-wider text-muted-foreground">{t('profile.birth_details')}</h2>
-              <button
-                onClick={() => navigate("/onboarding")}
-                className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
-              >
-                <Edit2 className="h-3 w-3" /> {t('common.edit')}
+              <h2 className="text-xs uppercase tracking-wider text-muted-foreground">Edit Birth Details</h2>
+              <button onClick={() => { setEditing(false); setSaveErr(""); }} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
               </button>
             </div>
-            <DetailRow icon={<User className="h-4 w-4" />}     label={t('profile.name')}        value={birthDetails.name} />
-            <DetailRow icon={<Calendar className="h-4 w-4" />} label={t('profile.dob')}         value={birthDetails.dateOfBirth} />
-            <DetailRow icon={<Clock className="h-4 w-4" />}    label={t('profile.tob')}         value={birthDetails.timeOfBirth} />
-            <DetailRow icon={<MapPin className="h-4 w-4" />}   label={t('profile.birth_place')} value={birthDetails.birthPlace} />
-          </div>
-        ) : (
-          <div className="cosmic-card rounded-xl p-6 text-center space-y-3">
-            <span className="text-3xl block">🌟</span>
-            <h2 className="font-display text-base text-foreground">{t('profile.no_birth')}</h2>
-            <p className="text-xs text-muted-foreground">{t('profile.no_birth_desc')}</p>
-            <Button size="sm" onClick={() => navigate("/onboarding")}>
-              {t('common.generate_kundli')}
-            </Button>
+
+            {/* Name */}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Name</label>
+              <input
+                type="text"
+                value={eName}
+                onChange={(e) => setEName(e.target.value)}
+                placeholder="Your name"
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600"
+              />
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Gender</label>
+              <div className="relative">
+                <select
+                  value={eGender}
+                  onChange={(e) => setEGender(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 appearance-none"
+                >
+                  <option value="">Select gender</option>
+                  {GENDERS.map((g) => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
+            </div>
+
+            {/* DOB + TOB */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Date of Birth <span className="text-red-500">*</span></label>
+                <input
+                  type="date"
+                  value={eDob}
+                  onChange={(e) => setEDob(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Time of Birth</label>
+                <input
+                  type="time"
+                  value={eTob}
+                  onChange={(e) => setETob(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600"
+                />
+              </div>
+            </div>
+
+            {/* Place with autocomplete */}
+            <div className="relative">
+              <label className="text-xs text-muted-foreground mb-1 block">Place of Birth <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                value={ePlace}
+                onChange={(e) => { setEPlace(e.target.value); setECity(null); }}
+                placeholder="Search city..."
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600"
+              />
+              {eCity && eCity.name === ePlace && eCity.lat !== 0 && (
+                <p className="text-xs text-green-600 mt-1">✓ {eCity.lat.toFixed(2)}°N, {eCity.lon.toFixed(2)}°E, UTC+{eCity.tz}</p>
+              )}
+              {citySugg.length > 0 && !eCity && (
+                <div className="absolute z-10 top-full left-0 right-0 mt-1 border border-border rounded-xl bg-background shadow-lg overflow-hidden">
+                  {citySugg.map((c) => (
+                    <button
+                      key={`${c.name}-${c.lat}`}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted flex gap-2 border-b border-border last:border-0"
+                      onClick={() => { setEPlace(c.name); setECity(c); setCitySugg([]); }}
+                    >
+                      <span className="font-medium">{c.name}</span>
+                      <span className="text-muted-foreground text-xs">{c.country}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {saveErr && <p className="text-xs text-red-500">{saveErr}</p>}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => { setEditing(false); setSaveErr(""); }}
+                className="flex-1 px-4 py-2 text-sm border border-border rounded-lg hover:bg-muted text-muted-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving || savedOk}
+                className="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                {savedOk ? (
+                  <><Check className="h-4 w-4" /> Saved!</>
+                ) : saving ? (
+                  "Saving..."
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+            </div>
           </div>
         )}
       </motion.div>
 
-      {/* ─── Quick Stats ─── */}
-      {birthDetails && (
+      {/* ─── Quick Stats (from actual kundali data) ─── */}
+      {birthDetails && !editing && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           <div className="cosmic-card rounded-xl p-5">
             <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t('profile.quick_summary')}</h2>
-            <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3">
-              <QuickStat label={t('profile.moon_rashi')} value="Cancer" />
-              <QuickStat label={t('profile.nakshatra')} value="Ashlesha" />
-              <QuickStat label={t('profile.ascendant')} value="Aries" />
+            <div className="grid grid-cols-3 gap-3">
+              <QuickStat label={t('profile.moon_rashi')} value={moonRashi} />
+              <QuickStat label={t('profile.nakshatra')}  value={nakshatra} />
+              <QuickStat label={t('profile.ascendant')}  value={lagna} />
             </div>
             <Link to="/kundli" className="block mt-3 text-xs text-primary hover:underline text-center">
               {t('profile.view_kundali')}

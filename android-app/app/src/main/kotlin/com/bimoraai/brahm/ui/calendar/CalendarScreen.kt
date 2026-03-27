@@ -59,6 +59,7 @@ private val LUNAR_SYSTEMS = listOf("amanta" to "Amanta", "purnimanta" to "Purnim
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
 
+@Composable
 private fun dayBgColor(day: JsonObject, hasEclipse: Boolean): Color = when {
     hasEclipse        -> Color(0xFFB71C1C).copy(alpha = 0.15f)
     day.bool("has_festival") -> Color(0xFFF59E0B).copy(alpha = 0.10f)
@@ -70,6 +71,7 @@ private fun dayBgColor(day: JsonObject, hasEclipse: Boolean): Color = when {
     else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f)
 }
 
+@Composable
 private fun dayBorderColor(day: JsonObject, hasEclipse: Boolean): Color = when {
     hasEclipse        -> Color(0xFFEF4444).copy(alpha = 0.40f)
     day.bool("has_festival") -> Color(0xFFF59E0B).copy(alpha = 0.25f)
@@ -108,6 +110,7 @@ private fun JsonObject.arr(key: String) = this[key]?.jsonArray
 @Composable
 fun CalendarScreen(
     navController: NavController,
+    asTab: Boolean = false,
     vm: CalendarViewModel   = hiltViewModel(),
     cityVm: CitySearchViewModel = hiltViewModel(),
 ) {
@@ -154,30 +157,7 @@ fun CalendarScreen(
     // Sync yearInput when vm year changes (e.g., from goToday)
     LaunchedEffect(year) { yearInput = year.toString() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Vedic Calendar", fontWeight = FontWeight.Bold)
-                        Text("Panchang · Festivals · Eclipses", fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                )
-            )
-        },
-        containerColor = Color.Transparent,
-    ) { padding ->
+    val content: @Composable (PaddingValues) -> Unit = { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -576,6 +556,36 @@ fun CalendarScreen(
 
             item { Spacer(Modifier.height(80.dp)) }
         }
+    }
+
+    // Render with or without Scaffold depending on context
+    if (asTab) {
+        content(PaddingValues(0.dp))
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text("Vedic Calendar", fontWeight = FontWeight.Bold)
+                            Text("Panchang · Festivals · Eclipses", fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    )
+                )
+            },
+            containerColor = Color.Transparent,
+        ) { padding -> content(padding) }
     }
 
     // ── Day detail bottom sheet ───────────────────────────────────────────────
@@ -1010,11 +1020,7 @@ private fun SheetInfoRow(label: String, value: String, highlight: Boolean = fals
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp)
-            .border(
-                width = Dp.Hairline,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(0.dp)
-            ),
+            .padding(bottom = 0.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top,
     ) {
@@ -1387,4 +1393,3 @@ private fun TagChip(label: String, bg: Color) {
     }
 }
 
-private val Dp.Companion.Hairline get() = 0.5.dp
