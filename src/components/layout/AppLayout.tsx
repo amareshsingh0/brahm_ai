@@ -6,10 +6,11 @@ import { Moon } from "lucide-react";
 import { useLanguageStore } from "@/store/languageStore";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { loadLanguage } from "@/lib/i18n";
 import { useAuthStore } from "@/store/authStore";
 import { Avatar, ProfilePopup } from "./ProfilePopup";
+import { ScrollToTopButton } from "@/components/ui/ScrollToTopButton";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { t, i18n } = useTranslation();
   const { name, plan, isLoggedIn } = useAuthStore();
   const [profileOpen, setProfileOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const code = lang.toLowerCase();
@@ -76,8 +78,9 @@ export function AppLayout({ children }: AppLayoutProps) {
               )}
             </div>
           </header>
-          <main className="flex-1 overflow-x-hidden overflow-y-auto pb-6 px-3 sm:px-5 lg:px-7 pt-5" style={{ maxWidth: "100vw" }}>
+          <main ref={mainRef} className="flex-1 overflow-x-hidden overflow-y-auto pb-6 px-3 sm:px-5 lg:px-7 pt-5" style={{ maxWidth: "100vw" }}>
             {children}
+            <ScrollToTopButton scrollRef={mainRef} />
           </main>
         </div>
       </div>

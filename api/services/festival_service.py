@@ -112,6 +112,17 @@ def _tithi_idx(jd: float) -> int:
     # _moon_sun_diff already normalizes jd internally.
     return int(math.floor((_moon_sun_diff(jd) + _EPS) / 12.0)) % 30
 
+def _paksha_from_date(date_str: str, tz: float) -> str:
+    """Return 'Shukla' or 'Krishna' paksha for a given ISO date at noon local time."""
+    try:
+        _init()
+        d = date.fromisoformat(date_str)
+        jd = swe.julday(d.year, d.month, d.day, 12.0 - tz)
+        idx = _tithi_idx(jd)
+        return PAKSHA_NAMES[idx]
+    except Exception:
+        return "N/A"
+
 # ─── Vishti (Bhadra) karana detection ───────────────────────────────────────
 # 60 karanas per lunar month (30 tithis × 2 half-tithis each = 60 slots of 6°).
 # Index 0 = Kimstughna (fixed, first half of Shukla Pratipada) — NOT Vishti.
@@ -1909,7 +1920,7 @@ def get_festival_calendar(
                 entry["tithi_start"]      = t
                 entry["tithi_end"]        = t
                 entry["tithi_start_date"] = d
-                entry["paksha"]           = "N/A"
+                entry["paksha"]           = _paksha_from_date(d, tz)
                 entry["tithi_name"]       = "Sankranti"
                 ref_dates[festival["name"]] = d
 
@@ -1921,7 +1932,7 @@ def get_festival_calendar(
                 entry["tithi_start"]      = base_t
                 entry["tithi_end"]        = base_t
                 entry["tithi_start_date"] = d
-                entry["paksha"]           = "N/A"
+                entry["paksha"]           = _paksha_from_date(d, tz)
                 entry["tithi_name"]       = "Solar Day"
                 ref_dates[festival["name"]] = d
 
@@ -1974,7 +1985,7 @@ def get_festival_calendar(
                     entry["tithi_start"]      = "00:00"
                     entry["tithi_end"]        = "23:59"
                     entry["tithi_start_date"] = d
-                    entry["paksha"]           = "N/A"
+                    entry["paksha"]           = _paksha_from_date(d, tz)
                     entry["tithi_name"]       = "Full day"
                     ref_dates[festival["name"]] = d
                 else:
@@ -1989,7 +2000,7 @@ def get_festival_calendar(
                     entry["tithi_start"]      = "00:00"
                     entry["tithi_end"]        = "23:59"
                     entry["tithi_start_date"] = d
-                    entry["paksha"]           = "N/A"
+                    entry["paksha"]           = _paksha_from_date(d, tz)
                     entry["tithi_name"]       = "Full day"
                     ref_dates[festival["name"]] = d
                 else:
@@ -2005,7 +2016,7 @@ def get_festival_calendar(
                     entry["tithi_start"]      = "00:00"
                     entry["tithi_end"]        = "23:59"
                     entry["tithi_start_date"] = d
-                    entry["paksha"]           = "N/A"
+                    entry["paksha"]           = _paksha_from_date(d, tz)
                     entry["tithi_name"]       = "Full day"
                     ref_dates[festival["name"]] = d
                 else:
@@ -2058,7 +2069,7 @@ def get_festival_calendar(
                 entry["tithi_start"]      = _jd_to_time_str(sr_jd, tz)
                 entry["tithi_end"]        = "23:59"
                 entry["tithi_start_date"] = d
-                entry["paksha"]           = "N/A"
+                entry["paksha"]           = _paksha_from_date(d, tz)
                 entry["tithi_name"]       = "Nakshatra Day"
                 ref_dates[festival["name"]] = d
 

@@ -1,16 +1,23 @@
 package com.bimoraai.brahm.core.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.chat.BotMsg
 import com.bimoraai.brahm.ui.chat.PageBotViewModel
+import kotlinx.coroutines.launch
 
 // ─── BrahmCard — mirrors website Card component ───────────────────────────────
 @Composable
@@ -425,6 +433,30 @@ private fun BotMsgBubble(msg: BotMsg) {
                 style    = MaterialTheme.typography.bodySmall,
                 color    = if (msg.isUser) Color.White else BrahmForeground,
             )
+        }
+    }
+}
+
+// ─── ScrollToTopFab — shows in bottom-right when user scrolls down 3+ items ──
+@Composable
+fun ScrollToTopFab(listState: LazyListState, modifier: Modifier = Modifier) {
+    val scope = rememberCoroutineScope()
+    val visible by remember { derivedStateOf { listState.firstVisibleItemIndex > 2 } }
+    AnimatedVisibility(
+        visible = visible,
+        modifier = modifier,
+        enter = fadeIn() + scaleIn(initialScale = 0.7f),
+        exit  = fadeOut() + scaleOut(targetScale = 0.7f),
+    ) {
+        FloatingActionButton(
+            onClick = { scope.launch { listState.animateScrollToItem(0) } },
+            shape = CircleShape,
+            containerColor = BrahmGold,
+            contentColor   = Color.White,
+            modifier = Modifier.size(44.dp),
+            elevation = FloatingActionButtonDefaults.elevation(4.dp),
+        ) {
+            Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top", modifier = Modifier.size(22.dp))
         }
     }
 }

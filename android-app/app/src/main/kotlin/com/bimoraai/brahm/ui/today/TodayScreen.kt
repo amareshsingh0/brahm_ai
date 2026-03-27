@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -145,12 +146,13 @@ fun TodayScreen(
     onNavigateTab: (String) -> Unit = {},
     vm: TodayViewModel = hiltViewModel(),
 ) {
-    val panchang    by vm.panchang.collectAsState()
-    val isLoading   by vm.isLoading.collectAsState()
-    val error       by vm.error.collectAsState()
-    val userName    by vm.userName.collectAsState()
-    val smartAlert  by vm.smartAlert.collectAsState()
+    val panchang     by vm.panchang.collectAsState()
+    val isLoading    by vm.isLoading.collectAsState()
+    val error        by vm.error.collectAsState()
+    val userName     by vm.userName.collectAsState()
+    val smartAlert   by vm.smartAlert.collectAsState()
     val hasBirthData by vm.hasBirthData.collectAsState()
+    val todayEvents  by vm.todayEvents.collectAsState()
 
     // Live clock
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -170,7 +172,10 @@ fun TodayScreen(
 
     val p = panchang
 
+    val listState = rememberLazyListState()
+    Box(Modifier.fillMaxSize()) {
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -229,7 +234,22 @@ fun TodayScreen(
             item { SmartAlertCard(alert = alert, onClick = { navController.navigate(alert.route) }) }
         }
 
-        // ── 4. Loading / Error ───────────────────────────────────────────────
+        // ── 4. Get Started chips ─────────────────────────────────────────────
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TodaySectionHeader("🚀 Get Started")
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(QUICK_ITEMS) { q ->
+                        QuickChip(
+                            item = q,
+                            onClick = { if (q.useTab) onNavigateTab(q.route) else navController.navigate(q.route) },
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── 5. Loading / Error ───────────────────────────────────────────────
         if (isLoading && p == null) {
             item { PanchangSkeleton() }
         }
@@ -320,77 +340,43 @@ fun TodayScreen(
                 AngaCard(item = item, expanded = expandedKey == item.label, onToggle = { toggle(item.label) })
             }
 
-            // ── 5c. Today's Muhurta card ─────────────────────────────────────
-            item {
-                Spacer(Modifier.height(2.dp))
-                TodaySectionHeader("⭐ Today's Muhurta")
-                Spacer(Modifier.height(2.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.25f)),
-                ) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        // Abhijit Muhurta — most important
-                        val abhijit = p["abhijit_muhurta"]?.jsonObjectOrNull
-                        if (abhijit != null) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(BrahmGold.copy(alpha = 0.08f))
-                                    .border(1.dp, BrahmGold.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            // ── 5c. Today's Festivals & Events ──────────────────────────────
+            if (todayEvents.isNotEmpty()) {
+                item {
+                    Spacer(Modifier.height(2.dp))
+                    TodaySectionHeader("🎉 Today's Festivals & Events")
+                    Spacer(Modifier.height(6.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        todayEvents.forEach { event ->
+                            val name    = event.str("name")
+                            val emoji   = event.str("emoji").takeIf { it != "—" } ?: "🪔"
+                            val desc    = event.str("description").takeIf { it != "—" }
+                            val notes   = event["dosh_notes"]?.jsonArrayOrNull
+                                ?.mapNotNull { it.jsonPrimitive?.contentOrNull }
+                                ?.filter { it.isNotBlank() } ?: emptyList()
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
+                                border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.3f)),
                             ) {
-                                Text("✨", fontSize = 22.sp)
-                                Column(Modifier.weight(1f)) {
-                                    Text("Abhijit Muhurta", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = BrahmGold))
-                                    Text("Most powerful window of the day · 'Victorious hour'", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
-                                }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text("${abhijit.str("start")} – ${abhijit.str("end")}", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, color = BrahmGold))
-                                    Box(Modifier.clip(RoundedCornerShape(4.dp)).background(Color(0xFF22C55E).copy(alpha = 0.12f)).padding(horizontal = 6.dp, vertical = 2.dp)) {
-                                        Text("✓ Auspicious", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF15803D), fontSize = 9.sp))
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.Top,
+                                ) {
+                                    Text(emoji, fontSize = 28.sp)
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Text(name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground))
+                                        if (!desc.isNullOrBlank()) {
+                                            Text(desc, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp), maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                        }
+                                        notes.forEach { note ->
+                                            Text("⚠ $note", style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFDC2626), fontSize = 10.sp))
+                                        }
                                     }
                                 }
                             }
-                        }
-                        // Brahma Muhurta
-                        val brahma = p["brahma_muhurta"]?.jsonObjectOrNull
-                        if (brahma != null) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text("🌄", fontSize = 18.sp)
-                                Column(Modifier.weight(1f)) {
-                                    Text("Brahma Muhurta", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
-                                    Text("Best for meditation · Creator's hour", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
-                                }
-                                Text("${brahma.str("start")} – ${brahma.str("end")}", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold, color = Color(0xFF0EA5E9)))
-                            }
-                        }
-                        // Rahu Kaal — avoid
-                        val rahu = p["rahukaal"]?.jsonObjectOrNull
-                        if (rahu != null) {
-                            HorizontalDivider(color = BrahmBorder)
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text("⚠️", fontSize = 18.sp)
-                                Column(Modifier.weight(1f)) {
-                                    Text("Rahu Kaal", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold, color = Color(0xFFDC2626)))
-                                    Text("Avoid starting new work during this period", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
-                                }
-                                Text("${rahu.str("start")} – ${rahu.str("end")}", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold, color = Color(0xFFDC2626)))
-                            }
-                        }
-                        // Navigate to full Muhurta screen
-                        OutlinedButton(
-                            onClick = { navController.navigate(Route.MUHURTA) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.4f)),
-                            contentPadding = PaddingValues(vertical = 8.dp),
-                        ) {
-                            Text("Full Muhurta Finder →", style = MaterialTheme.typography.labelMedium.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
                         }
                     }
                 }
@@ -465,108 +451,115 @@ fun TodayScreen(
             // ── 5f. Today's Summary ──────────────────────────────────────────
             item {
                 Spacer(Modifier.height(2.dp))
-                TodaySectionHeader("✨ Today's Summary")
+                // Dynamic header based on today's events
+                val summaryTitle = when {
+                    todayEvents.any { it.str("name").contains("Grahan", ignoreCase = true) ||
+                            it.str("name").contains("Eclipse", ignoreCase = true) } -> "🌑 Eclipse Day"
+                    todayEvents.isNotEmpty() -> "🎊 ${todayEvents.first().str("name")} — Today's Summary"
+                    else -> "✨ Today's Summary"
+                }
+                TodaySectionHeader(summaryTitle)
             }
             item {
-                val yoga       = p["yoga"]?.jsonObjectOrNull
+                val yoga         = p["yoga"]?.jsonObjectOrNull
                 val isAuspicious = yoga?.get("is_auspicious")?.jsonPrimitive?.booleanOrNull == true
-                val yogaName   = yoga?.str("name") ?: "—"
-                val abhijit    = p["abhijit_muhurta"]?.jsonObjectOrNull
-                val rahu       = p["rahukaal"]?.jsonObjectOrNull
-                val yama       = p["yamagandam"]?.jsonObjectOrNull
-                val brahma     = p["brahma_muhurta"]?.jsonObjectOrNull
-                val panchaka   = p["panchaka"]?.jsonPrimitive?.booleanOrNull == true
+                val yogaName     = yoga?.str("name") ?: "—"
+                val abhijit      = p["abhijit_muhurta"]?.jsonObjectOrNull
+                val rahu         = p["rahukaal"]?.jsonObjectOrNull
+                val yama         = p["yamagandam"]?.jsonObjectOrNull
+                val brahma       = p["brahma_muhurta"]?.jsonObjectOrNull
+                val panchaka     = p["panchaka"]?.jsonPrimitive?.booleanOrNull == true
+                val hasEclipse   = todayEvents.any { it.str("name").contains("Grahan", ignoreCase = true) || it.str("name").contains("Eclipse", ignoreCase = true) }
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Yoga quality box
-                    Box(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                            .background(if (isAuspicious) Color(0xFF22C55E).copy(alpha = 0.08f) else Color(0xFFF59E0B).copy(alpha = 0.08f))
-                            .border(1.dp, if (isAuspicious) Color(0xFF22C55E).copy(alpha = 0.25f) else Color(0xFFF59E0B).copy(alpha = 0.25f), RoundedCornerShape(12.dp))
-                            .padding(12.dp),
-                    ) {
-                        Text(
-                            buildString {
-                                append(yogaName); append(" Yoga — ")
-                                if (isAuspicious) append("Auspicious energy today. Good for important work and new beginnings.")
-                                else append("Inauspicious yoga. Prefer spiritual practices over major decisions today.")
-                            },
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = if (isAuspicious) Color(0xFF15803D) else Color(0xFF92400E),
-                                fontWeight = FontWeight.Medium,
-                            ),
+                    // Yoga quality row (single full-width)
+                    SummaryBox(
+                        modifier = Modifier.fillMaxWidth(),
+                        bg = if (isAuspicious) Color(0xFF22C55E).copy(alpha = 0.06f) else Color(0xFFF59E0B).copy(alpha = 0.06f),
+                        border = if (isAuspicious) Color(0xFF22C55E).copy(alpha = 0.25f) else Color(0xFFF59E0B).copy(alpha = 0.25f),
+                        label = "$yogaName Yoga",
+                        labelColor = if (isAuspicious) Color(0xFF15803D) else Color(0xFF92400E),
+                        text = if (isAuspicious) "Auspicious energy today. Good for important work and new beginnings."
+                               else "Inauspicious yoga. Prefer spiritual practices over major decisions today.",
+                    )
+                    // Festival greeting
+                    if (todayEvents.isNotEmpty() && !hasEclipse) {
+                        val festName = todayEvents.first().str("name")
+                        val festEmoji = todayEvents.first().str("emoji").takeIf { it != "—" } ?: "🪔"
+                        SummaryBox(
+                            modifier = Modifier.fillMaxWidth(),
+                            bg = Color(0xFFFFF7ED).copy(alpha = 0.8f),
+                            border = BrahmGold.copy(alpha = 0.3f),
+                            label = "$festEmoji Happy $festName!",
+                            labelColor = BrahmGold,
+                            text = "May this auspicious occasion bring joy, peace, and blessings to you and your family. 🙏",
                         )
                     }
-
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (abhijit != null) {
-                            SummaryBox(
-                                modifier = Modifier.weight(1f),
-                                bg = Color(0xFF22C55E).copy(alpha = 0.05f),
-                                border = Color(0xFF22C55E).copy(alpha = 0.2f),
-                                label = "Best window",
-                                labelColor = Color(0xFF15803D),
-                                text = "Abhijit ${abhijit.str("start")} – ${abhijit.str("end")} — use for your most important task today.",
-                            )
-                        }
-                        if (rahu != null) {
-                            SummaryBox(
-                                modifier = Modifier.weight(1f),
-                                bg = Color(0xFFEF4444).copy(alpha = 0.05f),
-                                border = Color(0xFFEF4444).copy(alpha = 0.2f),
-                                label = "Avoid starting new work",
-                                labelColor = Color(0xFFDC2626),
-                                text = buildString {
-                                    append("Rahu Kaal ${rahu.str("start")} – ${rahu.str("end")}")
-                                    if (yama != null) append(", Yamagandam ${yama.str("start")} – ${yama.str("end")}")
-                                },
-                            )
-                        }
+                    if (hasEclipse) {
+                        SummaryBox(
+                            modifier = Modifier.fillMaxWidth(),
+                            bg = Color(0xFF1E1B4B).copy(alpha = 0.05f),
+                            border = Color(0xFF6366F1).copy(alpha = 0.3f),
+                            label = "🌑 Grahan Day — Special observances apply",
+                            labelColor = Color(0xFF4F46E5),
+                            text = "Avoid auspicious ceremonies. Chant mantras, fast, and avoid eating during eclipse. Add Tulsi to stored water.",
+                        )
                     }
-
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (brahma != null) {
-                            SummaryBox(
-                                modifier = Modifier.weight(1f),
-                                bg = BrahmGold.copy(alpha = 0.05f),
-                                border = BrahmGold.copy(alpha = 0.2f),
-                                label = "Brahma Muhurta",
-                                labelColor = BrahmGold,
-                                text = "${brahma.str("start")} – ${brahma.str("end")} — ideal for meditation and spiritual practice.",
-                            )
-                        }
-                        if (panchaka) {
-                            SummaryBox(
-                                modifier = Modifier.weight(1f),
-                                bg = Color(0xFFEF4444).copy(alpha = 0.05f),
-                                border = Color(0xFFEF4444).copy(alpha = 0.2f),
-                                label = "⚠ Panchaka active",
-                                labelColor = Color(0xFFDC2626),
-                                text = "Avoid rooftop construction, cremation rites, and storing firewood today.",
-                            )
-                        }
+                    // Best window (single row)
+                    if (abhijit != null) {
+                        SummaryBox(
+                            modifier = Modifier.fillMaxWidth(),
+                            bg = Color(0xFF22C55E).copy(alpha = 0.05f),
+                            border = Color(0xFF22C55E).copy(alpha = 0.2f),
+                            label = "✨ Best window — Abhijit Muhurta",
+                            labelColor = Color(0xFF15803D),
+                            text = "${abhijit.str("start")} – ${abhijit.str("end")} — use for your most important task today.",
+                        )
+                    }
+                    // Rahu Kaal (single row)
+                    if (rahu != null) {
+                        SummaryBox(
+                            modifier = Modifier.fillMaxWidth(),
+                            bg = Color(0xFFEF4444).copy(alpha = 0.05f),
+                            border = Color(0xFFEF4444).copy(alpha = 0.2f),
+                            label = "⚠ Avoid starting new work",
+                            labelColor = Color(0xFFDC2626),
+                            text = buildString {
+                                append("Rahu Kaal ${rahu.str("start")} – ${rahu.str("end")}")
+                                if (yama != null) append(" · Yamagandam ${yama.str("start")} – ${yama.str("end")}")
+                            },
+                        )
+                    }
+                    // Brahma Muhurta (single row)
+                    if (brahma != null) {
+                        SummaryBox(
+                            modifier = Modifier.fillMaxWidth(),
+                            bg = BrahmGold.copy(alpha = 0.05f),
+                            border = BrahmGold.copy(alpha = 0.2f),
+                            label = "🌄 Brahma Muhurta",
+                            labelColor = BrahmGold,
+                            text = "${brahma.str("start")} – ${brahma.str("end")} — ideal for meditation and spiritual practice.",
+                        )
+                    }
+                    // Panchaka warning
+                    if (panchaka) {
+                        SummaryBox(
+                            modifier = Modifier.fillMaxWidth(),
+                            bg = Color(0xFFEF4444).copy(alpha = 0.05f),
+                            border = Color(0xFFEF4444).copy(alpha = 0.2f),
+                            label = "⚠ Panchaka active",
+                            labelColor = Color(0xFFDC2626),
+                            text = "Avoid rooftop construction, cremation rites, and storing firewood today.",
+                        )
                     }
                 }
             }
         } // end if (p != null)
 
-        // ── 6. Get Started chips ─────────────────────────────────────────────
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TodaySectionHeader("🚀 Get Started")
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(QUICK_ITEMS) { q ->
-                        QuickChip(
-                            item = q,
-                            onClick = { if (q.useTab) onNavigateTab(q.route) else navController.navigate(q.route) },
-                        )
-                    }
-                }
-            }
-        }
-
         item { Spacer(Modifier.height(12.dp)) }
     }
+    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 80.dp))
+    } // Box
 }
 
 // ─── Data models for composables ─────────────────────────────────────────────

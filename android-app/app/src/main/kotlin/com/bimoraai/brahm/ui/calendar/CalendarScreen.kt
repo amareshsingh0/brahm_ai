@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmCard
+import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.data.CitySearchViewModel
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
@@ -161,7 +163,10 @@ fun CalendarScreen(
     LaunchedEffect(year) { yearInput = year.toString() }
 
     val content: @Composable (PaddingValues) -> Unit = { padding ->
+        val listState = rememberLazyListState()
+        Box(Modifier.fillMaxSize()) {
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -310,7 +315,7 @@ fun CalendarScreen(
                         OutlinedTextField(
                             value = yearInput,
                             onValueChange = { yearInput = it },
-                            modifier = Modifier.width(68.dp).height(btnHeight),
+                            modifier = Modifier.width(68.dp).height(btnHeight + 16.dp),
                             singleLine = true,
                             textStyle = LocalTextStyle.current.copy(
                                 fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
@@ -320,7 +325,6 @@ fun CalendarScreen(
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = { vm.setYear(yearInput.toIntOrNull() ?: year); keyboardController?.hide() }),
                             shape = btnShape,
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = BrahmGold,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.30f),
@@ -472,6 +476,8 @@ fun CalendarScreen(
                     CalendarGridView(
                         days = days,
                         firstWeekday = firstWeekday,
+                        year = year,
+                        month = month,
                         eclipseMap = eclipseMap,
                         onDayClick = { d -> selectedDay = d; showSheet = true },
                     )
@@ -490,6 +496,8 @@ fun CalendarScreen(
 
             item { Spacer(Modifier.height(80.dp)) }
         }
+        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 80.dp))
+        } // Box
     }
 
     // Render with or without Scaffold depending on context
@@ -538,9 +546,16 @@ fun CalendarScreen(
 private fun CalendarGridView(
     days: List<JsonObject>,
     firstWeekday: Int,
+    year: Int,
+    month: Int,
     eclipseMap: Map<String, JsonObject>,
     onDayClick: (JsonObject) -> Unit,
 ) {
+    // Days in the previous month
+    val daysInPrevMonth = java.util.Calendar.getInstance().apply {
+        set(year, month - 2, 1)  // month is 1-based; Calendar.MONTH is 0-based → month-2 = previous
+    }.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         // Week headers
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -556,12 +571,20 @@ private fun CalendarGridView(
             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
         )
 
-        // Build 6-row grid
+        // Build grid: null = ghost day (Int box stored separately), real day = JsonObject
+        // Use a sealed-like approach: cells contain JsonObject? but ghost cells tracked by index
         val totalCells = 42
-        val cells: List<JsonObject?> = buildList {
-            repeat(firstWeekday) { add(null) }
+        val trailingCount = maxOf(0, totalCells - firstWeekday - days.size)
+
+        // Leading ghost day numbers (prev month's end days)
+        val leadingGhosts = List(firstWeekday) { i -> daysInPrevMonth - firstWeekday + 1 + i }
+        // Trailing ghost day numbers (next month's start days)
+        val trailingGhosts = List(trailingCount) { i -> i + 1 }
+
+        val cells: List<Any?> = buildList {
+            leadingGhosts.forEach { add(-it) }  // negative = ghost (leading)
             addAll(days)
-            while (size < totalCells) add(null)
+            trailingGhosts.forEach { add(-(1000 + it)) }  // negative < -100 = ghost (trailing)
         }
 
         cells.chunked(7).forEach { row ->
@@ -569,16 +592,36 @@ private fun CalendarGridView(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                row.forEach { day ->
+                row.forEach { cell ->
                     Box(modifier = Modifier.weight(1f)) {
-                        if (day == null) {
-                            Spacer(modifier = Modifier.fillMaxWidth().height(84.dp))
-                        } else {
-                            DayCell(
-                                day = day,
-                                eclipse = eclipseMap[day.str("date")],
-                                onClick = { onDayClick(day) },
+                        when {
+                            cell is JsonObject -> DayCell(
+                                day = cell,
+                                eclipse = eclipseMap[cell.str("date")],
+                                onClick = { onDayClick(cell) },
                             )
+                            cell is Int && cell < 0 -> {
+                                // Ghost day cell
+                                val ghostNum = if (cell > -1000) -cell else -(cell + 1000)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(84.dp)
+                                        .clip(RoundedCornerShape(7.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.15f))
+                                        .border(0.5.dp, MaterialTheme.colorScheme.outline.copy(0.08f), RoundedCornerShape(7.dp))
+                                        .padding(5.dp),
+                                    contentAlignment = Alignment.TopStart,
+                                ) {
+                                    Text(
+                                        text = ghostNum.toString(),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
+                                    )
+                                }
+                            }
+                            else -> Spacer(modifier = Modifier.fillMaxWidth().height(84.dp))
                         }
                     }
                 }
@@ -1265,8 +1308,8 @@ private fun SheetFestivalCard(f: JsonObject) {
                     if (deity != "—") item {
                         TagChip("⚛ $deity", MaterialTheme.colorScheme.surfaceVariant)
                     }
-                    if (paksha != "—") item {
-                        TagChip("$paksha paksha", MaterialTheme.colorScheme.surfaceVariant)
+                    if (paksha != "—" && paksha != "N/A") item {
+                        TagChip("$paksha Paksha", MaterialTheme.colorScheme.surfaceVariant)
                     }
                     if (tithiType != "—" && tithiType != "normal") item {
                         TagChip(tithiType, Color(0xFFF59E0B).copy(0.08f))

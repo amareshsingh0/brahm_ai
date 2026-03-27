@@ -221,7 +221,7 @@ function FestivalCard({ f }: { f: FestivalEntry }) {
               <div className="flex gap-2 flex-wrap mt-1">
                 {f.deity && <Badge variant="secondary" className="text-xs">⚛ {f.deity}</Badge>}
                 {f.month && <Badge variant="secondary" className="text-xs">🌙 {f.month}</Badge>}
-                {f.paksha && <Badge variant="secondary" className="text-xs">{f.paksha} paksha</Badge>}
+                {f.paksha && f.paksha !== "N/A" && <Badge variant="secondary" className="text-xs">{f.paksha} Paksha</Badge>}
                 {f.tithi_type && f.tithi_type !== "normal" && (
                   <Badge variant="outline" className="text-xs border-yellow-500/40 text-yellow-400 capitalize">
                     {f.tithi_type}
@@ -592,6 +592,17 @@ export default function CalendarPage() {
   const totalCells   = 42;
   const days         = data?.days ?? [];
 
+  // Ghost days for prev/next month to fill the grid (like Google Calendar)
+  const prevMonthDays = useMemo(() => {
+    const daysInPrev = new Date(year, month - 1, 0).getDate(); // last day of prev month
+    return Array.from({ length: firstWeekday }, (_, i) => daysInPrev - firstWeekday + 1 + i);
+  }, [year, month, firstWeekday]);
+  const trailingCount = Math.max(0, totalCells - firstWeekday - days.length);
+  const nextMonthDays = useMemo(
+    () => Array.from({ length: trailingCount }, (_, i) => i + 1),
+    [trailingCount],
+  );
+
   const vikramSamvat  = data?.vikram_samvat;
   const lunarMonths   = data?.lunar_months ?? [];
   const adhikNote     = data?.adhik_maas_note;
@@ -797,14 +808,18 @@ export default function CalendarPage() {
               ))}
             </div>
             <div className="grid grid-cols-7 gap-px p-1.5 bg-border/10">
-              {Array.from({ length: firstWeekday }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[62px] sm:min-h-[72px] md:min-h-[88px]" />
+              {prevMonthDays.map((d, i) => (
+                <div key={`prev-${i}`} className="min-h-[62px] sm:min-h-[72px] md:min-h-[88px] rounded-lg border border-border/10 p-1 sm:p-1.5 bg-card/10">
+                  <span className="text-sm font-bold leading-none text-muted-foreground/25">{d}</span>
+                </div>
               ))}
               {days.map(day => (
                 <DayCell key={day.date} day={day} onClick={() => setSelectedDay(day)} eclipse={eclipseMap.get(day.date)} />
               ))}
-              {Array.from({ length: Math.max(0, totalCells - firstWeekday - days.length) }).map((_, i) => (
-                <div key={`trail-${i}`} className="min-h-[62px] sm:min-h-[72px] md:min-h-[88px]" />
+              {nextMonthDays.map((d, i) => (
+                <div key={`next-${i}`} className="min-h-[62px] sm:min-h-[72px] md:min-h-[88px] rounded-lg border border-border/10 p-1 sm:p-1.5 bg-card/10">
+                  <span className="text-sm font-bold leading-none text-muted-foreground/25">{d}</span>
+                </div>
               ))}
             </div>
           </>

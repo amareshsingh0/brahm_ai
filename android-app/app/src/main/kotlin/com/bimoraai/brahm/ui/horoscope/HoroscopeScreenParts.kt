@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -65,10 +67,11 @@ fun HoroscopeContent(
     val today    = LocalDate.now()
     val dateStr  = today.format(DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH))
 
+    val listState = rememberLazyListState()
+    Box(modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BrahmBackground),
+        state = listState,
+        modifier = Modifier.fillMaxSize().background(BrahmBackground),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -275,4 +278,6 @@ fun HoroscopeContent(
         // bottom padding
         item { Spacer(Modifier.height(16.dp)) }
     }
+    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 80.dp))
+    } // Box
 }

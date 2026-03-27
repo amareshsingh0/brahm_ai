@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
@@ -26,6 +27,7 @@ class TodayViewModel @Inject constructor(
     private val _panchang = MutableStateFlow<JsonObject?>(null)
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
+    private val _todayEvents = MutableStateFlow<List<JsonObject>>(emptyList())
 
     // User-derived state for Today screen personalization
     private val _userName = MutableStateFlow<String?>(null)
@@ -35,6 +37,7 @@ class TodayViewModel @Inject constructor(
     val panchang = _panchang.asStateFlow()
     val isLoading = _isLoading.asStateFlow()
     val error = _error.asStateFlow()
+    val todayEvents = _todayEvents.asStateFlow()
     val userName = _userName.asStateFlow()
     val smartAlert = _smartAlert.asStateFlow()
     val hasBirthData = _hasBirthData.asStateFlow()
@@ -111,6 +114,20 @@ class TodayViewModel @Inject constructor(
             } finally {
                 _isLoading.value = false
             }
+        }
+        // Load today's festivals in parallel
+        viewModelScope.launch {
+            try {
+                val year = LocalDate.now().year
+                val res = api.getFestivalsYear(year = year, lat = lat, lon = lon, tz = tz)
+                if (res.isSuccessful) {
+                    val festivals = res.body()?.get("festivals")?.jsonArray
+                        ?.mapNotNull { it.jsonObject }
+                        ?.filter { it["date"]?.jsonPrimitive?.contentOrNull == today }
+                        ?: emptyList()
+                    _todayEvents.value = festivals
+                }
+            } catch (_: Exception) {}
         }
     }
 }

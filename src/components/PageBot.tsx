@@ -222,18 +222,39 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
         )}
       </AnimatePresence>
 
-      {/* Chat panel */}
+      {/* Bottom sheet backdrop */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-[340px] sm:w-[380px] max-h-[580px] flex flex-col rounded-2xl border border-border/40 shadow-2xl overflow-hidden bg-background"
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Chat panel — bottom sheet */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:w-[420px] z-50 flex flex-col bg-background rounded-t-2xl md:rounded-2xl border-t md:border border-x border-border/40 shadow-2xl overflow-hidden"
+            style={{ maxHeight: "85dvh" }}
           >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-border/60" />
+            </div>
+
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/30 bg-muted/20 shrink-0">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/30 bg-muted/20 shrink-0">
               <div className="flex items-center gap-2">
                 <Bot className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-primary">Brahm AI</span>
@@ -302,7 +323,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             </AnimatePresence>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-[200px]">
               {!hasMessages && !showBirthForm && (
                 <div className="space-y-3">
                   <p className="text-xs text-muted-foreground text-center pt-4">Kuch poochho...</p>

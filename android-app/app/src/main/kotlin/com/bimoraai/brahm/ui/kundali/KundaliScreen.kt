@@ -20,11 +20,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.foundation.lazy.rememberLazyListState
 import com.bimoraai.brahm.core.components.*
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.kundali.tabs.*
 
-private val TABS = listOf("Charts", "Grahas", "Dashas", "Bhavas", "Yogas", "Strength", "Navamsha")
+private val TABS = listOf("Charts", "Grahas", "Dashas", "Bhavas", "Chalit", "Strength", "Ashtakavarga", "Upagraha", "Yogas", "Lagna")
 
 private val DASHA_COLORS = mapOf(
     "Ketu" to Color(0xFFf97316), "Shukra" to Color(0xFFa855f7), "Surya" to Color(0xFFf59e0b),
@@ -110,7 +111,8 @@ private fun KundaliResultView(
     // Current dasha
     val today = try { java.time.LocalDate.now().toString() } catch (_: Exception) { "" }
     @Suppress("UNCHECKED_CAST")
-    val dashas = data["dasha"] as? List<Map<String, Any?>> ?: emptyList()
+    val dashas = (data["dasha"] as? List<Map<String, Any?>>)
+        ?: (data["dashas"] as? List<Map<String, Any?>>) ?: emptyList()
     val currentDasha = dashas.find { d ->
         val s = d["start"]?.toString() ?: ""; val e = d["end"]?.toString() ?: ""
         today.isNotEmpty() && s.isNotEmpty() && e.isNotEmpty() && today >= s && today <= e
@@ -152,7 +154,10 @@ private fun KundaliResultView(
         }
 
         // Scrollable content
+        val listState = rememberLazyListState()
+        Box(Modifier.fillMaxSize()) {
         androidx.compose.foundation.lazy.LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -233,7 +238,7 @@ private fun KundaliResultView(
             // ── Current Mahadasha strip ──────────────────────────────────────
             currentDasha?.let { d ->
                 item {
-                    val lord  = d["lord"]?.toString() ?: "—"
+                    val lord  = d["planet"]?.toString() ?: d["lord"]?.toString() ?: "—"
                     val color = DASHA_COLORS[lord] ?: BrahmGold
                     @Suppress("UNCHECKED_CAST")
                     val antardashas = d["antardashas"] as? List<Map<String, Any?>> ?: emptyList()
@@ -265,7 +270,7 @@ private fun KundaliResultView(
                             curAntar?.let { a ->
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text("Antardasha", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp))
-                                    Text(a["lord"]?.toString() ?: "—", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground))
+                                    Text(a["planet"]?.toString() ?: a["lord"]?.toString() ?: "—", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground))
                                 }
                             }
                         }
@@ -317,8 +322,7 @@ private fun KundaliResultView(
                     TABS.forEachIndexed { i, title ->
                         Tab(
                             selected = selectedTab == i,
-                            onClick = { /* handled by card below */ },
-                            modifier = Modifier.clickable { onTabChange(i) },
+                            onClick = { onTabChange(i) },
                             text = {
                                 Text(title, style = MaterialTheme.typography.labelMedium,
                                     color = if (selectedTab == i) BrahmGold else BrahmMutedForeground)
@@ -339,16 +343,21 @@ private fun KundaliResultView(
                         0 -> ChartTab(data)
                         1 -> GrahasTab(data)
                         2 -> DashasTab(data)
-                        3 -> BhavasTab(data)
-                        4 -> YogasTab(data)
-                        5 -> ShadbalaTab(data)
-                        6 -> NavamshaTab(data)
+                        3 -> HousesTab(data)
+                        4 -> ChalitTab(data)
+                        5 -> StrengthTab(data)
+                        6 -> AshtakavargaTab(data)
+                        7 -> UpagrahaTab(data)
+                        8 -> YogasTab(data)
+                        9 -> LagnaTab(data)
                     }
                 }
             }
 
             item { Spacer(Modifier.height(16.dp)) }
         }
+        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 80.dp))
+        } // Box
     }
 }
 
