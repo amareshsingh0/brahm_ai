@@ -2,8 +2,6 @@ package com.bimoraai.brahm.ui.kundali.tabs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -56,42 +54,36 @@ fun ChartTab(data: Map<String, Any?>) {
     @Suppress("UNCHECKED_CAST")
     val planets = data["planets"] as? List<Map<String, Any?>> ?: emptyList()
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // Chart
-        item {
-            KundaliChartView(grahas = grahas, modifier = Modifier.fillMaxWidth())
-        }
+    // Column instead of LazyColumn — this tab is rendered inside another LazyColumn item
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        KundaliChartView(grahas = grahas, modifier = Modifier.fillMaxWidth())
 
-        // Lagna info card
-        item {
-            BrahmCard(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        BrahmCard(modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column {
+                    Text("Lagna (Ascendant)", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                    Text(lagna, style = MaterialTheme.typography.titleMedium.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
+                }
+                data["moon_rashi"]?.let { moon ->
+                    Spacer(Modifier.width(16.dp))
                     Column {
-                        Text("Lagna (Ascendant)", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                        Text(lagna, style = MaterialTheme.typography.titleMedium.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
+                        Text("Moon Rashi", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                        Text(moon.toString(), style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFF94a3b8), fontWeight = FontWeight.SemiBold))
                     }
-                    data["moon_rashi"]?.let { moon ->
-                        Spacer(Modifier.width(16.dp))
-                        Column {
-                            Text("Moon Rashi", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                            Text(moon.toString(), style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFF94a3b8), fontWeight = FontWeight.SemiBold))
-                        }
-                    }
-                    data["sun_rashi"]?.let { sun ->
-                        Spacer(Modifier.width(16.dp))
-                        Column {
-                            Text("Sun Rashi", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                            Text(sun.toString(), style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFf59e0b), fontWeight = FontWeight.SemiBold))
-                        }
+                }
+                data["sun_rashi"]?.let { sun ->
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text("Sun Rashi", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                        Text(sun.toString(), style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFf59e0b), fontWeight = FontWeight.SemiBold))
                     }
                 }
             }
         }
 
-        // Quick planet summary
         if (planets.isNotEmpty()) {
-            item { SectionHeader("Planet Summary") }
-            items(planets) { planet ->
+            SectionHeader("Planet Summary")
+            planets.forEach { planet ->
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -118,12 +110,11 @@ fun ChartTab(data: Map<String, Any?>) {
 fun GrahasTab(data: Map<String, Any?>) {
     @Suppress("UNCHECKED_CAST")
     val planets = data["planets"] as? List<Map<String, Any?>> ?: emptyList()
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { SectionHeader("Planetary Positions") }
-        items(planets) { planet ->
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader("Planetary Positions")
+        planets.forEach { planet ->
             BrahmCard(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // Top row: planet name + dignity badge
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             planet["name"]?.toString() ?: "—",
@@ -131,24 +122,20 @@ fun GrahasTab(data: Map<String, Any?>) {
                             modifier = Modifier.weight(1f),
                         )
                         val dignity = planet["dignity"]?.toString() ?: planet["status"]?.toString() ?: ""
-                        if (dignity.isNotBlank()) {
-                            DignityBadge(dignity)
-                        }
+                        if (dignity.isNotBlank()) { DignityBadge(dignity) }
                         if (planet["retrograde"]?.toString() == "true") {
                             Spacer(Modifier.width(4.dp))
                             Text("℞", color = Color(0xFFE8445A), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                         }
                     }
-                    // Details row
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        PlanetDetail("Rashi",    planet["rashi"]?.toString() ?: "—", BrahmGold)
-                        PlanetDetail("House",    "H${planet["house"]?.toString() ?: "—"}", BrahmForeground)
+                        PlanetDetail("Rashi",     planet["rashi"]?.toString() ?: "—", BrahmGold)
+                        PlanetDetail("House",     "H${planet["house"]?.toString() ?: "—"}", BrahmForeground)
                         PlanetDetail("Nakshatra", planet["nakshatra"]?.toString() ?: "—", Color(0xFF6C63FF))
                         val deg = planet["degree"]?.toString() ?: planet["lon"]?.toString() ?: ""
                         if (deg.isNotBlank()) {
                             val degNum = deg.toDoubleOrNull()
-                            val degStr = if (degNum != null) "%.1f°".format(degNum % 30) else deg
-                            PlanetDetail("Degree", degStr, BrahmMutedForeground)
+                            PlanetDetail("Degree", if (degNum != null) "%.1f°".format(degNum % 30) else deg, BrahmMutedForeground)
                         }
                     }
                 }
@@ -250,10 +237,10 @@ fun BhavasTab(data: Map<String, Any?>) {
         }
     }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { SectionHeader("Bhava Analysis") }
-        items(12) { idx ->
-            val h = idx + 1
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader("Bhava Analysis")
+        (1..12).forEach { h ->
+            val idx = h - 1
             val residents = houseResidents[h] ?: emptyList()
             val lord = houseLords[h] ?: ""
             val rashi = houseRashis[h] ?: ""
@@ -317,50 +304,31 @@ fun DashasTab(data: Map<String, Any?>) {
     val dashas = data["dasha"] as? List<Map<String, Any?>> ?: emptyList()
     val today = try { LocalDate.now().toString() } catch (_: Exception) { "" }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { SectionHeader("Vimshottari Dasha") }
-        items(dashas) { dasha ->
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader("Vimshottari Dasha")
+        dashas.forEach { dasha ->
             val planet = dasha["planet"]?.toString() ?: "—"
             val start  = dasha["start"]?.toString()  ?: ""
             val end    = dasha["end"]?.toString()    ?: ""
             val isActive = today.isNotEmpty() && start.isNotEmpty() && end.isNotEmpty()
                 && today >= start && today <= end
             val dotColor = DASHA_COLORS[planet] ?: BrahmGold
-
             @Suppress("UNCHECKED_CAST")
             val antardashas = dasha["antardashas"] as? List<Map<String, Any?>> ?: emptyList()
 
-            BrahmCard(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
+            BrahmCard(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        // Colored planet dot
-                        Box(
-                            Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(dotColor)
-                        )
+                        Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(dotColor))
                         Spacer(Modifier.width(8.dp))
-                        Text(
-                            planet,
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                color = dotColor,
-                                fontWeight = FontWeight.SemiBold,
-                            ),
-                            modifier = Modifier.weight(1f),
-                        )
+                        Text(planet, style = MaterialTheme.typography.titleSmall.copy(color = dotColor, fontWeight = FontWeight.SemiBold), modifier = Modifier.weight(1f))
                         if (isActive) {
-                            Box(
-                                Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFFD1FAE5)).padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
+                            Box(Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFFD1FAE5)).padding(horizontal = 6.dp, vertical = 2.dp)) {
                                 Text("Active", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF065F46), fontWeight = FontWeight.Bold, fontSize = 10.sp))
                             }
                         }
                     }
-                    Text(
-                        "$start  →  $end",
-                        style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
-                    )
-                    // Antardasha mini-list (if present)
+                    Text("$start  →  $end", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     if (antardashas.isNotEmpty()) {
                         HorizontalDivider(color = BrahmBorder, modifier = Modifier.padding(vertical = 4.dp))
                         Text("Antardashas", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
@@ -369,21 +337,10 @@ fun DashasTab(data: Map<String, Any?>) {
                             val adPlanet = ad["planet"]?.toString() ?: "—"
                             val adStart  = ad["start"]?.toString()  ?: ""
                             val adEnd    = ad["end"]?.toString()    ?: ""
-                            val adActive = today.isNotEmpty() && adStart.isNotEmpty() && adEnd.isNotEmpty()
-                                && today >= adStart && today <= adEnd
+                            val adActive = today.isNotEmpty() && adStart.isNotEmpty() && adEnd.isNotEmpty() && today >= adStart && today <= adEnd
                             Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    "• $adPlanet",
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = if (adActive) dotColor else BrahmForeground,
-                                        fontWeight = if (adActive) FontWeight.SemiBold else FontWeight.Normal,
-                                    ),
-                                    modifier = Modifier.weight(1f),
-                                )
-                                Text(
-                                    "$adStart – $adEnd",
-                                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
-                                )
+                                Text("• $adPlanet", style = MaterialTheme.typography.bodySmall.copy(color = if (adActive) dotColor else BrahmForeground, fontWeight = if (adActive) FontWeight.SemiBold else FontWeight.Normal), modifier = Modifier.weight(1f))
+                                Text("$adStart – $adEnd", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp))
                             }
                         }
                     }
@@ -398,12 +355,12 @@ fun DashasTab(data: Map<String, Any?>) {
 fun YogasTab(data: Map<String, Any?>) {
     @Suppress("UNCHECKED_CAST")
     val yogas = data["yogas"] as? List<Map<String, Any?>> ?: emptyList()
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { SectionHeader("Yogas") }
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader("Yogas")
         if (yogas.isEmpty()) {
-            item { Text("No yogas found", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium) }
+            Text("No yogas found", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium)
         }
-        items(yogas) { yoga ->
+        yogas.forEach { yoga ->
             BrahmCard(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp)) {
                     Text(yoga["name"]?.toString() ?: "—", style = MaterialTheme.typography.titleMedium.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
@@ -420,12 +377,12 @@ fun YogasTab(data: Map<String, Any?>) {
 fun AlertsTab(data: Map<String, Any?>) {
     @Suppress("UNCHECKED_CAST")
     val alerts = data["alerts"] as? List<Map<String, Any?>> ?: emptyList()
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { SectionHeader("Alerts & Doshas") }
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader("Alerts & Doshas")
         if (alerts.isEmpty()) {
-            item { Text("No alerts", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium) }
+            Text("No alerts", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium)
         }
-        items(alerts) { alert ->
+        alerts.forEach { alert ->
             BrahmCard(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp)) {
                     Text(alert["title"]?.toString() ?: "—", style = MaterialTheme.typography.titleMedium)
@@ -441,9 +398,9 @@ fun AlertsTab(data: Map<String, Any?>) {
 fun ShadbalaTab(data: Map<String, Any?>) {
     @Suppress("UNCHECKED_CAST")
     val shadbala = data["shadbala"] as? List<Map<String, Any?>> ?: emptyList()
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { SectionHeader("Shadbala (Planetary Strength)") }
-        items(shadbala) { s ->
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader("Shadbala (Planetary Strength)")
+        shadbala.forEach { s ->
             BrahmCard(modifier = Modifier.fillMaxWidth()) {
                 Row(Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(s["planet"]?.toString() ?: "—", style = MaterialTheme.typography.titleMedium)

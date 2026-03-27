@@ -6,10 +6,13 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -132,6 +135,7 @@ fun CalendarScreen(
     var yearInput      by remember { mutableStateOf(year.toString()) }
     var showTradition  by remember { mutableStateOf(false) }
     var showLunar      by remember { mutableStateOf(false) }
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
 
     // Build eclipse map: date-string → eclipse JsonObject
     val eclipseMap: Map<String, JsonObject> = remember(grahan) {
@@ -302,11 +306,11 @@ fun CalendarScreen(
                             }
                         }
 
-                        // Year input — compact
+                        // Year input — compact, same height as Month/Today buttons
                         OutlinedTextField(
                             value = yearInput,
                             onValueChange = { yearInput = it },
-                            modifier = Modifier.width(68.dp).height(btnHeight + 16.dp),
+                            modifier = Modifier.width(68.dp).height(btnHeight),
                             singleLine = true,
                             textStyle = LocalTextStyle.current.copy(
                                 fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
@@ -314,8 +318,9 @@ fun CalendarScreen(
                                 color = onSurface,
                             ),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = { vm.setYear(yearInput.toIntOrNull() ?: year) }),
+                            keyboardActions = KeyboardActions(onDone = { vm.setYear(yearInput.toIntOrNull() ?: year); keyboardController?.hide() }),
                             shape = btnShape,
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = BrahmGold,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.30f),
@@ -358,37 +363,11 @@ fun CalendarScreen(
                         }
                     }
 
-                    // Row 2: [📍 City search ·····] [Smarta ▾] [Amanta ▾]
+                    // Row 2: [Smarta ▾] [Amanta ▾]  (city search is in the TopAppBar location icon)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        // City search
-                        Box(modifier = Modifier.weight(1f)) {
-                            OutlinedTextField(
-                                value = cityQuery,
-                                onValueChange = { cityVm.cityQuery.value = it },
-                                placeholder = { Text(cityName, fontSize = 12.sp, color = onSurface.copy(alpha = 0.45f)) },
-                                leadingIcon = { Icon(Icons.Default.LocationOn, null, modifier = Modifier.size(16.dp), tint = BrahmGold) },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                                textStyle = LocalTextStyle.current.copy(fontSize = 12.sp, color = onSurface),
-                                shape = btnShape,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = BrahmGold,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.30f),
-                                ),
-                            )
-                            DropdownMenu(expanded = suggestions.isNotEmpty(), onDismissRequest = { cityVm.cityQuery.value = "" }) {
-                                suggestions.forEach { city ->
-                                    DropdownMenuItem(
-                                        text = { Text(city.label.ifBlank { city.name }, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                        onClick = { vm.setCity(city); cityVm.cityQuery.value = "" },
-                                    )
-                                }
-                            }
-                        }
-
                         // Tradition dropdown
                         Box {
                             Surface(onClick = { showTradition = true }, shape = btnShape, color = MaterialTheme.colorScheme.surface, border = btnBorder, modifier = Modifier.height(btnHeight)) {
@@ -836,137 +815,130 @@ private fun DayDetailSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() },
     ) {
-        LazyColumn(
+        // Column + verticalScroll avoids the LazyColumn infinity-height crash inside ModalBottomSheet
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Header
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null,
-                        tint = BrahmGold, modifier = Modifier.size(20.dp))
-                    Column {
-                        Text(
-                            day.str("date"),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = BrahmGold,
-                        )
-                        Text(
-                            "${day.str("vara")} · ${day.str("weekday")}" +
-                                day.str("lunar_month").let { if (it != "—") " · 🌙 $it" else "" },
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        )
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(Icons.Default.CalendarMonth, contentDescription = null,
+                    tint = BrahmGold, modifier = Modifier.size(20.dp))
+                Column {
+                    Text(
+                        day.str("date"),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = BrahmGold,
+                    )
+                    Text(
+                        "${day.str("vara")} · ${day.str("weekday")}" +
+                            day.str("lunar_month").let { if (it != "—") " · 🌙 $it" else "" },
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    )
                 }
             }
 
             // Special badges
-            item {
-                val badges = buildList {
-                    if (eclipse != null) add("🌑 ${eclipse.str("type")} Eclipse" to Color(0xFFEF4444))
-                    if (day.bool("is_purnima"))   add("🌕 Purnima"   to Color(0xFF3B82F6))
-                    if (day.bool("is_amavasya"))  add("🌑 Amavasya"  to Color(0xFF64748B))
-                    if (day.bool("is_ekadashi"))  add("✦ Ekadashi"  to Color(0xFF10B981))
-                    if (day.bool("is_pradosh"))   add("☽ Pradosh"   to Color(0xFFA855F7))
-                    if (day.bool("is_chaturthi")) add("● Chaturthi" to Color(0xFFF97316))
-                    if (day.bool("is_ashtami"))   add("◉ Ashtami"   to Color(0xFFE11D48))
-                }
-                if (badges.isNotEmpty()) {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(badges) { (label, color) ->
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = color.copy(alpha = 0.12f),
-                                border = androidx.compose.foundation.BorderStroke(0.5.dp, color.copy(0.3f)),
-                            ) {
-                                Text(
-                                    label,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    fontSize = 11.sp,
-                                    color = color,
-                                )
-                            }
+            val badges = buildList {
+                if (eclipse != null) add("🌑 ${eclipse.str("type")} Eclipse" to Color(0xFFEF4444))
+                if (day.bool("is_purnima"))   add("🌕 Purnima"   to Color(0xFF3B82F6))
+                if (day.bool("is_amavasya"))  add("🌑 Amavasya"  to Color(0xFF64748B))
+                if (day.bool("is_ekadashi"))  add("✦ Ekadashi"  to Color(0xFF10B981))
+                if (day.bool("is_pradosh"))   add("☽ Pradosh"   to Color(0xFFA855F7))
+                if (day.bool("is_chaturthi")) add("● Chaturthi" to Color(0xFFF97316))
+                if (day.bool("is_ashtami"))   add("◉ Ashtami"   to Color(0xFFE11D48))
+            }
+            if (badges.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
+                    badges.forEach { (label, color) ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = color.copy(alpha = 0.12f),
+                            border = androidx.compose.foundation.BorderStroke(0.5.dp, color.copy(0.3f)),
+                        ) {
+                            Text(
+                                label,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontSize = 11.sp,
+                                color = color,
+                            )
                         }
                     }
                 }
             }
 
             // Panchang grid
-            item {
-                BrahmCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                        Text("PANCHANG",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 1.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        SheetInfoRow("Vara / Day", day.str("vara"))
-                        SheetInfoRow("Tithi",
-                            "${day.str("paksha")} ${day.str("tithi")} (${day.str("paksha_short")}${day.str("tithi_num")})")
-                        SheetInfoRow("Nakshatra", day.str("nakshatra"))
-                        SheetInfoRow("Yoga", day.str("yoga"))
-                        SheetInfoRow("Lunar Month", day.str("lunar_month"))
-                        SheetInfoRow("🌅 Sunrise", day.str("sunrise"), highlight = false)
-                        SheetInfoRow("🌇 Sunset", day.str("sunset"), highlight = false)
-                        SheetInfoRow("☢ Rahu Kaal", day.str("rahu_kaal"), highlight = true)
-                    }
+            BrahmCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                    Text("PANCHANG",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    SheetInfoRow("Vara / Day", day.str("vara"))
+                    SheetInfoRow("Tithi",
+                        "${day.str("paksha")} ${day.str("tithi")} (${day.str("paksha_short")}${day.str("tithi_num")})")
+                    SheetInfoRow("Nakshatra", day.str("nakshatra"))
+                    SheetInfoRow("Yoga", day.str("yoga"))
+                    SheetInfoRow("Lunar Month", day.str("lunar_month"))
+                    SheetInfoRow("🌅 Sunrise", day.str("sunrise"), highlight = false)
+                    SheetInfoRow("🌇 Sunset", day.str("sunset"), highlight = false)
+                    SheetInfoRow("☢ Rahu Kaal", day.str("rahu_kaal"), highlight = true)
                 }
             }
 
             // Eclipse section
             if (eclipse != null) {
-                item {
-                    Text("GRAHAN · ECLIPSE",
-                        fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 1.sp,
-                        color = Color(0xFFEF4444).copy(alpha = 0.8f),
-                    )
-                }
-                item { SheetEclipseCard(eclipse) }
+                Text("GRAHAN · ECLIPSE",
+                    fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.sp,
+                    color = Color(0xFFEF4444).copy(alpha = 0.8f),
+                )
+                SheetEclipseCard(eclipse)
             }
 
             // Festivals
             val festivals = day.arr("festivals") ?: JsonArray(emptyList())
             if (festivals.isNotEmpty()) {
-                item {
-                    Text("FESTIVALS & OBSERVANCES",
-                        fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 1.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    )
-                }
-                items(festivals.size) { i ->
-                    SheetFestivalCard(festivals[i].jsonObject)
+                Text("FESTIVALS & OBSERVANCES",
+                    fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                )
+                festivals.forEach { item ->
+                    SheetFestivalCard(item.jsonObject)
                 }
             } else {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(8.dp),
-                            )
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("No festivals today", fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
-                    }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(8.dp),
+                        )
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("No festivals today", fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
                 }
             }
         }

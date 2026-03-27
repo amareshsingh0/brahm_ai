@@ -232,55 +232,61 @@ fun PanchangScreen(
                         }
                     },
                     actions = {
-                        // City search
-                        Box {
-                            var showCitySearch by remember { mutableStateOf(false) }
-                            IconButton(onClick = { showCitySearch = !showCitySearch }) {
-                                Icon(Icons.Default.LocationOn, contentDescription = "City", tint = BrahmGold)
-                            }
-                            DropdownMenu(
-                                expanded = showCitySearch,
+                        // City search via AlertDialog (keeps keyboard visible)
+                        var showCitySearch by remember { mutableStateOf(false) }
+                        IconButton(onClick = { showCitySearch = true }) {
+                            Icon(Icons.Default.LocationOn, contentDescription = "City", tint = BrahmGold)
+                        }
+                        if (showCitySearch) {
+                            AlertDialog(
                                 onDismissRequest = { showCitySearch = false; cityVm.cityQuery.value = "" },
-                            ) {
-                                // Search field inside dropdown
-                                OutlinedTextField(
-                                    value = cityQuery,
-                                    onValueChange = { cityVm.cityQuery.value = it },
-                                    placeholder = { Text(cityName ?: "Search city…", fontSize = 12.sp) },
-                                    leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp)) },
-                                    modifier = Modifier
-                                        .width(220.dp)
-                                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                                    singleLine = true,
-                                    textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = BrahmGold,
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.3f),
-                                    ),
-                                )
-                                if (suggestions.isEmpty() && cityQuery.isBlank()) {
-                                    DropdownMenuItem(
-                                        text = { Text("Type a city name…", fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(0.5f)) },
-                                        onClick = {},
-                                        enabled = false,
-                                    )
-                                }
-                                suggestions.forEach { city ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(city.label.ifBlank { city.name },
-                                                fontSize = 13.sp, maxLines = 1,
-                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                                        },
-                                        onClick = {
-                                            vm.loadForCity(city.lat, city.lon, city.tz, city.name)
-                                            cityVm.cityQuery.value = ""
-                                            showCitySearch = false
-                                        },
-                                    )
-                                }
-                            }
+                                containerColor = BrahmCard,
+                                title = { Text("Change Location", fontWeight = FontWeight.SemiBold, color = BrahmForeground) },
+                                text = {
+                                    Column {
+                                        OutlinedTextField(
+                                            value = cityQuery,
+                                            onValueChange = { cityVm.cityQuery.value = it },
+                                            placeholder = { Text(cityName ?: "Search city…", fontSize = 13.sp) },
+                                            leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp)) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            singleLine = true,
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedBorderColor = BrahmGold,
+                                                unfocusedBorderColor = BrahmBorder,
+                                            ),
+                                        )
+                                        if (suggestions.isEmpty() && cityQuery.isBlank()) {
+                                            Text(
+                                                "Type a city name to search…",
+                                                fontSize = 12.sp,
+                                                color = BrahmMutedForeground,
+                                                modifier = Modifier.padding(top = 8.dp),
+                                            )
+                                        }
+                                        suggestions.forEach { city ->
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(city.label.ifBlank { city.name },
+                                                        fontSize = 13.sp, maxLines = 1,
+                                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                                },
+                                                onClick = {
+                                                    vm.loadForCity(city.lat, city.lon, city.tz, city.name)
+                                                    cityVm.cityQuery.value = ""
+                                                    showCitySearch = false
+                                                },
+                                            )
+                                        }
+                                    }
+                                },
+                                confirmButton = {},
+                                dismissButton = {
+                                    TextButton(onClick = { showCitySearch = false; cityVm.cityQuery.value = "" }) {
+                                        Text("Cancel", color = BrahmGold)
+                                    }
+                                },
+                            )
                         }
                         IconButton(onClick = { vm.load() }, enabled = !isLoading) {
                             Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = BrahmGold)
