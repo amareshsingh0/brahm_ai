@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.data.CitySearchViewModel
@@ -109,7 +110,7 @@ fun BirthInputFields(
         }
 
         // ── Place of Birth ────────────────────────────────────────────────────
-        Column {
+        Box {
             OutlinedTextField(
                 value         = pob,
                 onValueChange = { v ->
@@ -132,48 +133,42 @@ fun BirthInputFields(
                 shape         = RoundedCornerShape(10.dp),
                 colors        = fieldColors(),
             )
-
-            if (showCitySuggestions && suggestions.isNotEmpty()) {
-                Surface(
-                    modifier        = Modifier.fillMaxWidth().padding(top = 2.dp),
-                    shape           = RoundedCornerShape(10.dp),
-                    color           = BrahmCard,
-                    shadowElevation = 4.dp,
-                ) {
-                    Column {
-                        suggestions.forEach { city ->
-                            Row(
-                                modifier              = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onPobChange(city.name)
-                                        onCitySelected(city)
-                                        cityVm.cityQuery.value  = ""
-                                        cityConfirmed           = true
-                                        showCitySuggestions     = false
-                                        focusManager.clearFocus()
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(16.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
-                                        style    = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                    Text(
-                                        "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
-                                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
-                                    )
-                                }
+            // DropdownMenu overlays content below — not clipped by scroll container
+            DropdownMenu(
+                expanded         = showCitySuggestions && suggestions.isNotEmpty(),
+                onDismissRequest = { showCitySuggestions = false },
+                offset           = DpOffset(0.dp, 0.dp),
+                modifier         = Modifier.fillMaxWidth(),
+            ) {
+                suggestions.forEach { city ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(
+                                    if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
+                                    style    = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
+                                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                                )
                             }
-                            if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
-                        }
-                    }
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(16.dp))
+                        },
+                        onClick = {
+                            onPobChange(city.name)
+                            onCitySelected(city)
+                            cityVm.cityQuery.value = ""
+                            cityConfirmed          = true
+                            showCitySuggestions    = false
+                            focusManager.clearFocus()
+                        },
+                    )
+                    if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
                 }
             }
         }
@@ -197,13 +192,26 @@ fun BirthInputFields(
                 }) { Text("OK", color = BrahmGold) }
             },
             dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } },
+            colors = DatePickerDefaults.colors(containerColor = BrahmCard),
         ) {
             DatePicker(
                 state  = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor  = BrahmGold,
-                    todayDateBorderColor       = BrahmGold,
+                    containerColor             = BrahmCard,
+                    titleContentColor          = BrahmMutedForeground,
+                    headlineContentColor       = BrahmForeground,
+                    weekdayContentColor        = BrahmMutedForeground,
+                    subheadContentColor        = BrahmMutedForeground,
+                    navigationContentColor     = BrahmForeground,
+                    yearContentColor           = BrahmForeground,
+                    currentYearContentColor    = BrahmGold,
+                    selectedYearContentColor   = BrahmCard,
                     selectedYearContainerColor = BrahmGold,
+                    dayContentColor            = BrahmForeground,
+                    todayContentColor          = BrahmGold,
+                    todayDateBorderColor       = BrahmGold,
+                    selectedDayContentColor    = BrahmCard,
+                    selectedDayContainerColor  = BrahmGold,
                 ),
             )
         }

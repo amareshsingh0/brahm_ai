@@ -28,15 +28,28 @@ class UserRepository @Inject constructor(
     init { refresh() }
 
     fun refresh() {
-        scope.launch {
-            try {
-                val res = api.getMe()
-                if (res.isSuccessful && res.body() != null) {
-                    _user.value = res.body()
-                }
-            } catch (e: Exception) {
-                android.util.Log.w("UserRepository", "refresh failed: ${e.message}")
+        scope.launch { fetchUser() }
+    }
+
+    /** Fetches profile and waits for the result — use in login flows before navigation. */
+    suspend fun refreshAndGetUser(): UserDto? {
+        fetchUser()
+        return _user.value
+    }
+
+    /** Clears cached user — call on logout so stale data doesn't bleed into next session. */
+    fun clear() {
+        _user.value = null
+    }
+
+    private suspend fun fetchUser() {
+        try {
+            val res = api.getMe()
+            if (res.isSuccessful && res.body() != null) {
+                _user.value = res.body()
             }
+        } catch (e: Exception) {
+            android.util.Log.w("UserRepository", "refresh failed: ${e.message}")
         }
     }
 

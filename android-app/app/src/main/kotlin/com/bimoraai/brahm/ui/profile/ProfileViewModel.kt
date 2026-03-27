@@ -100,6 +100,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try { api.logout() } catch (_: Exception) {}
             tokenDataStore.clear()
+            userRepository.clear() // clear cached user so next login starts fresh
             onDone()
         }
     }

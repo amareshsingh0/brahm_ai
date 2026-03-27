@@ -347,7 +347,7 @@ private fun SectionHeader(label: String) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SessionRow(
+internal fun SessionRow(
     session: ChatSession,
     isArchived: Boolean   = false,
     archiveLabel: String  = "Archive",

@@ -262,106 +262,103 @@ fun CalendarScreen(
 
             // ── Controls row ──────────────────────────────────────────────────
             item {
+                val btnShape  = RoundedCornerShape(8.dp)
+                val btnBorder = androidx.compose.foundation.BorderStroke(
+                    1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.30f)
+                )
+                val btnHeight = 40.dp
+                val onSurface = MaterialTheme.colorScheme.onSurface
+
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Row 1: Month nav + year + Today button
+
+                    // Row 1: [< Month >] [Year] [Today] ··· [grid|list]
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        // Month nav
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                            border = androidx.compose.foundation.BorderStroke(
-                                0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                            ),
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = { vm.prevMonth() }, modifier = Modifier.size(36.dp)) {
-                                    Icon(Icons.Default.ChevronLeft, contentDescription = "Prev", modifier = Modifier.size(18.dp))
+                        // Month nav — compact, takes only what it needs
+                        Surface(shape = btnShape, color = MaterialTheme.colorScheme.surface, border = btnBorder) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(btnHeight)) {
+                                Box(
+                                    modifier = Modifier.size(btnHeight).clickable { vm.prevMonth() },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(Icons.Default.ChevronLeft, null, modifier = Modifier.size(18.dp), tint = onSurface)
                                 }
                                 Text(
-                                    MONTH_NAMES[month - 1],
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 13.sp,
-                                    modifier = Modifier.widthIn(min = 80.dp),
+                                    MONTH_NAMES[month - 1].take(3), // "Mar" not "March" — saves space
+                                    fontWeight = FontWeight.SemiBold, fontSize = 13.sp,
+                                    color = onSurface,
+                                    modifier = Modifier.width(32.dp),
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                                 )
-                                IconButton(onClick = { vm.nextMonth() }, modifier = Modifier.size(36.dp)) {
-                                    Icon(Icons.Default.ChevronRight, contentDescription = "Next", modifier = Modifier.size(18.dp))
+                                Box(
+                                    modifier = Modifier.size(btnHeight).clickable { vm.nextMonth() },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(Icons.Default.ChevronRight, null, modifier = Modifier.size(18.dp), tint = onSurface)
                                 }
                             }
                         }
 
-                        // Year input
+                        // Year input — compact
                         OutlinedTextField(
                             value = yearInput,
                             onValueChange = { yearInput = it },
-                            modifier = Modifier.width(72.dp),
+                            modifier = Modifier.width(68.dp).height(btnHeight + 16.dp),
                             singleLine = true,
                             textStyle = LocalTextStyle.current.copy(
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = onSurface,
                             ),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = {
-                                vm.setYear(yearInput.toIntOrNull() ?: year)
-                            }),
+                            keyboardActions = KeyboardActions(onDone = { vm.setYear(yearInput.toIntOrNull() ?: year) }),
+                            shape = btnShape,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = BrahmGold,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.30f),
                             ),
                         )
 
                         // Today button
-                        OutlinedButton(
-                            onClick = { vm.goToday() },
-                            modifier = Modifier.height(36.dp),
-                            contentPadding = PaddingValues(horizontal = 10.dp),
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                            ),
+                        Surface(
+                            onClick = { vm.goToday() }, shape = btnShape,
+                            color = MaterialTheme.colorScheme.surface, border = btnBorder,
+                            modifier = Modifier.height(btnHeight),
                         ) {
-                            Icon(Icons.Default.Today, contentDescription = null, modifier = Modifier.size(14.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Today", fontSize = 12.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                Icon(Icons.Default.Today, null, modifier = Modifier.size(14.dp), tint = BrahmGold)
+                                Spacer(Modifier.width(4.dp))
+                                Text("Today", fontSize = 12.sp, color = onSurface)
+                            }
                         }
 
                         Spacer(Modifier.weight(1f))
 
-                        // Grid/List toggle
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                            border = androidx.compose.foundation.BorderStroke(
-                                0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                            ),
-                        ) {
-                            Row(modifier = Modifier.padding(2.dp)) {
-                                IconButton(
-                                    onClick = { viewMode = "grid" },
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (viewMode == "grid") MaterialTheme.colorScheme.surfaceVariant else Color.Transparent),
-                                ) {
-                                    Icon(Icons.Default.GridView, contentDescription = "Grid", modifier = Modifier.size(16.dp))
-                                }
-                                IconButton(
-                                    onClick = { viewMode = "list" },
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (viewMode == "list") MaterialTheme.colorScheme.surfaceVariant else Color.Transparent),
-                                ) {
-                                    Icon(Icons.Default.List, contentDescription = "List", modifier = Modifier.size(16.dp))
+                        // Grid / List toggle
+                        Surface(shape = btnShape, color = MaterialTheme.colorScheme.surface, border = btnBorder,
+                            modifier = Modifier.height(btnHeight)) {
+                            Row(modifier = Modifier.padding(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                                listOf("grid" to Icons.Default.GridView, "list" to Icons.Default.List).forEach { (mode, icon) ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(34.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (viewMode == mode) BrahmGold.copy(alpha = 0.12f) else Color.Transparent)
+                                            .clickable { viewMode = mode },
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(icon, null, modifier = Modifier.size(16.dp),
+                                            tint = if (viewMode == mode) BrahmGold else onSurface.copy(alpha = 0.5f))
+                                    }
                                 }
                             }
                         }
                     }
 
-                    // Row 2: City search + Tradition + Lunar system
+                    // Row 2: [📍 City search ·····] [Smarta ▾] [Amanta ▾]
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -371,41 +368,22 @@ fun CalendarScreen(
                             OutlinedTextField(
                                 value = cityQuery,
                                 onValueChange = { cityVm.cityQuery.value = it },
-                                placeholder = {
-                                    Text(cityName, fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.Default.LocationOn, contentDescription = null,
-                                        modifier = Modifier.size(16.dp), tint = BrahmGold)
-                                },
+                                placeholder = { Text(cityName, fontSize = 12.sp, color = onSurface.copy(alpha = 0.45f)) },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, null, modifier = Modifier.size(16.dp), tint = BrahmGold) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
-                                textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
+                                textStyle = LocalTextStyle.current.copy(fontSize = 12.sp, color = onSurface),
+                                shape = btnShape,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = BrahmGold,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.30f),
                                 ),
                             )
-                            DropdownMenu(
-                                expanded = suggestions.isNotEmpty(),
-                                onDismissRequest = { cityVm.cityQuery.value = "" },
-                                modifier = Modifier.fillMaxWidth(0.7f),
-                            ) {
+                            DropdownMenu(expanded = suggestions.isNotEmpty(), onDismissRequest = { cityVm.cityQuery.value = "" }) {
                                 suggestions.forEach { city ->
                                     DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = city.label.ifBlank { city.name },
-                                                fontSize = 13.sp,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                        },
-                                        onClick = {
-                                            vm.setCity(city)
-                                            cityVm.cityQuery.value = ""
-                                        },
+                                        text = { Text(city.label.ifBlank { city.name }, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                        onClick = { vm.setCity(city); cityVm.cityQuery.value = "" },
                                     )
                                 }
                             }
@@ -413,50 +391,28 @@ fun CalendarScreen(
 
                         // Tradition dropdown
                         Box {
-                            OutlinedButton(
-                                onClick = { showTradition = true },
-                                modifier = Modifier.height(56.dp),
-                                contentPadding = PaddingValues(horizontal = 8.dp),
-                                border = androidx.compose.foundation.BorderStroke(
-                                    1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                                ),
-                            ) {
-                                Text(
-                                    TRADITIONS.find { it.first == tradition }?.second ?: "Smarta",
-                                    fontSize = 11.sp,
-                                )
+                            Surface(onClick = { showTradition = true }, shape = btnShape, color = MaterialTheme.colorScheme.surface, border = btnBorder, modifier = Modifier.height(btnHeight)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                    Text(TRADITIONS.find { it.first == tradition }?.second ?: "Smarta", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = onSurface)
+                                }
                             }
                             DropdownMenu(expanded = showTradition, onDismissRequest = { showTradition = false }) {
                                 TRADITIONS.forEach { (key, label) ->
-                                    DropdownMenuItem(
-                                        text = { Text(label, fontSize = 12.sp) },
-                                        onClick = { vm.setTradition(key); showTradition = false },
-                                    )
+                                    DropdownMenuItem(text = { Text(label, fontSize = 13.sp) }, onClick = { vm.setTradition(key); showTradition = false })
                                 }
                             }
                         }
 
                         // Lunar system dropdown
                         Box {
-                            OutlinedButton(
-                                onClick = { showLunar = true },
-                                modifier = Modifier.height(56.dp),
-                                contentPadding = PaddingValues(horizontal = 8.dp),
-                                border = androidx.compose.foundation.BorderStroke(
-                                    1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                                ),
-                            ) {
-                                Text(
-                                    LUNAR_SYSTEMS.find { it.first == lunarSystem }?.second ?: "Amanta",
-                                    fontSize = 11.sp,
-                                )
+                            Surface(onClick = { showLunar = true }, shape = btnShape, color = MaterialTheme.colorScheme.surface, border = btnBorder, modifier = Modifier.height(btnHeight)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                    Text(LUNAR_SYSTEMS.find { it.first == lunarSystem }?.second ?: "Amanta", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = onSurface)
+                                }
                             }
                             DropdownMenu(expanded = showLunar, onDismissRequest = { showLunar = false }) {
                                 LUNAR_SYSTEMS.forEach { (key, label) ->
-                                    DropdownMenuItem(
-                                        text = { Text(label, fontSize = 12.sp) },
-                                        onClick = { vm.setLunarSystem(key); showLunar = false },
-                                    )
+                                    DropdownMenuItem(text = { Text(label, fontSize = 13.sp) }, onClick = { vm.setLunarSystem(key); showLunar = false })
                                 }
                             }
                         }
@@ -464,31 +420,39 @@ fun CalendarScreen(
                 }
             }
 
-            // ── Stats row ─────────────────────────────────────────────────────
+            // ── Stats + Legend combined row ───────────────────────────────────
             item {
                 val festCount   = days.count { it.bool("has_festival") }
                 val purnimaDays = days.filter { it.bool("is_purnima") }.map { it.str("day") }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    CalStatChip("📅", TRADITIONS.find { it.first == tradition }?.second ?: "Smarta")
-                    CalStatChip("🎉", "$festCount festivals")
-                    if (purnimaDays.isNotEmpty()) CalStatChip("🌕", "Day ${purnimaDays.first()}")
-                }
-            }
+                val traditionLabel = TRADITIONS.find { it.first == tradition }?.second ?: "Smarta"
 
-            // ── Legend ────────────────────────────────────────────────────────
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.18f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    LegendChip(Color(0xFFF59E0B).copy(0.20f), "Festival")
-                    LegendChip(Color(0xFF3B82F6).copy(0.20f), "Purnima")
-                    LegendChip(Color(0xFF64748B).copy(0.20f), "Amavasya")
-                    LegendChip(Color(0xFF10B981).copy(0.20f), "Ekadashi")
-                    LegendChip(Color(0xFFB71C1C).copy(0.20f), "Eclipse")
+                    // Stats line
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("📅 $traditionLabel", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+                        Text("🎉 $festCount festivals", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+                        if (purnimaDays.isNotEmpty())
+                            Text("🌕 Day ${purnimaDays.first()}", fontSize = 11.sp, color = Color(0xFF3B82F6))
+                    }
+                    // Legend line
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        LegendChip(Color(0xFFF59E0B), "Festival")
+                        LegendChip(Color(0xFF3B82F6), "Purnima")
+                        LegendChip(Color(0xFF64748B), "Amavasya")
+                        LegendChip(Color(0xFF10B981), "Ekadashi")
+                        LegendChip(Color(0xFFEF4444), "Eclipse")
+                    }
                 }
             }
 
@@ -875,8 +839,9 @@ private fun DayDetailSheet(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 40.dp),
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Header
@@ -1043,8 +1008,8 @@ private fun SheetEclipseCard(eclipse: JsonObject) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .border(2.dp, Color(0xFFEF4444).copy(0.4f), RoundedCornerShape(12.dp))
-            .background(Color(0xFFB71C1C).copy(0.10f))
+            .border(1.5.dp, Color(0xFFEF4444).copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+            .background(Color(0xFFFFF5F5))
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -1074,33 +1039,40 @@ private fun SheetEclipseCard(eclipse: JsonObject) {
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.20f))
+                        .background(Color(0xFFB71C1C).copy(alpha = 0.08f))
+                        .border(0.5.dp, Color(0xFFEF4444).copy(alpha = 0.20f), RoundedCornerShape(8.dp))
                         .padding(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    Text(time, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = BrahmGold)
-                    Text(label, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
+                    Text(time, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = BrahmGold)
+                    Text(label, fontWeight = FontWeight.SemiBold, fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurface)
                     Text(sub, fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
                 }
             }
         }
 
         // Duration
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(6.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.10f))
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("⏱", fontSize = 13.sp)
-            Text("Duration: ", fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-            Text("${eclipse.int("duration_minutes")} min",
-                fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
+        val durationMin = eclipse.int("duration_minutes")
+        if (durationMin > 0) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xFFB71C1C).copy(alpha = 0.06f))
+                    .border(0.5.dp, Color(0xFFEF4444).copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("⏱", fontSize = 13.sp)
+                Text("Duration: ", fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                Text("$durationMin min", fontWeight = FontWeight.SemiBold, fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurface)
+            }
         }
 
         // Sutak
@@ -1366,21 +1338,16 @@ private fun CalStatChip(icon: String, label: String) {
 @Composable
 private fun LegendChip(color: Color, label: String) {
     Row(
-        modifier = Modifier.padding(end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(10.dp)
+                .size(8.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(color)
+                .background(color.copy(alpha = 0.7f))
         )
-        Text(
-            label,
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-        )
+        Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f))
     }
 }
 

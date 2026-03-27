@@ -61,6 +61,24 @@ def _get_supabase():
         return None
 
 
+def _sb(fn):
+    """
+    Run a Supabase lambda with auto-reconnect on HTTP disconnect.
+    Usage: result = _sb(lambda: sb.table(...).execute())
+    Retries once after resetting the client on RemoteProtocolError / disconnected.
+    """
+    from api.supabase_client import reset_supabase
+    try:
+        return fn()
+    except Exception as e:
+        msg = str(e).lower()
+        if any(k in msg for k in ("disconnected", "remoteprot", "connect", "reset", "broken pipe")):
+            reset_supabase()
+            # get fresh client and retry
+            return fn()
+        raise
+
+
 def _sqlite_conn():
     """Legacy SQLite fallback."""
     from api.config import USERS_DB, DATA_DIR
@@ -73,6 +91,19 @@ def _sqlite_conn():
 
 def _use_supabase() -> bool:
     return _get_supabase() is not None
+
+
+def _sb_call(fn):
+    """Execute a Supabase lambda, auto-reset client on disconnect and retry once."""
+    from api.supabase_client import reset_supabase
+    try:
+        return fn()
+    except Exception as e:
+        if "disconnected" in str(e).lower() or "connect" in str(e).lower():
+            reset_supabase()
+            # retry once with fresh client
+            return fn()
+        raise
 
 
 def _fmt(ts) -> str:
@@ -601,14 +632,14 @@ def get_deleted_accounts(
         return {"items": [], "total": 0, "page": 1, "pages": 1}
     cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
     try:
-        total = sb.table("deleted_accounts").select("id", count="exact") \
-            .gte("deleted_at", cutoff).execute().count or 0
+        total = _sb(lambda: sb.table("deleted_accounts").select("id", count="exact")
+            .gte("deleted_at", cutoff).execute()).count or 0
         offset = (page - 1) * limit
-        rows = sb.table("deleted_accounts").select("*") \
-            .gte("deleted_at", cutoff) \
-            .order("deleted_at", desc=True) \
-            .range(offset, offset + limit - 1) \
-            .execute().data or []
+        rows = _sb(lambda: sb.table("deleted_accounts").select("*")
+            .gte("deleted_at", cutoff)
+            .order("deleted_at", desc=True)
+            .range(offset, offset + limit - 1)
+            .execute()).data or []
         return {"items": rows, "total": total, "page": page, "pages": max(1, (total + limit - 1) // limit)}
     except Exception as e:
         raise HTTPException(500, f"Deleted accounts error: {e}")
@@ -857,9 +888,9 @@ def list_all_payments(
         count_q = sb.table("payment_log").select("id", count="exact")
         if status:
             count_q = count_q.eq("status", status)
-        total = count_q.execute().count or 0
+        total = _sb(lambda: count_q.execute()).count or 0
         offset = (page - 1) * limit
-        rows = q.order("paid_at", desc=True).range(offset, offset + limit - 1).execute().data or []
+        rows = _sb(lambda: q.order("paid_at", desc=True).range(offset, offset + limit - 1).execute()).data or []
 
         # Enrich with user name/phone
         enriched = []
@@ -902,9 +933,9 @@ def get_revenue(x_admin_key: str = Header(None)):
     month_ago = (datetime.now(timezone.utc) - timedelta(days=30)).date().isoformat()
     try:
         def _sum(rows): return sum(r.get("amount", 0) or 0 for r in (rows or []))
-        t = _sum(sb.table("payment_log").select("amount").eq("status","SUCCESS").gte("paid_at", today).execute().data)
-        m = _sum(sb.table("payment_log").select("amount").eq("status","SUCCESS").gte("paid_at", month_ago).execute().data)
-        a = _sum(sb.table("payment_log").select("amount").eq("status","SUCCESS").execute().data)
+        t = _sum(_sb(lambda: sb.table("payment_log").select("amount").eq("status","SUCCESS").gte("paid_at", today).execute()).data)
+        m = _sum(_sb(lambda: sb.table("payment_log").select("amount").eq("status","SUCCESS").gte("paid_at", month_ago).execute()).data)
+        a = _sum(_sb(lambda: sb.table("payment_log").select("amount").eq("status","SUCCESS").execute()).data)
         return {"today": t, "month": m, "total": a}
     except Exception as e:
         raise HTTPException(500, f"Revenue error: {e}")
@@ -1266,11 +1297,11 @@ def list_admin_logs(
     sb = _get_supabase()
     if sb:
         try:
-            total = sb.table("admin_log").select("id", count="exact").execute().count or 0
+            total = _sb(lambda: sb.table("admin_log").select("id", count="exact").execute()).count or 0
             offset = (page - 1) * limit
-            rows = sb.table("admin_log").select(
+            rows = _sb(lambda: sb.table("admin_log").select(
                 "id, admin_id, action, target_id, target_type, details, performed_at"
-            ).order("performed_at", desc=True).range(offset, offset + limit - 1).execute().data or []
+            ).order("performed_at", desc=True).range(offset, offset + limit - 1).execute()).data or []
             # Enrich with admin name
             enriched = []
             for row in rows:

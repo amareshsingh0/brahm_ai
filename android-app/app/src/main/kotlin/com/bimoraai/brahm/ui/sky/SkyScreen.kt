@@ -226,6 +226,7 @@ private fun SkyContent(snapshot: SkySnapshot, timeStr: String, vm: SkyViewModel,
 @Composable
 private fun LiveSkyTab(snapshot: SkySnapshot) {
     LazyColumn(
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {

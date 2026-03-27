@@ -92,11 +92,10 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
             )
         }
         composable(Route.LOGIN) {
-            val userRepository: UserRepository = androidx.hilt.navigation.compose.hiltViewModel<MainViewModel>().userRepository
             LoginScreen(
-                onLoggedIn = {
-                    // After login: check if birth profile exists → if not → show setup screen
-                    val dest = if (userRepository.hasBirthData()) Route.MAIN else Route.PROFILE_SETUP
+                onLoggedIn = { hasBirthData ->
+                    // hasBirthData comes from AuthViewModel after awaiting the profile fetch
+                    val dest = if (hasBirthData) Route.MAIN else Route.PROFILE_SETUP
                     navController.navigate(dest) {
                         popUpTo(Route.LOGIN) { inclusive = true }
                     }

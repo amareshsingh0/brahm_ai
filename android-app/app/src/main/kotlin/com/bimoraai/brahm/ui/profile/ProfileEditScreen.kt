@@ -16,6 +16,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -179,61 +180,70 @@ fun ProfileEditScreen(
 
                 // Birth Place — city autocomplete
                 Column {
-                    OutlinedTextField(
-                        value         = birthPlace,
-                        onValueChange = { v ->
-                            birthPlace = v
-                            cityConfirmed = false
-                            vm.cityQuery.value = v
-                            showCitySuggestions = v.length >= 2
-                        },
-                        modifier      = Modifier
-                            .fillMaxWidth()
-                            .onFocusChanged { if (!it.isFocused) showCitySuggestions = false },
-                        label         = { Text("Birth Place") },
-                        placeholder   = { Text("Type city name…", color = BrahmMutedForeground) },
-                        leadingIcon   = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold) },
-                        trailingIcon  = {
-                            if (cityConfirmed)
-                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF43A047))
-                        },
-                        singleLine    = true,
-                        shape         = RoundedCornerShape(10.dp),
-                        colors        = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor   = BrahmGold,
-                            unfocusedBorderColor = BrahmBorder,
-                        ),
-                    )
-
-                    // Suggestions dropdown
-                    if (showCitySuggestions && suggestions.isNotEmpty()) {
-                        Surface(
+                    Box {
+                        OutlinedTextField(
+                            value         = birthPlace,
+                            onValueChange = { v ->
+                                birthPlace = v
+                                cityConfirmed = false
+                                vm.cityQuery.value = v
+                                showCitySuggestions = v.length >= 2
+                            },
                             modifier      = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 2.dp),
+                                .onFocusChanged { if (!it.isFocused) showCitySuggestions = false },
+                            label         = { Text("Birth Place") },
+                            placeholder   = { Text("Type city name…", color = BrahmMutedForeground) },
+                            leadingIcon   = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold) },
+                            trailingIcon  = {
+                                if (cityConfirmed)
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF43A047))
+                            },
+                            singleLine    = true,
                             shape         = RoundedCornerShape(10.dp),
-                            color         = BrahmCard,
-                            shadowElevation = 4.dp,
+                            colors        = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor   = BrahmGold,
+                                unfocusedBorderColor = BrahmBorder,
+                            ),
+                        )
+                        // DropdownMenu renders in overlay — not clipped by scroll container
+                        DropdownMenu(
+                            expanded         = showCitySuggestions && suggestions.isNotEmpty(),
+                            onDismissRequest = { showCitySuggestions = false },
+                            offset           = DpOffset(0.dp, 0.dp),
+                            modifier         = Modifier.fillMaxWidth(),
                         ) {
-                            Column {
-                                suggestions.forEach { city ->
-                                    CityRow(
-                                        city    = city,
-                                        onClick = {
-                                            birthPlace        = city.name
-                                            selectedLat       = city.lat
-                                            selectedLon       = city.lon
-                                            selectedTz        = city.tz
-                                            cityConfirmed     = true
-                                            showCitySuggestions = false
-                                            vm.cityQuery.value  = ""
-                                            focusManager.clearFocus()
-                                        },
-                                    )
-                                    if (city != suggestions.last()) {
-                                        HorizontalDivider(color = BrahmBorder)
-                                    }
-                                }
+                            suggestions.forEach { city ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Text(
+                                                if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
+                                                style    = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Text(
+                                                "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
+                                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                                            )
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(16.dp))
+                                    },
+                                    onClick = {
+                                        birthPlace          = city.name
+                                        selectedLat         = city.lat
+                                        selectedLon         = city.lon
+                                        selectedTz          = city.tz
+                                        cityConfirmed       = true
+                                        showCitySuggestions = false
+                                        vm.cityQuery.value  = ""
+                                        focusManager.clearFocus()
+                                    },
+                                )
+                                if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
                             }
                         }
                     }
@@ -326,13 +336,26 @@ fun ProfileEditScreen(
             dismissButton    = {
                 TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
             },
+            colors = DatePickerDefaults.colors(containerColor = BrahmCard),
         ) {
             DatePicker(
                 state  = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor   = BrahmGold,
-                    todayDateBorderColor        = BrahmGold,
-                    selectedYearContainerColor  = BrahmGold,
+                    containerColor             = BrahmCard,
+                    titleContentColor          = BrahmMutedForeground,
+                    headlineContentColor       = BrahmForeground,
+                    weekdayContentColor        = BrahmMutedForeground,
+                    subheadContentColor        = BrahmMutedForeground,
+                    navigationContentColor     = BrahmForeground,
+                    yearContentColor           = BrahmForeground,
+                    currentYearContentColor    = BrahmGold,
+                    selectedYearContentColor   = BrahmCard,
+                    selectedYearContainerColor = BrahmGold,
+                    dayContentColor            = BrahmForeground,
+                    todayContentColor          = BrahmGold,
+                    todayDateBorderColor       = BrahmGold,
+                    selectedDayContentColor    = BrahmCard,
+                    selectedDayContainerColor  = BrahmGold,
                 ),
             )
         }
@@ -400,34 +423,6 @@ fun ProfileEditScreen(
                 TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
             },
         )
-    }
-}
-
-// ── City row in dropdown ─────────────────────────────────────────────────────
-
-@Composable
-private fun CityRow(city: City, onClick: () -> Unit) {
-    Row(
-        modifier              = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(18.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
-                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
-            )
-        }
     }
 }
 

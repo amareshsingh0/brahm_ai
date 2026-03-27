@@ -18,7 +18,7 @@ sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
     data class OtpSent(val phone: String) : AuthState()
-    object LoggedIn : AuthState()
+    data class LoggedIn(val hasBirthData: Boolean) : AuthState()
     data class Error(val message: String) : AuthState()
 }
 
@@ -61,8 +61,11 @@ class AuthViewModel @Inject constructor(
                 if (res.isSuccessful && body != null) {
                     tokenDataStore.saveTokens(body.access_token, body.refresh_token)
                     tokenDataStore.saveUserId(body.user_id, body.plan)
-                    userRepository.setFromAuth(body.name, body.plan, body.phone, null)
-                    _state.value = AuthState.LoggedIn
+                    // Await full profile fetch so hasBirthData is accurate at navigation time
+                    val user = userRepository.refreshAndGetUser()
+                    _state.value = AuthState.LoggedIn(
+                        hasBirthData = user?.date?.isNotBlank() == true && user.place.isNotBlank()
+                    )
                 } else {
                     val errBody = res.errorBody()?.string()?.take(300)
                     _state.value = AuthState.Error(errBody ?: "Invalid OTP. Please try again.")
@@ -82,8 +85,10 @@ class AuthViewModel @Inject constructor(
                 if (res.isSuccessful && body != null) {
                     tokenDataStore.saveTokens(body.access_token, body.refresh_token)
                     tokenDataStore.saveUserId(body.user_id, body.plan)
-                    userRepository.refresh()
-                    _state.value = AuthState.LoggedIn
+                    val user = userRepository.refreshAndGetUser()
+                    _state.value = AuthState.LoggedIn(
+                        hasBirthData = user?.date?.isNotBlank() == true && user.place.isNotBlank()
+                    )
                 } else {
                     val errBody = res.errorBody()?.string()?.take(300)
                     _state.value = AuthState.Error(errBody ?: "Google login failed.")

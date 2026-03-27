@@ -47,6 +47,7 @@ export const useAuthStore = create<AuthState>()(
           phone: user.phone,
           plan: user.plan,
           isLoggedIn: true,
+          profileSetupSeen: false, // reset on each new login so loadProfileIntoStore can re-check
         });
       },
       setRefreshToken: (token) => set({ refreshToken: token }),
@@ -61,7 +62,7 @@ export const useAuthStore = create<AuthState>()(
           phone: null,
           plan: 'free',
           isLoggedIn: false,
-          profileSetupSeen: false,
+          // profileSetupSeen intentionally NOT reset here — reset happens in setAuth on next login
         });
       },
     }),

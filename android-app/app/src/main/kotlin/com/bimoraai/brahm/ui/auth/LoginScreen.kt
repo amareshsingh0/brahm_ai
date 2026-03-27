@@ -83,7 +83,7 @@ private const val GOOGLE_WEB_CLIENT_ID = "121105525669-5km0oub8cmumovltdsi34279g
 
 @Composable
 fun LoginScreen(
-    onLoggedIn: () -> Unit,
+    onLoggedIn: (hasBirthData: Boolean) -> Unit,
     vm: AuthViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
@@ -100,7 +100,7 @@ fun LoginScreen(
                 storedPhone = (state as AuthState.OtpSent).phone
                 showOtp = true
             }
-            is AuthState.LoggedIn -> onLoggedIn()
+            is AuthState.LoggedIn -> onLoggedIn((state as AuthState.LoggedIn).hasBirthData)
             else -> {}
         }
     }

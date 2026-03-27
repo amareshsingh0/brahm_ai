@@ -10,6 +10,7 @@ import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProfileSetupModal from "@/components/ProfileSetupModal";
 import { useAuthStore } from "@/store/authStore";
+import { useKundliStore } from "@/store/kundliStore";
 
 // ── Lazy pages (code-split per route) ─────────────────────────────────────────
 const LandingPage  = lazy(() => import("./pages/LandingPage"));
@@ -155,14 +156,25 @@ function AuthRedirect() {
 /** Shows ProfileSetupModal once after login if profile not yet saved/skipped */
 function ProfileSetupGate() {
   const { isLoggedIn, profileSetupSeen } = useAuthStore();
+  const { birthDetails } = useKundliStore();
   const [open, setOpen] = useState(false);
 
+  // Close immediately if profile loads (loadProfileIntoStore completes)
+  const hasBirthData = !!(birthDetails?.birthPlace);
   useEffect(() => {
-    // Small delay so login page transition finishes first
-    if (isLoggedIn && !profileSetupSeen) {
-      const t = setTimeout(() => setOpen(true), 800);
-      return () => clearTimeout(t);
-    }
+    if (hasBirthData || profileSetupSeen) setOpen(false);
+  }, [hasBirthData, profileSetupSeen]);
+
+  useEffect(() => {
+    if (!isLoggedIn || profileSetupSeen) return;
+    // Wait 2s to give loadProfileIntoStore time to fetch /api/user and set profileSetupSeen
+    const t = setTimeout(() => {
+      // Re-read latest state at open time to avoid stale closure
+      const { profileSetupSeen: seen } = useAuthStore.getState();
+      const { birthDetails: bd } = useKundliStore.getState();
+      if (!seen && !bd?.birthPlace) setOpen(true);
+    }, 2000);
+    return () => clearTimeout(t);
   }, [isLoggedIn, profileSetupSeen]);
 
   if (!open) return null;
