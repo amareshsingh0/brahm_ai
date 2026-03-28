@@ -387,15 +387,19 @@ fun ChartTab(data: Map<String, Any?>) {
         }
     }
 
-    // Lagna rashi for varga B (navamsha lagna for D-9, same for rest)
-    val lagnaBRashi: String = run {
-        val meta = VARGA_OPTIONS.getOrElse(vargaB) { VARGA_OPTIONS[0] }
-        when {
-            meta.code == "BC" -> lagnaRashi
-            meta.div == 9 -> data["navamsha_lagna"]?.let { (it as? Map<*, *>)?.get("rashi")?.toString() } ?: lagnaRashi
-            else -> lagnaRashi
+    // Helper: get correct lagna rashi for any varga index
+    fun lagnaForVarga(idx: Int): String {
+        val meta = VARGA_OPTIONS.getOrElse(idx) { VARGA_OPTIONS[0] }
+        return when {
+            meta.code == "BC" || meta.div == 1 -> lagnaRashi
+            meta.div == 9 -> data["navamsha_lagna"]
+                ?.let { (it as? Map<*, *>)?.get("rashi")?.toString() } ?: lagnaRashi
+            else -> (vargaCharts[meta.code] as? Map<String, Any?>)
+                ?.get("lagna")?.let { (it as? Map<*, *>)?.get("rashi")?.toString() }
+                ?: lagnaRashi
         }
     }
+    val lagnaBRashi: String = lagnaForVarga(vargaB)
 
     val grahaHousesForAspect = mutableMapOf<String, Int>()
     grahasRaw.forEach { (planet, info) ->
@@ -496,7 +500,7 @@ fun ChartTab(data: Map<String, Any?>) {
             label      = "A",
             meta       = metaA,
             houseMap   = houseMapForVarga(vargaA),
-            lagnaRashi = lagnaRashi,
+            lagnaRashi = lagnaForVarga(vargaA),
             chartStyle = chartStyle,
             onTapHeader = { showPickerFor = "A" },
         )
@@ -1700,7 +1704,7 @@ private fun HouseCard(
 // ─── Strength (Shadbala) Tab ─────────────────────────────────────────────────
 
 @Composable
-fun StrengthTab(data: Map<String, Any?>) {
+fun StrengthTab(data: Map<String, Any?>, onRegenerate: () -> Unit = {}) {
     @Suppress("UNCHECKED_CAST")
     val shadbalaPlanets = (data["shadbala"] as? Map<String, Any?>)?.get("planets") as? Map<String, Any?>
     @Suppress("UNCHECKED_CAST")
@@ -1710,11 +1714,20 @@ fun StrengthTab(data: Map<String, Any?>) {
         SectionHeader("Shadbala — Six-fold Planetary Strength")
 
         if (shadbalaPlanets == null) {
-            Text(
-                if (data.containsKey("grahas")) "Shadbala not calculated. Regenerate Kundali." else "Generate Kundali to see Shadbala.",
-                color = BrahmMutedForeground,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
+                Text(
+                    if (data.containsKey("grahas")) "Shadbala not calculated" else "Generate Kundali to see Shadbala.",
+                    color = BrahmMutedForeground,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (data.containsKey("grahas")) {
+                    Spacer(Modifier.height(10.dp))
+                    Button(
+                        onClick = onRegenerate,
+                        colors = ButtonDefaults.buttonColors(containerColor = BrahmGold),
+                    ) { Text("Regenerate Kundali", style = MaterialTheme.typography.labelMedium.copy(color = Color.White)) }
+                }
+            }
         } else {
             val planets7 = listOf("Surya", "Chandra", "Mangal", "Budh", "Guru", "Shukra", "Shani")
 
@@ -1907,7 +1920,7 @@ fun StrengthTab(data: Map<String, Any?>) {
 // ─── Ashtakavarga Tab ────────────────────────────────────────────────────────
 
 @Composable
-fun AshtakavargaTab(data: Map<String, Any?>) {
+fun AshtakavargaTab(data: Map<String, Any?>, onRegenerate: () -> Unit = {}) {
     @Suppress("UNCHECKED_CAST")
     val av = data["ashtakavarga"] as? Map<String, Any?>
 
@@ -1915,11 +1928,20 @@ fun AshtakavargaTab(data: Map<String, Any?>) {
         SectionHeader("Ashtakavarga — Bindu Points per Rashi")
 
         if (av == null) {
-            Text(
-                if (data.containsKey("grahas")) "Ashtakavarga not calculated. Regenerate Kundali." else "Generate Kundali to see Ashtakavarga.",
-                color = BrahmMutedForeground,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
+                Text(
+                    if (data.containsKey("grahas")) "Ashtakavarga not calculated" else "Generate Kundali to see Ashtakavarga.",
+                    color = BrahmMutedForeground,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (data.containsKey("grahas")) {
+                    Spacer(Modifier.height(10.dp))
+                    Button(
+                        onClick = onRegenerate,
+                        colors = ButtonDefaults.buttonColors(containerColor = BrahmGold),
+                    ) { Text("Regenerate Kundali", style = MaterialTheme.typography.labelMedium.copy(color = Color.White)) }
+                }
+            }
             return@Column
         }
 
@@ -2129,7 +2151,7 @@ fun AshtakavargaTab(data: Map<String, Any?>) {
 // ─── Upagraha Tab ────────────────────────────────────────────────────────────
 
 @Composable
-fun UpagrahaTab(data: Map<String, Any?>) {
+fun UpagrahaTab(data: Map<String, Any?>, onRegenerate: () -> Unit = {}) {
     @Suppress("UNCHECKED_CAST")
     val upagraha = data["upagraha"] as? Map<String, Any?>
 
@@ -2137,11 +2159,20 @@ fun UpagrahaTab(data: Map<String, Any?>) {
         SectionHeader("Upagraha — Sub-planetary Points")
 
         if (upagraha == null || upagraha.isEmpty()) {
-            Text(
-                if (data.containsKey("grahas")) "Upagraha not calculated. Regenerate Kundali." else "Generate Kundali to see Upagrahas.",
-                color = BrahmMutedForeground,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
+                Text(
+                    if (data.containsKey("grahas")) "Upagraha not calculated" else "Generate Kundali to see Upagrahas.",
+                    color = BrahmMutedForeground,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (data.containsKey("grahas")) {
+                    Spacer(Modifier.height(10.dp))
+                    Button(
+                        onClick = onRegenerate,
+                        colors = ButtonDefaults.buttonColors(containerColor = BrahmGold),
+                    ) { Text("Regenerate Kundali", style = MaterialTheme.typography.labelMedium.copy(color = Color.White)) }
+                }
+            }
             return@Column
         }
 

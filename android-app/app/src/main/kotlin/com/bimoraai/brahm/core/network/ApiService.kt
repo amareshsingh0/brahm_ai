@@ -76,7 +76,14 @@ import retrofit2.http.*
     val tz: Double = 5.5,
     val ayanamsha: String = "lahiri",
     val rahu_mode: String = "mean",
-    val calc_options: List<String> = listOf("antardasha", "pratyantar", "sukshma", "ashtakavarga", "shadbala", "upagraha"),
+    val calc_options: List<String> = listOf(
+        "antardasha", "pratyantar", "sukshma",
+        "ashtakavarga", "shadbala", "upagraha",
+        // Varga charts — D-1 and D-9 always included in main response
+        "d2", "d3", "d4", "d5", "d6", "d7", "d8",
+        "d10", "d11", "d12", "d16", "d20", "d24", "d27",
+        "d30", "d40", "d45", "d60",
+    ),
 )
 
 @Serializable data class SaveKundaliRequest(

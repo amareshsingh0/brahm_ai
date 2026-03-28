@@ -71,12 +71,13 @@ fun KundaliScreen(
             else -> {
                 val data = kundali!!
                 KundaliResultView(
-                    data        = data,
-                    settings    = settings,
-                    selectedTab = selectedTab,
-                    onTabChange = { selectedTab = it },
-                    onEditClick = { showForm = true },
-                    onSettings  = { vm.updateSettings(it) },
+                    data         = data,
+                    settings     = settings,
+                    selectedTab  = selectedTab,
+                    onTabChange  = { selectedTab = it },
+                    onEditClick  = { showForm = true },
+                    onSettings   = { vm.updateSettings(it) },
+                    onRegenerate = { vm.generate() },
                 )
             }
         }
@@ -91,6 +92,7 @@ private fun KundaliResultView(
     onTabChange: (Int) -> Unit,
     onEditClick: () -> Unit,
     onSettings: (KundaliSettings) -> Unit,
+    onRegenerate: () -> Unit,
 ) {
     val name      = data["name"]?.toString() ?: ""
     val place     = data["place"]?.toString() ?: data["birth_place"]?.toString() ?: ""
@@ -346,9 +348,9 @@ private fun KundaliResultView(
                         2 -> DashasTab(data)
                         3 -> HousesTab(data)
                         4 -> ChalitTab(data)
-                        5 -> StrengthTab(data)
-                        6 -> AshtakavargaTab(data)
-                        7 -> UpagrahaTab(data)
+                        5 -> StrengthTab(data, onRegenerate)
+                        6 -> AshtakavargaTab(data, onRegenerate)
+                        7 -> UpagrahaTab(data, onRegenerate)
                         8 -> YogasTab(data)
                         9 -> LagnaTab(data)
                     }
