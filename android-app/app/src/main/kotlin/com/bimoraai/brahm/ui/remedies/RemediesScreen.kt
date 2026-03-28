@@ -35,8 +35,8 @@ data class PlanetRemedy(
 )
 
 private val planetRemedies = listOf(
-    PlanetRemedy("Sun", "☀️", "Om Hram Hrim Hraum Sah Suryaya Namah (108×)", "Ruby", "Sunday", "Red / Orange", "Wheat, Jaggery, Copper", "Ravi Pushya Nakshatra", Color(0xFFFF6F00), Color(0xFFBF360C)),
-    PlanetRemedy("Moon", "🌙", "Om Shram Shrim Shraum Sah Chandraya Namah (108×)", "Pearl / Moonstone", "Monday", "White / Silver", "Rice, Milk, White clothes", "Purnima (Full Moon)", Color(0xFF1565C0), Color(0xFF0D47A1)),
+    PlanetRemedy("Sun", "☉", "Om Hram Hrim Hraum Sah Suryaya Namah (108×)", "Ruby", "Sunday", "Red / Orange", "Wheat, Jaggery, Copper", "Ravi Pushya Nakshatra", Color(0xFFFF6F00), Color(0xFFBF360C)),
+    PlanetRemedy("Moon", "☽", "Om Shram Shrim Shraum Sah Chandraya Namah (108×)", "Pearl / Moonstone", "Monday", "White / Silver", "Rice, Milk, White clothes", "Purnima (Full Moon)", Color(0xFF1565C0), Color(0xFF0D47A1)),
     PlanetRemedy("Mars", "♂", "Om Kram Krim Kraum Sah Bhaumaya Namah (108×)", "Red Coral", "Tuesday", "Red / Coral", "Red lentils, Jaggery, Copper", "Mangal Chaturdashi", Color(0xFFE53935), Color(0xFF8B0000)),
     PlanetRemedy("Mercury", "☿", "Om Bram Brim Braum Sah Budhaya Namah (108×)", "Emerald / Green Tourmaline", "Wednesday", "Green", "Green Moong, Green cloth", "Budha Ashtami", Color(0xFF2E7D32), Color(0xFF1B5E20)),
     PlanetRemedy("Jupiter", "♃", "Om Gram Grim Graum Sah Gurave Namah (108×)", "Yellow Sapphire / Topaz", "Thursday", "Yellow / Gold", "Besan, Turmeric, Gold", "Guru Purnima", Color(0xFFFFB300), Color(0xFFE65100)),

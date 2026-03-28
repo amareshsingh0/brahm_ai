@@ -67,7 +67,7 @@ fun MuhurtaContent(data: JsonObject) {
                         Text("✨ Daily Sacred Timings", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = BrahmGold))
                         if (brahmaMuhurta != null) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("🌅", fontSize = 16.sp)
+                                Text("↑", fontSize = 16.sp)
                                 Column {
                                     Text("Brahma Muhurta", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
                                     Text(brahmaMuhurta, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))

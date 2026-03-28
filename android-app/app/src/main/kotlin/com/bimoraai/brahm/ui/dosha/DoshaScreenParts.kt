@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -337,6 +338,67 @@ private fun RemediesPanel(remedies: List<String>, accentColor: Color) {
     }
 }
 
+// ── Shared gradient card header ───────────────────────────────────────────────
+
+@Composable
+private fun DoshaCardHeader(
+    symbol: String,
+    symbolColor: Color,
+    name: String,
+    subtitle: String,
+    present: Boolean,
+    cancelled: Boolean = false,
+    severity: String = "",
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.horizontalGradient(
+                    listOf(symbolColor.copy(alpha = 0.13f), symbolColor.copy(alpha = 0.03f)),
+                ),
+            )
+            .padding(16.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.radialGradient(
+                                listOf(symbolColor.copy(alpha = 0.25f), symbolColor.copy(alpha = 0.08f)),
+                            ),
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(symbol, fontSize = 26.sp, color = symbolColor)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(name, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
+                }
+            }
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                StatusBadge(present, cancelled)
+                if (severity.isNotBlank() && severity != "Absent") SeverityBadge(severity)
+            }
+        }
+    }
+}
+
 // ── Mangal Dosha Card ──────────────────────────────────────────────────────────
 
 @Composable
@@ -351,32 +413,18 @@ private fun MangalDoshaCard(result: MangalResult) {
         colors = CardDefaults.cardColors(containerColor = BrahmCard),
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Header
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text("♂", fontSize = 22.sp, color = Color(0xFFE53935))
-                    Column {
-                        Text("Mangal Dosha", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                        Text("Mars in 1/2/4/7/8/12 houses", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
-                    }
-                }
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    StatusBadge(result.present, result.cancelled)
-                    if (result.present) SeverityBadge(result.severity)
-                }
-            }
-
+        Column {
+            DoshaCardHeader(
+                symbol = "♂",
+                symbolColor = Color(0xFFE53935),
+                name = "Mangal Dosha",
+                subtitle = "Mars in 1/2/4/7/8/12 houses",
+                present = result.present,
+                cancelled = result.cancelled,
+                severity = result.severity,
+            )
+            HorizontalDivider(color = BrahmBorder)
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Body
             if (result.present) {
                 val rashiSymbol = RASHI_SYMBOLS[result.mangalRashi] ?: ""
@@ -451,6 +499,7 @@ private fun MangalDoshaCard(result: MangalResult) {
 
             HorizontalDivider(color = BrahmBorder)
             RemediesPanel(REMEDIES_MANGAL, Color(0xFFE53935))
+            } // body Column
         }
     }
 }
@@ -465,25 +514,16 @@ private fun KaalSarpCard(result: KaalSarpResult) {
         colors = CardDefaults.cardColors(containerColor = BrahmCard),
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text("☊", fontSize = 22.sp, color = Color(0xFF7C4DFF))
-                    Column {
-                        Text("Kaal Sarp Dosha", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                        Text("All planets between Rahu–Ketu axis", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
-                    }
-                }
-                StatusBadge(result.present)
-            }
-
+        Column {
+            DoshaCardHeader(
+                symbol = "☊",
+                symbolColor = Color(0xFF7C4DFF),
+                name = "Kaal Sarp Dosha",
+                subtitle = "All planets between Rahu–Ketu axis",
+                present = result.present,
+            )
+            HorizontalDivider(color = BrahmBorder)
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (result.present) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -529,6 +569,7 @@ private fun KaalSarpCard(result: KaalSarpResult) {
 
             HorizontalDivider(color = BrahmBorder)
             RemediesPanel(REMEDIES_KAAL_SARP, Color(0xFF7C4DFF))
+            } // body Column
         }
     }
 }
@@ -543,25 +584,16 @@ private fun PitraDoshaCard(result: PitraResult) {
         colors = CardDefaults.cardColors(containerColor = BrahmCard),
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text("☉", fontSize = 22.sp, color = Color(0xFFD97706))
-                    Column {
-                        Text("Pitra Dosha", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                        Text("Sun affliction, 9th house lord analysis", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
-                    }
-                }
-                StatusBadge(result.present)
-            }
-
+        Column {
+            DoshaCardHeader(
+                symbol = "☉",
+                symbolColor = Color(0xFFD97706),
+                name = "Pitra Dosha",
+                subtitle = "Sun affliction, 9th house lord analysis",
+                present = result.present,
+            )
+            HorizontalDivider(color = BrahmBorder)
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (result.present) {
                 Text(
                     "Planetary combinations indicate ancestral karmic debt. These patterns suggest need for Pitru Tarpan and ancestral remedies.",
@@ -601,6 +633,7 @@ private fun PitraDoshaCard(result: PitraResult) {
 
             HorizontalDivider(color = BrahmBorder)
             RemediesPanel(REMEDIES_PITRA, Color(0xFFD97706))
+            } // body Column
         }
     }
 }
@@ -615,25 +648,16 @@ private fun GrahanYogaCard(result: GrahanResult) {
         colors = CardDefaults.cardColors(containerColor = BrahmCard),
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text("●", fontSize = 20.sp)
-                    Column {
-                        Text("Grahan Yoga", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                        Text("Sun/Moon conjunct Rahu or Ketu", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
-                    }
-                }
-                StatusBadge(result.present)
-            }
-
+        Column {
+            DoshaCardHeader(
+                symbol = "☽●",
+                symbolColor = Color(0xFF9C27B0),
+                name = "Grahan Yoga",
+                subtitle = "Sun/Moon conjunct Rahu or Ketu",
+                present = result.present,
+            )
+            HorizontalDivider(color = BrahmBorder)
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (result.present) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     result.planets.forEach { planet ->
@@ -667,6 +691,7 @@ private fun GrahanYogaCard(result: GrahanResult) {
 
             HorizontalDivider(color = BrahmBorder)
             RemediesPanel(REMEDIES_GRAHAN, Color(0xFF9C27B0))
+            } // body Column
         }
     }
 }
@@ -694,53 +719,67 @@ fun DoshaContent(data: JsonObject, onReset: () -> Unit = {}) {
         ) {
             // ── Summary row ──
             item {
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = BrahmCard),
                 ) {
-                    listOf(
-                        Triple("Mangal", mangalResult.present && !mangalResult.cancelled, mangalResult.cancelled),
-                        Triple("Kaal Sarp", kaalSarpResult.present, false),
-                        Triple("Pitra", pitraResult.present, false),
-                        Triple("Grahan", grahanResult.present, false),
-                    ).forEach { (name, present, cancelled) ->
-                        Card(
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = when {
-                                    present    -> Color(0xFFFFEBEE)
-                                    cancelled  -> Color(0xFFFFF8E1)
-                                    else       -> BrahmCard
-                                },
-                            ),
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Dosha Summary",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Column(
-                                modifier = Modifier.padding(8.dp).fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                Text(
-                                    name,
-                                    fontSize = 9.sp,
-                                    color = BrahmMutedForeground,
-                                    textAlign = TextAlign.Center,
-                                )
-                                Text(
-                                    when {
-                                        cancelled -> "Cancelled"
-                                        present   -> "Present"
-                                        else      -> "Absent"
-                                    },
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = when {
-                                        present    -> Color(0xFFC62828)
-                                        cancelled  -> Color(0xFFE65100)
-                                        else       -> Color(0xFF2E7D32)
-                                    },
-                                    textAlign = TextAlign.Center,
-                                )
+                            data class DoshaSummaryItem(val sym: String, val name: String, val color: Color, val present: Boolean, val cancelled: Boolean)
+                            listOf(
+                                DoshaSummaryItem("♂",   "Mangal",   Color(0xFFE53935), mangalResult.present && !mangalResult.cancelled, mangalResult.cancelled),
+                                DoshaSummaryItem("☊",   "Kaal Sarp",Color(0xFF7C4DFF), kaalSarpResult.present, false),
+                                DoshaSummaryItem("☉",   "Pitra",    Color(0xFFD97706), pitraResult.present, false),
+                                DoshaSummaryItem("☽●",  "Grahan",   Color(0xFF9C27B0), grahanResult.present, false),
+                            ).forEach { item ->
+                                val statusColor = when {
+                                    item.present    -> item.color
+                                    item.cancelled  -> Color(0xFFE65100)
+                                    else            -> Color(0xFF2E7D32)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(
+                                            Brush.verticalGradient(
+                                                listOf(
+                                                    statusColor.copy(alpha = 0.12f),
+                                                    statusColor.copy(alpha = 0.04f),
+                                                ),
+                                            ),
+                                        )
+                                        .border(1.dp, statusColor.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        Text(item.sym, fontSize = 20.sp, color = statusColor)
+                                        Text(item.name, fontSize = 9.sp, color = BrahmMutedForeground, textAlign = TextAlign.Center)
+                                        Text(
+                                            when {
+                                                item.cancelled -> "Cancelled"
+                                                item.present   -> "Present"
+                                                else           -> "Absent"
+                                            },
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = statusColor,
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

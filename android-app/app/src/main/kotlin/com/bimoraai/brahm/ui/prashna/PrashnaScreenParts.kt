@@ -2,6 +2,7 @@ package com.bimoraai.brahm.ui.prashna
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -115,48 +116,73 @@ fun PrashnaContent(data: JsonObject, onReset: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(verdictBg)
-                        .border(1.dp, verdictBorder, RoundedCornerShape(16.dp))
-                        .padding(24.dp),
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(verdictColor.copy(alpha = 0.18f), verdictColor.copy(alpha = 0.06f)),
+                            ),
+                        )
+                        .border(1.dp, verdictColor.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                        .padding(horizontal = 24.dp, vertical = 28.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
+                        // Big planet symbol for hora lord
+                        if (horaLord.isNotBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(verdictColor.copy(alpha = 0.14f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(horaSymbol.ifBlank { "✦" }, fontSize = 28.sp, color = verdictColor)
+                            }
+                        }
                         Text(
                             "VERDICT",
                             fontSize = 10.sp,
-                            color = verdictColor.copy(alpha = 0.7f),
-                            letterSpacing = 3.sp,
+                            color = verdictColor.copy(alpha = 0.65f),
+                            letterSpacing = 4.sp,
+                            fontWeight = FontWeight.SemiBold,
                         )
                         Text(
                             verdict.uppercase(),
                             style = MaterialTheme.typography.displaySmall.copy(
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.ExtraBold,
                                 color = verdictColor,
+                                letterSpacing = 2.sp,
                             ),
                         )
                         if (datetime.isNotBlank() || horaLord.isNotBlank()) {
-                            Text(
-                                buildString {
-                                    if (datetime.isNotBlank()) append(datetime)
-                                    if (horaLord.isNotBlank()) {
-                                        if (datetime.isNotBlank()) append(" · ")
-                                        append("Hora Lord: $horaDisplay $horaSymbol")
-                                    }
-                                },
-                                fontSize = 11.sp,
-                                color = verdictColor.copy(alpha = 0.8f),
-                                textAlign = TextAlign.Center,
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(verdictColor.copy(alpha = 0.1f))
+                                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                            ) {
+                                Text(
+                                    buildString {
+                                        if (datetime.isNotBlank()) append(datetime)
+                                        if (horaLord.isNotBlank()) {
+                                            if (datetime.isNotBlank()) append(" · ")
+                                            append("Hora: $horaDisplay $horaSymbol")
+                                        }
+                                    },
+                                    fontSize = 11.sp,
+                                    color = verdictColor.copy(alpha = 0.85f),
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
                         }
                         if (prashnaQ.isNotBlank()) {
                             Text(
                                 "\"$prashnaQ\"",
-                                fontSize = 11.sp,
-                                color = verdictColor.copy(alpha = 0.65f),
+                                fontSize = 12.sp,
+                                color = verdictColor.copy(alpha = 0.7f),
                                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                             )
@@ -224,13 +250,20 @@ fun PrashnaContent(data: JsonObject, onReset: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     cells.forEach { (label, value) ->
-                        Card(
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = BrahmCard),
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(BrahmGold.copy(alpha = 0.1f), BrahmGold.copy(alpha = 0.03f)),
+                                    ),
+                                )
+                                .border(1.dp, BrahmGold.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                                .padding(10.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Column(
-                                modifier = Modifier.padding(10.dp).fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
@@ -244,7 +277,7 @@ fun PrashnaContent(data: JsonObject, onReset: () -> Unit) {
                                 Text(
                                     value,
                                     fontSize = 11.sp,
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontWeight = FontWeight.Bold,
                                     color = BrahmGold,
                                     textAlign = TextAlign.Center,
                                 )

@@ -25,7 +25,7 @@ data class OnboardingPage(val emoji: String, val title: String, val subtitle: St
 private val pages = listOf(
     OnboardingPage("🔮", "Vedic Astrology\nAt Your Fingertips", "Accurate Kundali, Panchang, Dasha, Yogas — powered by Drik Ganit"),
     OnboardingPage("🤖", "AI Astrologer\n24/7", "Ask anything in Hindi or English. Get instant, personalized answers."),
-    OnboardingPage("🌟", "Your Complete\nJyotish Companion", "Gochar, KP, Prashna, Varshphal, Palmistry and much more."),
+    OnboardingPage("★", "Your Complete\nJyotish Companion", "Gochar, KP, Prashna, Varshphal, Palmistry and much more."),
 )
 
 @OptIn(ExperimentalFoundationApi::class)

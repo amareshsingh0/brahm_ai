@@ -1,5 +1,6 @@
 package com.bimoraai.brahm.ui.palmistry
 
+import android.Manifest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +34,13 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -247,24 +255,42 @@ fun PalmistryScreen(navController: NavController, vm: PalmistryViewModel = hiltV
 // ─── Scan Tab ─────────────────────────────────────────────────────────────────
 
 @Composable
-private fun ScanTab(vm: PalmistryViewModel, aiResult: Map<String, Any?>?, isLoading: Boolean, aiError: String?) {
+private fun ScanTab(vm: PalmistryViewModel, aiResult: JsonObject?, isLoading: Boolean, aiError: String?) {
     var step             by remember { mutableStateOf("upload") }
     var selectedUri      by remember { mutableStateOf<Uri?>(null) }
+    var cameraUri        by remember { mutableStateOf<Uri?>(null) }
     var handTypeId       by remember { mutableStateOf<String?>(null) }
     var questionIndex    by remember { mutableIntStateOf(0) }
     var selections       by remember { mutableStateOf(listOf<Selection>()) }
     var currentSelection by remember { mutableStateOf<String?>(null) }
     var report           by remember { mutableStateOf<PalmReport?>(null) }
 
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> selectedUri = uri }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) selectedUri = uri
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) selectedUri = cameraUri
+    }
+    val cameraPermLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            val uri = vm.createCameraUri()
+            cameraUri = uri
+            cameraLauncher.launch(uri)
+        }
+    }
 
-    fun reset() { step = "upload"; selectedUri = null; handTypeId = null; questionIndex = 0; selections = listOf(); currentSelection = null; report = null }
+    fun reset() {
+        step = "upload"; selectedUri = null; handTypeId = null
+        questionIndex = 0; selections = listOf(); currentSelection = null; report = null
+        vm.clearResult()
+    }
 
     LaunchedEffect(aiResult) { if (aiResult != null) step = "ai_report" }
 
     when (step) {
         "upload"    -> UploadStep(selectedUri, isLoading, aiError,
             onGallery     = { galleryLauncher.launch("image/*") },
+            onCamera      = { cameraPermLauncher.launch(Manifest.permission.CAMERA) },
             onAnalyzeAI   = { selectedUri?.let { vm.analyzePalm(it) } },
             onManual      = { step = "hand_type" },
             onReset       = { selectedUri = null })
@@ -289,14 +315,14 @@ private fun ScanTab(vm: PalmistryViewModel, aiResult: Map<String, Any?>?, isLoad
             },
             onBack    = { if (questionIndex == 0) { step = "hand_type" } else { questionIndex--; currentSelection = selections.find { it.questionId == QUESTIONS[questionIndex].id }?.optionId } })
         "report"    -> ReportStep(report!!, selectedUri, onReset = { reset() })
-        "ai_report" -> AiReportStep(aiResult, selectedUri, onReset = { reset() })
+        "ai_report" -> AiReportStep(aiResult!!, selectedUri, onReset = { reset() })
     }
 }
 
 // ─── Upload Step ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, onGallery: () -> Unit, onAnalyzeAI: () -> Unit, onManual: () -> Unit, onReset: () -> Unit) {
+private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, onGallery: () -> Unit, onCamera: () -> Unit, onAnalyzeAI: () -> Unit, onManual: () -> Unit, onReset: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
@@ -309,15 +335,20 @@ private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, 
                         }
                     }
                     if (selectedUri == null) {
-                        Box(Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFF8F9FA)).border(2.dp, BrahmBorder, RoundedCornerShape(14.dp)).clickable { onGallery() }, contentAlignment = Alignment.Center) {
+                        Box(Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFF8F9FA)).border(2.dp, BrahmBorder, RoundedCornerShape(14.dp)).clickable { onCamera() }, contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Box(Modifier.size(56.dp).clip(CircleShape).background(BrahmGold.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) { Text("🖐️", fontSize = 28.sp) }
-                                Text("Tap to upload palm photo", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
-                                Text("JPG or PNG", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                                Text("Tap to take palm photo", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+                                Text("Hold palm flat under good light", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                             }
                         }
-                        OutlinedButton(onClick = onGallery, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BrahmBorder)) {
-                            Icon(Icons.Default.CameraAlt, null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Open Camera / Gallery")
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = onCamera, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = BrahmGold)) {
+                                Icon(Icons.Default.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Camera", color = Color.White)
+                            }
+                            OutlinedButton(onClick = onGallery, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BrahmBorder)) {
+                                Icon(Icons.Default.Photo, null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Gallery")
+                            }
                         }
                     } else {
                         Box(Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(14.dp))) {
@@ -347,7 +378,7 @@ private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, 
             Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Photo Tips", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
-                    listOf("☀️" to "Good natural or bright indoor lighting — no harsh shadows on the palm","✋" to "Flat open palm, fingers slightly spread, all major lines clearly visible","📸" to "Hold camera directly above the palm (top-down), at 20–30 cm distance","🔍" to "Fill most of the frame with just the palm — avoid cropping the wrist line","🤚" to "Use your dominant (writing) hand for the main reading","🕉️" to "Relax your hand completely — tension in the fingers distorts the lines").forEach { (icon, tip) ->
+                    listOf("☉" to "Good natural or bright indoor lighting — no harsh shadows on the palm","✋" to "Flat open palm, fingers slightly spread, all major lines clearly visible","📸" to "Hold camera directly above the palm (top-down), at 20–30 cm distance","🔍" to "Fill most of the frame with just the palm — avoid cropping the wrist line","🤚" to "Use your dominant (writing) hand for the main reading","🕉️" to "Relax your hand completely — tension in the fingers distorts the lines").forEach { (icon, tip) ->
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(icon, fontSize = 16.sp)
                             Text(tip, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
@@ -679,13 +710,23 @@ private fun ReportStep(report: PalmReport, palmUri: Uri?, onReset: () -> Unit) {
 
 // ─── AI Report Step ───────────────────────────────────────────────────────────
 
+// Helper: safely read string from JsonObject key (strips JSON quotes)
+private fun JsonObject.s(key: String): String? = this[key]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+private fun JsonObject.arr(key: String) = try { this[key]?.jsonArray } catch (_: Exception) { null }
+private fun JsonObject.obj2(key: String) = try { this[key]?.jsonObject } catch (_: Exception) { null }
+
 @Composable
-private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: () -> Unit) {
-    val r = aiResult ?: return
+private fun AiReportStep(r: JsonObject, palmUri: Uri?, onReset: () -> Unit) {
     val lineColors = mapOf("Heart Line" to Color(0xFFE8650A),"Head Line" to Color(0xFFC8860A),"Life Line" to Color(0xFF7CB87A),"Fate Line" to Color(0xFF7A8BAA),"Sun Line" to Color(0xFFF5C842),"Mercury Line" to Color(0xFF9B8ED4))
     val lifeIcons  = mapOf("Love & Relationships" to "💕","Career & Purpose" to "🏆","Health & Vitality" to "🌿","Mental Clarity" to "🧠","Wealth & Prosperity" to "✨","Spiritual Growth" to "🕉️")
 
-    @Suppress("UNCHECKED_CAST")
+    val lifeAreas    = r.arr("life_areas")?.mapNotNull { try { it.jsonObject } catch(_: Exception) { null } }
+    val lines        = r.arr("lines")?.mapNotNull { try { it.jsonObject } catch(_: Exception) { null } }
+    val mounts       = r.arr("dominant_mounts")?.mapNotNull { try { it.jsonObject } catch(_: Exception) { null } }
+    val strengths    = r.arr("strengths")?.mapNotNull { it.jsonPrimitive.contentOrNull }
+    val challenges   = r.arr("challenges")?.mapNotNull { it.jsonPrimitive.contentOrNull }
+    val remedies     = r.arr("remedies")?.mapNotNull { try { it.jsonObject } catch(_: Exception) { null } }
+
     LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         // Header
         item {
@@ -701,14 +742,14 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
                             }
                             Spacer(Modifier.height(4.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                r["hand_type"]?.toString()?.let { PBadge(it) }
-                                r["hand_type_vedic"]?.toString()?.let { PBadge(it) }
-                                r["hand_type_element"]?.toString()?.let { PBadge(it) }
+                                r.s("hand_type")?.let { PBadge(it) }
+                                r.s("hand_type_vedic")?.let { PBadge(it) }
+                                r.s("hand_type_element")?.let { PBadge(it) }
                             }
                         }
                         IconButton(onClick = onReset, modifier = Modifier.size(32.dp)) { Icon(Icons.Default.Refresh, null, tint = BrahmMutedForeground, modifier = Modifier.size(16.dp)) }
                     }
-                    r["hand_type_reading"]?.toString()?.let { reading ->
+                    r.s("hand_type_reading")?.let { reading ->
                         Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(BrahmGold.copy(alpha = 0.06f)).padding(10.dp)) {
                             Text(reading, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontStyle = FontStyle.Italic))
                         }
@@ -718,7 +759,7 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
         }
 
         // Auspicious note
-        r["auspicious_note"]?.toString()?.let { note ->
+        r.s("auspicious_note")?.let { note ->
             item {
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).border(1.dp, BrahmGold.copy(alpha = 0.25f), RoundedCornerShape(14.dp)).background(BrahmGold.copy(alpha = 0.05f)).padding(14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("✦", fontSize = 18.sp, color = BrahmGold); Text(note, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground))
@@ -727,7 +768,7 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
         }
 
         // Overview
-        r["overview"]?.toString()?.let { overview ->
+        r.s("overview")?.let { overview ->
             item {
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -739,16 +780,15 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
         }
 
         // Life area scores
-        val lifeAreas = r["life_areas"] as? List<Map<String, Any?>>
         if (!lifeAreas.isNullOrEmpty()) {
             item {
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { Icon(Icons.Default.Star, null, tint = BrahmGold, modifier = Modifier.size(14.dp)); Text("Life Area Scores", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)) }
                         lifeAreas.forEach { area ->
-                            val areaName = area["area"]?.toString() ?: ""
-                            val score    = (area["score"] as? Number)?.toInt() ?: 5
-                            val note     = area["note"]?.toString()
+                            val areaName = area.s("area") ?: ""
+                            val score    = area["score"]?.jsonPrimitive?.intOrNull ?: area["score"]?.jsonPrimitive?.doubleOrNull?.toInt() ?: 5
+                            val note     = area.s("note")
                             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { Text(lifeIcons[areaName] ?: "✦", fontSize = 13.sp); Text(areaName, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)) }
@@ -766,26 +806,25 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
         }
 
         // Palm Lines
-        val lines = r["lines"] as? List<Map<String, Any?>>
         if (!lines.isNullOrEmpty()) {
             item { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { Icon(Icons.Default.PanTool, null, tint = BrahmGold, modifier = Modifier.size(16.dp)); Text("Palm Line Analysis", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmGold)) } }
             lines.chunked(2).forEach { pair ->
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         pair.forEach { line ->
-                            val name   = line["name"]?.toString() ?: ""
-                            val color  = lineColors[name] ?: BrahmGold
+                            val name  = line.s("name") ?: ""
+                            val color = lineColors[name] ?: BrahmGold
                             Card(Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                         Box(Modifier.size(10.dp).clip(CircleShape).background(color))
                                         Text(name, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
-                                        line["sanskrit"]?.toString()?.let { Text(it, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp)) }
+                                        line.s("sanskrit")?.let { Text(it, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp)) }
                                     }
-                                    line["visibility"]?.toString()?.let { Box(Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, BrahmBorder, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) { Text(it, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)) } }
-                                    line["observation"]?.toString()?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontStyle = FontStyle.Italic, fontSize = 11.sp)) }
-                                    line["interpretation"]?.toString()?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, fontSize = 11.sp)) }
-                                    line["vedic_note"]?.toString()?.let { Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(Color(0xFFF8F9FA)).border(1.dp, BrahmBorder, RoundedCornerShape(6.dp)).padding(8.dp)) { Text("✦ $it", style = MaterialTheme.typography.labelSmall.copy(color = color, fontStyle = FontStyle.Italic, fontSize = 10.sp)) } }
+                                    line.s("visibility")?.let { Box(Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, BrahmBorder, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) { Text(it, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)) } }
+                                    line.s("observation")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontStyle = FontStyle.Italic, fontSize = 11.sp)) }
+                                    line.s("interpretation")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, fontSize = 11.sp)) }
+                                    line.s("vedic_note")?.let { Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(Color(0xFFF8F9FA)).border(1.dp, BrahmBorder, RoundedCornerShape(6.dp)).padding(8.dp)) { Text("✦ $it", style = MaterialTheme.typography.labelSmall.copy(color = color, fontStyle = FontStyle.Italic, fontSize = 10.sp)) } }
                                 }
                             }
                         }
@@ -796,7 +835,6 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
         }
 
         // Dominant Mounts
-        val mounts = r["dominant_mounts"] as? List<Map<String, Any?>>
         if (!mounts.isNullOrEmpty()) {
             item { Text("Dominant Mounts", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmGold)) }
             mounts.chunked(2).forEach { pair ->
@@ -805,10 +843,10 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
                         pair.forEach { mount ->
                             Card(Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text(mount["name"]?.toString() ?: "", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
-                                    mount["planet"]?.toString()?.let { Text(it, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground)) }
-                                    mount["condition"]?.toString()?.let { Box(Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, BrahmBorder, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) { Text(it.replace("_", " ").replaceFirstChar { c -> c.uppercase() }, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)) } }
-                                    mount["note"]?.toString()?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, fontSize = 11.sp)) }
+                                    Text(mount.s("name") ?: "", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
+                                    mount.s("planet")?.let { Text(it, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground)) }
+                                    mount.s("condition")?.let { Box(Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, BrahmBorder, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) { Text(it.replace("_", " ").replaceFirstChar { c -> c.uppercase() }, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)) } }
+                                    mount.s("note")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, fontSize = 11.sp)) }
                                 }
                             }
                         }
@@ -818,30 +856,31 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
             }
         }
 
-        // Strengths / Challenges / Remedies
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                val strengths  = r["strengths"]  as? List<String>
-                val challenges = r["challenges"] as? List<String>
-                if (!strengths.isNullOrEmpty()) {
-                    Card(Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("Strengths", style = MaterialTheme.typography.titleSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
-                            strengths.forEach { s -> Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { Text("✦", color = BrahmGold, fontSize = 10.sp); Text(s, style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)) } }
+        // Strengths / Challenges
+        if (!strengths.isNullOrEmpty() || !challenges.isNullOrEmpty()) {
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (!strengths.isNullOrEmpty()) {
+                        Card(Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("Strengths", style = MaterialTheme.typography.titleSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
+                                strengths.forEach { s -> Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { Text("✦", color = BrahmGold, fontSize = 10.sp); Text(s, style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)) } }
+                            }
                         }
                     }
-                }
-                if (!challenges.isNullOrEmpty()) {
-                    Card(Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("Growth Areas", style = MaterialTheme.typography.titleSmall.copy(color = Color(0xFFE8650A), fontWeight = FontWeight.SemiBold))
-                            challenges.forEach { c -> Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { Text("◆", color = Color(0xFFE8650A), fontSize = 10.sp); Text(c, style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)) } }
+                    if (!challenges.isNullOrEmpty()) {
+                        Card(Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("Growth Areas", style = MaterialTheme.typography.titleSmall.copy(color = Color(0xFFE8650A), fontWeight = FontWeight.SemiBold))
+                                challenges.forEach { c -> Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { Text("◆", color = Color(0xFFE8650A), fontSize = 10.sp); Text(c, style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)) } }
+                            }
                         }
                     }
                 }
             }
         }
-        val remedies = r["remedies"] as? List<Map<String, Any?>>
+
+        // Remedies
         if (!remedies.isNullOrEmpty()) {
             item {
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
@@ -849,8 +888,8 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
                         Text("🕉️ Vedic Remedies", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
                         remedies.forEach { rem ->
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(rem["title"]?.toString() ?: "", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
-                                Text(rem["detail"]?.toString() ?: "", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
+                                Text(rem.s("title") ?: "", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
+                                Text(rem.s("detail") ?: "", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 11.sp))
                             }
                             HorizontalDivider(color = BrahmBorder)
                         }
@@ -860,7 +899,7 @@ private fun AiReportStep(aiResult: Map<String, Any?>?, palmUri: Uri?, onReset: (
         }
 
         // Summary
-        r["summary"]?.toString()?.let { summary ->
+        r.s("summary")?.let { summary ->
             item {
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.3f))) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

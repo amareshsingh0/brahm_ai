@@ -197,7 +197,7 @@ fun ProfileScreen(
                         val intent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_SUBJECT, "Try Brahm AI — Vedic Astrology App")
-                            putExtra(Intent.EXTRA_TEXT, "Check out Brahm AI — AI-powered Vedic astrology! 🌙✨\nhttps://brahmasmi.bimoraai.com")
+                            putExtra(Intent.EXTRA_TEXT, "Check out Brahm AI — AI-powered Vedic astrology! ☽✨\nhttps://brahmasmi.bimoraai.com")
                         }
                         context.startActivity(Intent.createChooser(intent, "Share Brahm AI"))
                     },
