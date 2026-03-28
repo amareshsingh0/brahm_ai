@@ -25,7 +25,7 @@ import com.bimoraai.brahm.core.components.*
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.kundali.tabs.*
 
-private val TABS = listOf("Charts", "Grahas", "Dashas", "Bhavas", "Chalit", "Strength", "Ashtakavarga", "Upagraha", "Yogas", "Lagna")
+private val TABS = listOf("Charts", "Grahas", "Dashas", "Bhavas", "Chalit", "Shadbala", "Ashtakavarga", "Upagraha", "Yogas", "Lagna")
 
 private val DASHA_COLORS = mapOf(
     "Ketu" to Color(0xFFf97316), "Shukra" to Color(0xFFa855f7), "Surya" to Color(0xFFf59e0b),

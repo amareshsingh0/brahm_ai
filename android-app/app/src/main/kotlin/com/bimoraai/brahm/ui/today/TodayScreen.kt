@@ -25,9 +25,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.*
+import com.bimoraai.brahm.core.data.CitySearchViewModel
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.main.Route
 import kotlinx.coroutines.delay
@@ -145,14 +147,18 @@ fun TodayScreen(
     navController: NavController,
     onNavigateTab: (String) -> Unit = {},
     vm: TodayViewModel = hiltViewModel(),
+    cityVm: CitySearchViewModel = hiltViewModel(),
 ) {
-    val panchang     by vm.panchang.collectAsState()
-    val isLoading    by vm.isLoading.collectAsState()
-    val error        by vm.error.collectAsState()
-    val userName     by vm.userName.collectAsState()
-    val smartAlert   by vm.smartAlert.collectAsState()
-    val hasBirthData by vm.hasBirthData.collectAsState()
-    val todayEvents  by vm.todayEvents.collectAsState()
+    val panchang      by vm.panchang.collectAsState()
+    val isLoading     by vm.isLoading.collectAsState()
+    val error         by vm.error.collectAsState()
+    val userName      by vm.userName.collectAsState()
+    val smartAlert    by vm.smartAlert.collectAsState()
+    val hasBirthData  by vm.hasBirthData.collectAsState()
+    val todayEvents   by vm.todayEvents.collectAsState()
+    val panchangCity  by vm.panchangCity.collectAsState()
+    val citySuggestions by cityVm.suggestions.collectAsState()
+    val cityQuery     by cityVm.cityQuery.collectAsState()
 
     // Live clock
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -170,7 +176,58 @@ fun TodayScreen(
     // Choghadiya tab
     var chogDay by remember { mutableStateOf(true) }
 
+    // City picker dialog
+    var showCityPicker by remember { mutableStateOf(false) }
+
     val p = panchang
+
+    // Inline city search — shown when user taps location pin
+    if (showCityPicker) {
+        Dialog(onDismissRequest = { showCityPicker = false; cityVm.cityQuery.value = "" }) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = BrahmCard,
+                tonalElevation = 4.dp,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.LocationOn, null, tint = BrahmGold, modifier = Modifier.size(18.dp))
+                        Text("Panchang Location", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground))
+                    }
+                    OutlinedTextField(
+                        value = cityQuery,
+                        onValueChange = { cityVm.cityQuery.value = it },
+                        placeholder = { Text("Search city...", style = MaterialTheme.typography.bodySmall) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                    )
+                    citySuggestions.forEach { city ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    vm.setCity(city.name, city.lat, city.lon, city.tz)
+                                    showCityPicker = false
+                                    cityVm.cityQuery.value = ""
+                                }
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Icon(Icons.Default.LocationOn, null, tint = BrahmGold, modifier = Modifier.size(14.dp))
+                            Column {
+                                Text(city.name, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium))
+                                if (city.country.isNotBlank()) Text(city.country, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
@@ -219,7 +276,7 @@ fun TodayScreen(
                             Text("Add birth details to unlock personalized predictions", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                         }
                         Button(
-                            onClick = { navController.navigate(Route.PROFILE_EDIT) },
+                            onClick = { navController.navigate(Route.PROFILE) },
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = BrahmGold),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
@@ -385,7 +442,27 @@ fun TodayScreen(
             // ── 5d. Daily Timings section ────────────────────────────────────
             item {
                 Spacer(Modifier.height(2.dp))
-                TodaySectionHeader("🕐 Daily Timings")
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    TodaySectionHeader("🕐 Daily Timings")
+                    // Location indicator — tap to change city
+                    Row(
+                        modifier = Modifier
+                            .clickable { showCityPicker = true }
+                            .padding(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        Icon(Icons.Default.LocationOn, null, tint = BrahmGold, modifier = Modifier.size(14.dp))
+                        Text(
+                            panchangCity?.name?.take(14) ?: "Set Location",
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontSize = 11.sp),
+                        )
+                    }
+                }
             }
 
             // Build timings list

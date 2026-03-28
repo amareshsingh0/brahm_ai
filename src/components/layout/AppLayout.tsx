@@ -17,7 +17,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { lang } = useLanguageStore();
   const { t, i18n } = useTranslation();
-  const mainRef = useRef<HTMLElement>(null);
+  const mainRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const code = lang.toLowerCase();
@@ -54,10 +54,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           </header>
           <main ref={mainRef} className="flex-1 overflow-x-hidden overflow-y-auto pb-6 px-3 sm:px-5 lg:px-7 pt-5" style={{ maxWidth: "100vw" }}>
             {children}
-            <ScrollToTopButton scrollRef={mainRef} />
           </main>
         </div>
       </div>
+      <ScrollToTopButton scrollRef={mainRef} />
     </SidebarProvider>
   );
 }

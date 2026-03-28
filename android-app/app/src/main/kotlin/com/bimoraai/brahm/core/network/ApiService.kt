@@ -76,7 +76,7 @@ import retrofit2.http.*
     val tz: Double = 5.5,
     val ayanamsha: String = "lahiri",
     val rahu_mode: String = "mean",
-    val calc_options: List<String> = listOf("antardasha", "ashtakavarga", "shadbala", "upagraha"),
+    val calc_options: List<String> = listOf("antardasha", "pratyantar", "sukshma", "ashtakavarga", "shadbala", "upagraha"),
 )
 
 @Serializable data class SaveKundaliRequest(

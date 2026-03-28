@@ -2,13 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function ScrollToTopButton({ scrollRef }: { scrollRef: React.RefObject<HTMLElement> }) {
+export function ScrollToTopButton({ scrollRef }: { scrollRef: React.RefObject<HTMLElement | null> }) {
   const [visible, setVisible] = useState(false);
+  const lastScrollTop = useRef(0);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const onScroll = () => setVisible(el.scrollTop > 300);
+    const onScroll = () => {
+      const current = el.scrollTop;
+      const scrollingUp = current < lastScrollTop.current;
+      setVisible(scrollingUp && current > 200);
+      lastScrollTop.current = current;
+    };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [scrollRef]);

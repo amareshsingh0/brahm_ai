@@ -617,7 +617,7 @@ private fun CalendarGridView(
                                         text = ghostNum.toString(),
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                                     )
                                 }
                             }

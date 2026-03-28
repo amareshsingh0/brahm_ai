@@ -302,16 +302,20 @@ def get_saved_kundali(request: Request, session_id: str = Query(default="")):
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     sb = get_supabase()
-    res = (
-        sb.table("saved_kundalis")
-        .select("*")
-        .eq("user_id", user_id)
-        .order("created_at", desc=True)
-        .limit(1)
-        .maybe_single()
-        .execute()
-    )
-    if not res.data:
+    try:
+        res = (
+            sb.table("saved_kundalis")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .maybe_single()
+            .execute()
+        )
+    except Exception:
+        res = None
+    # .maybe_single() returns None (not APIResponse) when no row found
+    if res is None or not res.data:
         return {"found": False, "kundali": None}
     return {"found": True, "kundali": res.data}
 
@@ -325,14 +329,17 @@ def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Q
 
     sb = get_supabase()
     # Check if already exists
-    existing = (
-        sb.table("saved_kundalis")
-        .select("id")
-        .eq("user_id", user_id)
-        .limit(1)
-        .maybe_single()
-        .execute()
-    )
+    try:
+        existing = (
+            sb.table("saved_kundalis")
+            .select("id")
+            .eq("user_id", user_id)
+            .limit(1)
+            .maybe_single()
+            .execute()
+        )
+    except Exception:
+        existing = None
 
     row = {
         "user_id": user_id,
@@ -348,7 +355,7 @@ def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Q
     }
 
     try:
-        if existing.data:
+        if existing is not None and existing.data:
             sb.table("saved_kundalis").update(row).eq("id", existing.data["id"]).execute()
         else:
             sb.table("saved_kundalis").insert(row).execute()

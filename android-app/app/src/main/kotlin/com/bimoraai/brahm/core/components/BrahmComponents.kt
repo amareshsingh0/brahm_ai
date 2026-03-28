@@ -437,11 +437,18 @@ private fun BotMsgBubble(msg: BotMsg) {
     }
 }
 
-// ─── ScrollToTopFab — shows in bottom-right when user scrolls down 3+ items ──
+// ─── ScrollToTopFab — shows when user scrolls UP (not at top) ──
 @Composable
 fun ScrollToTopFab(listState: LazyListState, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
-    val visible by remember { derivedStateOf { listState.firstVisibleItemIndex > 2 } }
+    // Track scroll direction: show only when scrolling UP and not already at top
+    val isScrollingUp by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 &&
+            listState.lastScrolledBackward
+        }
+    }
+    val visible = isScrollingUp
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,

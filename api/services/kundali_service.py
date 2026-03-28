@@ -906,38 +906,47 @@ def calc_kundali(
 
     # ── Optional Ashtakavarga ────────────────────────────────────
     if "ashtakavarga" in calc_options:
-        from api.services.ashtakavarga import calc_ashtakavarga
-        result["ashtakavarga"] = calc_ashtakavarga(grahas, lagna_rashi_i)
+        try:
+            from api.services.ashtakavarga import calc_ashtakavarga
+            result["ashtakavarga"] = calc_ashtakavarga(grahas, lagna_rashi_i)
+        except Exception:
+            pass  # Non-fatal — skip if calculation fails
 
     # ── Optional Shadbala ────────────────────────────────────────
     if "shadbala" in calc_options:
-        from api.services.shadbala import calc_shadbala, calc_bhavabala
-        sb = calc_shadbala(grahas)
-        result["shadbala"] = sb
-        result["bhavabala"] = calc_bhavabala(houses, grahas, sb)
+        try:
+            from api.services.shadbala import calc_shadbala, calc_bhavabala
+            sb = calc_shadbala(grahas)
+            result["shadbala"] = sb
+            result["bhavabala"] = calc_bhavabala(houses, grahas, sb)
+        except Exception:
+            pass  # Non-fatal — skip if calculation fails
 
     # ── Optional Upagraha ────────────────────────────────────────
     if "upagraha" in calc_options:
-        from api.services.upagraha import calc_upagraha
-        weekday = birth_dt.weekday()  # 0=Monday in Python
-        # Python weekday: 0=Mon…6=Sun → convert to 0=Sun…6=Sat
-        wday_sun = (weekday + 1) % 7
-        # Get sunrise/sunset JDs for proper hora-based calculation
-        _geo = (lon, lat, 0)
         try:
-            _, _tr = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.FLG_SWIEPH, _geo, 0, 0, swe.CALC_RISE | swe.BIT_DISC_CENTER)
-            _, _ts = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.FLG_SWIEPH, _geo, 0, 0, swe.CALC_SET | swe.BIT_DISC_CENTER)
-            _sr_jd = _tr[0] if _tr else 0
-            _ss_jd = _ts[0] if _ts else 0
+            from api.services.upagraha import calc_upagraha
+            weekday = birth_dt.weekday()  # 0=Monday in Python
+            # Python weekday: 0=Mon…6=Sun → convert to 0=Sun…6=Sat
+            wday_sun = (weekday + 1) % 7
+            # Get sunrise/sunset JDs for proper hora-based calculation
+            _geo = (lon, lat, 0)
+            try:
+                _, _tr = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.FLG_SWIEPH, _geo, 0, 0, swe.CALC_RISE | swe.BIT_DISC_CENTER)
+                _, _ts = swe.rise_trans(jd - 0.5, swe.SUN, b"", swe.FLG_SWIEPH, _geo, 0, 0, swe.CALC_SET | swe.BIT_DISC_CENTER)
+                _sr_jd = _tr[0] if _tr else 0
+                _ss_jd = _ts[0] if _ts else 0
+            except Exception:
+                _sr_jd = _ss_jd = 0
+            result["upagraha"] = calc_upagraha(
+                sun_lon=grahas["Surya"]["longitude"],
+                moon_lon=grahas["Chandra"]["longitude"],
+                weekday=wday_sun,
+                sunrise_jd=_sr_jd,
+                sunset_jd=_ss_jd,
+                jd=jd, lat=lat, lon=lon, ayanamsha=ayanamsha,
+            )
         except Exception:
-            _sr_jd = _ss_jd = 0
-        result["upagraha"] = calc_upagraha(
-            sun_lon=grahas["Surya"]["longitude"],
-            moon_lon=grahas["Chandra"]["longitude"],
-            weekday=wday_sun,
-            sunrise_jd=_sr_jd,
-            sunset_jd=_ss_jd,
-            jd=jd, lat=lat, lon=lon, ayanamsha=ayanamsha,
-        )
+            pass  # Non-fatal — skip if calculation fails
 
     return result, None

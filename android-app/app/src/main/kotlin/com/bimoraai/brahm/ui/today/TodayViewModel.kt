@@ -16,6 +16,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
+import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,6 +45,14 @@ class TodayViewModel @Inject constructor(
 
     // Cache today's panchang — it won't change until midnight
     private var cachedDate: String? = null
+
+    // Panchang location (user can override via city search)
+    data class PanchangCity(val name: String, val lat: Double, val lon: Double, val tz: Double)
+    private val _panchangCity = MutableStateFlow<PanchangCity?>(null)
+    val panchangCity = _panchangCity.asStateFlow()
+
+    /** Device system timezone offset in hours (e.g. 5.5 for IST, 7.0 for Bangkok) */
+    private fun deviceTz(): Double = TimeZone.getDefault().rawOffset / 3_600_000.0
 
     init {
         load()
@@ -89,14 +98,32 @@ class TodayViewModel @Inject constructor(
         return null
     }
 
+    /** User picks a city from the search — reload panchang for that city */
+    fun setCity(name: String, lat: Double, lon: Double, tz: Double) {
+        _panchangCity.value = PanchangCity(name, lat, lon, tz)
+        cachedDate = null   // force reload
+        load()
+    }
+
     fun load() {
         val today = LocalDate.now().toString()
         if (cachedDate == today && _panchang.value != null) return
 
+        // Priority: user-selected city > birth location; always use device timezone as tz fallback
+        val city = _panchangCity.value
         val u = userRepository.user.value
-        val lat = if (u != null && u.lat != 0.0) u.lat else 28.6139
-        val lon = if (u != null && u.lon != 0.0) u.lon else 77.2090
-        val tz  = if (u != null && u.tz  != 0.0) u.tz  else 5.5
+        val lat = city?.lat ?: (if (u != null && u.lat != 0.0) u.lat else 28.6139)
+        val lon = city?.lon ?: (if (u != null && u.lon != 0.0) u.lon else 77.2090)
+        // Use device system timezone (correct for current physical location), not birth tz
+        val tz  = city?.tz  ?: deviceTz().takeIf { it != 0.0 } ?: (if (u != null && u.tz != 0.0) u.tz else 5.5)
+
+        // Set city name if not already set (first load — use birth place name)
+        if (_panchangCity.value == null && u != null && u.lat != 0.0) {
+            _panchangCity.value = PanchangCity(
+                name = u.place.ifBlank { "Current Location" },
+                lat = lat, lon = lon, tz = tz,
+            )
+        }
 
         viewModelScope.launch {
             _isLoading.value = true

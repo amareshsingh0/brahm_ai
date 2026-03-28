@@ -33,6 +33,9 @@ class ProfileViewModel @Inject constructor(
     private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
     val saveState = _saveState.asStateFlow()
 
+    private val _sessionExpired = MutableStateFlow(false)
+    val sessionExpired = _sessionExpired.asStateFlow()
+
     // ── City search ──────────────────────────────────────────────────────────
 
     val cityQuery = MutableStateFlow("")
@@ -84,6 +87,11 @@ class ProfileViewModel @Inject constructor(
                 if (res.isSuccessful) {
                     userRepository.refresh()   // update shared cache
                     _saveState.value = SaveState.Success
+                } else if (res.code() == 401) {
+                    // Session expired — clear tokens and force re-login
+                    tokenDataStore.clear()
+                    userRepository.clear()
+                    _sessionExpired.value = true
                 } else {
                     val detail = res.errorBody()?.string() ?: ""
                     _saveState.value = SaveState.Error("Save failed (${res.code()}): $detail")

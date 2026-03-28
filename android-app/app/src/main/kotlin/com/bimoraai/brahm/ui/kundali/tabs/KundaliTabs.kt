@@ -67,7 +67,23 @@ val DASHA_COLORS = mapOf(
     "Mars" to Color(0xFFef4444), "Venus" to Color(0xFFa855f7),
 )
 
-private val GRAHA_ORDER = listOf("Surya","Chandra","Mangal","Budha","Guru","Shukra","Shani","Rahu","Ketu")
+// API uses "Budh" (not "Budha") — must match exactly
+private val GRAHA_ORDER = listOf("Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani","Rahu","Ketu")
+
+private val RASHI_QUALITY = mapOf(
+    "Aries" to "Moveable", "Mesha" to "Moveable",
+    "Taurus" to "Fixed", "Vrishabha" to "Fixed",
+    "Gemini" to "Dual", "Mithuna" to "Dual",
+    "Cancer" to "Moveable", "Karka" to "Moveable",
+    "Leo" to "Fixed", "Simha" to "Fixed",
+    "Virgo" to "Dual", "Kanya" to "Dual",
+    "Libra" to "Moveable", "Tula" to "Moveable",
+    "Scorpio" to "Fixed", "Vrischika" to "Fixed",
+    "Sagittarius" to "Dual", "Dhanu" to "Dual",
+    "Capricorn" to "Moveable", "Makara" to "Moveable",
+    "Aquarius" to "Fixed", "Kumbha" to "Fixed",
+    "Pisces" to "Dual", "Meena" to "Dual",
+)
 
 private val RASHI_NAMES = listOf(
     "Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya",
@@ -124,7 +140,7 @@ private fun planetAbbr(name: String) = when (name.lowercase()) {
     "mangal", "mars"   -> "Ma"
     "budha", "budh", "mercury" -> "Bu"
     "guru", "jupiter"  -> "Gu"
-    "shukra", "venus"  -> "Sh"
+    "shukra", "venus"  -> "Sk"
     "shani", "saturn"  -> "Sa"
     "rahu"             -> "Ra"
     "ketu"             -> "Ke"
@@ -335,14 +351,17 @@ fun ChartTab(data: Map<String, Any?>) {
     fun houseMapForVarga(idx: Int): Map<Int, List<String>> {
         val meta = VARGA_OPTIONS.getOrElse(idx) { VARGA_OPTIONS[0] }
         // BC = Bhav Chalit — use chalit house numbers
+        // bhav_chalit.planets = { "Surya": 3, "Chandra": 5, ... } — value is house number (String from JSON)
         if (meta.code == "BC") {
             @Suppress("UNCHECKED_CAST")
             val bcPlanets = (data["bhav_chalit"] as? Map<String, Any?>)?.get("planets") as? Map<String, Any?>
             if (bcPlanets != null) {
                 val res = mutableMapOf<Int, MutableList<String>>()
                 bcPlanets.forEach { (planet, info) ->
-                    val h = (info as? Map<*, *>)?.get("chalit_house")?.toString()?.toIntOrNull()
-                        ?: (info as? Map<*, *>)?.get("house")?.toString()?.toIntOrNull() ?: return@forEach
+                    val h = info?.toString()?.toIntOrNull()  // direct house number
+                        ?: (info as? Map<*, *>)?.get("chalit_house")?.toString()?.toIntOrNull()
+                        ?: (info as? Map<*, *>)?.get("house")?.toString()?.toIntOrNull()
+                        ?: return@forEach
                     res.getOrPut(h) { mutableListOf() }.add(planetAbbr(planet))
                 }
                 return res.toMap()
@@ -554,44 +573,94 @@ fun ChartTab(data: Map<String, Any?>) {
         }
 
         if (chartSubTab == "graha") {
-            // Graha detail rows — show only for D-1
-            val grahaRows: List<Map<String, Any?>> = if (VARGA_OPTIONS.getOrElse(vargaA) { VARGA_OPTIONS[0] }.div == 1) {
-                GRAHA_ORDER.mapNotNull { gn ->
-                    val g = grahasRaw[gn] as? Map<String, Any?> ?: return@mapNotNull null
-                    buildMap {
-                        put("name", gn)
-                        put("rashi", g["rashi"])
-                        put("house", g["house"])
-                        put("nakshatra", g["nakshatra"])
-                        put("nakshatra_lord", g["nakshatra_lord"])
-                        put("pada", g["pada"])
-                        put("degree", g["degree"])
-                        put("longitude", g["longitude"])
-                        put("retro", g["retro"])
-                        put("combust", g["combust"])
-                        put("status", g["status"])
+            val metaA = VARGA_OPTIONS.getOrElse(vargaA) { VARGA_OPTIONS[1] }
+            val chalitRaw = data["chalit"] as? Map<String, Any?>
+            val chalitPlanets = chalitRaw?.get("planets") as? Map<String, Any?>
+
+            val grahaRows: List<Map<String, Any?>> = when {
+                metaA.div == 1 -> {
+                    // D-1: full detail from grahasRaw
+                    GRAHA_ORDER.mapNotNull { gn ->
+                        val g = grahasRaw[gn] as? Map<String, Any?> ?: return@mapNotNull null
+                        val chalitHouse = (chalitPlanets?.get(gn) as? Map<*, *>)?.get("house")?.toString()?.toIntOrNull()
+                        buildMap {
+                            put("name", gn); put("rashi", g["rashi"]); put("house", g["house"])
+                            put("bc_house", chalitHouse); put("nakshatra", g["nakshatra"])
+                            put("nakshatra_lord", g["nakshatra_lord"]); put("pada", g["pada"])
+                            put("degree", g["degree"]); put("longitude", g["longitude"])
+                            put("retro", g["retro"]); put("combust", g["combust"])
+                            put("status", g["status"]); put("ruler_of", g["ruler_of"])
+                            put("relationship", g["relationship"]); put("speed", g["speed"])
+                            put("lat", g["lat_ecl"]); put("karaka", g["karaka"])
+                        }
                     }
                 }
-            } else if (VARGA_OPTIONS.getOrElse(vargaA) { VARGA_OPTIONS[0] }.div == 9) {
-                // Navamsha rows
-                GRAHA_ORDER.mapNotNull { gn ->
-                    val g = navamshaRaw?.get(gn) as? Map<String, Any?> ?: return@mapNotNull null
-                    val d1g = grahasRaw[gn] as? Map<String, Any?>
-                    buildMap {
-                        put("name", gn)
-                        put("rashi", g["rashi"])
-                        put("house", g["house"])
-                        put("nakshatra", d1g?.get("nakshatra"))
-                        put("nakshatra_lord", d1g?.get("nakshatra_lord"))
-                        put("pada", d1g?.get("pada"))
-                        put("degree", d1g?.get("degree"))
-                        put("longitude", d1g?.get("longitude"))
-                        put("retro", g["retro"])
-                        put("combust", false)
-                        put("status", g["status"])
+                metaA.div == 9 -> {
+                    // D-9 Navamsha: use navamsha positions, D-1 nakshatra/degree
+                    GRAHA_ORDER.mapNotNull { gn ->
+                        val g = navamshaRaw?.get(gn) as? Map<String, Any?> ?: return@mapNotNull null
+                        val d1g = grahasRaw[gn] as? Map<String, Any?>
+                        buildMap {
+                            put("name", gn); put("rashi", g["rashi"]); put("house", g["house"])
+                            put("nakshatra", d1g?.get("nakshatra")); put("nakshatra_lord", d1g?.get("nakshatra_lord"))
+                            put("pada", d1g?.get("pada")); put("degree", d1g?.get("degree"))
+                            put("longitude", d1g?.get("longitude")); put("retro", g["retro"])
+                            put("combust", false); put("status", g["status"])
+                            put("ruler_of", d1g?.get("ruler_of")); put("relationship", d1g?.get("relationship"))
+                            put("speed", d1g?.get("speed")); put("lat", d1g?.get("lat_ecl"))
+                            put("karaka", d1g?.get("karaka"))
+                        }
                     }
                 }
-            } else emptyList()
+                metaA.code == "BC" -> {
+                    // BC: bhav_chalit.planets = { "Surya": 3 } — value is house number (String), not Map
+                    @Suppress("UNCHECKED_CAST")
+                    val bcPlanets = (data["bhav_chalit"] as? Map<String, Any?>)?.get("planets") as? Map<String, Any?>
+                        ?: chalitPlanets ?: emptyMap()
+                    GRAHA_ORDER.mapNotNull { gn ->
+                        val bcVal = bcPlanets[gn]
+                        val bcHouse = bcVal?.toString()?.toIntOrNull()
+                            ?: (bcVal as? Map<*, *>)?.get("chalit_house")?.toString()?.toIntOrNull()
+                            ?: (bcVal as? Map<*, *>)?.get("house")?.toString()?.toIntOrNull()
+                            ?: return@mapNotNull null
+                        val d1g = grahasRaw[gn] as? Map<String, Any?>
+                        buildMap {
+                            put("name", gn)
+                            put("rashi", d1g?.get("rashi"))
+                            put("house", bcHouse)
+                            put("bc_house", null) // already BC house, no shift indicator
+                            put("nakshatra", d1g?.get("nakshatra")); put("nakshatra_lord", d1g?.get("nakshatra_lord"))
+                            put("pada", d1g?.get("pada")); put("degree", d1g?.get("degree"))
+                            put("longitude", d1g?.get("longitude")); put("retro", d1g?.get("retro"))
+                            put("combust", d1g?.get("combust")); put("status", d1g?.get("status"))
+                            put("ruler_of", d1g?.get("ruler_of")); put("relationship", d1g?.get("relationship"))
+                            put("speed", d1g?.get("speed")); put("lat", d1g?.get("lat_ecl"))
+                            put("karaka", d1g?.get("karaka"))
+                        }
+                    }
+                }
+                else -> {
+                    // Any other varga (D-2, D-3, D-4 …): use varga_charts data
+                    @Suppress("UNCHECKED_CAST")
+                    val vc = vargaCharts[metaA.code] as? Map<String, Any?>
+                        ?: vargaCharts["D${metaA.div}"] as? Map<String, Any?>
+                    val vcGrahas = vc?.get("grahas") as? Map<String, Any?> ?: (vc as? Map<String, Any?>)
+                    GRAHA_ORDER.mapNotNull { gn ->
+                        val g = vcGrahas?.get(gn) as? Map<String, Any?> ?: return@mapNotNull null
+                        val d1g = grahasRaw[gn] as? Map<String, Any?>
+                        buildMap {
+                            put("name", gn); put("rashi", g["rashi"]); put("house", g["house"])
+                            put("nakshatra", d1g?.get("nakshatra")); put("nakshatra_lord", d1g?.get("nakshatra_lord"))
+                            put("pada", d1g?.get("pada")); put("degree", d1g?.get("degree"))
+                            put("longitude", d1g?.get("longitude")); put("retro", g["retro"] ?: d1g?.get("retro"))
+                            put("combust", false); put("status", g["status"])
+                            put("ruler_of", d1g?.get("ruler_of")); put("relationship", d1g?.get("relationship"))
+                            put("speed", d1g?.get("speed")); put("lat", d1g?.get("lat_ecl"))
+                            put("karaka", d1g?.get("karaka"))
+                        }
+                    }
+                }
+            }
 
             if (grahaRows.isNotEmpty()) {
                 // Lagna row
@@ -629,7 +698,7 @@ fun ChartTab(data: Map<String, Any?>) {
                 }
 
                 Text(
-                    "Tap row to expand · R=Retrograde C=Combust",
+                    "Tap row to expand · Q = Kendra · R = Retrograde · C = Combust",
                     style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
                 )
             }
@@ -665,38 +734,44 @@ fun ChartTab(data: Map<String, Any?>) {
                         }
                         Spacer(Modifier.width(8.dp))
                         Column(Modifier.weight(1f)) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                 if (rashi.isNotBlank()) Text(rashi, style = MaterialTheme.typography.bodySmall.copy(color = BrahmGold, fontWeight = FontWeight.Medium))
                                 if (lord.isNotBlank()) Text("Lord: $lord", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                                val quality = RASHI_QUALITY[rashi]
+                                if (quality != null) Text(quality, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp))
                             }
                             if (planetsIn.isNotEmpty()) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
+                                Column(verticalArrangement = Arrangement.spacedBy(1.dp), modifier = Modifier.padding(top = 2.dp)) {
                                     planetsIn.forEach { gn ->
-                                        Text(
-                                            gn.take(3),
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                color = GRAHA_COLORS[gn] ?: BrahmGold,
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.SemiBold,
-                                            ),
-                                        )
+                                        val sym = GRAHA_SYMBOLS[gn]
+                                        val en = GRAHA_EN[gn] ?: gn
+                                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            if (!sym.isNullOrBlank() && sym != "Asc") {
+                                                Text(sym, style = MaterialTheme.typography.labelSmall.copy(color = GRAHA_COLORS[gn] ?: BrahmGold, fontSize = 11.sp, fontWeight = FontWeight.Bold))
+                                            }
+                                            Text(
+                                                "$gn ($en)",
+                                                style = MaterialTheme.typography.labelSmall.copy(color = GRAHA_COLORS[gn] ?: BrahmGold, fontSize = 10.sp, fontWeight = FontWeight.SemiBold),
+                                            )
+                                        }
                                     }
                                 }
                             }
                             if (aspectors.isNotEmpty()) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
-                                    Text(
-                                        "Asp: ",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
-                                    )
+                                Column(verticalArrangement = Arrangement.spacedBy(1.dp), modifier = Modifier.padding(top = 2.dp)) {
+                                    Text("Aspects:", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp))
                                     aspectors.forEach { gn ->
-                                        Text(
-                                            "${GRAHA_SYMBOLS[gn] ?: ""}${gn.take(3)}",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                color = GRAHA_COLORS[gn] ?: BrahmMutedForeground,
-                                                fontSize = 9.sp,
-                                            ),
-                                        )
+                                        val sym = GRAHA_SYMBOLS[gn]
+                                        val en = GRAHA_EN[gn] ?: gn
+                                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            if (!sym.isNullOrBlank() && sym != "Asc") {
+                                                Text(sym, style = MaterialTheme.typography.labelSmall.copy(color = GRAHA_COLORS[gn] ?: BrahmMutedForeground, fontSize = 11.sp))
+                                            }
+                                            Text(
+                                                "$gn ($en)",
+                                                style = MaterialTheme.typography.labelSmall.copy(color = GRAHA_COLORS[gn] ?: BrahmMutedForeground, fontSize = 9.sp),
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -718,6 +793,18 @@ private fun ChartGrahaRow(row: Map<String, Any?>, today: String) {
     val status = row["status"]?.toString() ?: ""
     val deg = row["degree"]?.toString()?.toDoubleOrNull() ?: 0.0
     val lon = row["longitude"]?.toString()?.toDoubleOrNull() ?: deg
+    val nakshatra = row["nakshatra"]?.toString() ?: ""
+    val pada = row["pada"]?.toString() ?: ""
+    val house = row["house"]?.toString()?.toIntOrNull()
+    val bcHouse = row["bc_house"]?.toString()?.toIntOrNull()
+    val hasBcShift = bcHouse != null && house != null && bcHouse != house
+    @Suppress("UNCHECKED_CAST")
+    val rulerOf = row["ruler_of"] as? List<*>
+    val rulerStr = rulerOf?.joinToString(",") { "H$it" } ?: ""
+    val relationship = row["relationship"]?.toString() ?: ""
+    val speed = row["speed"]?.toString()?.toDoubleOrNull()
+    val lat = row["lat"]?.toString()?.toDoubleOrNull()
+    val karaka = row["karaka"]?.toString() ?: ""
 
     Column(
         Modifier
@@ -728,7 +815,7 @@ private fun ChartGrahaRow(row: Map<String, Any?>, today: String) {
             .clickable { expanded = !expanded },
     ) {
         Row(
-            Modifier.padding(horizontal = 10.dp, vertical = 7.dp).fillMaxWidth(),
+            Modifier.padding(horizontal = 10.dp, vertical = 6.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -737,22 +824,23 @@ private fun ChartGrahaRow(row: Map<String, Any?>, today: String) {
                 modifier = Modifier.width(16.dp),
             )
             Spacer(Modifier.width(4.dp))
-            Text(
-                gn,
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium, color = BrahmForeground),
-                modifier = Modifier.width(52.dp),
-            )
-            if (retro) Text(
-                "℞",
-                style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFFE8445A), fontWeight = FontWeight.Bold),
-                modifier = Modifier.width(14.dp),
-            )
+            Column(Modifier.width(52.dp)) {
+                Text(
+                    gn.take(7),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium, color = BrahmForeground),
+                    maxLines = 1,
+                )
+                if (nakshatra.isNotBlank()) {
+                    Text(
+                        "${nakshatra.take(8)}${if (pada.isNotBlank()) " P$pada" else ""}",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+                        maxLines = 1,
+                    )
+                }
+            }
+            if (retro) Text("℞", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFFE8445A), fontWeight = FontWeight.Bold), modifier = Modifier.width(14.dp))
             else Spacer(Modifier.width(14.dp))
-            if (combust) Text(
-                "C",
-                style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFFEA580C), fontWeight = FontWeight.Bold),
-                modifier = Modifier.width(14.dp),
-            )
+            if (combust) Text("C", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFFEA580C), fontWeight = FontWeight.Bold), modifier = Modifier.width(14.dp))
             else Spacer(Modifier.width(14.dp))
             Text(
                 if (deg > 0) degToDMS(lon) else row["rashi"]?.toString() ?: "—",
@@ -761,12 +849,37 @@ private fun ChartGrahaRow(row: Map<String, Any?>, today: String) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            // Rules column
             Text(
-                "H${row["house"]?.toString() ?: "—"}",
-                style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, fontWeight = FontWeight.Medium),
-                modifier = Modifier.width(28.dp),
-                textAlign = TextAlign.End,
+                rulerStr.ifBlank { "—" },
+                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+                modifier = Modifier.width(36.dp),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
+            // House + BC shift
+            Column(Modifier.width(36.dp), horizontalAlignment = Alignment.End) {
+                Text(
+                    "H${house ?: "—"}",
+                    style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, fontWeight = FontWeight.Medium),
+                    textAlign = TextAlign.End,
+                )
+                if (hasBcShift) {
+                    Text(
+                        "→H$bcHouse",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontSize = 9.sp),
+                        textAlign = TextAlign.End,
+                    )
+                }
+            }
+        }
+
+        // Status badge row (below main row if present)
+        if (status.isNotBlank()) {
+            Row(Modifier.padding(horizontal = 10.dp).padding(bottom = 6.dp)) {
+                StatusBadge(status)
+            }
         }
 
         if (expanded) {
@@ -774,13 +887,47 @@ private fun ChartGrahaRow(row: Map<String, Any?>, today: String) {
             Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     InfoCell("Rashi", row["rashi"]?.toString() ?: "—", BrahmGold)
-                    InfoCell("House", "H${row["house"]?.toString() ?: "—"}", BrahmForeground)
-                    InfoCell("Pada", "P${row["pada"]?.toString() ?: "—"}", BrahmMutedForeground)
+                    InfoCell("House", "H${house ?: "—"}", BrahmForeground)
+                    InfoCell("Pada", "P${pada.ifBlank { "—" }}", BrahmMutedForeground)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    InfoCell("Nakshatra", row["nakshatra"]?.toString() ?: "—", Color(0xFF7C6FCD))
+                    InfoCell("Nakshatra", nakshatra.ifBlank { "—" }, Color(0xFF7C6FCD))
                     InfoCell("Nak Lord", row["nakshatra_lord"]?.toString() ?: "—", BrahmMutedForeground)
                     if (status.isNotBlank()) Box { StatusBadge(status) }
+                }
+                if (relationship.isNotBlank()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val relColor = when (relationship.lowercase()) {
+                            "friend" -> Color(0xFF16A34A)
+                            "enemy" -> Color(0xFFDC2626)
+                            else -> BrahmMutedForeground
+                        }
+                        Box(Modifier.clip(RoundedCornerShape(4.dp)).background(relColor.copy(0.12f)).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                            Text(relationship, style = MaterialTheme.typography.labelSmall.copy(color = relColor, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                        }
+                    }
+                }
+                if (speed != null || lat != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (speed != null) InfoCell("Speed", "%.3f°/d".format(speed), BrahmMutedForeground)
+                        if (lat != null) InfoCell("Latitude", "%.4f°".format(lat), BrahmMutedForeground)
+                    }
+                }
+                if (rulerStr.isNotBlank()) {
+                    Text("Rules: $rulerStr", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp))
+                }
+                if (karaka.isNotBlank()) {
+                    Text(
+                        "Karaka: $karaka",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                if (combust) {
+                    Text(
+                        "⚠ Combust — within 6° of Sun",
+                        style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFFEA580C), fontSize = 10.sp),
+                    )
                 }
             }
         }
@@ -846,13 +993,18 @@ fun GrahasTab(data: Map<String, Any?>) {
                 speed = g["speed"]?.toString()?.toDoubleOrNull(),
                 latitude = g["lat_ecl"]?.toString()?.toDoubleOrNull(),
                 house = g["house"]?.toString()?.toIntOrNull(),
+                ra = g["ra"]?.toString()?.toDoubleOrNull(),
+                dec = g["dec"]?.toString()?.toDoubleOrNull(),
+                relationship = g["relationship"]?.toString(),
+                karaka = g["karaka"]?.toString(),
             )
         }
 
         Text(
-            "R = Retrograde · C = Combust · Longitude shown in Rashi DMS format",
+            "R = Retrograde · C = Combust · Raw L = Full longitude (0°–360°) · Lat = Ecliptic Latitude · RA = Right Ascension · Dec = Declination",
             style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
             modifier = Modifier.padding(top = 4.dp),
+            lineHeight = 13.sp,
         )
     }
 }
@@ -873,6 +1025,10 @@ private fun GrahaTableRow(
     speed: Double? = null,
     latitude: Double? = null,
     house: Int? = null,
+    ra: Double? = null,
+    dec: Double? = null,
+    relationship: String? = null,
+    karaka: String? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -934,14 +1090,63 @@ private fun GrahaTableRow(
         if (expanded) {
             HorizontalDivider(color = BrahmBorder)
             Column(Modifier.padding(horizontal = 8.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // Row 1: House, Rashi, Nakshatra
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (house != null) InfoCell("House", "H$house")
-                    if (speed != null) InfoCell("Speed", "%.3f°/d".format(speed))
-                    if (latitude != null) InfoCell("Lat Ecl", "%.4f°".format(latitude))
+                    if (rashi.isNotBlank()) InfoCell("Rashi", rashi, BrahmGold)
+                    if (nakshatra.isNotBlank()) InfoCell("Nakshatra", "$nakshatra P$pada", Color(0xFF7C6FCD))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (longitude > 0) InfoCell("Longitude", "%.4f°".format(longitude))
-                    InfoCell("DMS", degToDMS(longitude))
+                // Row 2: Nak Lord, Relationship
+                if (!nakshatraLord.isNullOrBlank() || !relationship.isNullOrBlank()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (!nakshatraLord.isNullOrBlank()) InfoCell("Nak Lord", nakshatraLord)
+                        if (!relationship.isNullOrBlank()) {
+                            val relColor = when (relationship.lowercase()) {
+                                "friend" -> Color(0xFF16A34A)
+                                "enemy" -> Color(0xFFDC2626)
+                                else -> BrahmMutedForeground
+                            }
+                            Box(Modifier.clip(RoundedCornerShape(4.dp)).background(relColor.copy(0.12f)).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                                Text(relationship, style = MaterialTheme.typography.labelSmall.copy(color = relColor, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                            }
+                        }
+                    }
+                }
+                // Row 3: Speed, Latitude
+                if (speed != null || latitude != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (speed != null) InfoCell("Speed", "%.3f°/d".format(speed))
+                        if (latitude != null) InfoCell("Lat", "%.4f°".format(latitude))
+                    }
+                }
+                // Row 4: RA, Dec
+                if (ra != null || dec != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (ra != null) InfoCell("RA", "%.4f°".format(ra))
+                        if (dec != null) InfoCell("Dec", "%.4f°".format(dec))
+                    }
+                }
+                // Row 5: Raw longitude
+                if (longitude > 0) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        InfoCell("Raw L", "%.4f°".format(longitude))
+                        InfoCell("DMS", degToDMS(longitude))
+                    }
+                }
+                // Karaka — full width
+                if (!karaka.isNullOrBlank()) {
+                    Text(
+                        "Karaka: $karaka",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                // Combust notice
+                if (combust) {
+                    Text(
+                        "⚠ Combust — within 6° of Sun",
+                        style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFFEA580C), fontSize = 10.sp),
+                    )
                 }
             }
         }
@@ -950,17 +1155,59 @@ private fun GrahaTableRow(
 
 // ─── Dashas Tab ──────────────────────────────────────────────────────────────
 
+private data class DashaPrediction(val positive: String, val challenge: String, val remedy: String)
+
 private val DASHA_PREDICTIONS = mapOf(
-    "Surya" to "Authority, recognition, government favor. Offer water to Sun, Aditya Hridayam.",
-    "Chandra" to "Public popularity, real estate, travel. Monday fasts, Pearl, offer milk.",
-    "Mangal" to "Energy, courage, property gains. Hanuman Chalisa Tuesdays, Red Coral.",
-    "Budha" to "Intelligence, business, communication. Wednesday fasts, Emerald, feed parrots.",
-    "Budh" to "Intelligence, business, communication. Wednesday fasts, Emerald, feed parrots.",
-    "Guru" to "Fortune, expansion, wisdom, children. Thursday fast, Yellow Sapphire, Brihaspati puja.",
-    "Shukra" to "Love, luxury, artistic success. Friday fast, Diamond or White Sapphire, Lakshmi puja.",
-    "Shani" to "Discipline, delays, hard work rewarded. Saturday fast, Blue Sapphire if benefic, Shani puja.",
-    "Rahu" to "Unconventional success, sudden changes. Gomed, Saturday Rahu puja, Naga puja.",
-    "Ketu" to "Spiritual liberation, detachment. Cat's Eye, Ganesha worship, Ketu mantra.",
+    "Surya" to DashaPrediction(
+        positive  = "Authority, recognition, government favor, leadership, vitality.",
+        challenge = "Ego clashes, father-related issues, health of eyes/heart.",
+        remedy    = "Offer water to Sun at dawn, recite Aditya Hridayam, wear Ruby if benefic.",
+    ),
+    "Chandra" to DashaPrediction(
+        positive  = "Public popularity, real estate gains, travel, emotional well-being.",
+        challenge = "Mental instability, mother-related stress, fluid retention.",
+        remedy    = "Monday fasts, wear Pearl, offer milk and white flowers.",
+    ),
+    "Mangal" to DashaPrediction(
+        positive  = "Energy, courage, property gains, competitive wins, siblings.",
+        challenge = "Anger, accidents, surgery, conflicts with brothers.",
+        remedy    = "Hanuman Chalisa on Tuesdays, Red Coral if benefic, donate red lentils.",
+    ),
+    "Budh" to DashaPrediction(
+        positive  = "Intelligence, business growth, communication, trade, writing.",
+        challenge = "Nervous issues, speech problems, indecisiveness, skin ailments.",
+        remedy    = "Wednesday fasts, wear Emerald if benefic, feed green parrots.",
+    ),
+    "Budh" to DashaPrediction(
+        positive  = "Intelligence, business growth, communication, trade, writing.",
+        challenge = "Nervous issues, speech problems, indecisiveness, skin ailments.",
+        remedy    = "Wednesday fasts, wear Emerald if benefic, feed green parrots.",
+    ),
+    "Guru" to DashaPrediction(
+        positive  = "Fortune, wisdom expansion, children, teachers, higher learning.",
+        challenge = "Over-optimism, weight gain, liver problems, misplaced trust.",
+        remedy    = "Thursday fast, wear Yellow Sapphire if benefic, Brihaspati puja.",
+    ),
+    "Shukra" to DashaPrediction(
+        positive  = "Love, luxury, artistic success, marriage prospects, comforts.",
+        challenge = "Overspending, relationship conflicts, reproductive issues.",
+        remedy    = "Friday fast, wear Diamond or White Sapphire, Lakshmi puja.",
+    ),
+    "Shani" to DashaPrediction(
+        positive  = "Discipline, long-term rewards, karmic justice, property, service.",
+        challenge = "Delays, restrictions, isolation, chronic health issues, losses.",
+        remedy    = "Saturday fast, offer mustard oil to Shani, wear Blue Sapphire only if benefic.",
+    ),
+    "Rahu" to DashaPrediction(
+        positive  = "Unconventional success, foreign gains, sudden breakthroughs, tech.",
+        challenge = "Illusions, addictions, sudden reversals, ancestral issues.",
+        remedy    = "Wear Gomed (Hessonite), Saturday Rahu puja, Naga puja.",
+    ),
+    "Ketu" to DashaPrediction(
+        positive  = "Spiritual liberation, detachment, occult wisdom, past-life merit.",
+        challenge = "Confusion, losses, sudden separations, health of lower limbs.",
+        remedy    = "Wear Cat's Eye if benefic, Ganesha worship, Ketu mantra recitation.",
+    ),
 )
 
 @Composable
@@ -1013,7 +1260,7 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable { if (antardashas.isNotEmpty()) expanded = !expanded }
+                .clickable { expanded = !expanded }
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1039,32 +1286,63 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
                     style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
                 )
             }
-            if (antardashas.isNotEmpty()) {
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = BrahmMutedForeground,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = BrahmMutedForeground,
+                modifier = Modifier.size(18.dp),
+            )
         }
 
-        // Active dasha prediction card
+        // Active dasha prediction card — 3-column Positive/Challenge/Remedy
         if (isActive) {
             val pred = DASHA_PREDICTIONS[planet]
-            if (!pred.isNullOrBlank()) {
+            if (pred != null) {
                 HorizontalDivider(color = Color(0xFFFDE68A))
-                Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        "$planet Dasha Theme",
+                        "$planet Dasha — Theme & Guidance",
                         style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
                     )
-                    Text(pred, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        // Positive
+                        Column(
+                            Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFD1FAE5)).padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("Positive", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF065F46), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
+                            Text(pred.positive, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF064E3B), fontSize = 10.sp), lineHeight = 14.sp)
+                        }
+                        // Challenge
+                        Column(
+                            Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFFEE2E2)).padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("Challenge", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF991B1B), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
+                            Text(pred.challenge, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF7F1D1D), fontSize = 10.sp), lineHeight = 14.sp)
+                        }
+                        // Remedy
+                        Column(
+                            Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFFEF3C7)).padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("Remedy", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF92400E), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
+                            Text(pred.remedy, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF78350F), fontSize = 10.sp), lineHeight = 14.sp)
+                        }
+                    }
                 }
             }
         }
 
         // Antardasha expansion
+        if (expanded && antardashas.isEmpty()) {
+            HorizontalDivider(color = BrahmBorder)
+            Text(
+                "Antardasha data loading… Please wait or regenerate Kundali.",
+                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
         if (expanded && antardashas.isNotEmpty()) {
             HorizontalDivider(color = BrahmBorder)
             Column(
@@ -1091,9 +1369,10 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
     val end = ad["end"]?.toString() ?: ""
     val isActive = isCurrentPeriod(start, end)
     val dotColor = DASHA_COLORS[planet] ?: BrahmGold
+    val enName = GRAHA_EN[planet]
     @Suppress("UNCHECKED_CAST")
     val pratyantardashas = ad["pratyantardashas"] as? List<Map<String, Any?>> ?: emptyList()
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(isActive) }
 
     Column {
         Row(
@@ -1102,29 +1381,40 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
                 .clip(RoundedCornerShape(6.dp))
                 .background(if (isActive) dotColor.copy(0.08f) else Color.Transparent)
                 .clickable { if (pratyantardashas.isNotEmpty()) expanded = !expanded }
-                .padding(horizontal = 6.dp, vertical = 3.dp),
+                .padding(horizontal = 6.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.size(7.dp).clip(RoundedCornerShape(4.dp)).background(dotColor))
-            Spacer(Modifier.width(6.dp))
-            Text(
-                planet,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = if (isActive) dotColor else BrahmForeground,
-                    fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
-                    fontSize = 11.sp,
-                ),
-                modifier = Modifier.width(56.dp),
-            )
-            Text(
-                "$start – $end",
-                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
-                modifier = Modifier.weight(1f),
-            )
-            if (isActive) Text(
-                "★",
-                style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold),
-            )
+            Spacer(Modifier.width(8.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        planet,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = if (isActive) dotColor else BrahmForeground,
+                            fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
+                            fontSize = 11.sp,
+                        ),
+                    )
+                    if (!enName.isNullOrBlank()) {
+                        Text(
+                            "($enName)",
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
+                        )
+                    }
+                    if (isActive) {
+                        Box(
+                            Modifier.clip(RoundedCornerShape(4.dp)).background(Color(0xFFD1FAE5)).padding(horizontal = 4.dp, vertical = 1.dp),
+                        ) {
+                            Text("Active ★", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF065F46), fontWeight = FontWeight.Bold, fontSize = 9.sp))
+                        }
+                    }
+                }
+                Text(
+                    "$start  →  $end",
+                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+                )
+            }
             if (pratyantardashas.isNotEmpty()) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -1135,19 +1425,68 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
             }
         }
 
+        // Active antardasha mini prediction
+        if (isActive) {
+            val pred = DASHA_PREDICTIONS[planet]
+            if (pred != null) {
+                Column(
+                    Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        "$planet Antardasha",
+                        style = MaterialTheme.typography.labelSmall.copy(color = dotColor, fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
+                    )
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(
+                            Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(Color(0xFFD1FAE5)).padding(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text("Positive", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF065F46), fontWeight = FontWeight.SemiBold, fontSize = 9.sp))
+                            Text(pred.positive, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF064E3B), fontSize = 9.sp), lineHeight = 13.sp)
+                        }
+                        Column(
+                            Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(Color(0xFFFEE2E2)).padding(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text("Challenge", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF991B1B), fontWeight = FontWeight.SemiBold, fontSize = 9.sp))
+                            Text(pred.challenge, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF7F1D1D), fontSize = 9.sp), lineHeight = 13.sp)
+                        }
+                        Column(
+                            Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(Color(0xFFFEF3C7)).padding(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text("Remedy", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF92400E), fontWeight = FontWeight.SemiBold, fontSize = 9.sp))
+                            Text(pred.remedy, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF78350F), fontSize = 9.sp), lineHeight = 13.sp)
+                        }
+                    }
+                }
+            }
+        }
+
         if (expanded && pratyantardashas.isNotEmpty()) {
             Column(
-                Modifier.padding(start = 16.dp),
+                Modifier.padding(start = 16.dp, end = 8.dp, top = 2.dp, bottom = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
+                Text(
+                    "Pratyantardasha",
+                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+                    modifier = Modifier.padding(bottom = 2.dp),
+                )
                 pratyantardashas.forEach { pd ->
                     val pName = pd["planet"]?.toString() ?: pd["lord"]?.toString() ?: "—"
                     val pStart = pd["start"]?.toString() ?: ""
                     val pEnd = pd["end"]?.toString() ?: ""
                     val pActive = isCurrentPeriod(pStart, pEnd)
                     val pColor = DASHA_COLORS[pName] ?: BrahmMutedForeground
+                    val pEn = GRAHA_EN[pName]
                     Row(
-                        Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(if (pActive) pColor.copy(0.07f) else Color.Transparent)
+                            .padding(horizontal = 4.dp, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(Modifier.size(5.dp).clip(RoundedCornerShape(3.dp)).background(pColor.copy(0.7f)))
@@ -1155,12 +1494,18 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
                         Text(
                             pName,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = if (pActive) pColor else BrahmMutedForeground,
+                                color = if (pActive) pColor else BrahmForeground,
                                 fontWeight = if (pActive) FontWeight.SemiBold else FontWeight.Normal,
                                 fontSize = 10.sp,
                             ),
-                            modifier = Modifier.width(50.dp),
                         )
+                        if (!pEn.isNullOrBlank()) {
+                            Text(
+                                " ($pEn)",
+                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
                         Text(
                             "$pStart – $pEnd",
                             style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
@@ -1177,13 +1522,6 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
 }
 
 // ─── Houses Tab ──────────────────────────────────────────────────────────────
-
-private val RASHI_QUALITY = mapOf(
-    "Mesha" to "Mas, Movable", "Vrishabha" to "Fem, Fixed", "Mithuna" to "Mas, Common",
-    "Karka" to "Fem, Movable", "Simha" to "Mas, Fixed", "Kanya" to "Fem, Common",
-    "Tula" to "Mas, Movable", "Vrischika" to "Fem, Fixed", "Dhanu" to "Mas, Common",
-    "Makara" to "Fem, Movable", "Kumbha" to "Mas, Fixed", "Meena" to "Fem, Common",
-)
 
 @Composable
 fun HousesTab(data: Map<String, Any?>) {
@@ -1295,10 +1633,13 @@ private fun HouseCard(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (rashi.isNotBlank()) Text(rashi, style = MaterialTheme.typography.titleSmall.copy(color = BrahmForeground, fontWeight = FontWeight.SemiBold))
-                if (lord.isNotBlank()) Text(
-                    "Lord: $lord",
-                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
-                )
+                if (lord.isNotBlank()) {
+                    val lordEn = GRAHA_EN[lord]
+                    Text(
+                        "Lord: $lord${if (!lordEn.isNullOrBlank()) " ($lordEn)" else ""}",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                    )
+                }
             }
             Text(
                 BHAVA_NAMES.getOrElse(idx) { "H$houseNum" },
@@ -1308,43 +1649,47 @@ private fun HouseCard(
                 signification,
                 style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
             )
-            val quality = rashi.let { RASHI_QUALITY[it] } ?: run {
-                listOfNotNull(gender, modality, tattva).joinToString(" · ").takeIf { it.isNotBlank() }
-            }
-            if (!quality.isNullOrBlank()) {
+            val quality: String? = RASHI_QUALITY[rashi]
+                ?: listOfNotNull(gender, modality, tattva).joinToString(" · ").takeIf { it.isNotBlank() }
+            if (quality != null && quality.isNotBlank()) {
                 Text(
                     quality,
                     style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
                 )
             }
             if (planetsIn.isNotEmpty()) {
-                Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     planetsIn.forEach { gn ->
-                        Text(
-                            "${GRAHA_SYMBOLS[gn] ?: ""}${gn.take(3)}",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = GRAHA_COLORS[gn] ?: BrahmGold,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 10.sp,
-                            ),
-                        )
+                        val sym = GRAHA_SYMBOLS[gn]
+                        val en  = GRAHA_EN[gn] ?: gn
+                        val color = GRAHA_COLORS[gn] ?: BrahmGold
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            if (!sym.isNullOrBlank() && sym != "Asc") {
+                                Text(sym, style = MaterialTheme.typography.bodySmall.copy(color = color, fontWeight = FontWeight.Bold, fontSize = 12.sp))
+                            }
+                            Text(
+                                if (gn != en) "$gn ($en)" else gn,
+                                style = MaterialTheme.typography.labelSmall.copy(color = color, fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
+                            )
+                        }
                     }
                 }
             }
             if (aspectors.isNotEmpty()) {
-                Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "Asp: ",
-                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
-                    )
-                    aspectors.forEach { gn ->
-                        Text(
-                            "${GRAHA_SYMBOLS[gn] ?: ""}${gn.take(3)}",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = GRAHA_COLORS[gn] ?: BrahmMutedForeground,
-                                fontSize = 9.sp,
-                            ),
-                        )
+                Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Aspects:", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp))
+                    Row(Modifier.padding(top = 1.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        aspectors.forEach { gn ->
+                            val sym = GRAHA_SYMBOLS[gn]
+                            val en  = GRAHA_EN[gn] ?: gn
+                            val color = GRAHA_COLORS[gn] ?: BrahmMutedForeground
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                if (!sym.isNullOrBlank() && sym != "Asc") {
+                                    Text(sym, style = MaterialTheme.typography.labelSmall.copy(color = color, fontSize = 11.sp))
+                                }
+                                Text(en, style = MaterialTheme.typography.labelSmall.copy(color = color, fontSize = 10.sp))
+                            }
+                        }
                     }
                 }
             }
@@ -1371,7 +1716,7 @@ fun StrengthTab(data: Map<String, Any?>) {
                 style = MaterialTheme.typography.bodyMedium,
             )
         } else {
-            val planets7 = listOf("Surya", "Chandra", "Mangal", "Budha", "Guru", "Shukra", "Shani")
+            val planets7 = listOf("Surya", "Chandra", "Mangal", "Budh", "Guru", "Shukra", "Shani")
 
             // Summary grid
             val rowCount = (planets7.size + 1) / 2
@@ -1677,7 +2022,7 @@ fun AshtakavargaTab(data: Map<String, Any?>) {
         // BAV table — per planet
         if (bav != null) {
             SectionHeader("Bhinnashtakavarga (BAV) — Per Planet")
-            val planets7 = listOf("Surya", "Chandra", "Mangal", "Budha", "Guru", "Shukra", "Shani")
+            val planets7 = listOf("Surya", "Chandra", "Mangal", "Budh", "Guru", "Shukra", "Shani")
 
             BrahmCard(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(8.dp)) {
@@ -1934,12 +2279,11 @@ private fun YogaCard(yoga: Map<String, Any?>) {
             .clip(RoundedCornerShape(10.dp))
             .background(cardBg)
             .border(1.dp, cardBorder, RoundedCornerShape(10.dp))
-            .then(if (!isPresent) Modifier else Modifier),
+            .then(if (isPresent && hasRemedies) Modifier.clickable { expanded = !expanded } else Modifier),
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable { if (isPresent && hasRemedies) expanded = !expanded }
                 .padding(10.dp),
             verticalAlignment = Alignment.Top,
         ) {

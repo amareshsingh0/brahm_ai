@@ -45,9 +45,17 @@ fun ProfileScreen(
     navController: NavController,
     vm: ProfileViewModel = hiltViewModel(),
 ) {
-    val user       by vm.user.collectAsState()
-    val saveState  by vm.saveState.collectAsState()
-    val suggestions by vm.citySuggestions.collectAsState()
+    val user          by vm.user.collectAsState()
+    val saveState     by vm.saveState.collectAsState()
+    val sessionExpired by vm.sessionExpired.collectAsState()
+    val suggestions   by vm.citySuggestions.collectAsState()
+
+    // Session expired → force logout to login screen
+    LaunchedEffect(sessionExpired) {
+        if (sessionExpired) {
+            navController.navigate(Route.LOGIN) { popUpTo(0) }
+        }
+    }
     val context    = LocalContext.current
     val focusManager = LocalFocusManager.current
     var showLogoutDialog   by remember { mutableStateOf(false) }

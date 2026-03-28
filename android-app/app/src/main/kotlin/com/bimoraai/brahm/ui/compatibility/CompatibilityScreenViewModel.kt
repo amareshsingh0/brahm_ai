@@ -40,6 +40,8 @@ class CompatibilityScreenViewModel @Inject constructor(
     val lon1  = MutableStateFlow(0.0)
     val tz1   = MutableStateFlow("5.5")
 
+    val varnaSystem = MutableStateFlow("both") // "both" | "nakshatra" | "rashi"
+
     // Person B
     val name2 = MutableStateFlow("")
     val dob2  = MutableStateFlow("")
@@ -76,6 +78,7 @@ class CompatibilityScreenViewModel @Inject constructor(
             _error.value     = null
             try {
                 val body = buildJsonObject {
+                    put("varna_system", JsonPrimitive(varnaSystem.value))
                     put("person_a", buildJsonObject {
                         put("name",  JsonPrimitive(name1.value.ifBlank { "Person A" }))
                         put("date",  JsonPrimitive(dob1.value))
