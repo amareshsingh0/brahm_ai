@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.PageBotFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -21,6 +22,10 @@ fun SadeSatiScreen(navController: NavController, vm: SadeSatiScreenViewModel = h
     val isLoading       by vm.isLoading.collectAsState()
     val saturnError     by vm.saturnError.collectAsState()
     val selectedMoon    by vm.selectedMoonRashi.collectAsState()
+
+    val sadeSatiPageData = remember(shaniRashi, shaniDegree, lagnaRashi, selectedMoon) {
+        "{\"shani_rashi\":\"$shaniRashi\",\"shani_degree\":$shaniDegree,\"lagna_rashi\":\"$lagnaRashi\",\"moon_rashi\":\"$selectedMoon\",\"page\":\"sadesati\"}"
+    }
 
     SwipeBackLayout(navController) {
     Scaffold(
@@ -44,6 +49,9 @@ fun SadeSatiScreen(navController: NavController, vm: SadeSatiScreenViewModel = h
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
+        },
+        floatingActionButton = {
+            if (shaniRashi.isNotBlank()) PageBotFab(pageContext = "sadesati", pageData = sadeSatiPageData)
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {

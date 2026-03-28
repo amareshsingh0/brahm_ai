@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
@@ -107,7 +108,7 @@ fun PrashnaContent(data: JsonObject, onReset: () -> Unit) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().background(BrahmBackground),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
 
@@ -314,7 +315,7 @@ fun PrashnaInputForm(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
 
@@ -381,8 +382,8 @@ fun PrashnaInputForm(
                             onValueChange = onQuestionChange,
                             placeholder = { Text("Will I get the job? Should I travel now?", fontSize = 13.sp) },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = brahmFieldColors(),
                             singleLine = true,
                         )
                     }

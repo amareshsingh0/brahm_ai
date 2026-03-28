@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.data.CitySearchViewModel
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.*
@@ -255,10 +256,7 @@ fun PanchangScreen(
                                             leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp)) },
                                             modifier = Modifier.fillMaxWidth(),
                                             singleLine = true,
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedBorderColor = BrahmGold,
-                                                unfocusedBorderColor = BrahmBorder,
-                                            ),
+                                            colors = brahmFieldColors(),
                                         )
                                         if (suggestions.isEmpty() && cityQuery.isBlank()) {
                                             Text(
@@ -434,11 +432,8 @@ private fun FestivalsTab(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BrahmGold,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.3f),
-                ),
+                shape = RoundedCornerShape(14.dp),
+                colors = brahmFieldColors(),
             )
         }
 

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
@@ -125,14 +126,11 @@ private fun EventDatePicker(
             modifier      = Modifier.fillMaxWidth(),
             label         = { Text("Event Date") },
             placeholder   = { Text("Select date", color = BrahmMutedForeground) },
-            leadingIcon   = { Icon(Icons.Default.CalendarToday, null, tint = BrahmGold) },
+            leadingIcon   = { Icon(Icons.Default.CalendarToday, null) },
             trailingIcon  = { Icon(Icons.Default.CalendarMonth, null, tint = BrahmMutedForeground) },
             singleLine    = true,
-            shape         = RoundedCornerShape(10.dp),
-            colors        = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor   = BrahmGold,
-                unfocusedBorderColor = BrahmBorder,
-            ),
+            shape         = RoundedCornerShape(14.dp),
+            colors        = brahmFieldColors(),
         )
         Box(Modifier.matchParentSize().clickable { showPicker = true })
     }
@@ -243,7 +241,7 @@ fun RectificationInputForm(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         // ── Birth Details ──
@@ -272,8 +270,10 @@ fun RectificationInputForm(
                     // Uncertainty chips
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("Time Uncertainty", fontSize = 11.sp, color = BrahmMutedForeground)
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            UNCERTAINTY_OPTIONS.forEach { (mins, label) ->
+                        androidx.compose.foundation.lazy.LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            items(UNCERTAINTY_OPTIONS.entries.toList()) { (mins, label) ->
                                 val selected = uncertainty == mins
                                 Box(
                                     modifier = Modifier
@@ -289,6 +289,7 @@ fun RectificationInputForm(
                                         fontSize = 11.sp,
                                         color = if (selected) BrahmGold else BrahmMutedForeground,
                                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                        maxLines = 1,
                                     )
                                 }
                             }
@@ -401,7 +402,7 @@ fun RectificationContent(data: JsonObject, onReset: () -> Unit) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().background(BrahmBackground),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Header

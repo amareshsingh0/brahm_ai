@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.PageBotFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -24,6 +25,8 @@ fun KPScreen(navController: NavController, vm: KPScreenViewModel = hiltViewModel
     val dob       by vm.dob.collectAsState()
     val tob       by vm.tob.collectAsState()
     val pob       by vm.pob.collectAsState()
+
+    val kpPageData = remember(result) { result?.toString() ?: "{}" }
 
     SwipeBackLayout(navController) {
     Scaffold(
@@ -42,6 +45,9 @@ fun KPScreen(navController: NavController, vm: KPScreenViewModel = hiltViewModel
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
+        },
+        floatingActionButton = {
+            if (hasData) PageBotFab(pageContext = "kp", pageData = kpPageData)
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {

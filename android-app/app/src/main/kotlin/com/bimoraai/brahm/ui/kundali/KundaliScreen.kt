@@ -162,7 +162,7 @@ private fun KundaliResultView(
         androidx.compose.foundation.lazy.LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // ── Settings strip ───────────────────────────────────────────────

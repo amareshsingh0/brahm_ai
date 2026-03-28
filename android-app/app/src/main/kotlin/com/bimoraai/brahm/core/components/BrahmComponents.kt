@@ -7,17 +7,22 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -253,13 +261,15 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier) {
 
 /**
  * Floating Action Button that opens a contextual AI chat bottom sheet.
- * Add to any screen's Scaffold floatingActionButton slot or via [WithAiFab].
+ * Each page gets its own isolated ViewModel instance (keyed by pageContext).
  *
- * @param pageContext  Sent to backend as page_context so AI has screen-specific awareness.
+ * @param pageContext  Sent to backend — determines which AI context/session to use.
+ * @param pageData     JSON string of the screen's current API result for AI analysis.
  */
 @Composable
 fun PageBotFab(
     pageContext: String = "general",
+    pageData: String = "{}",
     modifier: Modifier = Modifier,
 ) {
     var showSheet by remember { mutableStateOf(false) }
@@ -275,41 +285,81 @@ fun PageBotFab(
     }
 
     if (showSheet) {
-        PageBotSheet(pageContext = pageContext, onDismiss = { showSheet = false })
+        PageBotSheet(
+            pageContext = pageContext,
+            pageData    = pageData,
+            onDismiss   = { showSheet = false },
+        )
     }
 }
 
 /**
  * Wraps a feature screen with the AI FAB at bottom-end.
- * Use in AppNavHost around screens that don't have their own Scaffold FAB slot.
  */
 @Composable
 fun WithAiFab(
     pageContext: String = "general",
+    pageData: String = "{}",
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(Modifier.fillMaxSize()) {
         content()
         PageBotFab(
             pageContext = pageContext,
-            modifier = Modifier
+            pageData    = pageData,
+            modifier    = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp, bottom = 16.dp),
         )
     }
 }
 
+// Per-page starter suggestions (mirrors website PAGE_SUGGESTIONS)
+private val PAGE_SUGGESTIONS = mapOf(
+    "gochar"        to listOf("Mere liye current transit kaisa hai?", "Shani ka asar kab tak rahega?", "Kaunsa graha vakri hai?"),
+    "kp"            to listOf("Mera star lord kaun hai?", "Career kab banega KP ke hisaab se?", "Sub lord ka matlab batao"),
+    "sadesati"      to listOf("Meri sade sati kab khatam hogi?", "Kaunsa phase chal raha hai?", "Sade sati ke upay batao"),
+    "varshpal"      to listOf("Is saal ka sabse important graha?", "Varshphal lagna ka matlab?", "Muntha ka asar kya hoga?"),
+    "kundali"       to listOf("Sabse strong graha kaun hai?", "Agle saal kaisa rahega?", "Career ke liye best period?"),
+    "dosha"         to listOf("Mangal dosha ka kya asar hai?", "Dosha ke upay batao", "Kaal sarp dosh cancel hoga?"),
+    "palmistry"     to listOf("Meri jeewan rekha kaisi hai?", "Career line kya kehti hai?", "Vivah rekha batao"),
+    "horoscope"     to listOf("Aaj ka din kaisa rahega?", "Is mahine ka overview?", "Lucky time kab hai?"),
+    "panchang"      to listOf("Aaj ka din kaisa hai?", "Rahukaal mein kya nahi karna chahiye?", "Aaj ki tithi ka mahatva?"),
+    "compatibility" to listOf("Yeh score achha hai?", "Nadi dosha ke upay?", "Vivah ke liye sahi samay?"),
+    "prashna"       to listOf("Kya meri wish poori hogi?", "Prashna kundali kya keh rahi hai?", "Lagna lord strong hai?"),
+    "rectification" to listOf("Mera sahi janam samay kya hai?", "Rectification kaise kaam karta hai?", "Dasha se birth time confirm karo"),
+)
+
+private val PAGE_LABELS = mapOf(
+    "gochar"        to "Gochar Analysis",
+    "kp"            to "KP System",
+    "sadesati"      to "Sade Sati",
+    "varshpal"      to "Varshphal",
+    "kundali"       to "Kundali",
+    "dosha"         to "Dosha",
+    "palmistry"     to "Palmistry",
+    "horoscope"     to "Horoscope",
+    "panchang"      to "Panchang",
+    "compatibility" to "Compatibility",
+    "prashna"       to "Prashna Kundali",
+    "rectification" to "Rectification",
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PageBotSheet(
     pageContext: String = "general",
+    pageData: String = "{}",
     onDismiss: () -> Unit,
-    vm: PageBotViewModel = hiltViewModel(),
+    // key = pageContext gives each page its own isolated ViewModel & message history
+    vm: PageBotViewModel = hiltViewModel(key = pageContext),
 ) {
     val msgs      by vm.msgs.collectAsState()
     val streaming by vm.streaming.collectAsState()
     var input     by remember { mutableStateOf("") }
     val listState  = rememberLazyListState()
+    val suggestions = PAGE_SUGGESTIONS[pageContext] ?: listOf("Is report ke baare mein batao", "Kya yeh mere liye achha hai?", "Upay batao")
+    val pageLabel   = PAGE_LABELS[pageContext] ?: "Brahm AI"
 
     LaunchedEffect(msgs.size) {
         if (msgs.isNotEmpty()) listState.animateScrollToItem(msgs.lastIndex)
@@ -341,7 +391,7 @@ fun PageBotSheet(
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Ask Brahm AI", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
-                    Text("Vedic astrology assistant", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                    Text(pageLabel, style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold))
                 }
                 if (msgs.isNotEmpty()) {
                     TextButton(onClick = { vm.clear() }) {
@@ -354,26 +404,106 @@ fun PageBotSheet(
 
             // Messages area
             if (msgs.isEmpty()) {
-                Box(
-                    Modifier.fillMaxWidth().padding(vertical = 28.dp),
-                    contentAlignment = Alignment.Center,
+                // Suggestions chips
+                Column(
+                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        "Ask anything about astrology…",
-                        color = BrahmMutedForeground,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
+                        "Yeh puch sakte ho:",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
                     )
+                    suggestions.forEach { suggestion ->
+                        SuggestionChip(
+                            onClick = { vm.send(suggestion, pageContext, pageData); },
+                            label   = { Text(suggestion, style = MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors  = SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = BrahmGold.copy(alpha = 0.08f),
+                            ),
+                            border  = SuggestionChipDefaults.suggestionChipBorder(
+                                enabled        = true,
+                                borderColor    = BrahmGold.copy(alpha = 0.3f),
+                                borderWidth    = 1.dp,
+                            ),
+                        )
+                    }
                 }
             } else {
+                val clipboardManager = LocalClipboardManager.current
                 LazyColumn(
                     state             = listState,
-                    modifier          = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                    modifier          = Modifier.fillMaxWidth().heightIn(max = 320.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding    = PaddingValues(vertical = 4.dp),
                 ) {
-                    items(msgs) { msg -> BotMsgBubble(msg) }
+                    itemsIndexed(msgs) { idx, msg ->
+                        val isStreamingThis = streaming && !msg.isUser && idx == msgs.lastIndex
+                        BotMsgBubble(
+                            msg = msg,
+                            isStreaming = isStreamingThis,
+                            onLongPress = {
+                                if (!msg.isUser) clipboardManager.setText(AnnotatedString(parseFollowups(msg.text).first))
+                            },
+                        )
+                    }
                 }
+
+                // Copy + Regenerate row — shown below last assistant message after stream ends
+                if (!streaming && msgs.lastOrNull()?.isUser == false) {
+                    val lastBotText = parseFollowups(msgs.last().text).first
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        TextButton(
+                            onClick = { clipboardManager.setText(AnnotatedString(lastBotText)) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                        ) {
+                            Icon(Icons.Default.ContentCopy, null, modifier = Modifier.size(13.dp), tint = BrahmMutedForeground)
+                            Spacer(Modifier.width(4.dp))
+                            Text("Copy", style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, color = BrahmMutedForeground))
+                        }
+                        TextButton(
+                            onClick = { vm.regenerate() },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                        ) {
+                            Icon(Icons.Default.Refresh, null, modifier = Modifier.size(13.dp), tint = BrahmMutedForeground)
+                            Spacer(Modifier.width(4.dp))
+                            Text("Regenerate", style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, color = BrahmMutedForeground))
+                        }
+                    }
+                }
+
+                // Followup suggestion chips — parsed from last assistant message after stream ends
+                if (!streaming && msgs.isNotEmpty()) {
+                    val lastAssistant = msgs.lastOrNull { !it.isUser }
+                    val followups = lastAssistant?.let { parseFollowups(it.text).second } ?: emptyList()
+                    if (followups.isNotEmpty()) {
+                        Spacer(Modifier.height(6.dp))
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            followups.forEach { q ->
+                                SuggestionChip(
+                                    onClick = { vm.send(q, pageContext, pageData) },
+                                    label   = { Text(q, style = MaterialTheme.typography.labelSmall) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors  = SuggestionChipDefaults.suggestionChipColors(
+                                        containerColor = BrahmGold.copy(alpha = 0.08f),
+                                    ),
+                                    border  = SuggestionChipDefaults.suggestionChipBorder(
+                                        enabled     = true,
+                                        borderColor = BrahmGold.copy(alpha = 0.35f),
+                                        borderWidth = 1.dp,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(8.dp))
             }
 
@@ -386,17 +516,14 @@ fun PageBotSheet(
                     value         = input,
                     onValueChange = { input = it },
                     modifier      = Modifier.weight(1f),
-                    placeholder   = { Text("Type your question…", color = BrahmMutedForeground) },
+                    placeholder   = { Text("Kuchh bhi puchho…", color = BrahmMutedForeground) },
                     singleLine    = true,
                     shape         = RoundedCornerShape(24.dp),
-                    colors        = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor   = BrahmGold,
-                        unfocusedBorderColor = BrahmBorder,
-                    ),
+                    colors        = brahmFieldColors(),
                 )
                 val canSend = input.isNotBlank() && !streaming
                 FilledIconButton(
-                    onClick  = { if (canSend) { vm.send(input, pageContext); input = "" } },
+                    onClick  = { if (canSend) { vm.send(input, pageContext, pageData); input = "" } },
                     enabled  = canSend,
                     colors   = IconButtonDefaults.filledIconButtonColors(containerColor = BrahmGold),
                 ) {
@@ -412,27 +539,71 @@ fun PageBotSheet(
     }
 }
 
+private val followupsRegex = Regex("""\[FOLLOWUPS:\s*(.*?)\]""", setOf(RegexOption.DOT_MATCHES_ALL))
+
+/** Strips the [FOLLOWUPS: ...] tag from text and returns (cleanText, listOfSuggestions). */
+private fun parseFollowups(text: String): Pair<String, List<String>> {
+    val match = followupsRegex.find(text) ?: return text to emptyList()
+    val clean = text.substring(0, match.range.first).trimEnd()
+    val items = match.groupValues[1]
+        .split("|")
+        .map { it.trim().removeSurrounding("\"") }
+        .filter { it.isNotBlank() }
+    return clean to items
+}
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BotMsgBubble(msg: BotMsg) {
-    Row(
-        modifier              = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (msg.isUser) Arrangement.End else Arrangement.Start,
-    ) {
-        Surface(
-            shape = RoundedCornerShape(
-                topStart    = 16.dp, topEnd = 16.dp,
-                bottomStart = if (msg.isUser) 16.dp else 4.dp,
-                bottomEnd   = if (msg.isUser) 4.dp  else 16.dp,
-            ),
-            color    = if (msg.isUser) BrahmGold else Color(0xFFF5F0E8),
-            modifier = Modifier.widthIn(max = 280.dp),
-        ) {
-            Text(
-                text     = msg.text.ifBlank { "…" },
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                style    = MaterialTheme.typography.bodySmall,
-                color    = if (msg.isUser) Color.White else BrahmForeground,
-            )
+private fun BotMsgBubble(msg: BotMsg, isStreaming: Boolean = false, onLongPress: () -> Unit = {}) {
+    if (msg.isUser) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Surface(
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                color = BrahmGold,
+                modifier = Modifier.widthIn(max = 280.dp),
+            ) {
+                Text(
+                    text     = msg.text,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = Color.White,
+                )
+            }
+        }
+    } else {
+        val (cleanText, _) = parseFollowups(msg.text)
+        if (isStreaming || cleanText.isBlank()) {
+            // Stream tokens as plain text
+            Surface(
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                color = Color(0xFFF5F0E8),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .combinedClickable(onClick = {}, onLongClick = onLongPress),
+            ) {
+                Text(
+                    text     = cleanText.ifBlank { "…" },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = BrahmForeground,
+                )
+            }
+        } else {
+            // Complete — use rich card from ChatScreen (reuse same logic via Surface for PageBot)
+            Surface(
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                color = Color(0xFFF5F0E8),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .combinedClickable(onClick = {}, onLongClick = onLongPress),
+            ) {
+                Text(
+                    text     = cleanText.ifBlank { "…" },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = BrahmForeground,
+                )
+            }
         }
     }
 }

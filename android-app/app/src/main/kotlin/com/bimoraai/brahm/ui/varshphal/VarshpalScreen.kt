@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
+import com.bimoraai.brahm.core.components.PageBotFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -25,6 +26,8 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
     val tob        by vm.tob.collectAsState()
     val pob        by vm.pob.collectAsState()
     val targetYear by vm.targetYear.collectAsState()
+
+    val varshpalPageData = remember(result) { result?.toString() ?: "{}" }
 
     SwipeBackLayout(navController) {
     Scaffold(
@@ -43,6 +46,9 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
+        },
+        floatingActionButton = {
+            if (hasData) PageBotFab(pageContext = "varshpal", pageData = varshpalPageData)
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {

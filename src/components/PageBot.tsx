@@ -4,13 +4,155 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Loader2, ChevronDown, Trash2, UserCircle, X as XIcon, Plus, BookOpen, Save, CheckCircle } from 'lucide-react';
+import { Bot, Send, Loader2, ChevronDown, Trash2, UserCircle, X as XIcon, Plus, BookOpen, Save, CheckCircle, Copy, RefreshCw } from 'lucide-react';
 import { useChat, type BirthFormData, type SaveKundaliPromptData } from '@/hooks/useChat';
 import { useFactSheet } from '@/hooks/useFactSheet';
 import { useKundliStore } from '@/store/kundliStore';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+// ── Markdown renderer ────────────────────────────────────────────────────────
+type MdBlock =
+  | { type: 'heading'; text: string }
+  | { type: 'para'; text: string }
+  | { type: 'quote'; text: string }
+  | { type: 'bullet'; text: string }
+  | { type: 'numbered'; n: number; text: string }
+  | { type: 'callout'; label: string; text: string }
+  | { type: 'divider'; label?: string };
+
+function parseMarkdown(raw: string): MdBlock[] {
+  const lines = raw.trim().split('\n');
+  const blocks: MdBlock[] = [];
+  let numIdx = 0;
+
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { numIdx = 0; continue; }
+    if (t.startsWith('### ')) { blocks.push({ type: 'heading', text: t.slice(4) }); continue; }
+    if (t.startsWith('## '))  { blocks.push({ type: 'heading', text: t.slice(3) }); continue; }
+    if (t.startsWith('# '))   { blocks.push({ type: 'heading', text: t.slice(2) }); continue; }
+    if (t.startsWith('> '))   { blocks.push({ type: 'quote',   text: t.slice(2) }); continue; }
+    if (t.startsWith('- ') || t.startsWith('• ')) {
+      blocks.push({ type: 'bullet', text: t.slice(2).trim() }); numIdx = 0; continue;
+    }
+    const numMatch = t.match(/^(\d+)\.\s+(.*)/);
+    if (numMatch) {
+      numIdx++;
+      blocks.push({ type: 'numbered', n: numIdx, text: numMatch[2] }); continue;
+    }
+    if (t === '---' || t === '***') { blocks.push({ type: 'divider' }); continue; }
+    if (/^[💡📌✨⚠️]/.test(t)) {
+      blocks.push({ type: 'callout', label: 'Note', text: t.replace(/^[💡📌✨⚠️]\s*/, '') }); continue;
+    }
+    blocks.push({ type: 'para', text: t }); numIdx = 0;
+  }
+  return blocks.filter(b => b.type !== 'para' || (b as { type: 'para'; text: string }).text.trim());
+}
+
+function InlineText({ text }: { text: string }) {
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+  return (
+    <>
+      {parts.map((p, i) => {
+        if (p.startsWith('**') && p.endsWith('**'))
+          return <strong key={i} className="font-semibold text-foreground">{p.slice(2, -2)}</strong>;
+        if (p.startsWith('*') && p.endsWith('*'))
+          return <em key={i} className="italic text-muted-foreground">{p.slice(1, -1)}</em>;
+        if (p.startsWith('`') && p.endsWith('`'))
+          return <code key={i} className="bg-muted/60 text-[10px] px-1 py-0.5 rounded font-mono">{p.slice(1, -1)}</code>;
+        return <span key={i}>{p}</span>;
+      })}
+    </>
+  );
+}
+
+function RichAiCard({ content }: { content: string }) {
+  const blocks = parseMarkdown(content);
+  const isRich = content.length > 200 || content.includes('\n') || content.includes('**') ||
+    content.includes('\n- ') || content.includes('\n• ') || content.includes('\n# ');
+
+  if (!isRich) {
+    return (
+      <div className="max-w-[88%] rounded-tl rounded-tr-2xl rounded-br-2xl rounded-bl-2xl bg-white border border-border/50 shadow-sm px-3 py-2.5 text-xs leading-relaxed text-foreground">
+        <InlineText text={content} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-[92%] rounded-tl rounded-tr-2xl rounded-br-2xl rounded-bl-2xl border border-border/50 shadow-sm overflow-hidden bg-white">
+      {/* Gold accent bar */}
+      <div className="h-0.5 bg-gradient-to-r from-amber-600 via-orange-500 to-transparent" />
+      <div className="px-3.5 py-3 flex flex-col gap-2">
+        {blocks.map((b, i) => {
+          switch (b.type) {
+            case 'heading':
+              return (
+                <p key={i} className="text-[12px] font-bold text-foreground leading-snug tracking-tight">
+                  {b.text}
+                </p>
+              );
+            case 'para':
+              return (
+                <p key={i} className="text-[11.5px] leading-relaxed text-[#3a3a3a]">
+                  <InlineText text={b.text} />
+                </p>
+              );
+            case 'quote':
+              return (
+                <div key={i} className="flex">
+                  <div className="w-0.5 rounded-full bg-amber-500 shrink-0" />
+                  <div className="ml-2.5 bg-amber-50/60 rounded-r-lg px-2.5 py-2 text-[11.5px] italic leading-relaxed text-[#3a3a3a] flex-1">
+                    <InlineText text={b.text} />
+                  </div>
+                </div>
+              );
+            case 'bullet':
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <p className="text-[11.5px] leading-relaxed text-[#3a3a3a]">
+                    <InlineText text={b.text} />
+                  </p>
+                </div>
+              );
+            case 'numbered':
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-[11px] font-bold text-amber-600 shrink-0 mt-0.5 min-w-[16px]">{b.n}.</span>
+                  <p className="text-[11.5px] leading-relaxed text-[#3a3a3a]">
+                    <InlineText text={b.text} />
+                  </p>
+                </div>
+              );
+            case 'callout':
+              return (
+                <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                  {b.label && (
+                    <p className="text-[9px] font-bold uppercase tracking-wide text-amber-700 mb-1">{b.label}</p>
+                  )}
+                  <p className="text-[11px] leading-relaxed text-amber-900">
+                    <InlineText text={b.text} />
+                  </p>
+                </div>
+              );
+            case 'divider':
+              return (
+                <div key={i} className="flex items-center gap-2 py-1">
+                  <div className="flex-1 h-px bg-border/40" />
+                  {b.label && <span className="text-[9px] text-muted-foreground uppercase tracking-wide">{b.label}</span>}
+                  <div className="flex-1 h-px bg-border/40" />
+                </div>
+              );
+            default: return null;
+          }
+        })}
+      </div>
+    </div>
+  );
+}
 
 const PAGE_SUGGESTIONS: Record<string, string[]> = {
   kundali:       ['Sabse strong graha kaun hai?', 'Agle saal kaisa rahega?', 'Career ke liye best period?'],
@@ -175,8 +317,16 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
   const {
     messages, sources, streaming,
     showBirthForm, saveKundaliPrompt,
-    sendMessage, submitBirthForm, dismissSavePrompt, clearHistory,
+    sendMessage, submitBirthForm, dismissSavePrompt, clearHistory, regenerate,
   } = useChat({ pageContext, pageData, persistKey: pageContext });
+
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const copyMessage = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx(null), 1500);
+    });
+  };
 
   const suggestions = PAGE_SUGGESTIONS[pageContext] ?? PAGE_SUGGESTIONS.general;
   const hasMessages = messages.length > 0;
@@ -344,14 +494,57 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
               {messages.map((msg, i) => {
                 const isLastAssistant = msg.role === 'assistant' && i === messages.length - 1;
                 const showFollowups = msg.isComplete && (msg.followUps?.length ?? 0) > 0;
+                const showActions = msg.role === 'assistant' && msg.content && (msg.isComplete || !streaming);
 
                 return (
                   <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    <div className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
-                      msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/40 text-foreground'
-                    }`}>
-                      {msg.content || (streaming && isLastAssistant ? <Loader2 className="h-3 w-3 animate-spin" /> : '')}
-                    </div>
+                    {msg.role === 'user' ? (
+                      <div className="max-w-[85%] rounded-tl-2xl rounded-tr rounded-bl-2xl rounded-br-2xl bg-primary text-primary-foreground px-3 py-2 text-xs leading-relaxed">
+                        {msg.content}
+                      </div>
+                    ) : msg.content ? (
+                      <>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Bot className="h-3 w-3 text-amber-600" />
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Brahm AI</span>
+                        </div>
+                        {msg.isComplete ? (
+                          <RichAiCard content={msg.content} />
+                        ) : (
+                          <div className="max-w-[92%] w-full rounded-tl rounded-tr-2xl rounded-br-2xl rounded-bl-2xl border border-border/50 shadow-sm bg-white px-3.5 py-3 text-[11.5px] leading-relaxed text-[#3a3a3a] whitespace-pre-wrap">
+                            {msg.content}<span className="inline-block w-0.5 h-3.5 bg-amber-500 ml-0.5 animate-pulse align-middle" />
+                          </div>
+                        )}
+                      </>
+                    ) : streaming && isLastAssistant ? (
+                      <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-border/50 rounded-tl rounded-tr-2xl rounded-br-2xl rounded-bl-2xl shadow-sm">
+                        <Loader2 className="h-3 w-3 animate-spin text-amber-600" />
+                        <span className="text-[10px] text-muted-foreground">Thinking…</span>
+                      </div>
+                    ) : null}
+
+                    {showActions && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <button
+                          onClick={() => copyMessage(msg.content, i)}
+                          title="Copy"
+                          className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
+                        >
+                          {copiedIdx === i ? <CheckCircle className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                          {copiedIdx === i ? 'Copied' : 'Copy'}
+                        </button>
+                        {isLastAssistant && !streaming && (
+                          <button
+                            onClick={regenerate}
+                            title="Regenerate"
+                            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Regenerate
+                          </button>
+                        )}
+                      </div>
+                    )}
                     {showFollowups && (
                       <div className="flex flex-wrap gap-1.5 mt-1.5 max-w-[90%]">
                         {msg.followUps!.map((q, qi) => (

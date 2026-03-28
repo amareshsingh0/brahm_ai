@@ -229,7 +229,7 @@ fun TodayScreen(
                         placeholder = { Text("Search city...", style = MaterialTheme.typography.bodySmall) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                        colors = brahmFieldColors(),
                     )
                     citySuggestions.forEach { city ->
                         Row(
@@ -262,7 +262,7 @@ fun TodayScreen(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
 

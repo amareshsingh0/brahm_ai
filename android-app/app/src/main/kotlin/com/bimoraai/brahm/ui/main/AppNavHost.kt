@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bimoraai.brahm.core.components.WithAiFab
 import com.bimoraai.brahm.core.theme.BrahmBackground
@@ -18,6 +19,7 @@ import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.ui.auth.LoginScreen
 import com.bimoraai.brahm.ui.auth.OnboardingScreen
 import kotlinx.coroutines.flow.firstOrNull
+import androidx.compose.runtime.collectAsState
 
 // ─── Route constants ──────────────────────────────────────────────────────────
 object Route {
@@ -55,6 +57,9 @@ object Route {
     const val ARCHIVED_CHATS     = "archived_chats"
 }
 
+// Routes that are accessible without a valid token (auth screens)
+private val authRoutes = setOf(Route.ONBOARDING, Route.LOGIN)
+
 @Composable
 fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose.hiltViewModel<MainViewModel>().tokenDataStore) {
     val navController = rememberNavController()
@@ -70,6 +75,22 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
     if (startDestination == null) {
         Box(modifier = Modifier.fillMaxSize().background(BrahmBackground))
         return
+    }
+
+    // Global auth guard — when accessToken becomes null (logout, token clear, refresh failure),
+    // immediately redirect to LOGIN unless already on an auth screen
+    val accessToken by tokenDataStore.accessToken.collectAsState(initial = "loading")
+    val currentEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentEntry?.destination?.route
+
+    LaunchedEffect(accessToken) {
+        // "loading" sentinel means we haven't received the first DataStore emission yet
+        if (accessToken == "loading") return@LaunchedEffect
+        if (accessToken == null && currentRoute != null && currentRoute !in authRoutes) {
+            navController.navigate(Route.LOGIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
     }
 
     NavHost(

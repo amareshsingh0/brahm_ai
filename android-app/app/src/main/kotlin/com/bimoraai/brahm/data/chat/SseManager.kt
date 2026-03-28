@@ -27,34 +27,44 @@ class SseManager @Inject constructor(
         sessionId: String = "",
         userId: String = "",
         pageContext: String = "general",
+        pageData: String = "{}",          // JSON from the screen (API result)
     ): Flow<String> = callbackFlow {
         val token = tokenDataStore.accessToken.firstOrNull()
         val user = userRepository.user.value
 
-        val historyJson = history.joinToString(",", "[", "]") { (role, content) ->
-            "{\"role\":\"${role}\",\"content\":\"${content.replace("\\", "\\\\").replace("\"", "\\\"")}\"}"
+        // Use JSONObject/JSONArray for safe serialization — avoids 422 from unescaped \n in history
+        val historyArr = org.json.JSONArray().apply {
+            history.forEach { (role, content) ->
+                put(org.json.JSONObject().put("role", role).put("content", content))
+            }
         }
-        val escapedMsg = message.replace("\\", "\\\\").replace("\"", "\\\"")
 
-        // Build page_data with user birth info so backend can generate kundali without birth_form
-        val pageDataJson = if (user != null && user.date.isNotBlank() && user.place.isNotBlank()) {
-            val escapedName  = user.name.replace("\\", "\\\\").replace("\"", "\\\"")
-            val escapedDate  = user.date.replace("\"", "\\\"")
-            val escapedTime  = user.time.replace("\"", "\\\"")
-            val escapedPlace = user.place.replace("\\", "\\\\").replace("\"", "\\\"")
-            "{\"name\":\"$escapedName\",\"date\":\"$escapedDate\",\"time\":\"$escapedTime\",\"place\":\"$escapedPlace\",\"lat\":${user.lat},\"lon\":${user.lon},\"tz\":${user.tz}}"
-        } else "{}"
+        val pageDataObj = try {
+            org.json.JSONObject(if (pageData.isBlank()) "{}" else pageData)
+        } catch (_: Exception) { org.json.JSONObject() }
 
-        val body = buildString {
-            append("{\"message\":\"$escapedMsg\"")
-            append(",\"history\":$historyJson")
-            append(",\"language\":\"hi\"")
-            append(",\"page_context\":\"$pageContext\"")
-            append(",\"page_data\":$pageDataJson")
-            if (sessionId.isNotBlank()) append(",\"session_id\":\"$sessionId\"")
-            if (userId.isNotBlank()) append(",\"user_id\":\"$userId\"")
-            append("}")
+        if (user != null && user.date.isNotBlank() && user.place.isNotBlank()) {
+            pageDataObj.put("user_birth_data", org.json.JSONObject().apply {
+                put("name", user.name)
+                put("date", user.date)
+                put("time", user.time)
+                put("place", user.place)
+                put("lat", user.lat)
+                put("lon", user.lon)
+                put("tz", user.tz)
+            })
         }
+
+        val bodyObj = org.json.JSONObject().apply {
+            put("message", message)
+            put("history", historyArr)
+            put("language", "hi")
+            put("page_context", pageContext)
+            put("page_data", pageDataObj)
+            if (sessionId.isNotBlank()) put("session_id", sessionId)
+            if (userId.isNotBlank()) put("user_id", userId)
+        }
+        val body = bodyObj.toString()
 
         val request = Request.Builder()
             .url("${BuildConfig.BASE_URL}chat")

@@ -65,7 +65,7 @@ private val tools = listOf(
     ToolCard(Icons.Default.CalendarMonth,              "Varshphal",      "Solar return chart",       Route.VARSHPHAL,     Color(0xFFE67E22), Color(0xFFB7460C), ToolCategory.Analysis),
     ToolCard(Icons.Default.Analytics,                  "Rectification",  "Birth time correction",    Route.RECTIFICATION, Color(0xFF546E7A), Color(0xFF263238), ToolCategory.Analysis),
     ToolCard(Icons.Default.FrontHand,                  "Palmistry",      "AI palm reading",          Route.PALMISTRY,     Color(0xFFD4A017), Color(0xFF9A6E00), ToolCategory.Analysis),
-    ToolCard(Icons.Default.CalendarViewDay,            "Panchang",       "Daily panchang + calendar",Route.PANCHANG,      Color(0xFF0288D1), Color(0xFF01579B), ToolCategory.Daily),
+    ToolCard(Icons.Default.CalendarViewDay,            "Panchang",       "Panchangam",               Route.PANCHANG,      Color(0xFF0288D1), Color(0xFF01579B), ToolCategory.Daily),
     ToolCard(Icons.Default.NightsStay,                 "Live Sky",       "Current planet positions", Route.SKY,           Color(0xFF1A237E), Color(0xFF0D1442), ToolCategory.Daily),
     ToolCard(Icons.Default.WbSunny,                    "Horoscope",      "Daily rashi forecast",     Route.HOROSCOPE,     Color(0xFFFF7043), Color(0xFFBF360C), ToolCategory.Daily),
     ToolCard(Icons.AutoMirrored.Filled.MenuBook,       "Vedic Stories",  "Mythology & wisdom",       Route.STORIES,       Color(0xFFAD1457), Color(0xFF6A0036), ToolCategory.Daily),
@@ -205,7 +205,7 @@ fun MoreScreen(navController: NavController) {
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -231,9 +231,7 @@ fun MoreScreen(navController: NavController) {
                                 )
                             }
                         }
-                        Spacer(Modifier.height(4.dp))
-                        HorizontalDivider(color = BrahmBorder)
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(8.dp))
                         // Category section label
                         Text(
                             "All Tools",
@@ -423,6 +421,8 @@ private fun ExploreToolCard(
             Text(
                 tool.subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
         }
     }

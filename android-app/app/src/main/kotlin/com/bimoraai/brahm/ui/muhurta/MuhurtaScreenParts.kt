@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
@@ -56,7 +57,7 @@ fun MuhurtaContent(data: JsonObject) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // ── Special Muhurtas ──
@@ -187,7 +188,7 @@ fun MuhurtaInputForm(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
@@ -214,11 +215,11 @@ fun MuhurtaInputForm(
                     Text("Date Range", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(value = fromDate, onValueChange = onFromDateChange, label = { Text("From (YYYY-MM-DD)") },
-                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(10.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
+                            colors = brahmFieldColors())
                         OutlinedTextField(value = toDate, onValueChange = onToDateChange, label = { Text("To (YYYY-MM-DD)") },
-                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(10.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
+                            colors = brahmFieldColors())
                     }
                 }
             }

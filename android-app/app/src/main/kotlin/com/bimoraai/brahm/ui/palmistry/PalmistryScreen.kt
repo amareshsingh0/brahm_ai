@@ -323,7 +323,7 @@ private fun ScanTab(vm: PalmistryViewModel, aiResult: JsonObject?, isLoading: Bo
 
 @Composable
 private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, onGallery: () -> Unit, onCamera: () -> Unit, onAnalyzeAI: () -> Unit, onManual: () -> Unit, onReset: () -> Unit) {
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -394,7 +394,7 @@ private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, 
 
 @Composable
 private fun HandTypeStep(selectedUri: Uri?, selectedHandTypeId: String?, onSelect: (String) -> Unit, onContinue: () -> Unit, onBack: () -> Unit) {
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = BrahmMutedForeground) }
@@ -454,7 +454,7 @@ private fun HandTypeStep(selectedUri: Uri?, selectedHandTypeId: String?, onSelec
 @Composable
 private fun QuestionsStep(question: PalmQuestion, selectedUri: Uri?, questionIndex: Int, total: Int, currentSelection: String?, onSelect: (String) -> Unit, onNext: () -> Unit, onBack: () -> Unit) {
     val progress = (questionIndex + 1f) / (total + 1f)
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = BrahmMutedForeground) }
@@ -523,7 +523,7 @@ private fun QuestionsStep(question: PalmQuestion, selectedUri: Uri?, questionInd
 
 @Composable
 private fun ReportStep(report: PalmReport, palmUri: Uri?, onReset: () -> Unit) {
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         // Header
         item {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.3f))) {
@@ -727,7 +727,7 @@ private fun AiReportStep(r: JsonObject, palmUri: Uri?, onReset: () -> Unit) {
     val challenges   = r.arr("challenges")?.mapNotNull { it.jsonPrimitive.contentOrNull }
     val remedies     = r.arr("remedies")?.mapNotNull { try { it.jsonObject } catch(_: Exception) { null } }
 
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         // Header
         item {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.3f))) {
@@ -922,7 +922,7 @@ private fun AiReportStep(r: JsonObject, palmUri: Uri?, onReset: () -> Unit) {
 private fun LinesTab() {
     val palmLines = QUESTIONS.filter { !it.id.startsWith("mount") }
     var activeId by remember { mutableStateOf<String?>(null) }
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(palmLines) { q ->
             val expanded = activeId == q.id
             Card(modifier = Modifier.fillMaxWidth().clickable { activeId = if (expanded) null else q.id },
@@ -968,7 +968,7 @@ private fun LinesTab() {
 @Composable
 private fun MountsTab() {
     var activeId by remember { mutableStateOf<String?>(null) }
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         MOUNTS.chunked(2).forEach { pair ->
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1024,7 +1024,7 @@ private fun MountSection(label: String, text: String, color: Color) {
 
 @Composable
 private fun HandTypeTab() {
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         items(HAND_TYPES) { ht ->
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

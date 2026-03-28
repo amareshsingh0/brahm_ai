@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -37,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.ui.main.Route
 import com.bimoraai.brahm.core.theme.*
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,12 +78,6 @@ fun ProfileScreen(
     val planBg    = if (isPaid) BrahmGold.copy(alpha = 0.12f) else Color(0xFFE5E7EB)
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Profile & Settings", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmCard),
-            )
-        },
         containerColor = BrahmBackground,
     ) { padding ->
         Column(
@@ -95,6 +89,15 @@ fun ProfileScreen(
 
             // ── User card (top, like Grok) ──────────────────────────────────────
             Surface(color = BrahmCard) {
+                Column {
+                    Text(
+                        "Profile & Settings",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                    )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -130,6 +133,7 @@ fun ProfileScreen(
                         )
                     }
                 }
+                } // inner Column
             }
 
             Spacer(Modifier.height(16.dp))
@@ -334,19 +338,19 @@ fun ProfileScreen(
                 OutlinedTextField(
                     value = fullName, onValueChange = { fullName = it },
                     modifier = Modifier.fillMaxWidth(), label = { Text("Full Name") }, singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Person, null, tint = BrahmGold) },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                    leadingIcon = { Icon(Icons.Default.Person, null) },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = brahmFieldColors(),
                 )
                 // DOB
                 Box {
                     OutlinedTextField(
                         value = if (dob.isEmpty()) "" else formatDateDisplay(dob), onValueChange = {},
                         readOnly = true, modifier = Modifier.fillMaxWidth(), label = { Text("Date of Birth") }, singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = BrahmGold) },
-                        trailingIcon = { Icon(Icons.Default.CalendarMonth, null, tint = BrahmMutedForeground) },
-                        shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                        leadingIcon = { Icon(Icons.Default.CalendarToday, null) },
+                        trailingIcon = { Icon(Icons.Default.CalendarMonth, null) },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = brahmFieldColors(),
                     )
                     Box(modifier = Modifier.matchParentSize().clickable { showDatePicker = true })
                 }
@@ -355,54 +359,65 @@ fun ProfileScreen(
                     OutlinedTextField(
                         value = if (birthTime.isEmpty()) "" else formatTimeDisplay(birthTime), onValueChange = {},
                         readOnly = true, modifier = Modifier.fillMaxWidth(), label = { Text("Birth Time") }, singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.Schedule, null, tint = BrahmGold) },
-                        trailingIcon = { Icon(Icons.Default.AccessTime, null, tint = BrahmMutedForeground) },
-                        shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                        leadingIcon = { Icon(Icons.Default.Schedule, null) },
+                        trailingIcon = { Icon(Icons.Default.AccessTime, null) },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = brahmFieldColors(),
                     )
                     Box(modifier = Modifier.matchParentSize().clickable { showTimePicker = true })
                 }
-                // Birth Place
+                // Birth Place — suggestions above field, keyboard stays up
                 Column {
-                    Box {
-                        OutlinedTextField(
-                            value = birthPlace,
-                            onValueChange = { v -> birthPlace = v; cityConfirmed = false; vm.cityQuery.value = v; showCitySuggestions = v.length >= 2 },
-                            modifier = Modifier.fillMaxWidth().onFocusChanged { if (!it.isFocused) showCitySuggestions = false },
-                            label = { Text("Birth Place") },
-                            leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = BrahmGold) },
-                            trailingIcon = { if (cityConfirmed) Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF43A047)) },
-                            singleLine = true, shape = RoundedCornerShape(10.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
-                        )
-                        DropdownMenu(
-                            expanded = showCitySuggestions && suggestions.isNotEmpty(),
-                            onDismissRequest = { showCitySuggestions = false },
-                            offset = DpOffset(0.dp, 0.dp),
+                    if (showCitySuggestions && suggestions.isNotEmpty()) {
+                        androidx.compose.material3.Card(
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            suggestions.forEach { city ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Column {
-                                            Text(if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
+                            Column {
+                                suggestions.forEach { city ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth()
+                                            .clickable {
+                                                birthPlace = city.name; selectedLat = city.lat
+                                                selectedLon = city.lon; selectedTz = city.tz
+                                                cityConfirmed = true; showCitySuggestions = false
+                                                vm.cityQuery.value = ""; focusManager.clearFocus()
+                                            }
+                                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    ) {
+                                        Icon(Icons.Default.LocationOn, null, tint = BrahmGold, modifier = Modifier.size(16.dp))
+                                        Column(Modifier.weight(1f)) {
+                                            Text(
+                                                if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
                                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                                maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                            Text("%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
-                                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Text(
+                                                "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
+                                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                                            )
                                         }
-                                    },
-                                    leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = BrahmGold, modifier = Modifier.size(16.dp)) },
-                                    onClick = {
-                                        birthPlace = city.name; selectedLat = city.lat; selectedLon = city.lon
-                                        selectedTz = city.tz; cityConfirmed = true; showCitySuggestions = false
-                                        vm.cityQuery.value = ""; focusManager.clearFocus()
-                                    },
-                                )
-                                if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
+                                    }
+                                    if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
+                                }
                             }
                         }
+                        Spacer(Modifier.height(4.dp))
                     }
+                    OutlinedTextField(
+                        value = birthPlace,
+                        onValueChange = { v -> birthPlace = v; cityConfirmed = false; vm.cityQuery.value = v; showCitySuggestions = v.length >= 2 },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Birth Place") },
+                        leadingIcon = { Icon(Icons.Default.LocationOn, null) },
+                        trailingIcon = { if (cityConfirmed) Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF43A047)) },
+                        singleLine = true, shape = RoundedCornerShape(14.dp),
+                        colors = brahmFieldColors(),
+                    )
                     if (cityConfirmed && selectedLat != 0.0) {
                         Text("%.4f°N  %.4f°E  · TZ +%.1f".format(selectedLat, selectedLon, selectedTz),
                             style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
@@ -414,10 +429,10 @@ fun ProfileScreen(
                     OutlinedTextField(
                         value = gender, onValueChange = {}, readOnly = true,
                         label = { Text("Gender") },
-                        leadingIcon = { Icon(Icons.Default.People, null, tint = BrahmGold) },
+                        leadingIcon = { Icon(Icons.Default.People, null) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(), shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(), shape = RoundedCornerShape(14.dp),
+                        colors = brahmFieldColors(),
                     )
                     ExposedDropdownMenu(expanded = genderExpanded, onDismissRequest = { genderExpanded = false }) {
                         genderOptions.forEach { opt ->

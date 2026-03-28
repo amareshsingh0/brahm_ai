@@ -68,7 +68,7 @@ fun BirthInputFields(
                 label         = { Text("Full Name") },
                 leadingIcon   = { Icon(Icons.Default.Person, contentDescription = null, tint = BrahmGold) },
                 singleLine    = true,
-                shape         = RoundedCornerShape(10.dp),
+                shape         = RoundedCornerShape(14.dp),
                 colors        = fieldColors(),
             )
         }
@@ -85,7 +85,7 @@ fun BirthInputFields(
                 leadingIcon   = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = BrahmGold) },
                 trailingIcon  = { Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = BrahmMutedForeground) },
                 singleLine    = true,
-                shape         = RoundedCornerShape(10.dp),
+                shape         = RoundedCornerShape(14.dp),
                 colors        = fieldColors(),
             )
             Box(Modifier.matchParentSize().clickable { showDatePicker = true })
@@ -103,7 +103,7 @@ fun BirthInputFields(
                 leadingIcon   = { Icon(Icons.Default.Schedule, contentDescription = null, tint = BrahmGold) },
                 trailingIcon  = { Icon(Icons.Default.AccessTime, contentDescription = null, tint = BrahmMutedForeground) },
                 singleLine    = true,
-                shape         = RoundedCornerShape(10.dp),
+                shape         = RoundedCornerShape(14.dp),
                 colors        = fieldColors(),
             )
             Box(Modifier.matchParentSize().clickable { showTimePicker = true })
@@ -114,7 +114,7 @@ fun BirthInputFields(
             // Suggestions card shown ABOVE the text field — no Popup, no clipping, keyboard stays up
             if (showCitySuggestions && suggestions.isNotEmpty()) {
                 androidx.compose.material3.Card(
-                    shape     = RoundedCornerShape(10.dp),
+                    shape     = RoundedCornerShape(14.dp),
                     colors    = androidx.compose.material3.CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface),
                     elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
                     modifier  = Modifier.fillMaxWidth(),
@@ -174,7 +174,7 @@ fun BirthInputFields(
                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF43A047))
                 },
                 singleLine    = true,
-                shape         = RoundedCornerShape(10.dp),
+                shape         = RoundedCornerShape(14.dp),
                 colors        = fieldColors(),
             )
         }
@@ -261,10 +261,24 @@ fun BirthInputFields(
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 @Composable
-private fun fieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor   = BrahmGold,
-    unfocusedBorderColor = BrahmBorder,
+fun brahmFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor          = BrahmGold,
+    unfocusedBorderColor        = BrahmBorder,
+    focusedLabelColor           = BrahmGold,
+    unfocusedLabelColor         = BrahmMutedForeground,
+    focusedLeadingIconColor     = BrahmGold,
+    unfocusedLeadingIconColor   = BrahmMutedForeground.copy(alpha = 0.55f),
+    focusedTrailingIconColor    = BrahmGold,
+    unfocusedTrailingIconColor  = BrahmMutedForeground.copy(alpha = 0.4f),
+    cursorColor                 = BrahmGold,
+    focusedContainerColor       = Color.White,
+    unfocusedContainerColor     = Color(0xFFFAF8F5),
+    focusedTextColor            = BrahmForeground,
+    unfocusedTextColor          = BrahmForeground,
 )
+
+@Composable
+private fun fieldColors() = brahmFieldColors()
 
 private fun parseDateToMillis(date: String): Long? = try {
     val p = date.split("-")

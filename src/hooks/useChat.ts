@@ -71,6 +71,7 @@ export interface UseChatReturn {
   submitBirthForm: (data: BirthFormData) => void;
   dismissSavePrompt: () => void;
   clearHistory: () => void;
+  regenerate: () => void;
 }
 
 export function useChat(options: UseChatOptions = {}): UseChatReturn {
@@ -230,6 +231,19 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     setSaveKundaliPrompt(null);
   }, []);
 
+  const regenerate = useCallback(() => {
+    if (streaming) return;
+    // Find last user message index
+    let lastUserIdx = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') { lastUserIdx = i; break; }
+    }
+    if (lastUserIdx === -1) return;
+    const lastUserMsg = messages[lastUserIdx];
+    setMessages((prev) => prev.slice(0, lastUserIdx));
+    sendMessage(lastUserMsg.content);
+  }, [messages, streaming, sendMessage]);
+
   const clearHistory = useCallback(() => {
     abortRef.current?.abort();
     setMessages([]);
@@ -248,5 +262,5 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     }
   }, [storageKey, userId]);
 
-  return { messages, sources, streaming, showBirthForm, saveKundaliPrompt, sendMessage, submitBirthForm, dismissSavePrompt, clearHistory };
+  return { messages, sources, streaming, showBirthForm, saveKundaliPrompt, sendMessage, submitBirthForm, dismissSavePrompt, clearHistory, regenerate };
 }

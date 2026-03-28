@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.theme.*
 
 // ── Static Data ───────────────────────────────────────────────────────────────
@@ -254,12 +255,7 @@ fun LibraryScreen(navController: NavController) {
                             Icon(Icons.Default.Search, contentDescription = null, tint = BrahmMutedForeground)
                         },
                         shape = RoundedCornerShape(14.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = BrahmGold,
-                            unfocusedBorderColor = BrahmBorder,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                        ),
+                        colors = brahmFieldColors(),
                     )
                 }
 

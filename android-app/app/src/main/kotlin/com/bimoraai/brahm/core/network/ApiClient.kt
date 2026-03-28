@@ -79,7 +79,11 @@ object NetworkModule {
                     refreshClient.newCall(refreshRequest).execute()
                 } catch (_: Exception) { return@authenticator null }
 
-                if (!refreshResponse.isSuccessful) return@authenticator null
+                if (!refreshResponse.isSuccessful) {
+                    // Refresh token is expired/invalid — clear all tokens so the app redirects to login
+                    runBlocking { tokenDataStore.clear() }
+                    return@authenticator null
+                }
 
                 val bodyStr = refreshResponse.body?.string() ?: return@authenticator null
                 val newAccess  = try { JSONObject(bodyStr).optString("access_token")  } catch (_: Exception) { null }

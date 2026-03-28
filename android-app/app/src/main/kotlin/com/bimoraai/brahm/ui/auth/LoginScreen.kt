@@ -25,6 +25,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.components.BrahmButton
 import com.bimoraai.brahm.core.components.BrahmOutlinedButton
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.theme.*
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -141,11 +142,8 @@ fun LoginScreen(
                         prefix = { Text("+91  ") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = BrahmGold,
-                            unfocusedBorderColor = BrahmBorder,
-                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = brahmFieldColors(),
                     )
                     Spacer(Modifier.height(16.dp))
                     BrahmButton(

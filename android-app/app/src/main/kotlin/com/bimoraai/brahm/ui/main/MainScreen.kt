@@ -34,7 +34,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.bimoraai.brahm.core.components.PageBotFab
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.chat.ChatScreen
@@ -53,7 +52,7 @@ private data class BottomTab(
 
 private val bottomTabs = listOf(
     BottomTab("tab_today",   "Today",   Icons.Default.Home),
-    BottomTab("tab_kundali", "Kundali", Icons.Default.AutoAwesome),
+    BottomTab("tab_kundali", "Kundali", Icons.Default.Brightness3),
     BottomTab("tab_chat",    "Chat",    Icons.AutoMirrored.Filled.Chat),
     BottomTab("tab_more",    "Explore", Icons.Default.Apps),
     BottomTab("tab_profile", "Profile", Icons.Default.Person),
@@ -85,19 +84,7 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
                 onTabSelected = { navigateTab(it) },
             )
         },
-        floatingActionButton = {
-            // AI FAB on all tabs except Chat (which is already a chat screen)
-            if (currentRoute != "tab_chat") {
-                val ctx = when (currentRoute) {
-                    "tab_kundali" -> "kundali"
-                    "tab_today"   -> "today"
-                    "tab_more"    -> "explore"
-                    "tab_profile" -> "profile"
-                    else          -> "general"
-                }
-                PageBotFab(pageContext = ctx)
-            }
-        },
+        // Each feature screen has its own PageBotFab with page-specific data & session
     ) { innerPadding ->
         NavHost(
             navController = tabNavController,

@@ -19,14 +19,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,7 +60,7 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
     val canSend         = input.isNotBlank() && !isStreaming
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets.ime,
         topBar = {
             Surface(color = Color.White, shadowElevation = 1.dp) {
                 Column {
@@ -108,11 +116,10 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
             }
         },
         bottomBar = {
-            Surface(color = Color.White, shadowElevation = 8.dp, modifier = Modifier.imePadding()) {
+            Surface(color = Color.White, shadowElevation = 8.dp) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .navigationBarsPadding()
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.Bottom,
                 ) {
@@ -123,15 +130,7 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
                         placeholder = { Text("Message Brahm AI...", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium) },
                         shape = RoundedCornerShape(20.dp),
                         maxLines = 5,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = BrahmGold,
-                            unfocusedBorderColor = BrahmBorder,
-                            focusedTextColor = BrahmForeground,
-                            unfocusedTextColor = BrahmForeground,
-                            cursorColor = BrahmGold,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color(0xFFF9F9FA),
-                        ),
+                        colors = brahmFieldColors(),
                     )
                     Spacer(Modifier.width(8.dp))
                     Box(
@@ -441,7 +440,7 @@ internal fun SessionRow(
                     onValueChange = { renameText = it },
                     singleLine = true,
                     placeholder = { Text("Chat name…") },
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold),
+                    colors = brahmFieldColors(),
                 )
             },
             confirmButton = {
@@ -533,33 +532,90 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
     if (msg.role == "user") {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             Surface(
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                shape = RoundedCornerShape(topStart = 18.dp, topEnd = 4.dp, bottomStart = 18.dp, bottomEnd = 18.dp),
                 color = BrahmGold,
-                modifier = Modifier.widthIn(max = 280.dp),
+                modifier = Modifier.widthIn(max = 290.dp),
             ) {
-                Text(text = msg.content, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = msg.content,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
     } else {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.Top) {
+            // AI label row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 5.dp),
+            ) {
                 AiAvatar()
-                Spacer(Modifier.width(8.dp))
-                Surface(
-                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
-                    color = Color.White,
-                    shadowElevation = 1.dp,
-                    modifier = Modifier.widthIn(max = 280.dp),
-                ) {
-                    Text(text = msg.content, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                        color = BrahmForeground,
-                        style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp))
+                Spacer(Modifier.width(7.dp))
+                Text(
+                    "BRAHM AI",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = BrahmMutedForeground,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        fontSize = 9.sp,
+                    ),
+                )
+            }
+
+            when {
+                msg.content.isBlank() -> {
+                    // Waiting for first token
+                    Surface(
+                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                        color = Color.White,
+                        border = BorderStroke(1.dp, BrahmBorder),
+                        modifier = Modifier.widthIn(max = 280.dp),
+                    ) {
+                        Text("…", modifier = Modifier.padding(14.dp, 10.dp), color = BrahmMutedForeground)
+                    }
+                }
+                !msg.isComplete -> {
+                    // Streaming — plain text as tokens arrive
+                    Surface(
+                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                        color = Color.White,
+                        shadowElevation = 1.dp,
+                        border = BorderStroke(1.dp, BrahmBorder),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = msg.content,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                            color = BrahmForeground,
+                            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 23.sp),
+                        )
+                    }
+                }
+                isRichResponse(msg.content) -> RichAiCard(msg.content)
+                else -> {
+                    Surface(
+                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                        color = Color.White,
+                        shadowElevation = 1.dp,
+                        border = BorderStroke(1.dp, BrahmBorder),
+                        modifier = Modifier.widthIn(max = 300.dp),
+                    ) {
+                        Text(
+                            text = msg.content,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                            color = BrahmForeground,
+                            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 23.sp),
+                        )
+                    }
                 }
             }
+
+            // Follow-up chips
             if (msg.isComplete && msg.followUps.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Column(modifier = Modifier.padding(start = 40.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(modifier = Modifier.padding(start = 2.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     msg.followUps.forEach { question ->
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -567,13 +623,261 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
                             border = BorderStroke(1.dp, Color(0xFFE8D5A3)),
                             modifier = Modifier.fillMaxWidth().clickable { onFollowUpClick(question) },
                         ) {
-                            Text(text = question,
+                            Text(
+                                text = question,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF92400E), fontWeight = FontWeight.Medium))
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = Color(0xFF92400E),
+                                    fontWeight = FontWeight.Medium,
+                                ),
+                            )
                         }
                     }
                 }
             }
         }
     }
+}
+
+private fun isRichResponse(text: String): Boolean =
+    text.length > 200 || text.contains('\n') || text.contains("**") ||
+    text.contains("\n- ") || text.contains("\n• ") || text.contains("\n# ")
+
+// ── Rich AI card ──────────────────────────────────────────────────────────────
+@Composable
+private fun RichAiCard(text: String) {
+    val sections = remember(text) { parseMarkdown(text) }
+
+    Card(
+        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, BrahmBorder),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        // Gold → saffron accent bar
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(BrahmGold, Color(0xFFD4540A), Color.Transparent)
+                    )
+                )
+        )
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+        ) {
+            sections.forEachIndexed { idx, section ->
+                MdBlock(section)
+                val next = sections.getOrNull(idx + 1)
+                val spacing: Dp = when {
+                    section is MdSection.Heading  -> 10.dp
+                    section is MdSection.Divider  -> 4.dp
+                    next    is MdSection.Heading  -> 14.dp
+                    next    is MdSection.Divider  -> 10.dp
+                    next    is MdSection.Callout  -> 10.dp
+                    next    is MdSection.Quote    -> 10.dp
+                    else -> 8.dp
+                }
+                if (idx < sections.lastIndex) Spacer(Modifier.height(spacing))
+            }
+        }
+    }
+}
+
+@Composable
+private fun MdBlock(section: MdSection) {
+    when (section) {
+        is MdSection.Heading -> Text(
+            text = section.text,
+            style = MaterialTheme.typography.titleSmall.copy(
+                fontWeight = FontWeight.Bold,
+                color = BrahmForeground,
+                letterSpacing = (-0.2).sp,
+                lineHeight = 22.sp,
+            ),
+        )
+        is MdSection.Para -> Text(
+            text = styledText(section.text),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = Color(0xFF3A3A3A),
+                lineHeight = 24.sp,
+            ),
+        )
+        is MdSection.Quote -> Row(Modifier.fillMaxWidth()) {
+            Box(
+                Modifier
+                    .width(3.dp)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(BrahmGold)
+            )
+            Surface(
+                color = BrahmGold.copy(alpha = 0.07f),
+                shape = RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp),
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    text = styledText(section.text),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontStyle = FontStyle.Italic,
+                        color = Color(0xFF3A3A3A),
+                        lineHeight = 22.sp,
+                    ),
+                )
+            }
+        }
+        is MdSection.BulletItem -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            Spacer(Modifier.width(2.dp))
+            Box(
+                Modifier
+                    .padding(top = 9.dp)
+                    .size(5.dp)
+                    .clip(CircleShape)
+                    .background(BrahmGold)
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = styledText(section.text),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0xFF3A3A3A),
+                    lineHeight = 22.sp,
+                ),
+            )
+        }
+        is MdSection.NumberedItem -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            Text(
+                "${section.number}.",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = BrahmGold,
+                ),
+                modifier = Modifier.padding(top = 2.dp).widthIn(min = 22.dp),
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = styledText(section.text),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0xFF3A3A3A),
+                    lineHeight = 22.sp,
+                ),
+            )
+        }
+        is MdSection.Callout -> Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = Color(0xFFFFF8E7),
+            border = BorderStroke(1.dp, Color(0xFFE8D5A3)),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                if (section.label.isNotEmpty()) {
+                    Text(
+                        section.label.uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = Color(0xFFB07A00),
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.9.sp,
+                            fontSize = 9.sp,
+                        ),
+                    )
+                    Spacer(Modifier.height(4.dp))
+                }
+                Text(
+                    styledText(section.text),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = Color(0xFF92400E),
+                        lineHeight = 20.sp,
+                    ),
+                )
+            }
+        }
+        is MdSection.Divider -> {
+            if (section.label.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 4.dp),
+                ) {
+                    HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
+                    Text(
+                        section.label,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = BrahmMutedForeground,
+                            letterSpacing = 0.8.sp,
+                            fontSize = 9.sp,
+                        ),
+                    )
+                    HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
+                }
+            } else {
+                HorizontalDivider(color = BrahmBorder, modifier = Modifier.padding(vertical = 4.dp))
+            }
+        }
+    }
+}
+
+// ── Markdown data model ───────────────────────────────────────────────────────
+private sealed class MdSection {
+    data class Heading(val text: String)                        : MdSection()
+    data class Para(val text: String)                           : MdSection()
+    data class Quote(val text: String)                          : MdSection()
+    data class BulletItem(val text: String)                     : MdSection()
+    data class NumberedItem(val number: Int, val text: String)  : MdSection()
+    data class Callout(val label: String, val text: String)     : MdSection()
+    data class Divider(val label: String = "")                  : MdSection()
+}
+
+// ── Markdown parser ───────────────────────────────────────────────────────────
+private fun parseMarkdown(raw: String): List<MdSection> {
+    val result  = mutableListOf<MdSection>()
+    var numIdx  = 0
+
+    for (line in raw.trim().lines()) {
+        val t = line.trim()
+        when {
+            t.isEmpty()             -> numIdx = 0
+            t.startsWith("### ")   -> result += MdSection.Heading(t.removePrefix("### "))
+            t.startsWith("## ")    -> result += MdSection.Heading(t.removePrefix("## "))
+            t.startsWith("# ")     -> result += MdSection.Heading(t.removePrefix("# "))
+            t.startsWith("> ")     -> result += MdSection.Quote(t.removePrefix("> "))
+            t.startsWith("- ") || t.startsWith("• ") -> {
+                result += MdSection.BulletItem(t.drop(2).trim()); numIdx = 0
+            }
+            t.matches(Regex("\\d+\\.\\s.*")) -> {
+                numIdx++
+                result += MdSection.NumberedItem(numIdx, t.substringAfter(". "))
+            }
+            t == "---" || t == "***" -> result += MdSection.Divider()
+            t.startsWith("💡") || t.startsWith("📌") || t.startsWith("✨") || t.startsWith("⚠️") -> {
+                result += MdSection.Callout("Note", t.drop(if (t.startsWith("⚠️")) 3 else 2).trim())
+            }
+            else -> { result += MdSection.Para(t); numIdx = 0 }
+        }
+    }
+    return result.filter { it !is MdSection.Para || (it as MdSection.Para).text.isNotBlank() }
+}
+
+// ── Inline bold/italic/code → AnnotatedString ─────────────────────────────────
+private fun styledText(text: String) = buildAnnotatedString {
+    val regex  = Regex("""\*\*(.*?)\*\*|\*(.*?)\*|`(.*?)`""")
+    var cursor = 0
+    regex.findAll(text).forEach { m ->
+        if (m.range.first > cursor) append(text.substring(cursor, m.range.first))
+        when {
+            m.groupValues[1].isNotEmpty() -> withStyle(
+                SpanStyle(fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A2E))
+            ) { append(m.groupValues[1]) }
+            m.groupValues[2].isNotEmpty() -> withStyle(
+                SpanStyle(fontStyle = FontStyle.Italic)
+            ) { append(m.groupValues[2]) }
+            m.groupValues[3].isNotEmpty() -> withStyle(
+                SpanStyle(fontFamily = FontFamily.Monospace, background = Color(0xFFF0F0F0), fontSize = 13.sp)
+            ) { append(m.groupValues[3]) }
+        }
+        cursor = m.range.last + 1
+    }
+    if (cursor < text.length) append(text.substring(cursor))
 }

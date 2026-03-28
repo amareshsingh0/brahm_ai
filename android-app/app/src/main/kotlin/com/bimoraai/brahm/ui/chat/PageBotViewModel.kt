@@ -22,8 +22,13 @@ class PageBotViewModel @Inject constructor(
     private val _streaming = MutableStateFlow(false)
     val streaming = _streaming.asStateFlow()
 
-    fun send(text: String, pageContext: String = "general") {
+    private var _lastPageContext = "general"
+    private var _lastPageData    = "{}"
+
+    fun send(text: String, pageContext: String = "general", pageData: String = "{}") {
         if (text.isBlank() || _streaming.value) return
+        _lastPageContext = pageContext
+        _lastPageData    = pageData
         val history = _msgs.value.map { m -> (if (m.isUser) "user" else "assistant") to m.text }
         _msgs.value = _msgs.value + BotMsg(true, text)
         _msgs.value = _msgs.value + BotMsg(false, "")
@@ -33,7 +38,8 @@ class PageBotViewModel @Inject constructor(
                 sseManager.streamChat(
                     message = text,
                     history = history.takeLast(6),
-                    pageContext = pageContext,
+                    pageContext = _lastPageContext,
+                    pageData = _lastPageData,
                 ).collect { token ->
                     val list = _msgs.value.toMutableList()
                     list[list.lastIndex] = BotMsg(false, list.last().text + token)
@@ -43,6 +49,15 @@ class PageBotViewModel @Inject constructor(
                 _streaming.value = false
             }
         }
+    }
+
+    fun regenerate() {
+        if (_streaming.value) return
+        val lastUserIdx = _msgs.value.indexOfLast { it.isUser }
+        if (lastUserIdx == -1) return
+        val lastUserText = _msgs.value[lastUserIdx].text
+        _msgs.value = _msgs.value.subList(0, lastUserIdx)
+        send(lastUserText, _lastPageContext, _lastPageData)
     }
 
     fun clear() { _msgs.value = emptyList() }

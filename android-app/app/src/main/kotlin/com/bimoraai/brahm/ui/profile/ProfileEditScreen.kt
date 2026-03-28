@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import java.util.Calendar
@@ -194,17 +195,14 @@ fun ProfileEditScreen(
                                 .onFocusChanged { if (!it.isFocused) showCitySuggestions = false },
                             label         = { Text("Birth Place") },
                             placeholder   = { Text("Type city name…", color = BrahmMutedForeground) },
-                            leadingIcon   = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold) },
+                            leadingIcon   = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                             trailingIcon  = {
                                 if (cityConfirmed)
                                     Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF43A047))
                             },
                             singleLine    = true,
-                            shape         = RoundedCornerShape(10.dp),
-                            colors        = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor   = BrahmGold,
-                                unfocusedBorderColor = BrahmBorder,
-                            ),
+                            shape         = RoundedCornerShape(14.dp),
+                            colors        = brahmFieldColors(),
                         )
                         // DropdownMenu renders in overlay — not clipped by scroll container
                         DropdownMenu(
@@ -268,16 +266,13 @@ fun ProfileEditScreen(
                         onValueChange = {},
                         readOnly      = true,
                         label         = { Text("Gender") },
-                        leadingIcon   = { Icon(Icons.Default.People, contentDescription = null, tint = BrahmGold) },
+                        leadingIcon   = { Icon(Icons.Default.People, contentDescription = null) },
                         trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
                         modifier      = Modifier
                             .fillMaxWidth()
                             .menuAnchor(),
-                        shape         = RoundedCornerShape(10.dp),
-                        colors        = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor   = BrahmGold,
-                            unfocusedBorderColor = BrahmBorder,
-                        ),
+                        shape         = RoundedCornerShape(14.dp),
+                        colors        = brahmFieldColors(),
                     )
                     ExposedDropdownMenu(
                         expanded          = genderExpanded,
@@ -468,14 +463,11 @@ private fun ReadonlyField(
             modifier      = Modifier.fillMaxWidth(),
             label         = { Text(label) },
             placeholder   = { Text(placeholder, color = BrahmMutedForeground) },
-            leadingIcon   = { Icon(leadingIcon, contentDescription = null, tint = BrahmGold) },
+            leadingIcon   = { Icon(leadingIcon, contentDescription = null) },
             trailingIcon  = { Icon(trailingIcon, contentDescription = null, tint = BrahmMutedForeground) },
             singleLine    = true,
-            shape         = RoundedCornerShape(10.dp),
-            colors        = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor   = BrahmGold,
-                unfocusedBorderColor = BrahmBorder,
-            ),
+            shape         = RoundedCornerShape(14.dp),
+            colors        = brahmFieldColors(),
         )
         // Transparent overlay captures the tap (readOnly fields block keyboard but pass clicks)
         Box(
@@ -500,13 +492,10 @@ private fun BrahmTextField(
         onValueChange = onValueChange,
         modifier      = Modifier.fillMaxWidth(),
         label         = { Text(label) },
-        leadingIcon   = { Icon(leadingIcon, contentDescription = null, tint = BrahmGold) },
+        leadingIcon   = { Icon(leadingIcon, contentDescription = null) },
         singleLine    = true,
-        shape         = RoundedCornerShape(10.dp),
-        colors        = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = BrahmGold,
-            unfocusedBorderColor = BrahmBorder,
-        ),
+        shape         = RoundedCornerShape(14.dp),
+        colors        = brahmFieldColors(),
     )
 }
 
