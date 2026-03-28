@@ -3,28 +3,24 @@ package com.bimoraai.brahm.ui.sadesati
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.BrahmErrorView
-import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
 @Composable
 fun SadeSatiScreen(navController: NavController, vm: SadeSatiScreenViewModel = hiltViewModel()) {
-    val result    by vm.result.collectAsState()
-    val isLoading by vm.isLoading.collectAsState()
-    val error     by vm.error.collectAsState()
-    val hasData   by vm.hasData.collectAsState()
-    val name      by vm.name.collectAsState()
-    val dob       by vm.dob.collectAsState()
-    val tob       by vm.tob.collectAsState()
-    val pob       by vm.pob.collectAsState()
+    val shaniRashi      by vm.shaniRashi.collectAsState()
+    val shaniDegree     by vm.shaniDegree.collectAsState()
+    val lagnaRashi      by vm.lagnaRashi.collectAsState()
+    val isLoading       by vm.isLoading.collectAsState()
+    val saturnError     by vm.saturnError.collectAsState()
+    val selectedMoon    by vm.selectedMoonRashi.collectAsState()
 
     SwipeBackLayout(navController) {
     Scaffold(
@@ -41,26 +37,25 @@ fun SadeSatiScreen(navController: NavController, vm: SadeSatiScreenViewModel = h
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                actions = {
+                    IconButton(onClick = { vm.refreshSaturn() }, enabled = !isLoading) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = BrahmMutedForeground)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
-            when {
-                isLoading -> BrahmLoadingSpinner(modifier = Modifier.fillMaxSize())
-                error != null && !hasData -> BrahmErrorView(message = error!!, onRetry = { vm.load() })
-                hasData && result != null -> SadeSatiContent(result!!)
-                else -> SadeSatiInputForm(
-                    name = name, dob = dob, tob = tob, pob = pob,
-                    error = error,
-                    onNameChange   = { vm.name.value = it },
-                    onDobChange    = { vm.dob.value = it },
-                    onTobChange    = { vm.tob.value = it },
-                    onPobChange    = { vm.pob.value = it },
-                    onCitySelected = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
-                    onCalculate    = { vm.calculate() },
-                )
-            }
+            SadeSatiContent(
+                shaniRashi       = shaniRashi,
+                shaniDegree      = shaniDegree,
+                lagnaRashi       = lagnaRashi,
+                isLoading        = isLoading,
+                saturnError      = saturnError,
+                selectedMoonRashi = selectedMoon,
+                onMoonRashiSelected = { vm.selectedMoonRashi.value = it },
+            )
         }
     }
     } // SwipeBackLayout

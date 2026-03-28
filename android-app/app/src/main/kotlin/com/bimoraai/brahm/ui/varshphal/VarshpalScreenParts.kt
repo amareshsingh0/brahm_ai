@@ -1,11 +1,14 @@
 package com.bimoraai.brahm.ui.varshphal
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,29 +24,43 @@ import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.jsonArray
+
+private data class GrahaMeta(val symbol: String, val color: Color)
+
+private val GRAHA_META = mapOf(
+    "Surya"  to GrahaMeta("☉", Color(0xFFD97706)),
+    "Chandra"to GrahaMeta("☽", Color(0xFF4F46E5)),
+    "Mangal" to GrahaMeta("♂", Color(0xFFDC2626)),
+    "Budh"   to GrahaMeta("☿", Color(0xFF16A34A)),
+    "Guru"   to GrahaMeta("♃", Color(0xFFB45309)),
+    "Shukra" to GrahaMeta("♀", Color(0xFF9333EA)),
+    "Shani"  to GrahaMeta("♄", Color(0xFF334155)),
+    "Rahu"   to GrahaMeta("☊", Color(0xFF0369A1)),
+    "Ketu"   to GrahaMeta("☋", Color(0xFFC2410C)),
+)
+private val ORDER = listOf("Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani","Rahu","Ketu")
+
+private fun JsonObject.str(key: String) = this[key]?.jsonPrimitive?.contentOrNull ?: ""
+private fun JsonObject.obj(key: String) = try { this[key]?.jsonObject } catch (_: Exception) { null }
 
 @Composable
 fun VarshpalContent(data: JsonObject) {
-    val targetYear     = data["target_year"]?.jsonPrimitive?.contentOrNull ?: "—"
-    val solarReturnDate= data["solar_return_date"]?.jsonPrimitive?.contentOrNull ?: "—"
-    val solarReturnTime= data["solar_return_time"]?.jsonPrimitive?.contentOrNull ?: "—"
-    val munthaPlanet   = data["muntha_planet"]?.jsonPrimitive?.contentOrNull ?: "—"
-    val munthaRashi    = data["muntha_rashi"]?.jsonPrimitive?.contentOrNull ?: "—"
-    val yearLord       = data["year_lord"]?.jsonPrimitive?.contentOrNull ?: "—"
-    val summary        = data["summary"]?.jsonPrimitive?.contentOrNull ?: ""
-    val themes         = data["themes"]?.let { el ->
-        try { el.jsonArray.map { it.jsonPrimitive.contentOrNull ?: "" } } catch (_: Exception) { null }
-    }
-    val planets        = data["planets"]?.let { el ->
-        try { el.jsonArray.map { it.jsonObject } } catch (_: Exception) { null }
-    }
-    val lifeAreas      = data["life_areas"]?.let { el ->
-        try { el.jsonObject } catch (_: Exception) { null }
-    }
+    val varshphalYear       = data["varshphal_year"]?.jsonPrimitive?.intOrNull ?: 0
+    val solarReturnDatetime = data.str("solar_return_datetime")
+    val natalSunLon         = data["natal_sun_longitude"]?.jsonPrimitive?.doubleOrNull
+    val lagnaRashi          = data.obj("lagna")?.str("rashi") ?: ""
+    val yearThemes          = try { data["year_themes"]?.jsonArray?.map { it.jsonPrimitive.contentOrNull ?: "" } } catch (_: Exception) { null }
+    val grahas              = try { data.obj("grahas") } catch (_: Exception) { null }
+    val yogas               = try { data["yogas"]?.jsonArray?.map { it.jsonObject } } catch (_: Exception) { null }
+
+    var showGrahas by remember { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
@@ -53,94 +70,185 @@ fun VarshpalContent(data: JsonObject) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // ── Solar Return Info ──
+
+        // ── Header card ──
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E7)),
+                modifier = Modifier.fillMaxWidth().border(1.dp, BrahmGold.copy(alpha = 0.25f), RoundedCornerShape(16.dp)),
             ) {
-                Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("☀ Solar Return $targetYear", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = BrahmGold))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Date", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                            Text(solarReturnDate, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                        }
-                        VerticalDivider(modifier = Modifier.height(36.dp), color = BrahmBorder)
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Time", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                            Text(solarReturnTime, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                        }
-                        VerticalDivider(modifier = Modifier.height(36.dp), color = BrahmBorder)
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Year Lord", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                            Text(yearLord, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                        }
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("☀", fontSize = 18.sp, color = BrahmGold)
+                        Text(
+                            "Varshphal $varshphalYear",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = BrahmGold)
+                        )
                     }
-                    if (summary.isNotBlank()) {
-                        HorizontalDivider(color = BrahmGold.copy(alpha = 0.2f))
-                        Text(summary, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground.copy(alpha = 0.85f)))
+                    if (solarReturnDatetime.isNotBlank()) {
+                        Text(
+                            "Solar Return: $solarReturnDatetime",
+                            style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground)
+                        )
                     }
-                }
-            }
-        }
-
-        // ── Muntha ──
-        item {
-            Text("🌟 Year Themes", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-        }
-        item {
-            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(BrahmGold.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                            Text("🎯", fontSize = 20.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (natalSunLon != null) {
+                            Text(
+                                "Natal Sun: ${"%.2f".format(natalSunLon)}°",
+                                style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground)
+                            )
                         }
-                        Column {
-                            Text("Muntha: $munthaPlanet in $munthaRashi", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                            Text("Key area of focus this year", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                        }
-                    }
-                    if (!themes.isNullOrEmpty()) {
-                        HorizontalDivider(color = BrahmBorder)
-                        themes.filter { it.isNotBlank() }.forEachIndexed { idx, theme ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("${idx + 1}.", style = MaterialTheme.typography.bodySmall.copy(color = BrahmGold, fontWeight = FontWeight.Bold))
-                                Text(theme, style = MaterialTheme.typography.bodySmall)
-                            }
+                        if (lagnaRashi.isNotBlank()) {
+                            Text("·", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                            Text(
+                                "Varshphal Lagna: $lagnaRashi",
+                                style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground)
+                            )
                         }
                     }
                 }
             }
         }
 
-        // ── Planet positions ──
-        if (!planets.isNullOrEmpty()) {
-            item { Text("🪐 Varshphal Planets", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) }
+        // ── Year Themes ──
+        if (!yearThemes.isNullOrEmpty()) {
             item {
-                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
-                    Column(Modifier.padding(4.dp)) {
-                        Row(Modifier.fillMaxWidth().background(BrahmGold.copy(alpha = 0.08f)).padding(horizontal = 12.dp, vertical = 8.dp)) {
-                            Text("Planet",    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontWeight = FontWeight.Bold), modifier = Modifier.weight(1.2f))
-                            Text("Rashi",     style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontWeight = FontWeight.Bold), modifier = Modifier.weight(1.2f))
-                            Text("House",     style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontWeight = FontWeight.Bold), modifier = Modifier.weight(0.8f))
-                            Text("Degree",    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
-                        }
-                        HorizontalDivider(color = BrahmBorder)
-                        planets.forEachIndexed { idx, planet ->
-                            if (idx > 0) HorizontalDivider(color = BrahmBorder.copy(alpha = 0.5f))
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(planet["planet"]?.jsonPrimitive?.contentOrNull ?: planet["name"]?.jsonPrimitive?.contentOrNull ?: "—", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold), modifier = Modifier.weight(1.2f))
-                                Text(planet["rashi"]?.jsonPrimitive?.contentOrNull ?: "—", style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1.2f))
-                                Text(planet["house"]?.jsonPrimitive?.contentOrNull ?: "—", style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(0.8f))
-                                Text("${planet["degree"]?.jsonPrimitive?.contentOrNull ?: "—"}°", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground), modifier = Modifier.weight(1f))
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = BrahmCard),
+                    modifier = Modifier.fillMaxWidth().border(1.dp, BrahmPrimary.copy(alpha = 0.2f), RoundedCornerShape(14.dp)),
+                ) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            "Year Themes $varshphalYear",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        yearThemes.filter { it.isNotBlank() }.forEach { theme ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("✦", style = MaterialTheme.typography.bodySmall.copy(color = BrahmGold), modifier = Modifier.padding(top = 1.dp))
+                                Text(theme, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                             }
                         }
                     }
                 }
             }
         }
-    }
+
+        // ── Planet Positions (collapsible) ──
+        item {
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = BrahmCard),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(12.dp)) {
+                    // Toggle header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            if (showGrahas) "Hide Grahas" else "Show Grahas",
+                            style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground)
+                        )
+                        IconButton(onClick = { showGrahas = !showGrahas }, modifier = Modifier.size(28.dp)) {
+                            Icon(
+                                if (showGrahas) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = BrahmMutedForeground,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                    if (showGrahas && grahas != null) {
+                        Spacer(Modifier.height(8.dp))
+                        // 3-column grid
+                        ORDER.chunked(3).forEach { rowPlanets ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                rowPlanets.forEach { planet ->
+                                    val g = grahas.obj(planet)
+                                    val meta = GRAHA_META[planet]
+                                    Box(Modifier.weight(1f)) {
+                                        if (g != null && meta != null) {
+                                            Card(
+                                                shape = RoundedCornerShape(10.dp),
+                                                colors = CardDefaults.cardColors(containerColor = BrahmBackground),
+                                                modifier = Modifier.fillMaxWidth(),
+                                            ) {
+                                                Column(
+                                                    Modifier.fillMaxWidth().padding(8.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                                                ) {
+                                                    Text(meta.symbol, fontSize = 20.sp, color = meta.color)
+                                                    Text(planet, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground), fontSize = 9.sp)
+                                                    Text(g.str("rashi"), style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold), fontSize = 10.sp)
+                                                    val degree = g["degree"]?.jsonPrimitive?.doubleOrNull
+                                                    val house  = g["house"]?.jsonPrimitive?.intOrNull
+                                                    Text(
+                                                        "${if (degree != null) "%.1f".format(degree) + "°" else ""} ${if (house != null) "H$house" else ""}".trim(),
+                                                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                                                        fontSize = 9.sp,
+                                                    )
+                                                    val retro = g["retro"]?.jsonPrimitive?.booleanOrNull ?: false
+                                                    if (retro) Text("℞", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFFF59E0B)), fontSize = 9.sp)
+                                                }
+                                            }
+                                        } else {
+                                            // empty slot for alignment
+                                            Spacer(Modifier.fillMaxWidth())
+                                        }
+                                    }
+                                }
+                                // fill remaining slots in last row
+                                repeat(3 - rowPlanets.size) {
+                                    Spacer(Modifier.weight(1f))
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Active Yogas ──
+        val activeYogas = yogas?.filter { y ->
+            val p = y["present"]?.jsonPrimitive
+            p?.booleanOrNull != false && p?.contentOrNull != "false" && p?.contentOrNull != "0"
+        }
+        if (!activeYogas.isNullOrEmpty()) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = BrahmCard),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Active Yogas this Year",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        activeYogas.forEach { y ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("✓", style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF10B981), fontWeight = FontWeight.Bold), modifier = Modifier.padding(top = 1.dp))
+                                Column {
+                                    Text(y.str("name"), style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium))
+                                    val desc = y.str("desc").ifBlank { y.str("description") }
+                                    if (desc.isNotBlank()) {
+                                        Text(desc, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    } // LazyColumn
     ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 80.dp))
     } // Box
 }
@@ -154,9 +262,14 @@ fun VarshpalInputForm(
     onTobChange: (String) -> Unit,
     onPobChange: (String) -> Unit,
     onCitySelected: (City) -> Unit,
-    onTargetYearChange: (String) -> Unit,
+    onYearDecrement: () -> Unit,
+    onYearIncrement: () -> Unit,
     onCalculate: () -> Unit,
 ) {
+    val currentYear = java.time.LocalDate.now().year
+    val displayYear = targetYear.toIntOrNull() ?: currentYear
+    val birthYear   = dob.take(4).toIntOrNull()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
         contentPadding = PaddingValues(16.dp),
@@ -173,9 +286,46 @@ fun VarshpalInputForm(
                         pob = pob, onPobChange = onPobChange,
                         onCitySelected = onCitySelected,
                     )
-                    OutlinedTextField(value = targetYear, onValueChange = onTargetYearChange, label = { Text("Target Year (e.g. 2025)") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold))
+
+                    // Year selector: − / YEAR / +
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Target Year", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = onYearDecrement,
+                                modifier = Modifier.size(36.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = BrahmMutedForeground),
+                            ) {
+                                Text("−", fontSize = 18.sp)
+                            }
+                            Text(
+                                displayYear.toString(),
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                modifier = Modifier.width(56.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            )
+                            OutlinedButton(
+                                onClick = onYearIncrement,
+                                modifier = Modifier.size(36.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = BrahmMutedForeground),
+                            ) {
+                                Text("+", fontSize = 18.sp)
+                            }
+                            if (birthYear != null) {
+                                Text(
+                                    "Age ${displayYear - birthYear}",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                                )
+                            }
+                        }
+                    }
+
                     if (error != null) Text(error, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFE53935)))
-                    BrahmButton(text = "Calculate Varshphal", onClick = onCalculate)
+                    BrahmButton(text = "Calculate Varshphal $displayYear", onClick = onCalculate)
                 }
             }
         }

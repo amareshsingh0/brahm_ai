@@ -174,6 +174,14 @@ private fun computeAspects(grahaHouses: Map<String, Int>): Map<Int, List<String>
 
 private fun today(): String = try { LocalDate.now().toString() } catch (_: Exception) { "" }
 
+private val MONTHS_SHORT = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+
+/** Converts "2025-12-03" or "2025-12-03 14:32" → "03 Dec 2025" */
+private fun fmtDate(raw: String): String = try {
+    val date = raw.take(10).split("-")
+    "${date[2].toInt()} ${MONTHS_SHORT[date[1].toInt() - 1]} ${date[0]}"
+} catch (_: Exception) { raw }
+
 private fun isCurrentPeriod(start: String, end: String): Boolean {
     val now = today()
     return now.isNotEmpty() && start.isNotEmpty() && end.isNotEmpty() && now >= start && now <= end
@@ -211,8 +219,8 @@ private fun StatusBadge(status: String) {
 // ─── Info Cell (label + value) ────────────────────────────────────────────────
 
 @Composable
-private fun InfoCell(label: String, value: String, valueColor: Color = BrahmForeground) {
-    Column(Modifier.background(BrahmMuted.copy(alpha = 0.4f), RoundedCornerShape(8.dp)).padding(8.dp)) {
+private fun InfoCell(label: String, value: String, valueColor: Color = BrahmForeground, modifier: Modifier = Modifier) {
+    Column(modifier.background(BrahmMuted.copy(alpha = 0.4f), RoundedCornerShape(8.dp)).padding(8.dp)) {
         Text(label, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp))
         Text(
             value,
@@ -890,14 +898,15 @@ private fun ChartGrahaRow(row: Map<String, Any?>, today: String) {
             HorizontalDivider(color = BrahmBorder)
             Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    InfoCell("Rashi", row["rashi"]?.toString() ?: "—", BrahmGold)
-                    InfoCell("House", "H${house ?: "—"}", BrahmForeground)
-                    InfoCell("Pada", "P${pada.ifBlank { "—" }}", BrahmMutedForeground)
+                    InfoCell("Rashi", row["rashi"]?.toString() ?: "—", BrahmGold, Modifier.weight(1f))
+                    InfoCell("House", "H${house ?: "—"}", BrahmForeground, Modifier.weight(1f))
+                    InfoCell("Pada", "P${pada.ifBlank { "—" }}", BrahmMutedForeground, Modifier.weight(1f))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    InfoCell("Nakshatra", nakshatra.ifBlank { "—" }, Color(0xFF7C6FCD))
-                    InfoCell("Nak Lord", row["nakshatra_lord"]?.toString() ?: "—", BrahmMutedForeground)
-                    if (status.isNotBlank()) Box { StatusBadge(status) }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    InfoCell("Nakshatra", nakshatra.ifBlank { "—" }, Color(0xFF7C6FCD), Modifier.weight(1f))
+                    InfoCell("Nak Lord", row["nakshatra_lord"]?.toString() ?: "—", BrahmMutedForeground, Modifier.weight(1f))
+                    if (status.isNotBlank()) Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) { StatusBadge(status) }
+                    else Spacer(Modifier.weight(1f))
                 }
                 if (relationship.isNotBlank()) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -913,8 +922,10 @@ private fun ChartGrahaRow(row: Map<String, Any?>, today: String) {
                 }
                 if (speed != null || lat != null) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (speed != null) InfoCell("Speed", "%.3f°/d".format(speed), BrahmMutedForeground)
-                        if (lat != null) InfoCell("Latitude", "%.4f°".format(lat), BrahmMutedForeground)
+                        if (speed != null) InfoCell("Speed", "%.3f°/d".format(speed), BrahmMutedForeground, Modifier.weight(1f))
+                        if (lat != null) InfoCell("Latitude", "%.4f°".format(lat), BrahmMutedForeground, Modifier.weight(1f))
+                        if (speed != null && lat == null) Spacer(Modifier.weight(1f))
+                        if (lat != null && speed == null) Spacer(Modifier.weight(1f))
                     }
                 }
                 if (rulerStr.isNotBlank()) {
@@ -1286,7 +1297,7 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
                     }
                 }
                 Text(
-                    "$start  →  $end${if (years.isNotBlank()) "  ($years yrs)" else ""}",
+                    "${fmtDate(start)}  →  ${fmtDate(end)}${if (years.isNotBlank()) "  ($years yrs)" else ""}",
                     style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
                 )
             }
@@ -1359,7 +1370,7 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
                     modifier = Modifier.padding(bottom = 2.dp),
                 )
                 antardashas.forEach { ad ->
-                    AntardashaRow(ad = ad, today = today, parentColor = dotColor)
+                    AntardashaRow(ad = ad, today = today, parentColor = dotColor, parentPlanet = planet)
                 }
             }
         }
@@ -1367,7 +1378,7 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
 }
 
 @Composable
-private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Color) {
+private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Color, parentPlanet: String = "") {
     val planet = ad["planet"]?.toString() ?: ad["lord"]?.toString() ?: "—"
     val start = ad["start"]?.toString() ?: ""
     val end = ad["end"]?.toString() ?: ""
@@ -1415,7 +1426,7 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
                     }
                 }
                 Text(
-                    "$start  →  $end",
+                    "${fmtDate(start)}  →  ${fmtDate(end)}",
                     style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
                 )
             }
@@ -1429,8 +1440,8 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
             }
         }
 
-        // Active antardasha mini prediction
-        if (isActive) {
+        // Active antardasha mini prediction — skip if same planet as parent mahadasha (avoid duplicate)
+        if (isActive && planet != parentPlanet) {
             val pred = DASHA_PREDICTIONS[planet]
             if (pred != null) {
                 Column(
@@ -1479,45 +1490,111 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
                     modifier = Modifier.padding(bottom = 2.dp),
                 )
                 pratyantardashas.forEach { pd ->
-                    val pName = pd["planet"]?.toString() ?: pd["lord"]?.toString() ?: "—"
-                    val pStart = pd["start"]?.toString() ?: ""
-                    val pEnd = pd["end"]?.toString() ?: ""
-                    val pActive = isCurrentPeriod(pStart, pEnd)
-                    val pColor = DASHA_COLORS[pName] ?: BrahmMutedForeground
-                    val pEn = GRAHA_EN[pName]
+                    PratyantardashaRow(pd = pd, today = today)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PratyantardashaRow(pd: Map<String, Any?>, today: String) {
+    val pName = pd["planet"]?.toString() ?: pd["lord"]?.toString() ?: "—"
+    val pStart = pd["start"]?.toString() ?: ""
+    val pEnd = pd["end"]?.toString() ?: ""
+    val pActive = isCurrentPeriod(pStart, pEnd)
+    val pColor = DASHA_COLORS[pName] ?: BrahmMutedForeground
+    val pEn = GRAHA_EN[pName]
+    @Suppress("UNCHECKED_CAST")
+    val sukshmadashas = pd["sukshmadashas"] as? List<Map<String, Any?>> ?: emptyList()
+    var expanded by remember { mutableStateOf(pActive) }
+
+    Column {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(4.dp))
+                .background(if (pActive) pColor.copy(0.07f) else Color.Transparent)
+                .then(if (sukshmadashas.isNotEmpty()) Modifier.clickable { expanded = !expanded } else Modifier)
+                .padding(horizontal = 4.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(5.dp).clip(RoundedCornerShape(3.dp)).background(pColor.copy(0.7f)))
+            Spacer(Modifier.width(6.dp))
+            Text(
+                pName,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = if (pActive) pColor else BrahmForeground,
+                    fontWeight = if (pActive) FontWeight.SemiBold else FontWeight.Normal,
+                    fontSize = 10.sp,
+                ),
+            )
+            if (!pEn.isNullOrBlank()) {
+                Text(
+                    " ($pEn)",
+                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            Text(
+                "${fmtDate(pStart)} – ${fmtDate(pEnd)}",
+                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+            )
+            if (pActive) Text(" ★", style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontSize = 9.sp))
+            if (sukshmadashas.isNotEmpty()) {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = BrahmMutedForeground,
+                    modifier = Modifier.size(12.dp),
+                )
+            }
+        }
+
+        if (expanded && sukshmadashas.isNotEmpty()) {
+            Column(
+                Modifier.padding(start = 12.dp, end = 4.dp, top = 1.dp, bottom = 2.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                Text(
+                    "Sookshma",
+                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 8.sp),
+                    modifier = Modifier.padding(bottom = 1.dp),
+                )
+                sukshmadashas.forEach { sd ->
+                    val sName = sd["planet"]?.toString() ?: sd["lord"]?.toString() ?: "—"
+                    val sStart = sd["start"]?.toString() ?: ""
+                    val sEnd = sd["end"]?.toString() ?: ""
+                    val sActive = isCurrentPeriod(sStart, sEnd)
+                    val sColor = DASHA_COLORS[sName] ?: BrahmMutedForeground
+                    val sEn = GRAHA_EN[sName]
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if (pActive) pColor.copy(0.07f) else Color.Transparent)
-                            .padding(horizontal = 4.dp, vertical = 2.dp),
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(if (sActive) sColor.copy(0.07f) else Color.Transparent)
+                            .padding(horizontal = 3.dp, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Box(Modifier.size(5.dp).clip(RoundedCornerShape(3.dp)).background(pColor.copy(0.7f)))
-                        Spacer(Modifier.width(6.dp))
+                        Box(Modifier.size(4.dp).clip(RoundedCornerShape(2.dp)).background(sColor.copy(0.6f)))
+                        Spacer(Modifier.width(5.dp))
                         Text(
-                            pName,
+                            sName,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = if (pActive) pColor else BrahmForeground,
-                                fontWeight = if (pActive) FontWeight.SemiBold else FontWeight.Normal,
-                                fontSize = 10.sp,
+                                color = if (sActive) sColor else BrahmForeground,
+                                fontWeight = if (sActive) FontWeight.SemiBold else FontWeight.Normal,
+                                fontSize = 9.sp,
                             ),
                         )
-                        if (!pEn.isNullOrBlank()) {
-                            Text(
-                                " ($pEn)",
-                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
-                            )
+                        if (!sEn.isNullOrBlank()) {
+                            Text(" ($sEn)", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 8.sp))
                         }
                         Spacer(Modifier.weight(1f))
                         Text(
-                            "$pStart – $pEnd",
-                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp),
+                            "${fmtDate(sStart)} – ${fmtDate(sEnd)}",
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 8.sp),
                         )
-                        if (pActive) Text(
-                            " ★",
-                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontSize = 9.sp),
-                        )
+                        if (sActive) Text(" ★", style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontSize = 8.sp))
                     }
                 }
             }

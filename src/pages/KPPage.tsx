@@ -90,11 +90,10 @@ export default function KPPage() {
     setError("");
     setLoading(true);
     try {
-      const [hh, mm] = time.split(":").map(Number);
-      const res = await api.post("/api/kp", { date, time, lat, lon, tz, name: "KP Chart" });
-      setResult(res.data as KPResult);
+      const res = await api.post<KPResult>("/api/kp", { date, time, lat, lon, tz, name: "KP Chart" });
+      setResult(res);
     } catch (e: any) {
-      setError(e.response?.data?.detail ?? t("kp.error_chart"));
+      setError(e.message ?? t("kp.error_chart"));
     } finally {
       setLoading(false);
     }

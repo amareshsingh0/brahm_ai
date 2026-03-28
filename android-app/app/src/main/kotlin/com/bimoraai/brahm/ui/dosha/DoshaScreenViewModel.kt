@@ -91,5 +91,6 @@ class DoshaScreenViewModel @Inject constructor(
         }
     }
 
-    fun load() { if (hasData.value) calculate() }
+    fun load()  { if (hasData.value) calculate() }
+    fun reset() { _hasData.value = false; _result.value = null; _error.value = null }
 }

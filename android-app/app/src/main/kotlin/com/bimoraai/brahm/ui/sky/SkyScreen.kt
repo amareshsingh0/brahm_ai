@@ -463,7 +463,7 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text("🌟", fontSize = 32.sp)
+                    Text("★", fontSize = 32.sp)
                     Text("Generate Your Kundali First", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
                     Text(
                         "Your personalized transit forecast requires your natal chart. Go to My Kundali to generate it.",
@@ -519,7 +519,7 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(if (overallGood) "🌟" else "⚡", fontSize = 28.sp)
+                    Text(if (overallGood) "★" else "⚡", fontSize = 28.sp)
                     Text(
                         if (overallGood) "Auspicious day" else "Moderate day",
                         style = MaterialTheme.typography.labelSmall.copy(

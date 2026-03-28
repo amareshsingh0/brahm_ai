@@ -88,9 +88,9 @@ private fun dayBorderColor(day: JsonObject, hasEclipse: Boolean): Color = when {
 }
 
 private fun dayIcon(day: JsonObject, hasEclipse: Boolean, isSolarEclipse: Boolean): String? = when {
-    hasEclipse           -> if (isSolarEclipse) "☀️🌑" else "🌕🌑"
-    day.bool("is_purnima")  -> "🌕"
-    day.bool("is_amavasya") -> "🌑"
+    hasEclipse           -> if (isSolarEclipse) "☉●" else "○●"
+    day.bool("is_purnima")  -> "○"
+    day.bool("is_amavasya") -> "●"
     day.bool("is_ekadashi") -> "✦"
     day.bool("is_pradosh")  -> "☽"
     else -> null
@@ -202,7 +202,7 @@ fun CalendarScreen(
                 item {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         item {
-                            Text("🌙 Lunar:", fontSize = 11.sp,
+                            Text("☽ Lunar:", fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                         }
                         items(lunarMonths) { lm ->
@@ -426,7 +426,7 @@ fun CalendarScreen(
                         Text("📅 $traditionLabel", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                         Text("🎉 $festCount festivals", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                         if (purnimaDays.isNotEmpty())
-                            Text("🌕 Day ${purnimaDays.first()}", fontSize = 11.sp, color = Color(0xFF3B82F6))
+                            Text("○ Day ${purnimaDays.first()}", fontSize = 11.sp, color = Color(0xFF3B82F6))
                     }
                     // Legend line
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -695,7 +695,7 @@ private fun DayCell(
         )
         if (hasEclipse) {
             Text(
-                if (isSolarEcl) "☀ Surya" else "🌕 Chandra",
+                if (isSolarEcl) "☉ Surya" else "○ Chandra",
                 fontSize = 9.sp,
                 color = Color(0xFFF87171),
                 fontWeight = FontWeight.SemiBold,
@@ -798,13 +798,13 @@ private fun DayListRow(
                     fontWeight = FontWeight.Medium,
                 )
                 if (hasEclipse) Text(
-                    "🌑 ${if (isSolarEcl) "Solar" else "Lunar"} Eclipse",
+                    "● ${if (isSolarEcl) "Solar" else "Lunar"} Eclipse",
                     fontSize = 11.sp, color = Color(0xFFF87171), fontWeight = FontWeight.SemiBold,
                 )
             }
             Text(
                 buildString {
-                    append("🌟 ${day.str("nakshatra")}  ☀ ${day.str("sunrise")}")
+                    append("★ ${day.str("nakshatra")}  ☉ ${day.str("sunrise")}")
                     val rahu = day.str("rahu_kaal")
                     if (rahu != "—") append("  ☢ $rahu")
                 },
@@ -885,7 +885,7 @@ private fun DayDetailSheet(
                     )
                     Text(
                         "${day.str("vara")} · ${day.str("weekday")}" +
-                            day.str("lunar_month").let { if (it != "—") " · 🌙 $it" else "" },
+                            day.str("lunar_month").let { if (it != "—") " · ☽ $it" else "" },
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
@@ -894,9 +894,9 @@ private fun DayDetailSheet(
 
             // Special badges
             val badges = buildList {
-                if (eclipse != null) add("🌑 ${eclipse.str("type")} Eclipse" to Color(0xFFEF4444))
-                if (day.bool("is_purnima"))   add("🌕 Purnima"   to Color(0xFF3B82F6))
-                if (day.bool("is_amavasya"))  add("🌑 Amavasya"  to Color(0xFF64748B))
+                if (eclipse != null) add("● ${eclipse.str("type")} Eclipse" to Color(0xFFEF4444))
+                if (day.bool("is_purnima"))   add("○ Purnima"   to Color(0xFF3B82F6))
+                if (day.bool("is_amavasya"))  add("● Amavasya"  to Color(0xFF64748B))
                 if (day.bool("is_ekadashi"))  add("✦ Ekadashi"  to Color(0xFF10B981))
                 if (day.bool("is_pradosh"))   add("☽ Pradosh"   to Color(0xFFA855F7))
                 if (day.bool("is_chaturthi")) add("● Chaturthi" to Color(0xFFF97316))
@@ -940,7 +940,7 @@ private fun DayDetailSheet(
                     SheetInfoRow("Nakshatra", day.str("nakshatra"))
                     SheetInfoRow("Yoga", day.str("yoga"))
                     SheetInfoRow("Lunar Month", day.str("lunar_month"))
-                    SheetInfoRow("🌅 Sunrise", day.str("sunrise"), highlight = false)
+                    SheetInfoRow("↑ Sunrise", day.str("sunrise"), highlight = false)
                     SheetInfoRow("🌇 Sunset", day.str("sunset"), highlight = false)
                     SheetInfoRow("☢ Rahu Kaal", day.str("rahu_kaal"), highlight = true)
                 }
@@ -1032,7 +1032,7 @@ private fun SheetEclipseCard(eclipse: JsonObject) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(if (isSolar) "☀️🌑" else "🌕🌑", fontSize = 22.sp)
+            Text(if (isSolar) "☉●" else "○●", fontSize = 22.sp)
             Column {
                 Text("${eclipse.str("type")} Eclipse",
                     fontWeight = FontWeight.Bold, fontSize = 14.sp,
@@ -1223,7 +1223,7 @@ private fun SheetFestivalCard(f: JsonObject) {
                             0.5.dp, Color(0xFFEF4444).copy(0.3f)
                         ),
                     ) {
-                        Text("🌑 Grahan",
+                        Text("● Grahan",
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             fontSize = 10.sp, color = Color(0xFFF87171))
                     }
@@ -1247,7 +1247,7 @@ private fun SheetFestivalCard(f: JsonObject) {
         // Grahan notes — always visible
         if (hasGrahan) {
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("🌑 Eclipse Conflict & Shift Reason",
+                Text("● Eclipse Conflict & Shift Reason",
                     fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
                     color = Color(0xFFF87171))
                 grahanNotes.forEach { el ->

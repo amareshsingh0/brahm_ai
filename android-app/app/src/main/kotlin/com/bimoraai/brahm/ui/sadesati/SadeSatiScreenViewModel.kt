@@ -7,12 +7,16 @@ import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.network.KundaliRequest
 import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,75 +25,83 @@ class SadeSatiScreenViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    private val _result    = MutableStateFlow<JsonObject?>(null)
-    private val _isLoading = MutableStateFlow(false)
-    private val _error     = MutableStateFlow<String?>(null)
-    private val _hasData   = MutableStateFlow(false)
+    private val _shaniRashi    = MutableStateFlow("")
+    private val _shaniDegree   = MutableStateFlow(0.0)
+    private val _lagnaRashi    = MutableStateFlow("")
+    private val _isLoading     = MutableStateFlow(true)
+    private val _saturnError   = MutableStateFlow<String?>(null)
 
-    val result:    StateFlow<JsonObject?> = _result
-    val isLoading: StateFlow<Boolean>    = _isLoading
-    val error:     StateFlow<String?>    = _error
-    val hasData:   StateFlow<Boolean>    = _hasData
+    val shaniRashi:  StateFlow<String>  = _shaniRashi
+    val shaniDegree: StateFlow<Double>  = _shaniDegree
+    val lagnaRashi:  StateFlow<String>  = _lagnaRashi
+    val isLoading:   StateFlow<Boolean> = _isLoading
+    val saturnError: StateFlow<String?> = _saturnError
 
-    val name = MutableStateFlow("")
-    val dob  = MutableStateFlow("")
-    val tob  = MutableStateFlow("")
-    val pob  = MutableStateFlow("")
-    val lat  = MutableStateFlow(0.0)
-    val lon  = MutableStateFlow(0.0)
-    val tz   = MutableStateFlow("5.5")
+    /** User-selected moon rashi — mutable from UI */
+    val selectedMoonRashi = MutableStateFlow("")
 
     init {
         viewModelScope.launch {
-            userRepository.user
-                .filterNotNull()
-                .first { it.date.isNotBlank() && it.place.isNotBlank() }
-                .let { u -> prefillFromProfile(u) }
-        }
-    }
-
-    private fun prefillFromProfile(u: UserDto) {
-        if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
-        if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
-        if (tob.value.isBlank() && u.time.isNotBlank()) tob.value = u.time
-        if (pob.value.isBlank() && u.place.isNotBlank()) pob.value = u.place
-        if (lat.value == 0.0 && u.lat != 0.0) lat.value = u.lat
-        if (lon.value == 0.0 && u.lon != 0.0) lon.value = u.lon
-        if (u.tz != 0.0) tz.value = u.tz.toString()
-        calculate()
-    }
-
-    fun calculate() {
-        if (dob.value.isBlank() || tob.value.isBlank()) {
-            _error.value = "Please enter date and time of birth"
-            return
-        }
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value     = null
-            try {
-                val resp = api.generateKundali(KundaliRequest(
-                    name  = name.value.ifBlank { "User" },
-                    date  = dob.value,
-                    time  = tob.value,
-                    place = pob.value,
-                    lat   = lat.value,
-                    lon   = lon.value,
-                    tz    = tz.value.toDoubleOrNull() ?: 5.5,
-                ))
-                if (resp.isSuccessful) {
-                    _result.value  = resp.body()
-                    _hasData.value = true
-                } else {
-                    _error.value = "Calculation failed. Please check birth details."
-                }
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Network error"
-            } finally {
-                _isLoading.value = false
+            // Fetch Saturn position AND user profile in parallel
+            val saturnDef = async { fetchSaturnPosition() }
+            val profileDef = async {
+                try {
+                    userRepository.user
+                        .filterNotNull()
+                        .first()
+                        .let { u -> prefillFromProfile(u) }
+                } catch (_: Exception) { /* no profile */ }
             }
+            saturnDef.await()
+            profileDef.await()
+            _isLoading.value = false
         }
     }
 
-    fun load() { if (hasData.value) calculate() }
+    private suspend fun fetchSaturnPosition() {
+        try {
+            val resp = api.getGocharNow()
+            if (resp.isSuccessful) {
+                val positions = resp.body()?.get("positions")?.jsonObject
+                val shani = positions?.get("Shani")?.jsonObject
+                _shaniRashi.value  = shani?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                _shaniDegree.value = shani?.get("degree")?.jsonPrimitive?.doubleOrNull ?: 0.0
+            } else {
+                _saturnError.value = "Could not load Saturn position."
+            }
+        } catch (e: Exception) {
+            _saturnError.value = "Could not reach server."
+        }
+    }
+
+    private suspend fun prefillFromProfile(u: UserDto) {
+        if (u.date.isBlank() || u.time.isBlank()) return
+        try {
+            val resp = api.generateKundali(KundaliRequest(
+                name  = u.name.ifBlank { "User" },
+                date  = u.date,
+                time  = u.time,
+                place = u.place,
+                lat   = u.lat,
+                lon   = u.lon,
+                tz    = u.tz,
+            ))
+            if (resp.isSuccessful) {
+                val body = resp.body()
+                val moonR  = body?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                val lagnaR = body?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                if (moonR.isNotBlank() && selectedMoonRashi.value.isBlank()) selectedMoonRashi.value = moonR
+                if (lagnaR.isNotBlank()) _lagnaRashi.value = lagnaR
+            }
+        } catch (_: Exception) { /* ignore — user can select manually */ }
+    }
+
+    fun refreshSaturn() {
+        viewModelScope.launch {
+            _isLoading.value    = true
+            _saturnError.value  = null
+            fetchSaturnPosition()
+            _isLoading.value    = false
+        }
+    }
 }

@@ -49,7 +49,7 @@ fun DoshaScreen(navController: NavController, vm: DoshaScreenViewModel = hiltVie
             when {
                 isLoading -> BrahmLoadingSpinner(modifier = Modifier.fillMaxSize())
                 error != null && !hasData -> BrahmErrorView(message = error!!, onRetry = { vm.load() })
-                hasData && result != null -> DoshaContent(result!!)
+                hasData && result != null -> DoshaContent(result!!, onReset = { vm.reset() })
                 else -> DoshaInputForm(
                     name = name, dob = dob, tob = tob, pob = pob,
                     error = error,

@@ -120,5 +120,5 @@ class GocharScreenViewModel @Inject constructor(
         }
     }
 
-    fun load() { if (hasData.value) calculate() }
+    fun load() { calculate() }
 }

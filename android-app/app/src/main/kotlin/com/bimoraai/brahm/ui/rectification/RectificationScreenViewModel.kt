@@ -19,6 +19,8 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.add
 import javax.inject.Inject
 
+data class LifeEvent(val date: String = "", val type: String = "marriage")
+
 @HiltViewModel
 class RectificationScreenViewModel @Inject constructor(
     private val api: ApiService,
@@ -35,19 +37,16 @@ class RectificationScreenViewModel @Inject constructor(
     val error:     StateFlow<String?>    = _error
     val hasData:   StateFlow<Boolean>    = _hasData
 
-    val name      = MutableStateFlow("")
-    val dob       = MutableStateFlow("")
-    val approxTob = MutableStateFlow("")
-    val pob       = MutableStateFlow("")
-    val lat       = MutableStateFlow(0.0)
-    val lon       = MutableStateFlow(0.0)
-    val tz        = MutableStateFlow("5.5")
+    val name        = MutableStateFlow("")
+    val dob         = MutableStateFlow("")
+    val approxTob   = MutableStateFlow("")
+    val pob         = MutableStateFlow("")
+    val lat         = MutableStateFlow(0.0)
+    val lon         = MutableStateFlow(0.0)
+    val tz          = MutableStateFlow("5.5")
+    val uncertainty = MutableStateFlow(60) // minutes
 
-    val uncertainty = MutableStateFlow("±1 Hour")
-    val event1Type  = MutableStateFlow("Marriage")
-    val event1Date  = MutableStateFlow("")
-    val event2Type  = MutableStateFlow("Career Change")
-    val event2Date  = MutableStateFlow("")
+    val events = MutableStateFlow(listOf(LifeEvent(type = "marriage"), LifeEvent(type = "career_start")))
 
     init {
         viewModelScope.launch {
@@ -68,37 +67,52 @@ class RectificationScreenViewModel @Inject constructor(
         if (u.tz != 0.0) tz.value = u.tz.toString()
     }
 
+    fun addEvent() {
+        events.value = events.value + LifeEvent(type = "career_start")
+    }
+
+    fun removeEvent(index: Int) {
+        if (events.value.size > 1) {
+            events.value = events.value.filterIndexed { i, _ -> i != index }
+        }
+    }
+
+    fun updateEventDate(index: Int, date: String) {
+        events.value = events.value.mapIndexed { i, ev -> if (i == index) ev.copy(date = date) else ev }
+    }
+
+    fun updateEventType(index: Int, type: String) {
+        events.value = events.value.mapIndexed { i, ev -> if (i == index) ev.copy(type = type) else ev }
+    }
+
     fun calculate() {
         if (dob.value.isBlank() || approxTob.value.isBlank()) {
             _error.value = "Please enter date and approximate time of birth"
+            return
+        }
+        if (lat.value == 0.0 || lon.value == 0.0) {
+            _error.value = "Please select a birth place from the suggestions"
             return
         }
         viewModelScope.launch {
             _isLoading.value = true
             _error.value     = null
             try {
-                val uncertaintyMinutes = when {
-                    uncertainty.value.contains("30") -> 30
-                    uncertainty.value.contains("2")  -> 120
-                    uncertainty.value.contains("3")  -> 180
-                    else                             -> 60
-                }
+                val validEvents = events.value.filter { it.date.isNotBlank() && it.type.isNotBlank() }
                 val body = buildJsonObject {
-                    put("date",                 JsonPrimitive(dob.value))
-                    put("approx_time",          JsonPrimitive(approxTob.value))
-                    put("uncertainty_minutes",  JsonPrimitive(uncertaintyMinutes))
-                    put("lat",                  JsonPrimitive(lat.value))
-                    put("lon",                  JsonPrimitive(lon.value))
-                    put("tz",                   JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
+                    put("date",                JsonPrimitive(dob.value))
+                    put("approx_time",         JsonPrimitive(approxTob.value))
+                    put("uncertainty_minutes", JsonPrimitive(uncertainty.value))
+                    put("lat",                 JsonPrimitive(lat.value))
+                    put("lon",                 JsonPrimitive(lon.value))
+                    put("tz",                  JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
                     put("events", buildJsonArray {
-                        if (event1Date.value.isNotBlank()) add(buildJsonObject {
-                            put("date", JsonPrimitive(event1Date.value))
-                            put("type", JsonPrimitive(event1Type.value.lowercase().replace(" ", "_")))
-                        })
-                        if (event2Date.value.isNotBlank()) add(buildJsonObject {
-                            put("date", JsonPrimitive(event2Date.value))
-                            put("type", JsonPrimitive(event2Type.value.lowercase().replace(" ", "_")))
-                        })
+                        validEvents.forEach { ev ->
+                            add(buildJsonObject {
+                                put("date", JsonPrimitive(ev.date))
+                                put("type", JsonPrimitive(ev.type))
+                            })
+                        }
                     })
                 }
                 val resp = api.getRectification(body)
@@ -117,4 +131,5 @@ class RectificationScreenViewModel @Inject constructor(
     }
 
     fun load() { if (hasData.value) calculate() }
+    fun reset() { _hasData.value = false; _result.value = null; _error.value = null }
 }

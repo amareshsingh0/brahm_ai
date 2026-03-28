@@ -25,11 +25,10 @@ fun RectificationScreen(navController: NavController, vm: RectificationScreenVie
     val dob         by vm.dob.collectAsState()
     val approxTob   by vm.approxTob.collectAsState()
     val pob         by vm.pob.collectAsState()
+    val lat         by vm.lat.collectAsState()
+    val lon         by vm.lon.collectAsState()
     val uncertainty by vm.uncertainty.collectAsState()
-    val event1Type  by vm.event1Type.collectAsState()
-    val event1Date  by vm.event1Date.collectAsState()
-    val event2Type  by vm.event2Type.collectAsState()
-    val event2Date  by vm.event2Date.collectAsState()
+    val events      by vm.events.collectAsState()
 
     SwipeBackLayout(navController) {
     Scaffold(
@@ -54,12 +53,12 @@ fun RectificationScreen(navController: NavController, vm: RectificationScreenVie
             when {
                 isLoading -> BrahmLoadingSpinner(modifier = Modifier.fillMaxSize())
                 error != null && !hasData -> BrahmErrorView(message = error!!, onRetry = { vm.load() })
-                hasData && result != null -> RectificationContent(result!!)
+                hasData && result != null -> RectificationContent(result!!, onReset = { vm.reset() })
                 else -> RectificationInputForm(
                     name = name, dob = dob, approxTob = approxTob, pob = pob,
+                    lat = lat, lon = lon,
                     uncertainty = uncertainty,
-                    event1Type = event1Type, event1Date = event1Date,
-                    event2Type = event2Type, event2Date = event2Date,
+                    events = events,
                     error = error,
                     onNameChange        = { vm.name.value = it },
                     onDobChange         = { vm.dob.value = it },
@@ -67,10 +66,10 @@ fun RectificationScreen(navController: NavController, vm: RectificationScreenVie
                     onPobChange         = { vm.pob.value = it },
                     onCitySelected      = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
                     onUncertaintyChange = { vm.uncertainty.value = it },
-                    onEvent1TypeChange  = { vm.event1Type.value = it },
-                    onEvent1DateChange  = { vm.event1Date.value = it },
-                    onEvent2TypeChange  = { vm.event2Type.value = it },
-                    onEvent2DateChange  = { vm.event2Date.value = it },
+                    onAddEvent          = { vm.addEvent() },
+                    onRemoveEvent       = { vm.removeEvent(it) },
+                    onUpdateEventDate   = { i, d -> vm.updateEventDate(i, d) },
+                    onUpdateEventType   = { i, t -> vm.updateEventType(i, t) },
                     onCalculate         = { vm.calculate() },
                 )
             }

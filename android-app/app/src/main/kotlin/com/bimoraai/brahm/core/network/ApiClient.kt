@@ -25,6 +25,7 @@ val json = Json {
     ignoreUnknownKeys = true
     isLenient = true
     coerceInputValues = true
+    encodeDefaults = true
 }
 
 @Module

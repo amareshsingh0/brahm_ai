@@ -32,7 +32,7 @@ class PrashnaScreenViewModel @Inject constructor(
     val hasData:   StateFlow<Boolean>    = _hasData
 
     val question     = MutableStateFlow("")
-    val questionType = MutableStateFlow("General")
+    val questionType = MutableStateFlow("general")
     val pob          = MutableStateFlow("")
     val lat          = MutableStateFlow(0.0)
     val lon          = MutableStateFlow(0.0)
@@ -50,8 +50,8 @@ class PrashnaScreenViewModel @Inject constructor(
     }
 
     fun calculate() {
-        if (question.value.isBlank()) {
-            _error.value = "Please enter your question"
+        if (lat.value == 0.0 || lon.value == 0.0) {
+            _error.value = "Please select a location from the suggestions"
             return
         }
         viewModelScope.launch {
@@ -60,7 +60,7 @@ class PrashnaScreenViewModel @Inject constructor(
             try {
                 val body = buildJsonObject {
                     put("question",      JsonPrimitive(question.value))
-                    put("question_type", JsonPrimitive(questionType.value.lowercase()))
+                    put("question_type", JsonPrimitive(questionType.value))
                     put("lat",           JsonPrimitive(lat.value))
                     put("lon",           JsonPrimitive(lon.value))
                     put("tz",            JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
@@ -80,5 +80,6 @@ class PrashnaScreenViewModel @Inject constructor(
         }
     }
 
-    fun load() { if (hasData.value) calculate() }
+    fun reset() { _hasData.value = false; _result.value = null; _error.value = null }
+    fun load()  { if (hasData.value) calculate() }
 }

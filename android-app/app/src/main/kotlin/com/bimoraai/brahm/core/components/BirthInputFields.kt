@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -119,9 +118,7 @@ fun BirthInputFields(
                     cityVm.cityQuery.value = v
                     showCitySuggestions = v.length >= 2
                 },
-                modifier      = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { if (!it.isFocused) showCitySuggestions = false },
+                modifier      = Modifier.fillMaxWidth(),
                 label         = { Text("Place of Birth") },
                 placeholder   = { Text("Type city name…", color = BrahmMutedForeground) },
                 leadingIcon   = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold) },

@@ -321,7 +321,7 @@ fun TodayScreen(
             item {
                 val tithiname  = p.nested("tithi", "name")
                 val paksha     = p.nested("tithi", "paksha")
-                val pakshaIcon = if (paksha == "Shukla") "🌕" else "🌑"
+                val pakshaIcon = if (paksha == "Shukla") "○" else "●"
                 val tithiType  = p.nested("tithi", "tithi_type")
                 Row(
                     modifier = Modifier.fillMaxWidth()
@@ -363,7 +363,7 @@ fun TodayScreen(
                 val karana    = p["karana"]?.jsonObjectOrNull
                 val vara      = p["vara"]?.jsonObjectOrNull
                 if (tithi != null) add(AngaItem(
-                    label = "Tithi", hindi = "तिथि", icon = "🌙",
+                    label = "Tithi", hindi = "तिथि", icon = "☽",
                     value = "${tithi.str("paksha")} ${tithi.str("name")}",
                     sub   = "Ends: ${tithi.str("end_time")}${if (tithi.str("tithi_type") != "normal" && tithi.str("tithi_type") != "—") " · ${tithi.str("tithi_type")}" else ""}",
                     quality = "neutral",
@@ -458,7 +458,7 @@ fun TodayScreen(
                     ) {
                         Icon(Icons.Default.LocationOn, null, tint = BrahmGold, modifier = Modifier.size(14.dp))
                         Text(
-                            panchangCity?.name?.take(14) ?: "Set Location",
+                            panchangCity?.name?.substringBefore(",")?.take(14) ?: "Set Location",
                             style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontSize = 11.sp),
                         )
                     }
@@ -468,7 +468,7 @@ fun TodayScreen(
             // Build timings list
             val timings = buildList<TimingItem> {
                 p["brahma_muhurta"]?.jsonObjectOrNull?.let { add(TimingItem("🌄", "Brahma Muhurta", "${it.str("start")} – ${it.str("end")}", "benefic")) }
-                p.str("sunrise").takeIf { it != "—" }?.let { add(TimingItem("🌅", "Sunrise", it, "benefic")) }
+                p.str("sunrise").takeIf { it != "—" }?.let { add(TimingItem("↑", "Sunrise", it, "benefic")) }
                 p["abhijit_muhurta"]?.jsonObjectOrNull?.let { add(TimingItem("✨", "Abhijit Muhurta", "${it.str("start")} – ${it.str("end")}", "special")) }
                 p["rahukaal"]?.jsonObjectOrNull?.let { add(TimingItem("⚠️", "Rahu Kaal", "${it.str("start")} – ${it.str("end")}", "malefic")) }
                 p["yamagandam"]?.jsonObjectOrNull?.let { add(TimingItem("💀", "Yamagandam", "${it.str("start")} – ${it.str("end")}", "malefic")) }
@@ -477,7 +477,7 @@ fun TodayScreen(
                 p["pradosh_kaal"]?.jsonObjectOrNull?.let { add(TimingItem("🌆", "Pradosh Kaal", "${it.str("start")} – ${it.str("end")}", "special")) }
                 p["nishita_kaal"]?.jsonObjectOrNull?.let {
                     val mid = it.str("midpoint").let { m -> if (m != "—") " (mid: $m)" else "" }
-                    add(TimingItem("🌑", "Nishita Kaal$mid", "${it.str("start")} – ${it.str("end")}", "special"))
+                    add(TimingItem("●", "Nishita Kaal$mid", "${it.str("start")} – ${it.str("end")}", "special"))
                 }
             }
             items(timings) { t ->
@@ -495,8 +495,8 @@ fun TodayScreen(
                         Row(
                             modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, BrahmBorder, RoundedCornerShape(8.dp)),
                         ) {
-                            ChogTabBtn("☀ Day",   chogDay) { chogDay = true }
-                            ChogTabBtn("🌙 Night", !chogDay) { chogDay = false }
+                            ChogTabBtn("☉ Day",   chogDay) { chogDay = true }
+                            ChogTabBtn("☽ Night", !chogDay) { chogDay = false }
                         }
                     }
                     Spacer(Modifier.height(4.dp))
@@ -531,7 +531,7 @@ fun TodayScreen(
                 // Dynamic header based on today's events
                 val summaryTitle = when {
                     todayEvents.any { it.str("name").contains("Grahan", ignoreCase = true) ||
-                            it.str("name").contains("Eclipse", ignoreCase = true) } -> "🌑 Eclipse Day"
+                            it.str("name").contains("Eclipse", ignoreCase = true) } -> "● Eclipse Day"
                     todayEvents.isNotEmpty() -> "🎊 ${todayEvents.first().str("name")} — Today's Summary"
                     else -> "✨ Today's Summary"
                 }
@@ -577,7 +577,7 @@ fun TodayScreen(
                             modifier = Modifier.fillMaxWidth(),
                             bg = Color(0xFF1E1B4B).copy(alpha = 0.05f),
                             border = Color(0xFF6366F1).copy(alpha = 0.3f),
-                            label = "🌑 Grahan Day — Special observances apply",
+                            label = "● Grahan Day — Special observances apply",
                             labelColor = Color(0xFF4F46E5),
                             text = "Avoid auspicious ceremonies. Chant mantras, fast, and avoid eating during eclipse. Add Tulsi to stored water.",
                         )

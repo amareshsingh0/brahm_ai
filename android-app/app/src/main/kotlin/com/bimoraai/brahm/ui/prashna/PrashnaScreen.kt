@@ -24,6 +24,8 @@ fun PrashnaScreen(navController: NavController, vm: PrashnaScreenViewModel = hil
     val question     by vm.question.collectAsState()
     val questionType by vm.questionType.collectAsState()
     val pob          by vm.pob.collectAsState()
+    val lat          by vm.lat.collectAsState()
+    val lon          by vm.lon.collectAsState()
 
     SwipeBackLayout(navController) {
     Scaffold(
@@ -48,9 +50,11 @@ fun PrashnaScreen(navController: NavController, vm: PrashnaScreenViewModel = hil
             when {
                 isLoading -> BrahmLoadingSpinner(modifier = Modifier.fillMaxSize())
                 error != null && !hasData -> BrahmErrorView(message = error!!, onRetry = { vm.load() })
-                hasData && result != null -> PrashnaContent(result!!)
+                hasData && result != null -> PrashnaContent(result!!, onReset = { vm.reset() })
                 else -> PrashnaInputForm(
-                    question = question, questionType = questionType, pob = pob,
+                    question = question,
+                    questionType = questionType,
+                    pob = pob,
                     error = error,
                     onQuestionChange     = { vm.question.value = it },
                     onQuestionTypeChange = { vm.questionType.value = it },

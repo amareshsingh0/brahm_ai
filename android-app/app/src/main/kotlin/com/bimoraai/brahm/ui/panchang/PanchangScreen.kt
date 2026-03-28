@@ -329,7 +329,7 @@ fun PanchangScreen(
                     Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
                             modifier = Modifier.padding(vertical = 10.dp)) {
-                            Text("🌑 Eclipses", style = MaterialTheme.typography.labelMedium.copy(
+                            Text("● Eclipses", style = MaterialTheme.typography.labelMedium.copy(
                                 color = if (selectedTab == 2) BrahmGold else BrahmMutedForeground,
                                 fontWeight = if (selectedTab == 2) FontWeight.SemiBold else FontWeight.Normal,
                             ))
@@ -669,7 +669,7 @@ private fun EclipsesTab(grahan: JsonObject?, isLoading: Boolean, error: String?,
                         .padding(24.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("No eclipses visible this year 🌟", fontSize = 13.sp,
+                    Text("No eclipses visible this year ★", fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(0.5f))
                 }
             }
@@ -779,7 +779,7 @@ private fun FestivalCard(fest: JsonObject) {
                         Surface(shape = RoundedCornerShape(4.dp),
                             color = Color(0xFFEF4444).copy(0.10f),
                             border = BorderStroke(0.5.dp, Color(0xFFEF4444).copy(0.3f))) {
-                            Text("🌑 Grahan",
+                            Text("● Grahan",
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 fontSize = 10.sp, color = Color(0xFFF87171))
                         }
@@ -811,7 +811,7 @@ private fun FestivalCard(fest: JsonObject) {
             // Grahan notes — always visible
             if (hasGrahan) {
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("🌑 Eclipse Conflict", fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
+                    Text("● Eclipse Conflict", fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
                         color = Color(0xFFF87171))
                     grahanNotes.forEach { el ->
                         ExplainBox(
@@ -902,7 +902,7 @@ private fun GrahanCard(eclipse: JsonObject) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 // Header
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(if (isSolar) "☀️🌑" else "🌕🌑", fontSize = 28.sp)
+                    Text(if (isSolar) "☉●" else "○●", fontSize = 28.sp)
                     Column(Modifier.weight(1f)) {
                         Text("${eclipse.str("type")} Eclipse",
                             fontWeight = FontWeight.Bold, fontSize = 16.sp, color = color)

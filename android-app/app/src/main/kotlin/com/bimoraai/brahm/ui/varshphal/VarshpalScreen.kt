@@ -6,7 +6,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -42,7 +41,7 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
         },
     ) { padding ->
@@ -59,7 +58,8 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
                     onTobChange        = { vm.tob.value = it },
                     onPobChange        = { vm.pob.value = it },
                     onCitySelected     = { city -> vm.pob.value = city.name; vm.lat.value = city.lat; vm.lon.value = city.lon; vm.tz.value = city.tz.toString() },
-                    onTargetYearChange = { vm.targetYear.value = it },
+                    onYearDecrement    = { vm.targetYear.value = ((vm.targetYear.value.toIntOrNull() ?: java.time.LocalDate.now().year) - 1).toString() },
+                    onYearIncrement    = { vm.targetYear.value = ((vm.targetYear.value.toIntOrNull() ?: java.time.LocalDate.now().year) + 1).toString() },
                     onCalculate        = { vm.calculate() },
                 )
             }

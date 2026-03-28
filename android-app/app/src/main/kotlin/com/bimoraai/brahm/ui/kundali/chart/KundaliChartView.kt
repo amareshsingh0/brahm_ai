@@ -791,11 +791,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawNorthHouseConte
     val totalH = planets.size * lineH
     val topY   = startY + (cellH * 0.52f - totalH) / 2f
 
+    val cellBottom = cellY + cellH
     planets.forEachIndexed { i, abbr ->
         val color = PLANET_COLORS[abbr] ?: Color(0xFFD4540A)
         val sym   = PLANET_SYMBOLS[abbr]
         val name  = PLANET_FULL[abbr] ?: abbr
         val rowY  = topY + i * lineH
+        // Skip rows that overflow cell bounds
+        if (rowY < cellY || rowY + lineH > cellBottom) return@forEachIndexed
         if (sym != null && sym != "Asc") {
             val sm  = textMeasurer.measure(sym, TextStyle(fontSize = 9.sp, fontFamily = FontFamily.Serif))
             val tnm = textMeasurer.measure(name, TextStyle(fontSize = 7.sp))
