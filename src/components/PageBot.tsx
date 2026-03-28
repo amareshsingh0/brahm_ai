@@ -231,7 +231,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60] bg-black/40"
+            className="fixed inset-0 z-[60] bg-black/70"
             onClick={() => setOpen(false)}
           />
         )}

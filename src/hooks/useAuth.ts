@@ -110,7 +110,8 @@ export const useAuth = () => {
         body: JSON.stringify({ refresh_token: refreshToken }),
       }).catch(() => {});
     }
-    // Clear birth details from kundliStore on logout
+    // Clear kundli store on logout
+    useKundliStore.getState().clearKundaliData();
     useKundliStore.getState().setBirthDetails({ name: '', dateOfBirth: '', timeOfBirth: '', birthPlace: '' });
     useKundliStore.getState().setHasKundli(false);
     storeLogout();

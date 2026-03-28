@@ -748,6 +748,11 @@ export default function KundliPage() {
   const kundaliMutation = useKundali();
   useSavedKundali(); // Loads saved kundali from backend if not already in store
 
+  // When saved kundali loads from backend (new device / after logout), switch to result view
+  useEffect(() => {
+    if (kundaliData && view === "input") setView("result");
+  }, [kundaliData]);
+
   const handleGenerate = useCallback(async (form: LocalForm, city: { lat: number; lon: number; tz: number } | null) => {
     setFormError(null);
     const DEF = { lat: 25.317, lon: 83.013, tz: 5.5 }; // Varanasi fallback (select city from dropdown for accuracy)
