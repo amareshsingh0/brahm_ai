@@ -104,15 +104,15 @@ function TransitionRoutes() {
           element={<AuthRedirect />}
         />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/rashi"      element={<AppLayout><RashiExplorer /></AppLayout>} />
-        <Route path="/nakshatra"  element={<AppLayout><NakshatraExplorer /></AppLayout>} />
-        <Route path="/horoscope"  element={<AppLayout><HoroscopePage /></AppLayout>} />
-        <Route path="/stories"    element={<AppLayout><StoriesPage /></AppLayout>} />
-        <Route path="/grahan"     element={<Navigate to="/panchang" replace />} />
-        <Route path="/calendar"   element={<Navigate to="/panchang" replace />} />
-        <Route path="/panchang"   element={<AppLayout><GrahanPage /></AppLayout>} />
 
         <Route element={<ProtectedRoute />}>
+          <Route path="/rashi"      element={<AppLayout><RashiExplorer /></AppLayout>} />
+          <Route path="/nakshatra"  element={<AppLayout><NakshatraExplorer /></AppLayout>} />
+          <Route path="/horoscope"  element={<AppLayout><HoroscopePage /></AppLayout>} />
+          <Route path="/stories"    element={<AppLayout><StoriesPage /></AppLayout>} />
+          <Route path="/grahan"     element={<Navigate to="/panchang" replace />} />
+          <Route path="/calendar"   element={<Navigate to="/panchang" replace />} />
+          <Route path="/panchang"   element={<AppLayout><GrahanPage /></AppLayout>} />
           <Route path="/dashboard"    element={<AppLayout><Dashboard /></AppLayout>} />
           <Route path="/onboarding"   element={<Navigate to="/kundli" replace />} />
           <Route path="/kundli"       element={<AppLayout><KundliPage /></AppLayout>} />

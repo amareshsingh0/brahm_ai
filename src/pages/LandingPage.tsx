@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Star, Moon, Sun, Sparkles, ChevronRight } from "lucide-react";
+import { ArrowRight, Star, Moon, Sun, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const cosmicFacts = [
@@ -16,7 +16,6 @@ const planColors: Record<string, string> = {
   "Jyotishi+": "bg-amber-500/20 text-amber-400",
   Acharya:     "bg-purple-500/20 text-purple-400",
 };
-
 const stats = [
   { value: "108",   label: "Yogas & Doshas detected" },
   { value: "9",     label: "Grahas tracked in real-time" },
@@ -78,23 +77,6 @@ export default function LandingPage() {
     { step: "03", title: "Explore Your Chart",   desc: "Dashboard, Panchang, AI Chat, Compatibility — all personalized.",                       icon: "🔮" },
   ];
 
-  const plans = [
-    {
-      name: "Free",     nameHi: "निःशुल्क", price: "₹0",   period: "",
-      features: ["Daily Horoscope", "Today's Panchang", "Festival Calendar", "Basic Kundali", "5 AI Chats/day"],
-      cta: "Start Free", highlight: false,
-    },
-    {
-      name: "Jyotishi", nameHi: "ज्योतिषी", price: "₹199", period: "/month",
-      features: ["Everything in Free", "Unlimited AI Chat", "Full Kundali + Dashas", "Compatibility Analysis", "Muhurta Finder"],
-      cta: "Get Jyotishi", highlight: true,
-    },
-    {
-      name: "Acharya",  nameHi: "आचार्य",   price: "₹499", period: "/month",
-      features: ["Everything in Jyotishi", "Sanskrit Library Search", "Varshaphala (coming soon)", "Priority GPU inference", "PDF export (coming soon)"],
-      cta: "Get Acharya", highlight: false,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -154,11 +136,6 @@ export default function LandingPage() {
             <Link to="/login">
               <Button size="lg" className="gap-2 px-8 font-semibold">
                 {t('landing.get_started')} <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/horoscope">
-              <Button size="lg" variant="outline" className="gap-2 border-border/40">
-                {t('horoscope.title')}
               </Button>
             </Link>
           </motion.div>
@@ -281,57 +258,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── PLANS PREVIEW ─── */}
-      <section className="px-5 sm:px-8 py-16 max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mb-10"
-        >
-          <p className="text-xs uppercase tracking-widest text-primary/60 mb-2">Pricing</p>
-          <h2 className="font-display text-3xl text-foreground">Start Free, Upgrade Anytime</h2>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {plans.map((plan, i) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`cosmic-card rounded-xl p-6 flex flex-col gap-4 ${plan.highlight ? "ring-1 ring-primary/50 glow-border" : ""}`}
-            >
-              <div>
-                <p className="font-display text-xl text-foreground">{plan.name}</p>
-                <p className="text-xs text-muted-foreground">{plan.nameHi}</p>
-                <p className="font-display text-3xl text-primary mt-2">
-                  {plan.price}<span className="text-sm font-normal text-muted-foreground">{plan.period}</span>
-                </p>
-              </div>
-              <ul className="space-y-2 flex-1">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <ChevronRight className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/login">
-                <Button
-                  className="w-full"
-                  variant={plan.highlight ? "default" : "outline"}
-                  size="sm"
-                >
-                  {plan.cta}
-                </Button>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
       {/* ─── FINAL CTA ─── */}
       <section className="px-5 sm:px-8 py-20 star-field">
         <motion.div
@@ -360,12 +286,6 @@ export default function LandingPage() {
         <div className="flex items-center justify-center gap-2 mb-3">
           <Moon className="h-4 w-4 text-primary" />
           <span className="font-display text-sm text-primary">{t('appTitle')}</span>
-        </div>
-        <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
-          <Link to="/horoscope" className="hover:text-foreground transition-colors">{t('nav.horoscope')}</Link>
-          <Link to="/panchang"  className="hover:text-foreground transition-colors">{t('nav.panchang')}</Link>
-          <Link to="/rashi"     className="hover:text-foreground transition-colors">{t('nav.rashi')}</Link>
-          <Link to="/login"     className="hover:text-foreground transition-colors">Login</Link>
         </div>
         <p className="text-xs text-muted-foreground/60 mt-4">
           Grounded in Vedic tradition · Powered by AI

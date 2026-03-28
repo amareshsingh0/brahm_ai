@@ -27,7 +27,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <CosmicSky />
-      <div className="min-h-screen flex w-full relative overflow-hidden" style={{ zIndex: 1 }}>
+      <div className="min-h-screen flex w-full relative" style={{ zIndex: 1 }}>
         <div className="hidden md:block">
           <AppSidebar />
         </div>

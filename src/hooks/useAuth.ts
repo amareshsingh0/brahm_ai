@@ -4,32 +4,44 @@ import { apiFetch } from '@/lib/apiFetch';
 
 const API = "/api";
 
-/** After login, load saved profile from backend → populate kundliStore */
+/** After login, load saved profile + kundali JSON from backend in parallel */
 async function loadProfileIntoStore(token: string) {
   try {
-    const res = await fetch(`${API}/user`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return;
-    const data = await res.json();
+    const headers = { Authorization: `Bearer ${token}` };
+    const [profileRes, kundaliRes] = await Promise.all([
+      fetch(`${API}/user`, { headers }),
+      fetch(`${API}/user/kundali`, { headers }),
+    ]);
 
-    const hasBirth = data.date && data.place;
-    if (hasBirth) {
-      const { setBirthDetails, setProfileSetupSeen } = useKundliStore.getState();
-      setBirthDetails({
-        name:         data.name || '',
-        dateOfBirth:  data.date,
-        timeOfBirth:  data.time || '',
-        birthPlace:   data.place,
-        lat:          data.lat,
-        lon:          data.lon,
-        tz:           data.tz,
-      });
-      // Profile already exists → no need to show setup modal
-      useAuthStore.getState().setProfileSetupSeen();
+    if (profileRes.ok) {
+      const data = await profileRes.json();
+      const hasBirth = data.date && data.place;
+      if (hasBirth) {
+        const { setBirthDetails } = useKundliStore.getState();
+        setBirthDetails({
+          name:        data.name || '',
+          dateOfBirth: data.date,
+          timeOfBirth: data.time || '',
+          birthPlace:  data.place,
+          lat:         data.lat,
+          lon:         data.lon,
+          tz:          data.tz,
+        });
+        useAuthStore.getState().setProfileSetupSeen();
+      }
+      if (data.name) useAuthStore.getState().setName(data.name);
     }
-    // Update name in authStore if backend has a better one
-    if (data.name) useAuthStore.getState().setName(data.name);
+
+    // Pre-populate kundali so KundliPage renders instantly (no second fetch needed)
+    if (kundaliRes.ok) {
+      const kundaliData = await kundaliRes.json();
+      if (kundaliData.found && kundaliData.kundali?.kundali_json) {
+        try {
+          const parsed = JSON.parse(kundaliData.kundali.kundali_json);
+          useKundliStore.getState().setKundaliData(parsed);
+        } catch {}
+      }
+    }
   } catch {
     // Silently ignore — non-critical
   }

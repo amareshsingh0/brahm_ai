@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { KundliChart } from "@/components/charts/KundliChart";
 import { Moon, Sun, Sparkles, Clock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -58,11 +57,7 @@ export default function Dashboard() {
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Hero */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-2xl overflow-hidden"
-      >
+      <div className="relative rounded-2xl overflow-hidden">
         <img src={cosmicBg} alt="Cosmic background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/40 sm:via-background/80 sm:to-transparent" />
         <div className="relative z-10 p-5 sm:p-8 md:p-12">
@@ -79,76 +74,60 @@ export default function Dashboard() {
             </Link>
           )}
         </div>
-      </motion.div>
+      </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {quickStats.map((stat, i) => (
-          <motion.div
+        {quickStats.map((stat) => (
+          <div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + i * 0.08 }}
             className="cosmic-card rounded-xl p-4 hover:glow-border transition-shadow"
           >
             <stat.icon className="h-5 w-5 text-primary mb-2" />
             <p className="text-xs text-muted-foreground">{stat.label}</p>
             <p className="font-display text-lg text-foreground">{stat.value}</p>
             <p className="text-xs text-muted-foreground">{stat.sub}</p>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="cosmic-card rounded-xl p-6">
+        <div className="cosmic-card rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-lg text-foreground">{t("dashboard.birth_chart")}</h2>
             <Link to="/kundli" className="text-xs text-primary hover:underline">{t("common.view_full")}</Link>
           </div>
           <KundliChart />
-        </motion.div>
+        </div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="cosmic-card rounded-xl p-6 space-y-4">
+        <div className="cosmic-card rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg text-foreground">{t("dashboard.todays_guidance")}</h2>
             <Link to="/horoscope" className="text-xs text-primary hover:underline">{t("dashboard.full_horoscope")}</Link>
           </div>
           <div className="space-y-3">
-            {guidance.map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + i * 0.1 }}
-                className="flex gap-3 bg-muted/20 rounded-lg p-3"
-              >
+            {guidance.map((item) => (
+              <div key={item.title} className="flex gap-3 bg-muted/20 rounded-lg p-3">
                 <span className="text-xl">{item.icon}</span>
                 <div>
                   <p className="text-sm font-medium text-foreground">{item.title}</p>
                   <p className="text-xs text-muted-foreground">{item.text}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Quick Links */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        {quickLinks.map((link, i) => (
-          <motion.div
-            key={link.url}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 + i * 0.05 }}
-          >
-            <Link to={link.url} className="cosmic-card rounded-xl p-4 block hover:glow-border transition-shadow">
-              <span className="text-2xl block mb-2">{link.icon}</span>
-              <p className="text-sm font-display text-foreground">{link.label}</p>
-              <p className="text-xs text-muted-foreground">{link.desc}</p>
-            </Link>
-          </motion.div>
+        {quickLinks.map((link) => (
+          <Link key={link.url} to={link.url} className="cosmic-card rounded-xl p-4 block hover:glow-border transition-shadow">
+            <span className="text-2xl block mb-2">{link.icon}</span>
+            <p className="text-sm font-display text-foreground">{link.label}</p>
+            <p className="text-xs text-muted-foreground">{link.desc}</p>
+          </Link>
         ))}
       </div>
     </div>

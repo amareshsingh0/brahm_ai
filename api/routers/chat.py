@@ -98,7 +98,11 @@ async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
     if decision.get("needs_birth_form"):
         def _birth_form_event():
             yield f"data: {_json.dumps({'type': 'birth_form'})}\n\n"
-        return StreamingResponse(_birth_form_event(), media_type="text/event-stream")
+        return StreamingResponse(
+            _birth_form_event(),
+            media_type="text/event-stream",
+            headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache", "Connection": "keep-alive"},
+        )
 
     # ── LONG-TERM MEMORY: Fetch relevant past exchanges ─────────────────
     # Skip memory for pure greetings/small talk (not useful, wastes context)
@@ -229,5 +233,6 @@ async def chat(req: ChatRequest, state: dict = Depends(get_rag_state)):
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
+        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache", "Connection": "keep-alive"},
         background=BackgroundTask(on_complete),
     )

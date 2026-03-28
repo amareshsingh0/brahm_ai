@@ -67,31 +67,10 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // AI Avatar
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFFF3CD)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(20.dp))
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Brahm AI", style = MaterialTheme.typography.titleMedium.copy(color = BrahmForeground, fontWeight = FontWeight.SemiBold))
-                                Spacer(Modifier.width(6.dp))
-                                Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFFF0FDF4)) {
-                                    Text("ONLINE", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF16A34A), fontWeight = FontWeight.Bold, fontSize = 9.sp))
-                                }
-                            }
-                            Text("Vedic Astrology Assistant", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                        }
+                        Spacer(Modifier.weight(1f))
                         // History button
                         IconButton(onClick = {
                             vm.loadAllSessions()
@@ -546,23 +525,6 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
         }
     } else {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // AI label row
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 5.dp),
-            ) {
-                AiAvatar()
-                Spacer(Modifier.width(7.dp))
-                Text(
-                    "BRAHM AI",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = BrahmMutedForeground,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        fontSize = 9.sp,
-                    ),
-                )
-            }
 
             when {
                 msg.content.isBlank() -> {
@@ -577,39 +539,40 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
                     }
                 }
                 !msg.isComplete -> {
-                    // Streaming — plain text as tokens arrive
-                    Surface(
-                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
-                        color = Color.White,
-                        shadowElevation = 1.dp,
+                    // Streaming — card with inline label
+                    Card(
+                        shape = RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(1.dp),
                         border = BorderStroke(1.dp, BrahmBorder),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
+                        Box(Modifier.fillMaxWidth().height(2.dp).background(
+                            Brush.horizontalGradient(listOf(BrahmGold, Color(0xFFD4540A), Color.Transparent))
+                        ))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 4.dp),
+                        ) {
+                            Box(Modifier.size(6.dp).background(
+                                Brush.linearGradient(listOf(Color(0xFFD97706), Color(0xFFD4540A))),
+                                shape = RoundedCornerShape(2.dp),
+                            ))
+                            Spacer(Modifier.width(6.dp))
+                            Text("BRAHM AI", style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color(0xFFB45309), fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.2.sp, fontSize = 8.sp,
+                            ))
+                        }
                         Text(
                             text = msg.content,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                            modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
                             color = BrahmForeground,
                             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 23.sp),
                         )
                     }
                 }
-                isRichResponse(msg.content) -> RichAiCard(msg.content)
-                else -> {
-                    Surface(
-                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
-                        color = Color.White,
-                        shadowElevation = 1.dp,
-                        border = BorderStroke(1.dp, BrahmBorder),
-                        modifier = Modifier.widthIn(max = 300.dp),
-                    ) {
-                        Text(
-                            text = msg.content,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
-                            color = BrahmForeground,
-                            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 23.sp),
-                        )
-                    }
-                }
+                else -> RichAiCard(msg.content)
             }
 
             // Follow-up chips
@@ -655,19 +618,25 @@ private fun RichAiCard(text: String) {
         border = BorderStroke(1.dp, BrahmBorder),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        // Gold → saffron accent bar
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(BrahmGold, Color(0xFFD4540A), Color.Transparent)
-                    )
-                )
-        )
+        Box(Modifier.fillMaxWidth().height(2.dp).background(
+            Brush.horizontalGradient(listOf(BrahmGold, Color(0xFFD4540A), Color.Transparent))
+        ))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp),
+        ) {
+            Box(Modifier.size(6.dp).background(
+                Brush.linearGradient(listOf(Color(0xFFD97706), Color(0xFFD4540A))),
+                shape = RoundedCornerShape(2.dp),
+            ))
+            Spacer(Modifier.width(6.dp))
+            Text("BRAHM AI", style = MaterialTheme.typography.labelSmall.copy(
+                color = Color(0xFFB45309), fontWeight = FontWeight.Bold,
+                letterSpacing = 1.2.sp, fontSize = 8.sp,
+            ))
+        }
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
         ) {
             sections.forEachIndexed { idx, section ->
                 MdBlock(section)

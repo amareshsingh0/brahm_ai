@@ -82,10 +82,13 @@ function RichAiCard({ content }: { content: string }) {
   }
 
   return (
-    <div className="w-full max-w-[92%] rounded-tl rounded-tr-2xl rounded-br-2xl rounded-bl-2xl border border-border/50 shadow-sm overflow-hidden bg-white">
-      {/* Gold accent bar */}
+    <div className="w-full rounded-xl border border-border/40 shadow-sm overflow-hidden bg-white">
       <div className="h-0.5 bg-gradient-to-r from-amber-600 via-orange-500 to-transparent" />
-      <div className="px-3.5 py-3 flex flex-col gap-2">
+      <div className="flex items-center gap-1.5 px-3.5 pt-2.5 pb-1">
+        <div className="w-1.5 h-1.5 rounded-sm bg-gradient-to-br from-amber-500 to-orange-600 shrink-0" />
+        <span className="text-[8px] font-bold uppercase tracking-widest text-amber-700/70">Brahm AI</span>
+      </div>
+      <div className="px-3.5 pb-3.5 flex flex-col gap-2">
         {blocks.map((b, i) => {
           switch (b.type) {
             case 'heading':
@@ -504,15 +507,18 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
                       </div>
                     ) : msg.content ? (
                       <>
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <Bot className="h-3 w-3 text-amber-600" />
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Brahm AI</span>
-                        </div>
                         {msg.isComplete ? (
                           <RichAiCard content={msg.content} />
                         ) : (
-                          <div className="max-w-[92%] w-full rounded-tl rounded-tr-2xl rounded-br-2xl rounded-bl-2xl border border-border/50 shadow-sm bg-white px-3.5 py-3 text-[11.5px] leading-relaxed text-[#3a3a3a] whitespace-pre-wrap">
-                            {msg.content}<span className="inline-block w-0.5 h-3.5 bg-amber-500 ml-0.5 animate-pulse align-middle" />
+                          <div className="w-full rounded-xl border border-border/40 shadow-sm bg-white overflow-hidden">
+                            <div className="h-0.5 bg-gradient-to-r from-amber-600 via-orange-500 to-transparent" />
+                            <div className="flex items-center gap-1.5 px-3 pt-2 pb-0.5">
+                              <div className="w-1.5 h-1.5 rounded-sm bg-gradient-to-br from-amber-500 to-orange-600 shrink-0" />
+                              <span className="text-[8px] font-bold uppercase tracking-widest text-amber-700/70">Brahm AI</span>
+                            </div>
+                            <div className="px-3 pb-3 pt-1 text-[11.5px] leading-relaxed text-[#3a3a3a] whitespace-pre-wrap">
+                              {msg.content}<span className="inline-block w-0.5 h-3.5 bg-amber-500 ml-0.5 animate-pulse align-middle" />
+                            </div>
                           </div>
                         )}
                       </>
