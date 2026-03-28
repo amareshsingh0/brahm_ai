@@ -15,7 +15,6 @@ import { useKundliStore } from "@/store/kundliStore";
 // ── Lazy pages (code-split per route) ─────────────────────────────────────────
 const LandingPage  = lazy(() => import("./pages/LandingPage"));
 const LoginPage    = lazy(() => import("./pages/LoginPage"));
-const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const Dashboard    = lazy(() => import("./pages/Dashboard"));
 const AIChatPage   = lazy(() => import("./pages/AIChatPage"));
 const KundliPage   = lazy(() => import("./pages/KundliPage"));
@@ -115,7 +114,7 @@ function TransitionRoutes() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard"    element={<AppLayout><Dashboard /></AppLayout>} />
-          <Route path="/onboarding"   element={<AppLayout><OnboardingPage /></AppLayout>} />
+          <Route path="/onboarding"   element={<Navigate to="/kundli" replace />} />
           <Route path="/kundli"       element={<AppLayout><KundliPage /></AppLayout>} />
           <Route path="/sky"          element={<AppLayout><SkyPage /></AppLayout>} />
           <Route path="/yogas"        element={<AppLayout><YogasPage /></AppLayout>} />

@@ -10,13 +10,13 @@
  *  - Logout
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
   User, CreditCard, Settings, Globe, LogOut, HelpCircle,
   ChevronRight, ExternalLink, MessageSquare, FileText,
   RefreshCw, Users, X, Bell, Lock, Palette,
-  Calendar, Clock, MapPin, Edit2, Phone, Shield, Sparkles, Crown, Archive,
+  Calendar, Clock, MapPin, Edit2, Phone, Shield, Sparkles, Crown, Archive, Check, Loader2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +25,8 @@ import { useAuthStore } from "@/store/authStore";
 import { useKundliStore } from "@/store/kundliStore";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { motion, AnimatePresence } from "framer-motion";
+import { api } from "@/lib/api";
+import { searchCities, type City } from "@/lib/cities";
 
 // ── Plan badge ────────────────────────────────────────────────────────────────
 const PLAN_BADGE: Record<string, { label: string; cls: string }> = {
@@ -107,13 +109,56 @@ function FullModal({ title, onClose, children }: { title: string; onClose: () =>
 // ── Profile modal ──────────────────────────────────────────────────────────────
 function ProfileModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const birthDetails = useKundliStore((s) => s.birthDetails);
+  const setBirthDetails = useKundliStore((s) => s.setBirthDetails);
+  const clearKundaliData = useKundliStore((s) => s.clearKundaliData);
   const name  = useAuthStore((s) => s.name);
   const phone = useAuthStore((s) => s.phone);
   const plan  = useAuthStore((s) => s.plan);
+  const setName = useAuthStore((s) => s.setName);
   const planStyle = PLAN_STYLE[plan] ?? PLAN_STYLE.free;
   const PlanIcon  = planStyle.icon;
+
+  const [editing, setEditing] = useState(!birthDetails);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name:      birthDetails?.name        ?? name ?? "",
+    dob:       birthDetails?.dateOfBirth ?? "",
+    tob:       birthDetails?.timeOfBirth ?? "",
+    place:     birthDetails?.birthPlace  ?? "",
+    lat:       birthDetails?.lat         ?? 0,
+    lon:       birthDetails?.lon         ?? 0,
+    tz:        birthDetails?.tz          ?? 5.5,
+  });
+  const [citySuggestions, setCitySuggestions] = useState<City[]>([]);
+  const cityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handlePlaceChange(val: string) {
+    setForm((f) => ({ ...f, place: val }));
+    if (cityTimerRef.current) clearTimeout(cityTimerRef.current);
+    cityTimerRef.current = setTimeout(async () => {
+      if (val.length >= 2) setCitySuggestions(await searchCities(val));
+      else setCitySuggestions([]);
+    }, 300);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await api.post("/api/user", {
+        name: form.name, date: form.dob, time: form.tob,
+        place: form.place, lat: form.lat, lon: form.lon, tz: form.tz,
+      });
+      setBirthDetails({ name: form.name, dateOfBirth: form.dob, timeOfBirth: form.tob, birthPlace: form.place, lat: form.lat, lon: form.lon, tz: form.tz });
+      if (setName) setName(form.name);
+      clearKundaliData(); // Force re-generate since birth data changed
+      setEditing(false);
+    } catch {
+      // silent
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <FullModal title={t("profile.title")} onClose={onClose}>
@@ -138,38 +183,107 @@ function ProfileModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        {/* Birth details */}
-        {birthDetails ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("profile.birth_details")}</p>
+        {/* Birth details — view or inline edit */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("profile.birth_details")}</p>
+            {!editing && (
               <button
-                onClick={() => { onClose(); navigate("/onboarding"); }}
+                onClick={() => setEditing(true)}
                 className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
               >
                 <Edit2 className="h-3 w-3" /> {t("common.edit")}
               </button>
+            )}
+          </div>
+
+          {editing ? (
+            <div className="space-y-3">
+              {[
+                { label: "Name",          key: "name", type: "text", icon: <User     className="h-4 w-4"/> },
+                { label: "Date of Birth", key: "dob",  type: "date", icon: <Calendar className="h-4 w-4"/> },
+                { label: "Time of Birth", key: "tob",  type: "time", icon: <Clock    className="h-4 w-4"/> },
+              ].map(({ label, key, type, icon }) => (
+                <div key={key} className="flex items-center gap-3 rounded-xl border border-border/30 px-3 py-2 bg-muted/10 focus-within:border-primary/50 transition-colors">
+                  <span className="text-primary shrink-0">{icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-muted-foreground mb-0.5">{label}</p>
+                    <input
+                      type={type}
+                      value={form[key as keyof typeof form] as string}
+                      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                      className="w-full bg-transparent text-[13px] text-foreground outline-none [color-scheme:light]"
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {/* City with autocomplete */}
+              <div className="relative">
+                <div className="flex items-center gap-3 rounded-xl border border-border/30 px-3 py-2.5 bg-muted/10">
+                  <span className="text-primary shrink-0"><MapPin className="h-4 w-4"/></span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-muted-foreground mb-0.5">Birth Place</p>
+                    <input
+                      type="text"
+                      value={form.place}
+                      onChange={(e) => handlePlaceChange(e.target.value)}
+                      placeholder="Search city..."
+                      className="w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground/50"
+                    />
+                  </div>
+                </div>
+                {citySuggestions.length > 0 && (
+                  <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-xl border border-border/40 shadow-lg overflow-hidden" style={{ background: "hsl(var(--card))" }}>
+                    {citySuggestions.slice(0, 5).map((c) => (
+                      <button
+                        key={`${c.lat}-${c.lon}`}
+                        className="w-full text-left px-4 py-2.5 text-[13px] text-foreground hover:bg-muted/60 transition-colors"
+                        onClick={() => { setForm((f) => ({ ...f, place: c.name, lat: c.lat, lon: c.lon, tz: c.tz })); setCitySuggestions([]); }}
+                      >
+                        {c.name}
+                        {c.country && <span className="text-muted-foreground text-[11px] ml-1">· {c.country}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Save / Cancel */}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary text-primary-foreground text-[13px] font-medium hover:opacity-90 transition-opacity disabled:opacity-60"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin"/> : <Check className="h-4 w-4"/>}
+                  Save
+                </button>
+                {birthDetails && (
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="px-4 py-2 rounded-xl border border-border/40 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </div>
+          ) : birthDetails ? (
             <div className="rounded-xl border border-border/30 divide-y divide-border/20 overflow-hidden">
               <MRow icon={<User     className="h-4 w-4"/>} label={t("profile.name")}        value={birthDetails.name}/>
               <MRow icon={<Calendar className="h-4 w-4"/>} label={t("profile.dob")}         value={birthDetails.dateOfBirth}/>
               <MRow icon={<Clock    className="h-4 w-4"/>} label={t("profile.tob")}         value={birthDetails.timeOfBirth}/>
               <MRow icon={<MapPin   className="h-4 w-4"/>} label={t("profile.birth_place")} value={birthDetails.birthPlace}/>
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-6 space-y-2">
-            <p className="text-3xl">🌟</p>
-            <p className="text-sm font-display text-foreground">{t("profile.no_birth")}</p>
-            <p className="text-xs text-muted-foreground">{t("profile.no_birth_desc")}</p>
-            <button
-              onClick={() => { onClose(); navigate("/onboarding"); }}
-              className="mt-2 text-sm text-primary hover:underline"
-            >
-              {t("common.generate_kundli")}
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-6 space-y-2">
+              <p className="text-3xl">🌟</p>
+              <p className="text-sm font-display text-foreground">{t("profile.no_birth")}</p>
+              <p className="text-xs text-muted-foreground">{t("profile.no_birth_desc")}</p>
+            </div>
+          )}
+        </div>
       </div>
     </FullModal>
   );

@@ -1,5 +1,5 @@
 # Brahm AI — Full Architecture Document
-# Last Updated: 2026-03-27 (v7.0 — API Versioning + Admin Subscriptions + Chat Monitor Upgrade + Auth Upgrade)
+# Last Updated: 2026-03-28 (v7.1 — Android Kundali Parity + Sentry Crash Fix + Import Fixes)
 
 ---
 
@@ -3736,3 +3736,54 @@ Frontend:  pnpm run build && sudo cp -r dist/* /var/www/brahm-ai/
 - Verifier/checker layer (overkill)
 
 *Section 22-23 Updated: 2026-03-20 | Brahm AI v4.0*
+
+---
+
+## 28. ANDROID KUNDALI — IMPLEMENTATION NOTES (v7.1, 2026-03-28)
+
+### 28.1 Tab Order (matches website)
+```
+Index 0: Charts       → ChartsTab (KundaliChartView — North/South/East/West × all vargas)
+Index 1: Grahas       → GrahasTab (planet table + expanded row)
+Index 2: Dashas       → DashasTab (Mahadasha strip + antardasha/pratyantar)
+Index 3: Bhavas       → BhavasTab (house table with Sanskrit bhava names)
+Index 4: Chalit       → ChalitTab (Bhav Chalit house cusps + planet placements)
+Index 5: Strength     → StrengthTab (Shadbala table)
+Index 6: Ashtakavarga → AshtakavargaTab (SAV grid + BAV per planet)
+Index 7: Upagraha     → UpagrahaTab (Gulika, Mandi, Dhuma, etc.)
+Index 8: Yogas        → YogasTab
+Index 9: Lagna        → LagnaTab (Lagna, Navamsha, Panchang details)
+```
+
+### 28.2 `KundaliRequest` — Required `calc_options`
+Backend only computes optional calculations when explicitly listed:
+```kotlin
+calc_options: List<String> = listOf("antardasha", "ashtakavarga", "shadbala", "upagraha")
+```
+Without this, Ashtakavarga/Shadbala/Upagraha tabs show "not calculated" message.
+
+### 28.3 Chart Types
+- **North Indian** (diamond): 12 triangular segments, house numbers fixed, rashi labels from `houseRashis`
+- **South Indian** (4×4 grid): rashi positions fixed (`SOUTH_RASHI_POS`), house number derived from lagnaIdx offset
+- **East/West Indian** (`EastIndianChart`): house positions fixed in 4×4 grid (`EAST_HOUSE_POS`), H1 top-left clockwise
+- **Default varga**: BC (Bhav Chalit) at index 0 in `VARGA_OPTIONS`. Reads from `data["bhav_chalit"]["planets"]` using `chalit_house` key.
+
+### 28.4 Key API Response Keys
+```
+data["dasha"] OR data["dashas"]          → mahadasha list
+d["planet"] OR d["lord"]                 → dasha lord name (backend uses "planet")
+data["bhav_chalit"]["planets"][name]["chalit_house"]  → BC house placement
+```
+
+### 28.5 Crash Fix — Sentry `ArrayIndexOutOfBoundsException: length=12; index=N`
+**Root cause:** `degToDMS()` in `KundaliTabs.kt` computed `rashiIdx = (deg / 30).toInt()` — pyswisseph can return longitude ≥ 360° in edge cases, giving rashiIdx ≥ 12 on a 12-element list.
+**Fix:** `.coerceIn(0, 11)` on every rashi index derived from longitude division.
+**Pattern to follow:** Any `(longitude / 30).toInt()` must be followed by `.coerceIn(0, 11)` or `.mod(12)`.
+
+### 28.6 Kotlin Gotchas (Android)
+| Issue | Rule |
+|-------|------|
+| `booleanOrNull` / `contentOrNull` unresolved | These are **extension properties** on `JsonPrimitive` — must import `kotlinx.serialization.json.booleanOrNull` explicitly |
+| `private fun` in file A, used in file B | Change to `internal fun` — `private` is file-scoped in Kotlin |
+| `data class` inside composable function | Move to **file level** — inner classes in composables cause `ClassCastException` at runtime |
+| `Popup` for dropdown in Compose | Use `DropdownMenu` instead — `Popup` doesn't inherit Material theme, renders black |
