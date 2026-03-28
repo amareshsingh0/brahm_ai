@@ -28,7 +28,7 @@ class SadeSatiScreenViewModel @Inject constructor(
     private val _shaniRashi    = MutableStateFlow("")
     private val _shaniDegree   = MutableStateFlow(0.0)
     private val _lagnaRashi    = MutableStateFlow("")
-    private val _isLoading     = MutableStateFlow(true)
+    private val _isLoading     = MutableStateFlow(false)
     private val _saturnError   = MutableStateFlow<String?>(null)
 
     val shaniRashi:  StateFlow<String>  = _shaniRashi
@@ -40,21 +40,42 @@ class SadeSatiScreenViewModel @Inject constructor(
     /** User-selected moon rashi — mutable from UI */
     val selectedMoonRashi = MutableStateFlow("")
 
+    // ── Static cache — survives ViewModel recreation across navigation ──────────
+    companion object {
+        private var cachedShaniRashi:  String? = null
+        private var cachedShaniDegree: Double? = null
+        private var cachedMoonRashi:   String? = null
+        private var cachedLagnaRashi:  String? = null
+    }
+
     init {
-        viewModelScope.launch {
-            // Fetch Saturn position AND user profile in parallel
-            val saturnDef = async { fetchSaturnPosition() }
-            val profileDef = async {
-                try {
-                    userRepository.user
-                        .filterNotNull()
-                        .first()
-                        .let { u -> prefillFromProfile(u) }
-                } catch (_: Exception) { /* no profile */ }
+        // Restore from cache instantly — no network needed on re-navigation
+        if (cachedShaniRashi != null) {
+            _shaniRashi.value  = cachedShaniRashi!!
+            _shaniDegree.value = cachedShaniDegree ?: 0.0
+        }
+        if (cachedMoonRashi != null && selectedMoonRashi.value.isBlank()) {
+            selectedMoonRashi.value = cachedMoonRashi!!
+        }
+        if (cachedLagnaRashi != null) {
+            _lagnaRashi.value = cachedLagnaRashi!!
+        }
+
+        // Only fetch if cache is empty
+        if (cachedShaniRashi == null) {
+            viewModelScope.launch {
+                _isLoading.value = true
+                val saturnDef = async { fetchSaturnPosition() }
+                val profileDef = async { loadProfileRashis() }
+                saturnDef.await()
+                profileDef.await()
+                _isLoading.value = false
             }
-            saturnDef.await()
-            profileDef.await()
-            _isLoading.value = false
+        } else {
+            // Cache hit — still try to fill profile rashi if missing
+            if (cachedMoonRashi == null) {
+                viewModelScope.launch { loadProfileRashis() }
+            }
         }
     }
 
@@ -64,8 +85,12 @@ class SadeSatiScreenViewModel @Inject constructor(
             if (resp.isSuccessful) {
                 val positions = resp.body()?.get("positions")?.jsonObject
                 val shani = positions?.get("Shani")?.jsonObject
-                _shaniRashi.value  = shani?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
-                _shaniDegree.value = shani?.get("degree")?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val rashi  = shani?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                val degree = shani?.get("degree")?.jsonPrimitive?.doubleOrNull ?: 0.0
+                _shaniRashi.value  = rashi
+                _shaniDegree.value = degree
+                cachedShaniRashi  = rashi
+                cachedShaniDegree = degree
             } else {
                 _saturnError.value = "Could not load Saturn position."
             }
@@ -74,34 +99,68 @@ class SadeSatiScreenViewModel @Inject constructor(
         }
     }
 
-    private suspend fun prefillFromProfile(u: UserDto) {
+    private suspend fun loadProfileRashis() {
+        val u = userRepository.user.value
+            ?: try { userRepository.user.filterNotNull().first() } catch (_: Exception) { return }
         if (u.date.isBlank() || u.time.isBlank()) return
+        prefillFromProfile(u)
+    }
+
+    private suspend fun prefillFromProfile(u: UserDto) {
         try {
-            val resp = api.generateKundali(KundaliRequest(
-                name  = u.name.ifBlank { "User" },
-                date  = u.date,
-                time  = u.time,
-                place = u.place,
-                lat   = u.lat,
-                lon   = u.lon,
-                tz    = u.tz,
-            ))
-            if (resp.isSuccessful) {
-                val body = resp.body()
-                val moonR  = body?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
-                val lagnaR = body?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
-                if (moonR.isNotBlank() && selectedMoonRashi.value.isBlank()) selectedMoonRashi.value = moonR
-                if (lagnaR.isNotBlank()) _lagnaRashi.value = lagnaR
+            // Prefer saved kundali — fast DB lookup, no heavy recalculation
+            val savedResp = api.getSavedKundali()
+            val (moonR, lagnaR) = if (savedResp.isSuccessful && savedResp.body() != null) {
+                val k = savedResp.body()!!
+                val mr = k["grahas"]?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                val lr = k["lagna"]?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                mr to lr
+            } else {
+                // Fallback: lightweight kundali (no divisional charts / dashas)
+                val resp = api.generateKundali(KundaliRequest(
+                    name         = u.name.ifBlank { "User" },
+                    date         = u.date,
+                    time         = u.time,
+                    place        = u.place,
+                    lat          = u.lat,
+                    lon          = u.lon,
+                    tz           = u.tz,
+                    calc_options = emptyList(),
+                ))
+                if (resp.isSuccessful) {
+                    val body = resp.body()
+                    val mr = body?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                    val lr = body?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                    mr to lr
+                } else {
+                    "" to ""
+                }
             }
-        } catch (_: Exception) { /* ignore — user can select manually */ }
+
+            if (moonR.isNotBlank() && selectedMoonRashi.value.isBlank()) {
+                selectedMoonRashi.value = moonR
+                cachedMoonRashi = moonR
+            }
+            if (lagnaR.isNotBlank()) {
+                _lagnaRashi.value = lagnaR
+                cachedLagnaRashi  = lagnaR
+            }
+        } catch (_: Exception) { /* user can select manually */ }
     }
 
     fun refreshSaturn() {
+        cachedShaniRashi  = null
+        cachedShaniDegree = null
+        cachedMoonRashi   = null
+        cachedLagnaRashi  = null
         viewModelScope.launch {
-            _isLoading.value    = true
-            _saturnError.value  = null
-            fetchSaturnPosition()
-            _isLoading.value    = false
+            _isLoading.value   = true
+            _saturnError.value = null
+            val saturnDef  = async { fetchSaturnPosition() }
+            val profileDef = async { loadProfileRashis() }
+            saturnDef.await()
+            profileDef.await()
+            _isLoading.value = false
         }
     }
 }

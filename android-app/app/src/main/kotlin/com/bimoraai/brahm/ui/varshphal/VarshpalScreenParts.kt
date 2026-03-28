@@ -36,7 +36,7 @@ private data class GrahaMeta(val symbol: String, val color: Color)
 
 private val GRAHA_META = mapOf(
     "Surya"  to GrahaMeta("☉", Color(0xFFD97706)),
-    "Chandra"to GrahaMeta("☽", Color(0xFF4F46E5)),
+    "Chandra" to GrahaMeta("☽", Color(0xFF4F46E5)),
     "Mangal" to GrahaMeta("♂", Color(0xFFDC2626)),
     "Budh"   to GrahaMeta("☿", Color(0xFF16A34A)),
     "Guru"   to GrahaMeta("♃", Color(0xFFB45309)),
@@ -49,6 +49,12 @@ private val ORDER = listOf("Surya","Chandra","Mangal","Budh","Guru","Shukra","Sh
 
 private fun JsonObject.str(key: String) = this[key]?.jsonPrimitive?.contentOrNull ?: ""
 private fun JsonObject.obj(key: String) = try { this[key]?.jsonObject } catch (_: Exception) { null }
+
+private val RASHI_SYMBOLS = mapOf(
+    "Mesha" to "♈\uFE0E", "Vrishabha" to "♉\uFE0E", "Mithuna" to "♊\uFE0E", "Karka" to "♋\uFE0E",
+    "Simha" to "♌\uFE0E", "Kanya" to "♍\uFE0E", "Tula" to "♎\uFE0E", "Vrischika" to "♏\uFE0E",
+    "Dhanu" to "♐\uFE0E", "Makara" to "♑\uFE0E", "Kumbha" to "♒\uFE0E", "Meena" to "♓\uFE0E",
+)
 
 @Composable
 fun VarshpalContent(data: JsonObject) {
@@ -101,10 +107,18 @@ fun VarshpalContent(data: JsonObject) {
                         }
                         if (lagnaRashi.isNotBlank()) {
                             Text("·", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                            Text(
-                                "Varshphal Lagna: $lagnaRashi",
-                                style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground)
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    RASHI_SYMBOLS[lagnaRashi] ?: "",
+                                    fontSize = 16.sp,
+                                    color = BrahmGold,
+                                    fontWeight = FontWeight.Light,
+                                )
+                                Text(
+                                    "Varshphal Lagna: $lagnaRashi",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground)
+                                )
+                            }
                         }
                     }
                 }
@@ -117,7 +131,7 @@ fun VarshpalContent(data: JsonObject) {
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = BrahmCard),
-                    modifier = Modifier.fillMaxWidth().border(1.dp, BrahmPrimary.copy(alpha = 0.2f), RoundedCornerShape(14.dp)),
+                    modifier = Modifier.fillMaxWidth().border(1.dp, BrahmGold.copy(alpha = 0.2f), RoundedCornerShape(14.dp)),
                 ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
@@ -184,7 +198,13 @@ fun VarshpalContent(data: JsonObject) {
                                                 ) {
                                                     Text(meta.symbol, fontSize = 20.sp, color = meta.color)
                                                     Text(planet, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground), fontSize = 9.sp)
-                                                    Text(g.str("rashi"), style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold), fontSize = 10.sp)
+                                                    Text(
+                                                        RASHI_SYMBOLS[g.str("rashi")] ?: "",
+                                                        fontSize = 16.sp,
+                                                        color = BrahmGold,
+                                                        fontWeight = FontWeight.Light,
+                                                    )
+                                                    Text(g.str("rashi"), style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold), fontSize = 9.sp)
                                                     val degree = g["degree"]?.jsonPrimitive?.doubleOrNull
                                                     val house  = g["house"]?.jsonPrimitive?.intOrNull
                                                     Text(

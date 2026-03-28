@@ -42,9 +42,9 @@ private val RASHI_IDX = mapOf(
 )
 
 private val RASHI_SYMBOLS = mapOf(
-    "Mesha" to "♈", "Vrishabha" to "♉", "Mithuna" to "♊", "Karka" to "♋",
-    "Simha" to "♌", "Kanya" to "♍", "Tula" to "♎", "Vrischika" to "♏",
-    "Dhanu" to "♐", "Makara" to "♑", "Kumbha" to "♒", "Meena" to "♓",
+    "Mesha" to "♈\uFE0E", "Vrishabha" to "♉\uFE0E", "Mithuna" to "♊\uFE0E", "Karka" to "♋\uFE0E",
+    "Simha" to "♌\uFE0E", "Kanya" to "♍\uFE0E", "Tula" to "♎\uFE0E", "Vrischika" to "♏\uFE0E",
+    "Dhanu" to "♐\uFE0E", "Makara" to "♑\uFE0E", "Kumbha" to "♒\uFE0E", "Meena" to "♓\uFE0E",
 )
 
 private val KANTAKA_HOUSES = setOf(1, 4, 7, 10)
@@ -163,7 +163,7 @@ fun SadeSatiContent(
                                 )
                                 saturnError != null -> Text(saturnError, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFE53935)))
                                 shaniRashi.isNotBlank() -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text(RASHI_SYMBOLS[shaniRashi] ?: "", fontSize = 16.sp, color = BrahmGold)
+                                    Text(RASHI_SYMBOLS[shaniRashi] ?: "", fontSize = 24.sp, color = BrahmGold, fontWeight = androidx.compose.ui.text.font.FontWeight.Light)
                                     Text(shaniRashi, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
                                     Text("${"%.2f".format(shaniDegree)}°", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                                 }
@@ -211,8 +211,8 @@ fun SadeSatiContent(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(if (selected) BrahmPrimary.copy(alpha = 0.15f) else BrahmMutedForeground.copy(alpha = 0.06f))
-                                        .border(1.dp, if (selected) BrahmPrimary.copy(alpha = 0.5f) else BrahmBorder.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                        .background(if (selected) BrahmGold.copy(alpha = 0.15f) else BrahmMutedForeground.copy(alpha = 0.06f))
+                                        .border(1.dp, if (selected) BrahmGold.copy(alpha = 0.5f) else BrahmBorder.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                                         .clickable { onMoonRashiSelected(rashi) }
                                         .padding(vertical = 8.dp),
                                     contentAlignment = Alignment.Center,
@@ -220,13 +220,14 @@ fun SadeSatiContent(
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(
                                             RASHI_SYMBOLS[rashi] ?: "",
-                                            fontSize = 16.sp,
-                                            color = if (selected) BrahmPrimary else BrahmMutedForeground,
+                                            fontSize = 22.sp,
+                                            color = if (selected) BrahmGold else BrahmMutedForeground,
+                                            fontWeight = FontWeight.Light,
                                         )
                                         Text(
                                             rashi,
                                             style = MaterialTheme.typography.labelSmall.copy(
-                                                color = if (selected) BrahmPrimary else BrahmMutedForeground,
+                                                color = if (selected) BrahmGold else BrahmMutedForeground,
                                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                                                 fontSize = 9.sp,
                                             ),
@@ -243,7 +244,7 @@ fun SadeSatiContent(
         // ── Status Banner ──
         if (analysis != null) {
             item {
-                val (bgColor, textColor, iconTint, title, subtitle) = when (analysis.status) {
+                val (bgColor, borderColor, textColor, iconTint, title, subtitle) = when (analysis.status) {
                     ShaniStatus.SADE_SATI -> BannerConfig(
                         bgColor   = Color(0xFFDC2626).copy(alpha = 0.1f),
                         border    = Color(0xFFDC2626).copy(alpha = 0.3f),
@@ -285,7 +286,7 @@ fun SadeSatiContent(
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = bgColor),
-                    modifier = Modifier.fillMaxWidth().border(1.dp, bgColor.copy(alpha = 3f), RoundedCornerShape(14.dp)),
+                    modifier = Modifier.fillMaxWidth().border(1.dp, borderColor, RoundedCornerShape(14.dp)),
                 ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -572,14 +573,7 @@ private data class BannerConfig(
     val icon:      androidx.compose.ui.graphics.vector.ImageVector,
     val title:     String,
     val subtitle:  String,
-) {
-    operator fun component1() = bgColor
-    operator fun component2() = textColor
-    operator fun component3() = textColor
-    operator fun component4() = icon
-    operator fun component5() = title
-    operator fun component6() = subtitle
-}
+)
 
 private data class PhaseRow(
     val label:    String,

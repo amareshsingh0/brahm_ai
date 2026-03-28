@@ -294,24 +294,44 @@ def refresh_access_token(req: RefreshRequest):
     token_hash = _hash_token(req.refresh_token)
     now_iso    = _now().isoformat()
 
-    sb = get_supabase()
-    res = sb.table("refresh_tokens") \
-        .select("*, users(id, phone, plan)") \
-        .eq("token_hash", token_hash) \
-        .eq("revoked", False) \
-        .gte("expires_at", now_iso) \
-        .execute()
+    try:
+        sb = get_supabase()
+        # Fetch refresh token row only — join separately to avoid nested-select
+        # type ambiguity (list vs dict) across supabase-py versions
+        res = sb.table("refresh_tokens") \
+            .select("id, user_id") \
+            .eq("token_hash", token_hash) \
+            .eq("revoked", False) \
+            .gte("expires_at", now_iso) \
+            .limit(1) \
+            .execute()
 
-    row = res.data[0] if res.data else None
-    if not row:
-        raise HTTPException(401, "Invalid or expired refresh token. Please login again.")
-    user = row["users"]
+        row = res.data[0] if res.data else None
+        if not row:
+            raise HTTPException(401, "Invalid or expired refresh token. Please login again.")
 
-    # Update last_used_at
-    sb.table("refresh_tokens").update({"last_used_at": _now().isoformat()}).eq("id", row["id"]).execute()
+        # Fetch user separately — safe, no nested join
+        user_res = sb.table("users") \
+            .select("id, phone, plan") \
+            .eq("id", row["user_id"]) \
+            .limit(1) \
+            .execute()
+        user = user_res.data[0] if user_res.data else None
+        if not user:
+            raise HTTPException(401, "User not found. Please login again.")
 
-    access_token = _make_access_token(user["id"], user["phone"], user["plan"])
-    return AccessTokenResponse(access_token=access_token)
+        # Update last_used_at
+        sb.table("refresh_tokens").update({"last_used_at": _now().isoformat()}).eq("id", row["id"]).execute()
+
+        access_token = _make_access_token(user["id"], user["phone"] or "", user["plan"] or "free")
+        return AccessTokenResponse(access_token=access_token)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error("refresh_access_token error: %s", e)
+        raise HTTPException(500, "Token refresh failed. Please login again.")
 
 
 @router.post("/auth/logout")

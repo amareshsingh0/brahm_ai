@@ -42,18 +42,18 @@ data class RashiInfo(
 )
 
 private val rashiList = listOf(
-    RashiInfo(1,  "Aries",       "Mesha",      "♈", "Mars",    "Fire",  "Movable", "Male",   "Head & Face",        "Red",       listOf("Courageous", "Dynamic", "Impulsive", "Leadership", "Energetic"), Color(0xFFE53935), Color(0xFF8B0000)),
-    RashiInfo(2,  "Taurus",      "Vrishabha",  "♉", "Venus",   "Earth", "Fixed",   "Female", "Neck & Throat",      "Green",     listOf("Patient", "Reliable", "Stubborn", "Practical", "Sensual"),      Color(0xFF43A047), Color(0xFF1B5E20)),
-    RashiInfo(3,  "Gemini",      "Mithuna",    "♊", "Mercury", "Air",   "Dual",    "Male",   "Arms & Shoulders",   "Yellow",    listOf("Curious", "Adaptable", "Witty", "Restless", "Communicative"),   Color(0xFFFFB300), Color(0xFFE65100)),
-    RashiInfo(4,  "Cancer",      "Karka",      "♋", "Moon",    "Water", "Movable", "Female", "Chest & Stomach",    "White",     listOf("Intuitive", "Nurturing", "Moody", "Protective", "Empathetic"),   Color(0xFF1E88E5), Color(0xFF0D47A1)),
-    RashiInfo(5,  "Leo",         "Simha",      "♌", "Sun",     "Fire",  "Fixed",   "Male",   "Heart & Back",       "Gold",      listOf("Proud", "Generous", "Dramatic", "Creative", "Loyal"),            Color(0xFFFF8F00), Color(0xFFBF360C)),
-    RashiInfo(6,  "Virgo",       "Kanya",      "♍", "Mercury", "Earth", "Dual",    "Female", "Intestines & Waist", "Navy Blue", listOf("Analytical", "Precise", "Helpful", "Modest", "Perfectionist"),   Color(0xFF6D4C41), Color(0xFF3E2723)),
-    RashiInfo(7,  "Libra",       "Tula",       "♎", "Venus",   "Air",   "Movable", "Male",   "Kidneys & Back",     "Pink",      listOf("Diplomatic", "Fair", "Indecisive", "Social", "Idealistic"),      Color(0xFFE91E63), Color(0xFF880E4F)),
-    RashiInfo(8,  "Scorpio",     "Vrishchika", "♏", "Mars",    "Water", "Fixed",   "Female", "Genitals",           "Dark Red",  listOf("Intense", "Secretive", "Passionate", "Determined", "Magnetic"),  Color(0xFF6A1B9A), Color(0xFF4A148C)),
-    RashiInfo(9,  "Sagittarius", "Dhanu",      "♐", "Jupiter", "Fire",  "Dual",    "Male",   "Hips & Thighs",      "Purple",    listOf("Optimistic", "Free-spirited", "Philosophical", "Blunt", "Adventurous"), Color(0xFF8E24AA), Color(0xFF4A148C)),
-    RashiInfo(10, "Capricorn",   "Makara",     "♑", "Saturn",  "Earth", "Movable", "Female", "Knees & Bones",      "Dark Brown",listOf("Disciplined", "Ambitious", "Cautious", "Patient", "Responsible"), Color(0xFF546E7A), Color(0xFF263238)),
-    RashiInfo(11, "Aquarius",    "Kumbha",     "♒", "Saturn",  "Air",   "Fixed",   "Male",   "Ankles & Calves",    "Blue",      listOf("Independent", "Humanitarian", "Eccentric", "Intellectual", "Innovative"), Color(0xFF1565C0), Color(0xFF0D47A1)),
-    RashiInfo(12, "Pisces",      "Meena",      "♓", "Jupiter", "Water", "Dual",    "Female", "Feet",               "Sea Green", listOf("Compassionate", "Dreamy", "Intuitive", "Artistic", "Escapist"),  Color(0xFF00897B), Color(0xFF004D40)),
+    RashiInfo(1,  "Aries",       "Mesha",      "♈\uFE0E", "Mars",    "Fire",  "Movable", "Male",   "Head & Face",        "Red",       listOf("Courageous", "Dynamic", "Impulsive", "Leadership", "Energetic"), Color(0xFFE53935), Color(0xFF8B0000)),
+    RashiInfo(2,  "Taurus",      "Vrishabha",  "♉\uFE0E", "Venus",   "Earth", "Fixed",   "Female", "Neck & Throat",      "Green",     listOf("Patient", "Reliable", "Stubborn", "Practical", "Sensual"),      Color(0xFF43A047), Color(0xFF1B5E20)),
+    RashiInfo(3,  "Gemini",      "Mithuna",    "♊\uFE0E", "Mercury", "Air",   "Dual",    "Male",   "Arms & Shoulders",   "Yellow",    listOf("Curious", "Adaptable", "Witty", "Restless", "Communicative"),   Color(0xFFFFB300), Color(0xFFE65100)),
+    RashiInfo(4,  "Cancer",      "Karka",      "♋\uFE0E", "Moon",    "Water", "Movable", "Female", "Chest & Stomach",    "White",     listOf("Intuitive", "Nurturing", "Moody", "Protective", "Empathetic"),   Color(0xFF1E88E5), Color(0xFF0D47A1)),
+    RashiInfo(5,  "Leo",         "Simha",      "♌\uFE0E", "Sun",     "Fire",  "Fixed",   "Male",   "Heart & Back",       "Gold",      listOf("Proud", "Generous", "Dramatic", "Creative", "Loyal"),            Color(0xFFFF8F00), Color(0xFFBF360C)),
+    RashiInfo(6,  "Virgo",       "Kanya",      "♍\uFE0E", "Mercury", "Earth", "Dual",    "Female", "Intestines & Waist", "Navy Blue", listOf("Analytical", "Precise", "Helpful", "Modest", "Perfectionist"),   Color(0xFF6D4C41), Color(0xFF3E2723)),
+    RashiInfo(7,  "Libra",       "Tula",       "♎\uFE0E", "Venus",   "Air",   "Movable", "Male",   "Kidneys & Back",     "Pink",      listOf("Diplomatic", "Fair", "Indecisive", "Social", "Idealistic"),      Color(0xFFE91E63), Color(0xFF880E4F)),
+    RashiInfo(8,  "Scorpio",     "Vrishchika", "♏\uFE0E", "Mars",    "Water", "Fixed",   "Female", "Genitals",           "Dark Red",  listOf("Intense", "Secretive", "Passionate", "Determined", "Magnetic"),  Color(0xFF6A1B9A), Color(0xFF4A148C)),
+    RashiInfo(9,  "Sagittarius", "Dhanu",      "♐\uFE0E", "Jupiter", "Fire",  "Dual",    "Male",   "Hips & Thighs",      "Purple",    listOf("Optimistic", "Free-spirited", "Philosophical", "Blunt", "Adventurous"), Color(0xFF8E24AA), Color(0xFF4A148C)),
+    RashiInfo(10, "Capricorn",   "Makara",     "♑\uFE0E", "Saturn",  "Earth", "Movable", "Female", "Knees & Bones",      "Dark Brown",listOf("Disciplined", "Ambitious", "Cautious", "Patient", "Responsible"), Color(0xFF546E7A), Color(0xFF263238)),
+    RashiInfo(11, "Aquarius",    "Kumbha",     "♒\uFE0E", "Saturn",  "Air",   "Fixed",   "Male",   "Ankles & Calves",    "Blue",      listOf("Independent", "Humanitarian", "Eccentric", "Intellectual", "Innovative"), Color(0xFF1565C0), Color(0xFF0D47A1)),
+    RashiInfo(12, "Pisces",      "Meena",      "♓\uFE0E", "Jupiter", "Water", "Dual",    "Female", "Feet",               "Sea Green", listOf("Compassionate", "Dreamy", "Intuitive", "Artistic", "Escapist"),  Color(0xFF00897B), Color(0xFF004D40)),
 )
 
 @Composable

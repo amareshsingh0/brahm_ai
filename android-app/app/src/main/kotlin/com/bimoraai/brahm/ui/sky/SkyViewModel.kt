@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -72,19 +74,21 @@ class SkyViewModel @Inject constructor(
     val userRepository: UserRepository,
 ) : ViewModel() {
 
-    private val _snapshot  = MutableStateFlow<SkySnapshot?>(null)
-    private val _isLoading = MutableStateFlow(true)
-    private val _error     = MutableStateFlow<String?>(null)
-    // seconds tick for live clock
-    private val _tick      = MutableStateFlow(0L)
+    private val _snapshot      = MutableStateFlow<SkySnapshot?>(null)
+    private val _isLoading     = MutableStateFlow(true)
+    private val _error         = MutableStateFlow<String?>(null)
+    private val _tick          = MutableStateFlow(0L)
+    private val _savedKundali  = MutableStateFlow<JsonObject?>(null)
 
-    val snapshot:  StateFlow<SkySnapshot?> = _snapshot
-    val isLoading: StateFlow<Boolean>      = _isLoading
-    val error:     StateFlow<String?>      = _error
-    val tick:      StateFlow<Long>         = _tick
+    val snapshot:      StateFlow<SkySnapshot?>  = _snapshot
+    val isLoading:     StateFlow<Boolean>       = _isLoading
+    val error:         StateFlow<String?>       = _error
+    val tick:          StateFlow<Long>          = _tick
+    val savedKundali:  StateFlow<JsonObject?>   = _savedKundali
 
     init {
         load()
+        viewModelScope.launch { loadSavedKundali() }
         viewModelScope.launch {
             while (isActive) {
                 delay(5 * 60_000)
@@ -116,6 +120,21 @@ class SkyViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    private suspend fun loadSavedKundali() {
+        try {
+            val res = api.getSavedKundali()
+            if (res.isSuccessful) {
+                val body = res.body() ?: return
+                val found = body["found"]?.let { (it as? JsonPrimitive)?.contentOrNull == "true" || it.toString() == "true" } ?: false
+                if (!found) return
+                val kundaliObj = try { body["kundali"]?.jsonObject } catch (_: Exception) { null } ?: return
+                val kundaliJsonStr = kundaliObj["kundali_json"]?.let { (it as? JsonPrimitive)?.contentOrNull } ?: return
+                val parsed = try { Json.parseToJsonElement(kundaliJsonStr) } catch (_: Exception) { return }
+                if (parsed is JsonObject) _savedKundali.value = parsed
+            }
+        } catch (_: Exception) {}
     }
 
     private fun parseSnapshot(json: JsonObject): SkySnapshot {

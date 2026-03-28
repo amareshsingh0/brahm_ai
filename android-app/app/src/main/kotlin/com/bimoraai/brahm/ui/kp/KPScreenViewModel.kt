@@ -40,12 +40,28 @@ class KPScreenViewModel @Inject constructor(
     val lon  = MutableStateFlow(0.0)
     val tz   = MutableStateFlow("5.5")
 
+    // ── Static cache — survives ViewModel recreation across navigation ──────────
+    companion object {
+        private var cachedResult: JsonObject? = null
+    }
+
     init {
+        // Restore from cache instantly — no network on re-navigation
+        if (cachedResult != null) {
+            _result.value  = cachedResult
+            _hasData.value = true
+        }
+
         viewModelScope.launch {
-            userRepository.user
-                .filterNotNull()
-                .first { it.date.isNotBlank() && it.place.isNotBlank() }
-                .let { u -> prefillFromProfile(u) }
+            val u = userRepository.user.value
+            if (u != null && u.date.isNotBlank() && u.place.isNotBlank()) {
+                prefillFromProfile(u)
+            } else {
+                userRepository.user
+                    .filterNotNull()
+                    .first { it.date.isNotBlank() && it.place.isNotBlank() }
+                    .let { prefillFromProfile(it) }
+            }
         }
     }
 
@@ -57,7 +73,7 @@ class KPScreenViewModel @Inject constructor(
         if (lat.value == 0.0 && u.lat != 0.0) lat.value = u.lat
         if (lon.value == 0.0 && u.lon != 0.0) lon.value = u.lon
         if (u.tz != 0.0) tz.value = u.tz.toString()
-        calculate()
+        if (!_hasData.value) calculate()
     }
 
     fun calculate() {
@@ -78,8 +94,9 @@ class KPScreenViewModel @Inject constructor(
                     put("tz",   JsonPrimitive(tz.value.toDoubleOrNull() ?: 5.5))
                 }
                 val resp = api.getKP(body)
-                if (resp.isSuccessful) {
+                if (resp.isSuccessful && resp.body() != null) {
                     _result.value  = resp.body()
+                    cachedResult   = resp.body()
                     _hasData.value = true
                 } else {
                     _error.value = "Calculation failed. Please check birth details."
@@ -92,5 +109,6 @@ class KPScreenViewModel @Inject constructor(
         }
     }
 
-    fun load() { if (hasData.value) calculate() }
+    fun load()  { if (!_hasData.value) calculate() }
+    fun reset() { cachedResult = null; _hasData.value = false; _result.value = null; _error.value = null }
 }

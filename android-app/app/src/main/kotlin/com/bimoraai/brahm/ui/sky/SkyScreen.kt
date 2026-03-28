@@ -4,6 +4,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -443,16 +448,25 @@ private fun Track24hTab(snapshot: SkySnapshot) {
 // ── Tab 3: Today for You ──────────────────────────────────────────────────────
 @Composable
 private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
-    val user by vm.userRepository.user.collectAsState()
-    val scrollState = rememberScrollState()
+    val savedKundali by vm.savedKundali.collectAsState()
+    val user         by vm.userRepository.user.collectAsState()
+    val scrollState  = rememberScrollState()
+
+    // ── helpers ──
+    fun getTransitHouse(transitRashi: String, natalRashi: String): Int {
+        val t = RASHI_INDEX[transitRashi] ?: 0
+        val n = RASHI_INDEX[natalRashi]   ?: 0
+        return ((t - n + 12) % 12) + 1
+    }
+    fun ordinal(n: Int) = when (n) { 1 -> "1st"; 2 -> "2nd"; 3 -> "3rd"; else -> "${n}th" }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        if (user == null || user?.rashi.isNullOrBlank()) {
-            // No kundali
+        if (savedKundali == null) {
+            // No kundali saved yet
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -463,7 +477,7 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text("★", fontSize = 32.sp)
+                    Text("🌟", fontSize = 32.sp)
                     Text("Generate Your Kundali First", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
                     Text(
                         "Your personalized transit forecast requires your natal chart. Go to My Kundali to generate it.",
@@ -475,27 +489,49 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
             return@Column
         }
 
-        val natalMoonRashi  = user!!.rashi         // already English e.g. "Mesha"
-        val userName        = user!!.name
+        // ── Extract natal data from saved kundali ──
+        val kundali = savedKundali!!
+        fun kundaliStr(obj: JsonObject?, key: String) =
+            obj?.get(key)?.let { (it as? JsonPrimitive)?.contentOrNull } ?: ""
+
+        val grahasObj   = try { kundali["grahas"]?.let { it as? JsonObject } } catch (_: Exception) { null }
+        val chandraObj  = try { grahasObj?.get("Chandra")?.let { it as? JsonObject } } catch (_: Exception) { null }
+        val lagnaObj    = try { kundali["lagna"]?.let { it as? JsonObject } } catch (_: Exception) { null }
+
+        val natalMoonRashi  = kundaliStr(chandraObj, "rashi").ifBlank { user?.rashi ?: "Mesha" }
+        val natalLagnaRashi = kundaliStr(lagnaObj, "rashi").ifBlank { natalMoonRashi }
+        val userName = (kundali["name"] as? JsonPrimitive)?.contentOrNull?.ifBlank { null }
+            ?: user?.name ?: ""
+
+        // Parse dashas for current mahadasha
+        val dashasArray = try {
+            kundali["dashas"]?.let { it as? JsonArray }
+        } catch (_: Exception) { null }
+        val today = java.time.LocalDate.now().toString()
+        val currentDasha = dashasArray?.mapNotNull { el ->
+            try {
+                val o = el as? JsonObject ?: return@mapNotNull null
+                val lord  = (o["lord"] as? JsonPrimitive)?.contentOrNull ?: return@mapNotNull null
+                val start = (o["start"] as? JsonPrimitive)?.contentOrNull ?: ""
+                val end   = (o["end"]   as? JsonPrimitive)?.contentOrNull ?: ""
+                val years = (o["years"] as? JsonPrimitive)?.contentOrNull ?: ""
+                val isCurrent = (o["is_current"] as? JsonPrimitive)?.booleanOrNull == true
+                    || (start <= today && end >= today)
+                Triple(lord, Triple(start, end, years), isCurrent)
+            } catch (_: Exception) { null }
+        }?.firstOrNull { it.third }
+
         val transitMoonRashi = snapshot.grahas["Chandra"]?.rashi ?: "Mesha"
         val transitSunRashi  = snapshot.grahas["Surya"]?.rashi   ?: "Mesha"
 
-        fun getTransitHouse(transitRashi: String, natalRashi: String): Int {
-            val t = RASHI_INDEX[transitRashi] ?: 0
-            val n = RASHI_INDEX[natalRashi]   ?: 0
-            return ((t - n + 12) % 12) + 1
-        }
-        fun ordinal(n: Int) = when (n) { 1 -> "1st"; 2 -> "2nd"; 3 -> "3rd"; else -> "${n}th" }
-
-        val moonHouse = getTransitHouse(transitMoonRashi, natalMoonRashi)
-        val sunHouse  = getTransitHouse(transitSunRashi,  natalMoonRashi)
-        val jupHouse  = getTransitHouse(snapshot.grahas["Guru"]?.rashi  ?: "Mesha", natalMoonRashi)
-        val satHouse  = getTransitHouse(snapshot.grahas["Shani"]?.rashi ?: "Mesha", natalMoonRashi)
+        val moonHouse   = getTransitHouse(transitMoonRashi, natalMoonRashi)
+        val sunHouse    = getTransitHouse(transitSunRashi,  natalMoonRashi)
+        val jupHouse    = getTransitHouse(snapshot.grahas["Guru"]?.rashi  ?: "Mesha", natalMoonRashi)
+        val satHouse    = getTransitHouse(snapshot.grahas["Shani"]?.rashi ?: "Mesha", natalMoonRashi)
         val overallGood = listOf(3, 4, 5, 9, 10, 11).contains(moonHouse)
+        val moonEffect  = MOON_TRANSIT_EFFECTS[moonHouse]
 
-        val moonEffect = MOON_TRANSIT_EFFECTS[moonHouse]
-
-        // Day quality banner
+        // ── Day quality banner ──
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
@@ -512,14 +548,15 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
             ) {
                 Column {
                     Text("Today's cosmic energy for", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                    Text(userName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                    if (userName.isNotBlank())
+                        Text(userName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
                     Text(
-                        "Janma Rashi: $natalMoonRashi",
+                        "Janma Rashi: $natalMoonRashi · Lagna: $natalLagnaRashi",
                         style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold),
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(if (overallGood) "★" else "⚡", fontSize = 28.sp)
+                    Text(if (overallGood) "🌟" else "⚡", fontSize = 26.sp)
                     Text(
                         if (overallGood) "Auspicious day" else "Moderate day",
                         style = MaterialTheme.typography.labelSmall.copy(
@@ -531,26 +568,68 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
             }
         }
 
-        // Moon Transit
+        // ── Current Mahadasha ──
+        if (currentDasha != null) {
+            val (lord, timing, _) = currentDasha
+            val (_, dashaEnd, dashaYears) = timing
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, BrahmGold.copy(alpha = 0.3f)),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            GRAHA_SYMBOL[lord] ?: "✦",
+                            fontSize = 24.sp,
+                            color = GRAHA_COLOR_MAP[lord] ?: BrahmGold,
+                        )
+                        Column {
+                            Text(
+                                "$lord Mahadasha",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground),
+                            )
+                            Text(
+                                "Ends ${dashaEnd.take(10)}",
+                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                            )
+                        }
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            "$dashaYears year period",
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                        )
+                        Text(
+                            "Active now",
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold),
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Moon Transit ──
         if (moonEffect != null) {
             val qualityColor = when (moonEffect.quality) {
-                "good"  -> Color(0xFF4ADE80); "bad" -> Color(0xFFF87171); else -> Color(0xFFFBBF24)
+                "good" -> Color(0xFF4ADE80); "bad" -> Color(0xFFF87171); else -> Color(0xFFFBBF24)
             }
             val qualityBg = when (moonEffect.quality) {
-                "good"  -> Color(0xFFF0FDF4); "bad" -> Color(0xFFFEF2F2); else -> Color(0xFFFFFBEB)
+                "good" -> Color(0xFFF0FDF4); "bad" -> Color(0xFFFEF2F2); else -> Color(0xFFFFFBEB)
             }
             val qualityBorder = when (moonEffect.quality) {
-                "good"  -> Color(0xFF86EFAC); "bad" -> Color(0xFFFCA5A5); else -> Color(0xFFFDE68A)
+                "good" -> Color(0xFF86EFAC); "bad" -> Color(0xFFFCA5A5); else -> Color(0xFFFDE68A)
             }
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = qualityBg),
                 border = androidx.compose.foundation.BorderStroke(1.dp, qualityBorder),
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
+                Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("☽", fontSize = 22.sp, color = GRAHA_COLOR_MAP["Chandra"] ?: BrahmGold)
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -576,7 +655,7 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
             }
         }
 
-        // Sun Transit
+        // ── Sun Transit ──
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -587,9 +666,9 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
                 Column {
                     Text("Sun Transit — House $sunHouse", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmForeground))
                     val note = when {
-                        listOf(1,4,7,10).contains(sunHouse) -> " Kendra — strong influence on your actions."
-                        listOf(5,9).contains(sunHouse)      -> " Trikona — blessings and fortune."
-                        listOf(3,6,10,11).contains(sunHouse) -> " Upachaya — growth through effort."
+                        listOf(1, 4, 7, 10).contains(sunHouse) -> " Kendra — strong influence on your actions."
+                        listOf(5, 9).contains(sunHouse)         -> " Trikona — blessings and fortune."
+                        listOf(3, 6, 10, 11).contains(sunHouse) -> " Upachaya — growth through effort."
                         else -> ""
                     }
                     Text(
@@ -600,10 +679,10 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
             }
         }
 
-        // Jupiter & Saturn 2-col grid
+        // ── Jupiter & Saturn 2-col grid ──
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             listOf("Guru" to jupHouse, "Shani" to satHouse).forEach { (name, house) ->
-                val good = listOf(2,5,7,9,11).contains(house)
+                val good = listOf(2, 5, 7, 9, 11).contains(house)
                 Card(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(16.dp),
@@ -632,10 +711,10 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
             }
         }
 
-        // Favorable planets (upachaya 3,6,10,11 from natal moon)
+        // ── Favorable planets today (upachaya 3,6,10,11 from natal Lagna) ──
         val luckyGrahas = GRAHA_ORDER.filter { name ->
             val rashi = snapshot.grahas[name]?.rashi ?: return@filter false
-            listOf(3,6,10,11).contains(getTransitHouse(rashi, natalMoonRashi))
+            listOf(3, 6, 10, 11).contains(getTransitHouse(rashi, natalLagnaRashi))
         }
         if (luckyGrahas.isNotEmpty()) {
             Card(
@@ -644,8 +723,14 @@ private fun TodayForYouTab(snapshot: SkySnapshot, vm: SkyViewModel) {
                 elevation = CardDefaults.cardElevation(2.dp),
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("FAVORABLE PLANETS TODAY", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, letterSpacing = 1.sp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "FAVORABLE PLANETS TODAY (UPACHAYA FROM LAGNA)",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, letterSpacing = 1.sp),
+                    )
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         luckyGrahas.forEach { name ->
                             val color = GRAHA_COLOR_MAP[name] ?: BrahmGold
                             Box(

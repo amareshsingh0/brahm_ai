@@ -39,14 +39,15 @@ private fun OtpInputRow(otp: String, onOtpChange: (String) -> Unit) {
         decorationBox = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 repeat(6) { index ->
                     val digit = otp.getOrNull(index)?.toString() ?: ""
                     val isFocused = index == otp.length
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .weight(1f)
+                            .aspectRatio(1f)
                             .border(
                                 width = if (isFocused) 2.dp else 1.5.dp,
                                 color = when {

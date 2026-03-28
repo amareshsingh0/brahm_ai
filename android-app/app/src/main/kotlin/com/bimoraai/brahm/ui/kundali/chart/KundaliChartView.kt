@@ -141,11 +141,11 @@ fun KundaliChartView(
     val lagnaIdx = rashiIdxByName(lagnaRashi)
 
     // Full English names for all chart styles
-    val houseRashis: Map<Int, String> = if (lagnaIdx >= 0) {
-        (1..12).associateWith { h -> RASHI_FULL_EN[(lagnaIdx + h - 1) % 12] }
+    val houseRashis: Map<Int, String> = if (lagnaIdx in 0..11) {
+        (1..12).associateWith { h -> RASHI_FULL_EN.getOrElse((lagnaIdx + h - 1) % 12) { "" } }
     } else emptyMap()
     // Use full English name for center display (lagnaRashi may be Sanskrit e.g. "Dhanu")
-    val lagnaDisplay = if (lagnaIdx >= 0) RASHI_FULL_EN[lagnaIdx] else lagnaRashi
+    val lagnaDisplay = if (lagnaIdx in 0..11) RASHI_FULL_EN[lagnaIdx] else lagnaRashi
 
     when (chartStyle) {
         "South" -> SouthIndianChart(
@@ -197,6 +197,7 @@ private fun NorthIndianChart(
             .background(BrahmCard)
     ) {
         val W = size.width
+        if (W <= 0f) return@Canvas
         val cellW = W / 4f
         val cellH = W / 4f
         val sw = 1.dp.toPx()
@@ -293,6 +294,7 @@ private fun SouthIndianChart(
             .clip(RoundedCornerShape(8.dp))
             .background(BrahmCard)
     ) {
+        if (size.width <= 0f) return@Canvas
         val cellW = size.width / 4f
         val cellH = size.height / 4f
         val sw = 1.dp.toPx()
@@ -309,7 +311,7 @@ private fun SouthIndianChart(
                 )
 
                 val rashiIdx = SOUTH_RASHI_POS.indexOfFirst { (r, c) -> r == row && c == col }
-                if (rashiIdx < 0) continue
+                if (rashiIdx < 0 || rashiIdx > 11) continue
 
                 val house = if (lagnaIdx >= 0) ((rashiIdx - lagnaIdx + 12) % 12) + 1 else rashiIdx + 1
 
@@ -332,7 +334,7 @@ private fun SouthIndianChart(
                     textMeasurer = textMeasurer,
                     house        = house,
                     center       = center,
-                    rashi        = RASHI_FULL_EN[rashiIdx],
+                    rashi        = RASHI_FULL_EN.getOrElse(rashiIdx) { "" },
                     planets      = grahas[house] ?: emptyList(),
                     cellW        = cellW,
                     cellH        = cellH,
@@ -387,6 +389,7 @@ private fun EastIndianChart(
             .background(BrahmCard)
     ) {
         val W = size.width
+        if (W <= 0f) return@Canvas
         val C = W / 2f
         val sw = 1.dp.toPx()
         val lineColor = BrahmGold.copy(alpha = 0.35f)
@@ -474,13 +477,14 @@ private fun EastIndianChart(
                         val tnm = textMeasurer.measure(name, TextStyle(fontSize = 7.sp))
                         val totalW = sm.size.width + 2.dp.toPx() + tnm.size.width
                         val sx = cx - totalW / 2f
-                        drawText(textMeasurer, sym, Offset(sx, rowY),
+                        val nameY = (rowY + (sm.size.height - tnm.size.height) / 2f).coerceIn(0f, W - 1f)
+                        if (rowY < W) drawText(textMeasurer, sym, Offset(sx, rowY),
                             TextStyle(color = color, fontSize = 9.sp, fontFamily = FontFamily.Serif))
-                        drawText(textMeasurer, name, Offset(sx + sm.size.width + 2.dp.toPx(), rowY + (sm.size.height - tnm.size.height) / 2f),
+                        if (nameY < W) drawText(textMeasurer, name, Offset(sx + sm.size.width + 2.dp.toPx(), nameY),
                             TextStyle(color = color, fontSize = 7.sp, fontWeight = FontWeight.SemiBold))
                     } else {
                         val pm = textMeasurer.measure(name, TextStyle(fontSize = 7.5.sp))
-                        drawText(textMeasurer, name, Offset(cx - pm.size.width / 2f, rowY),
+                        if (rowY < W) drawText(textMeasurer, name, Offset(cx - pm.size.width / 2f, rowY),
                             TextStyle(color = color, fontSize = 7.5.sp, fontWeight = FontWeight.SemiBold))
                     }
                 }
@@ -526,6 +530,7 @@ private fun WestIndianChart(
             .background(BrahmCard)
     ) {
         val W  = size.width
+        if (W <= 0f) return@Canvas
         val C  = W / 2f
         // Ring boundaries (from outside in):
         // Canvas edge → R1: zodiac symbols (outermost ring)
@@ -571,7 +576,7 @@ private fun WestIndianChart(
             val symR = (R1 + C) / 2f
             val symX = (C + symR * cos(midAngle)).toFloat()
             val symY = (C - symR * sin(midAngle)).toFloat()
-            val zodiacIdx = if (lagnaIdx >= 0) (lagnaIdx + i) % 12 else i
+            val zodiacIdx = (if (lagnaIdx >= 0) (lagnaIdx + i) % 12 else i).coerceIn(0, 11)
             val zodSym = ZODIAC_SYMBOLS[zodiacIdx]
             // Small rounded square badge (app theme gold)
             drawRoundRect(
@@ -617,7 +622,7 @@ private fun WestIndianChart(
                     fontWeight = if (isLagna) FontWeight.Bold else FontWeight.Normal,
                 ),
             )
-            val rashiFull = houseRashis[houseId] ?: RASHI_FULL_EN[zodiacIdx]
+            val rashiFull = houseRashis[houseId] ?: RASHI_FULL_EN.getOrElse(zodiacIdx) { "" }
             val rm = textMeasurer.measure(rashiFull, TextStyle(fontSize = 6.sp))
             drawText(
                 textMeasurer = textMeasurer,

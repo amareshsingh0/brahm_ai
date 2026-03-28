@@ -338,6 +338,8 @@ fun PrashnaInputForm(
                             pob = pob, onPobChange = onPobChange,
                             onCitySelected = onCitySelected,
                             showName = false,
+                            showDob  = false,
+                            showTob  = false,
                             cityVmKey = "prashna",
                         )
                     }

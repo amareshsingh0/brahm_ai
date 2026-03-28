@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, BookOpen, ScrollText, Flame, Feather, Loader2 } from "lucide-react";
-import { useSearch } from "@/hooks/useSearch";
+import { Search, BookOpen, ScrollText, Flame, Feather } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 // Categories are defined as a function so they can use translations
@@ -223,14 +222,12 @@ function getCategories(t: (key: string) => string) {
 export default function VedicLibraryPage() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
-  const { data: ragResults, isFetching: ragLoading } = useSearch(search);
   const categories = getCategories(t);
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="font-display text-3xl text-primary text-glow-gold">{t("library.title")}</h1>
-        <p className="text-muted-foreground mt-1">{t("library.subtitle")}</p>
       </motion.div>
 
       <div className="relative">
@@ -242,26 +239,6 @@ export default function VedicLibraryPage() {
           className="pl-9 bg-muted/30 border-border/40"
         />
       </div>
-
-      {/* Search results */}
-      {search.length > 2 && (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            {ragLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
-            {t("library.kb_results", { q: search })}
-          </p>
-          {ragResults?.results.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}>
-              <Card className="glass border-border/30">
-                <CardContent className="pt-4 pb-3">
-                  <p className="text-xs text-muted-foreground mb-1">{r.source} · {r.language}</p>
-                  <p className="text-sm text-foreground">{r.text}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
 
       <Tabs defaultValue="vedas">
         <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">

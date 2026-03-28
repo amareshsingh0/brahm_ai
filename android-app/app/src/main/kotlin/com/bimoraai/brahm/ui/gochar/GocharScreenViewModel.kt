@@ -13,13 +13,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import javax.inject.Inject
+
+private data class KundaliExtract(
+    val lagnaRashi: String,
+    val moonRashi: String,
+    val natalBav: JsonObject?,
+)
 
 @HiltViewModel
 class GocharScreenViewModel @Inject constructor(
@@ -47,12 +57,31 @@ class GocharScreenViewModel @Inject constructor(
     val lon  = MutableStateFlow(0.0)
     val tz   = MutableStateFlow("5.5")
 
+    // ── Static cache — survives ViewModel recreation across navigation ──────────
+    companion object {
+        private var cachedGochar:  JsonObject? = null
+        private var cachedAnalyze: JsonObject? = null
+    }
+
     init {
+        // Restore from static cache immediately — instant display on re-navigation
+        if (cachedGochar != null || cachedAnalyze != null) {
+            _gocharData.value  = cachedGochar
+            _analyzeData.value = cachedAnalyze
+            _hasData.value     = true
+        }
+
         viewModelScope.launch {
-            userRepository.user
-                .filterNotNull()
-                .first { it.date.isNotBlank() && it.place.isNotBlank() }
-                .let { u -> prefillFromProfile(u) }
+            val u = userRepository.user.value
+            if (u != null && u.date.isNotBlank() && u.place.isNotBlank()) {
+                prefillFromProfile(u)
+            } else {
+                // Wait for profile only if not yet loaded
+                userRepository.user
+                    .filterNotNull()
+                    .first { it.date.isNotBlank() && it.place.isNotBlank() }
+                    .let { prefillFromProfile(it) }
+            }
         }
     }
 
@@ -64,7 +93,8 @@ class GocharScreenViewModel @Inject constructor(
         if (lat.value == 0.0 && u.lat != 0.0) lat.value = u.lat
         if (lon.value == 0.0 && u.lon != 0.0) lon.value = u.lon
         if (u.tz != 0.0) tz.value = u.tz.toString()
-        calculate()
+        // Skip calculation if already loaded from cache
+        if (!_hasData.value) calculate()
     }
 
     fun calculate() {
@@ -76,10 +106,54 @@ class GocharScreenViewModel @Inject constructor(
             _isLoading.value = true
             _error.value     = null
             try {
-                // Step 1 + 2 in parallel: current sky AND kundali for lagna/moon rashi
-                val skyDef = async { api.getGocharNow() }
-                val kundaliDef = async {
-                    api.generateKundali(KundaliRequest(
+                // Step 1: Fetch current sky positions
+                // Step 2: Try saved kundali first (fast DB fetch) for lagna/moon rashi
+                //         Only fall back to full kundali calc if no saved data exists
+                val skyDef        = async { api.getGocharNow() }
+                val savedKundDef  = async { api.getSavedKundali() }
+
+                val skyResp = skyDef.await()
+                if (skyResp.isSuccessful) {
+                    _gocharData.value = skyResp.body()
+                    cachedGochar      = skyResp.body()
+                    // Show sky positions IMMEDIATELY — don't wait for analysis
+                    _hasData.value = true
+                }
+
+                // Get lagna + moon rashi + natal_bav (preferring saved kundali)
+                val savedKundResp = savedKundDef.await()
+                val extract = if (savedKundResp.isSuccessful && savedKundResp.body() != null) {
+                    val body = savedKundResp.body()!!
+                    val found = body["found"]?.let {
+                        (it as? JsonPrimitive)?.contentOrNull == "true" || it.toString() == "true"
+                    } ?: false
+                    if (found) {
+                        val kundaliRow = try { body["kundali"]?.jsonObject } catch (_: Exception) { null }
+                        val jsonStr = kundaliRow?.get("kundali_json")?.let { (it as? JsonPrimitive)?.contentOrNull }
+                        val parsed = jsonStr?.let { s ->
+                            try { Json.parseToJsonElement(s) as? JsonObject } catch (_: Exception) { null }
+                        }
+                        val lr = parsed?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                        val mr = parsed?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                        // Build natal_bav: {planet: [12 ints]} from ashtakavarga.bav
+                        val bav = try { parsed?.get("ashtakavarga")?.jsonObject?.get("bav")?.jsonObject } catch (_: Exception) { null }
+                        val natalBav = bav?.let { bavObj ->
+                            try {
+                                buildJsonObject {
+                                    bavObj.forEach { (planet, v) ->
+                                        val pts = v.jsonObject["points"]?.jsonArray
+                                        if (pts != null) put(planet, pts)
+                                    }
+                                }
+                            } catch (_: Exception) { null }
+                        }
+                        KundaliExtract(lr, mr, natalBav)
+                    } else null
+                } else null
+
+                val (lagnaRashi, moonRashi, natalBav) = extract ?: run {
+                    // Saved kundali not found — fall back to lightweight calc
+                    val resp = api.generateKundali(KundaliRequest(
                         name  = name.value.ifBlank { "User" },
                         date  = dob.value,
                         time  = tob.value,
@@ -87,26 +161,39 @@ class GocharScreenViewModel @Inject constructor(
                         lat   = lat.value,
                         lon   = lon.value,
                         tz    = tz.value.toDoubleOrNull() ?: 5.5,
+                        calc_options = listOf("ashtakavarga"),
                     ))
+                    if (resp.isSuccessful) {
+                        val k = resp.body()
+                        val lr = k?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                        val mr = k?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                        val bav = try { k?.get("ashtakavarga")?.jsonObject?.get("bav")?.jsonObject } catch (_: Exception) { null }
+                        val nb = bav?.let { bavObj ->
+                            try {
+                                buildJsonObject {
+                                    bavObj.forEach { (planet, v) ->
+                                        val pts = v.jsonObject["points"]?.jsonArray
+                                        if (pts != null) put(planet, pts)
+                                    }
+                                }
+                            } catch (_: Exception) { null }
+                        }
+                        KundaliExtract(lr, mr, nb)
+                    } else KundaliExtract("", "", null)
                 }
 
-                val skyResp = skyDef.await()
-                if (skyResp.isSuccessful) _gocharData.value = skyResp.body()
-
-                // Step 3: extract lagna + moon rashi → call gochar/analyze
-                val kundaliResp = kundaliDef.await()
-                if (kundaliResp.isSuccessful) {
-                    val k = kundaliResp.body()
-                    val lagnaRashi = k?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
-                    val moonRashi  = k?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
-                    if (lagnaRashi.isNotBlank() && moonRashi.isNotBlank()) {
-                        val analyzeBody = buildJsonObject {
-                            put("lagna_rashi", JsonPrimitive(lagnaRashi))
-                            put("moon_rashi",  JsonPrimitive(moonRashi))
-                            put("name",        JsonPrimitive(name.value.ifBlank { "User" }))
-                        }
-                        val analyzeResp = api.analyzeGochar(analyzeBody)
-                        if (analyzeResp.isSuccessful) _analyzeData.value = analyzeResp.body()
+                // Step 3: Personal transit analysis
+                if (lagnaRashi.isNotBlank() && moonRashi.isNotBlank()) {
+                    val analyzeBody = buildJsonObject {
+                        put("lagna_rashi", JsonPrimitive(lagnaRashi))
+                        put("moon_rashi",  JsonPrimitive(moonRashi))
+                        put("name",        JsonPrimitive(name.value.ifBlank { "User" }))
+                        if (natalBav != null) put("natal_bav", natalBav)
+                    }
+                    val analyzeResp = api.analyzeGochar(analyzeBody)
+                    if (analyzeResp.isSuccessful) {
+                        _analyzeData.value = analyzeResp.body()
+                        cachedAnalyze      = analyzeResp.body()
                     }
                 }
 
@@ -121,4 +208,12 @@ class GocharScreenViewModel @Inject constructor(
     }
 
     fun load() { calculate() }
+
+    // Call when user explicitly wants a fresh fetch (pull-to-refresh)
+    fun refresh() {
+        cachedGochar  = null
+        cachedAnalyze = null
+        _hasData.value = false
+        calculate()
+    }
 }

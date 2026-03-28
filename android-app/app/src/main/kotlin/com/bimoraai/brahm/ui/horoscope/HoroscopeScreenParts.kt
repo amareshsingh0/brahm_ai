@@ -39,18 +39,18 @@ private data class RashiMeta(
 )
 
 private val rashiMeta: Map<String, RashiMeta> = mapOf(
-    "Aries"       to RashiMeta("♈", "Mesha",     "Mars",    Color(0xFFE53935)),
-    "Taurus"      to RashiMeta("♉", "Vrishabha", "Venus",   Color(0xFF43A047)),
-    "Gemini"      to RashiMeta("♊", "Mithuna",   "Mercury", Color(0xFFFFB300)),
-    "Cancer"      to RashiMeta("♋", "Karka",     "Moon",    Color(0xFF1565C0)),
-    "Leo"         to RashiMeta("♌", "Simha",     "Sun",     Color(0xFFFF8F00)),
-    "Virgo"       to RashiMeta("♍", "Kanya",     "Mercury", Color(0xFF2E7D32)),
-    "Libra"       to RashiMeta("⚖", "Tula",      "Venus",   Color(0xFF7B1FA2)),
-    "Scorpio"     to RashiMeta("♏", "Vrischika", "Mars",    Color(0xFFB71C1C)),
-    "Sagittarius" to RashiMeta("♐", "Dhanu",     "Jupiter", Color(0xFFE65100)),
-    "Capricorn"   to RashiMeta("♑", "Makara",    "Saturn",  Color(0xFF37474F)),
-    "Aquarius"    to RashiMeta("♒", "Kumbha",    "Saturn",  Color(0xFF0277BD)),
-    "Pisces"      to RashiMeta("♓", "Meena",     "Jupiter", Color(0xFF6A1B9A)),
+    "Aries"       to RashiMeta("♈\uFE0E", "Mesha",     "Mars",    Color(0xFFE53935)),
+    "Taurus"      to RashiMeta("♉\uFE0E", "Vrishabha", "Venus",   Color(0xFF43A047)),
+    "Gemini"      to RashiMeta("♊\uFE0E", "Mithuna",   "Mercury", Color(0xFFFFB300)),
+    "Cancer"      to RashiMeta("♋\uFE0E", "Karka",     "Moon",    Color(0xFF1565C0)),
+    "Leo"         to RashiMeta("♌\uFE0E", "Simha",     "Sun",     Color(0xFFFF8F00)),
+    "Virgo"       to RashiMeta("♍\uFE0E", "Kanya",     "Mercury", Color(0xFF2E7D32)),
+    "Libra"       to RashiMeta("♎\uFE0E", "Tula",      "Venus",   Color(0xFF7B1FA2)),
+    "Scorpio"     to RashiMeta("♏\uFE0E", "Vrischika", "Mars",    Color(0xFFB71C1C)),
+    "Sagittarius" to RashiMeta("♐\uFE0E", "Dhanu",     "Jupiter", Color(0xFFE65100)),
+    "Capricorn"   to RashiMeta("♑\uFE0E", "Makara",    "Saturn",  Color(0xFF37474F)),
+    "Aquarius"    to RashiMeta("♒\uFE0E", "Kumbha",    "Saturn",  Color(0xFF0277BD)),
+    "Pisces"      to RashiMeta("♓\uFE0E", "Meena",     "Jupiter", Color(0xFF6A1B9A)),
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -159,7 +159,7 @@ fun HoroscopeContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Text(meta?.symbol ?: "♈", fontSize = 60.sp)
+                        Text(meta?.symbol ?: "♈\uFE0E", fontSize = 60.sp)
                         Text(
                             selectedRashi,
                             style = MaterialTheme.typography.headlineSmall.copy(

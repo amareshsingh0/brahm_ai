@@ -24,10 +24,14 @@ def _get_user_id(request: Request, session_id: str = "") -> str | None:
             pass
     # Legacy fallback
     if session_id:
-        sb = get_supabase()
-        row = sb.table("users").select("id").eq("session_id", session_id).maybe_single().execute()
-        if row.data:
-            return row.data["id"]
+        try:
+            sb = get_supabase()
+            res = sb.table("users").select("id").eq("session_id", session_id).limit(1).execute()
+            rows = res.data if res and isinstance(res.data, list) else []
+            if rows:
+                return rows[0]["id"]
+        except Exception:
+            pass
     return None
 
 
@@ -301,23 +305,24 @@ def get_saved_kundali(request: Request, session_id: str = Query(default="")):
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    sb = get_supabase()
     try:
+        sb = get_supabase()
         res = (
             sb.table("saved_kundalis")
             .select("*")
             .eq("user_id", user_id)
             .order("created_at", desc=True)
             .limit(1)
-            .maybe_single()
             .execute()
         )
-    except Exception:
-        res = None
-    # .maybe_single() returns None (not APIResponse) when no row found
-    if res is None or not res.data:
+        rows = res.data if res and isinstance(res.data, list) else []
+        if not rows:
+            return {"found": False, "kundali": None}
+        return {"found": True, "kundali": rows[0]}
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("get_saved_kundali error user=%s: %s", user_id, e)
         return {"found": False, "kundali": None}
-    return {"found": True, "kundali": res.data}
 
 
 @router.post("/user/kundali")
@@ -328,9 +333,10 @@ def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Q
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     sb = get_supabase()
-    # Check if already exists
+    # Check if already exists — extract id safely regardless of client version
+    existing_id = None
     try:
-        existing = (
+        resp = (
             sb.table("saved_kundalis")
             .select("id")
             .eq("user_id", user_id)
@@ -338,8 +344,11 @@ def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Q
             .maybe_single()
             .execute()
         )
+        if resp and resp.data:
+            d = resp.data
+            existing_id = d.get("id") if isinstance(d, dict) else None
     except Exception:
-        existing = None
+        existing_id = None
 
     row = {
         "user_id": user_id,
@@ -355,8 +364,8 @@ def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Q
     }
 
     try:
-        if existing is not None and existing.data:
-            sb.table("saved_kundalis").update(row).eq("id", existing.data["id"]).execute()
+        if existing_id:
+            sb.table("saved_kundalis").update(row).eq("id", existing_id).execute()
         else:
             sb.table("saved_kundalis").insert(row).execute()
         return {"saved": True}

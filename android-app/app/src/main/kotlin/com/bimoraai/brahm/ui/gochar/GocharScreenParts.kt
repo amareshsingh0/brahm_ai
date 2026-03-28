@@ -30,12 +30,19 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
+// ── Rashi symbols (text presentation, not emoji) ─────────────────────────────
+private val RASHI_SYMBOLS = mapOf(
+    "Mesha" to "♈\uFE0E", "Vrishabha" to "♉\uFE0E", "Mithuna" to "♊\uFE0E", "Karka" to "♋\uFE0E",
+    "Simha" to "♌\uFE0E", "Kanya" to "♍\uFE0E", "Tula" to "♎\uFE0E", "Vrischika" to "♏\uFE0E",
+    "Dhanu" to "♐\uFE0E", "Makara" to "♑\uFE0E", "Kumbha" to "♒\uFE0E", "Meena" to "♓\uFE0E",
+)
+
 // ── Planet metadata (matches website GRAHA_* maps) ───────────────────────────
 private data class GrahaMeta(val symbol: String, val en: String, val color: Color, val desc: String)
 private val ORDER = listOf("Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani","Rahu","Ketu")
 private val GRAHA_META = mapOf(
     "Surya"  to GrahaMeta("☉", "Sun",     Color(0xFFD97706), "Vitality & Soul"),
-    "Chandra"to GrahaMeta("☽", "Moon",    Color(0xFF4F46E5), "Mind & Emotions"),
+    "Chandra" to GrahaMeta("☽", "Moon",    Color(0xFF4F46E5), "Mind & Emotions"),
     "Mangal" to GrahaMeta("♂", "Mars",    Color(0xFFDC2626), "Energy & Action"),
     "Budh"   to GrahaMeta("☿", "Mercury", Color(0xFF16A34A), "Intellect & Speech"),
     "Guru"   to GrahaMeta("♃", "Jupiter", Color(0xFFB45309), "Wisdom & Fortune"),
@@ -46,7 +53,7 @@ private val GRAHA_META = mapOf(
 )
 
 @Composable
-fun GocharContent(gocharData: JsonObject?, analyzeData: JsonObject?) {
+fun GocharContent(gocharData: JsonObject?, analyzeData: JsonObject?, isLoading: Boolean = false) {
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -98,6 +105,34 @@ fun GocharContent(gocharData: JsonObject?, analyzeData: JsonObject?) {
             }
 
             // ── Section 2: Personal Transit Analysis ─────────────────
+            if (analyzeData == null && isLoading) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape    = RoundedCornerShape(16.dp),
+                        colors   = CardDefaults.cardColors(containerColor = BrahmCard),
+                        elevation = CardDefaults.cardElevation(0.dp),
+                    ) {
+                        Row(
+                            modifier            = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment   = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            CircularProgressIndicator(
+                                modifier    = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color       = BrahmGold,
+                            )
+                            Text(
+                                "Loading personal transit analysis…",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = BrahmMutedForeground,
+                            )
+                        }
+                    }
+                }
+            }
+
             if (analyzeData != null) {
                 item { SectionLabel("📊  Personal Transit Analysis") }
 
@@ -224,21 +259,29 @@ private fun PlanetCell(meta: GrahaMeta, rashi: String, degree: Double?) {
                 fontSize   = 10.sp,
             ),
         )
-        // Rashi (gold, bold — like website text-star-gold font-semibold)
+        // Rashi — symbol (large, text rendering) + name below
+        Text(
+            RASHI_SYMBOLS[rashi] ?: "",
+            fontSize   = 18.sp,
+            color      = BrahmGold,
+            fontWeight = FontWeight.Light,
+        )
         Text(
             rashi,
             style = MaterialTheme.typography.labelSmall.copy(
                 color      = BrahmGold,
                 fontWeight = FontWeight.SemiBold,
-                fontSize   = 10.sp,
+                fontSize   = 9.sp,
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         // Degree
         if (degree != null) {
+            // Use BigDecimal to match JS toFixed(1) — avoids +0.1° drift from float representation
+            val d1 = java.math.BigDecimal(degree).setScale(1, java.math.RoundingMode.HALF_DOWN).toDouble()
             Text(
-                "${"%.1f".format(degree)}°",
+                "${"%.1f".format(d1)}°",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color    = BrahmMutedForeground,
                     fontSize = 9.sp,
@@ -353,12 +396,14 @@ private fun TransitPositionsTable(currentPositions: JsonObject, avScores: JsonOb
                     style    = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground),
                     modifier = Modifier.width(60.dp),
                 )
-                // Position (rashi + house)
-                Text(
-                    pos,
-                    style    = MaterialTheme.typography.bodySmall.copy(color = BrahmGold, fontWeight = FontWeight.Medium),
-                    modifier = Modifier.weight(1f),
-                )
+                // Position (symbol + rashi)
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    val sym = RASHI_SYMBOLS[pos]
+                    if (sym != null) {
+                        Text(sym, fontSize = 14.sp, color = BrahmGold, fontWeight = FontWeight.Light)
+                    }
+                    Text(pos, style = MaterialTheme.typography.bodySmall.copy(color = BrahmGold, fontWeight = FontWeight.Medium))
+                }
                 // AV score badge
                 if (avScore != null) {
                     val avColor = when {

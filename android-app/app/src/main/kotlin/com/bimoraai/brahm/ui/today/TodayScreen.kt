@@ -173,8 +173,36 @@ fun TodayScreen(
     var expandedKey by remember { mutableStateOf<String?>(null) }
     val toggle: (String) -> Unit = { k -> expandedKey = if (expandedKey == k) null else k }
 
-    // Choghadiya tab
-    var chogDay by remember { mutableStateOf(true) }
+    // Choghadiya tab — auto-detect day/night from current time vs sunrise/sunset
+    val autoChogDay = remember(panchang) {
+        val sunriseStr = panchang?.get("sunrise")?.jsonPrimitive?.contentOrNull ?: ""
+        val sunsetStr  = panchang?.get("sunset")?.jsonPrimitive?.contentOrNull ?: ""
+        fun parseHhmm(s: String): Int? {
+            val clean = s.trim().uppercase()
+            return try {
+                val ampm = when {
+                    clean.endsWith("AM") -> 0
+                    clean.endsWith("PM") -> 1
+                    else -> -1
+                }
+                val time = clean.replace("AM", "").replace("PM", "").trim()
+                val parts = time.split(":")
+                var h = parts[0].toInt(); val m = parts[1].toInt()
+                if (ampm == 0 && h == 12) h = 0
+                if (ampm == 1 && h != 12) h += 12
+                h * 60 + m
+            } catch (_: Exception) { null }
+        }
+        val now = java.util.Calendar.getInstance().let { it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE) }
+        val sunriseMin = parseHhmm(sunriseStr)
+        val sunsetMin  = parseHhmm(sunsetStr)
+        if (sunriseMin != null && sunsetMin != null) {
+            now in sunriseMin until sunsetMin
+        } else {
+            now in 360 until 1080  // fallback: 6 AM – 6 PM
+        }
+    }
+    var chogDay by remember(autoChogDay) { mutableStateOf(autoChogDay) }
 
     // City picker dialog
     var showCityPicker by remember { mutableStateOf(false) }

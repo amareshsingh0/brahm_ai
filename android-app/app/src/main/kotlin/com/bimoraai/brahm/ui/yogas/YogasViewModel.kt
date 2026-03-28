@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.network.KundaliRequest
+import com.bimoraai.brahm.core.network.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +31,6 @@ class YogasViewModel @Inject constructor(
     val error:     StateFlow<String?>    = _error
     val hasData:   StateFlow<Boolean>    = _hasData
 
-    // Input fields
     val name  = MutableStateFlow("")
     val dob   = MutableStateFlow("")
     val tob   = MutableStateFlow("")
@@ -39,16 +39,32 @@ class YogasViewModel @Inject constructor(
     val lon   = MutableStateFlow(0.0)
     val tz    = MutableStateFlow("5.5")
 
+    // ── Static cache — survives ViewModel recreation across navigation ──────────
+    companion object {
+        private var cachedResult: JsonObject? = null
+    }
+
     init {
+        // Restore from cache instantly — no network on re-navigation
+        if (cachedResult != null) {
+            _yogas.value   = cachedResult
+            _hasData.value = true
+        }
+
         viewModelScope.launch {
-            userRepository.user
-                .filterNotNull()
-                .first { it.date.isNotBlank() && it.place.isNotBlank() }
-                .let { u -> prefillFromProfile(u) }
+            val u = userRepository.user.value
+            if (u != null && u.date.isNotBlank() && u.place.isNotBlank()) {
+                prefillFromProfile(u)
+            } else {
+                userRepository.user
+                    .filterNotNull()
+                    .first { it.date.isNotBlank() && it.place.isNotBlank() }
+                    .let { prefillFromProfile(it) }
+            }
         }
     }
 
-    private fun prefillFromProfile(u: com.bimoraai.brahm.core.network.UserDto) {
+    private fun prefillFromProfile(u: UserDto) {
         if (name.value.isBlank() && u.name.isNotBlank()) name.value = u.name
         if (dob.value.isBlank() && u.date.isNotBlank()) dob.value = u.date
         if (tob.value.isBlank() && u.time.isNotBlank()) tob.value = u.time
@@ -56,7 +72,7 @@ class YogasViewModel @Inject constructor(
         if (lat.value == 0.0 && u.lat != 0.0) lat.value = u.lat
         if (lon.value == 0.0 && u.lon != 0.0) lon.value = u.lon
         if (u.tz != 0.0) tz.value = u.tz.toString()
-        calculate()
+        if (!_hasData.value) calculate()
     }
 
     fun calculate() {
@@ -68,19 +84,28 @@ class YogasViewModel @Inject constructor(
             _isLoading.value = true
             _error.value     = null
             try {
-                val resp = api.generateKundali(
-                    KundaliRequest(
-                        name  = name.value.ifBlank { "User" },
-                        date  = dob.value,
-                        time  = tob.value,
-                        place = pob.value,
-                        lat   = lat.value,
-                        lon   = lon.value,
-                        tz    = tz.value.toDoubleOrNull() ?: 5.5,
-                    )
-                )
-                if (resp.isSuccessful) {
-                    _yogas.value  = resp.body()
+                // Prefer saved kundali — fast DB lookup, avoids heavy recalculation
+                val savedResp = api.getSavedKundali()
+                val result = if (savedResp.isSuccessful && savedResp.body() != null) {
+                    savedResp.body()
+                } else {
+                    // Fallback: lightweight kundali (no divisional charts / dashas)
+                    val resp = api.generateKundali(KundaliRequest(
+                        name         = name.value.ifBlank { "User" },
+                        date         = dob.value,
+                        time         = tob.value,
+                        place        = pob.value,
+                        lat          = lat.value,
+                        lon          = lon.value,
+                        tz           = tz.value.toDoubleOrNull() ?: 5.5,
+                        calc_options = emptyList(),
+                    ))
+                    if (resp.isSuccessful) resp.body() else null
+                }
+
+                if (result != null) {
+                    _yogas.value   = result
+                    cachedResult   = result
                     _hasData.value = true
                 } else {
                     _error.value = "Calculation failed. Please check your birth details."
@@ -92,4 +117,7 @@ class YogasViewModel @Inject constructor(
             }
         }
     }
+
+    fun load()  { if (!_hasData.value) calculate() }
+    fun reset() { cachedResult = null; _hasData.value = false; _yogas.value = null; _error.value = null }
 }

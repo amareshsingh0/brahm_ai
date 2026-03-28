@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,15 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 // ── Static Data ───────────────────────────────────────────────────────────────
 
@@ -214,27 +210,15 @@ private val LIBRARY_CATEGORIES = listOf(
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 @Composable
-fun LibraryScreen(
-    navController: NavController,
-    vm: LibraryViewModel = hiltViewModel(),
-) {
-    val query     by vm.query.collectAsState()
-    val results   by vm.results.collectAsState()
-    val isLoading by vm.isLoading.collectAsState()
-    val error     by vm.error.collectAsState()
-
+fun LibraryScreen(navController: NavController) {
+    var query by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(0) }
 
     SwipeBackLayout(navController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Column {
-                        Text("Vedic Library", fontWeight = FontWeight.Bold)
-                        Text("1.1M+ scripture chunks · 4 traditions", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                    }
-                },
+                title = { Text("Vedic Library", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -260,7 +244,7 @@ fun LibraryScreen(
                 item {
                     OutlinedTextField(
                         value = query,
-                        onValueChange = { vm.query.value = it },
+                        onValueChange = { query = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -268,13 +252,6 @@ fun LibraryScreen(
                         singleLine = true,
                         leadingIcon = {
                             Icon(Icons.Default.Search, contentDescription = null, tint = BrahmMutedForeground)
-                        },
-                        trailingIcon = {
-                            if (isLoading) CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
-                                color = BrahmGold,
-                            )
                         },
                         shape = RoundedCornerShape(14.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -284,100 +261,6 @@ fun LibraryScreen(
                             unfocusedContainerColor = Color.White,
                         ),
                     )
-                }
-
-                // ── RAG search results (when query >= 2) ──
-                if (query.trim().length >= 2) {
-                    val resultList = results?.get("results")?.let { el ->
-                        try { el.jsonArray.map { it.jsonObject } } catch (_: Exception) { null }
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = BrahmMutedForeground, modifier = Modifier.size(12.dp))
-                            Text(
-                                if (isLoading) "Searching knowledge base…"
-                                else if (!resultList.isNullOrEmpty()) "Showing ${resultList.size} results for \"$query\""
-                                else if (error != null) error!!
-                                else "No results found for \"$query\"",
-                                style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
-                            )
-                        }
-                    }
-
-                    if (!resultList.isNullOrEmpty()) {
-                        items(resultList) { result ->
-                            val source   = result["source"]?.jsonPrimitive?.contentOrNull ?: "Vedic Text"
-                            val language = result["language"]?.jsonPrimitive?.contentOrNull ?: ""
-                            val text     = result["text"]?.jsonPrimitive?.contentOrNull
-                                           ?: result["content"]?.jsonPrimitive?.contentOrNull ?: "—"
-                            val chapter  = result["chapter"]?.jsonPrimitive?.contentOrNull
-                            val verse    = result["verse"]?.jsonPrimitive?.contentOrNull
-                            val score    = result["score"]?.jsonPrimitive?.contentOrNull?.toFloatOrNull()
-
-                            val catColor = when {
-                                source.contains("Veda", ignoreCase = true)      -> Color(0xFFE65100)
-                                source.contains("Upanishad", ignoreCase = true) -> Color(0xFF7B1FA2)
-                                source.contains("Gita", ignoreCase = true)      -> Color(0xFF1565C0)
-                                source.contains("Mahabharata", ignoreCase = true) || source.contains("Ramayana", ignoreCase = true) -> Color(0xFF2E7D32)
-                                else -> BrahmGold
-                            }
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = BrahmCard),
-                            ) {
-                                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        Box(
-                                            Modifier
-                                                .clip(RoundedCornerShape(6.dp))
-                                                .background(catColor.copy(alpha = 0.1f))
-                                                .padding(horizontal = 8.dp, vertical = 3.dp),
-                                        ) {
-                                            Text(source, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = catColor)
-                                        }
-                                        if (language.isNotBlank()) {
-                                            Text(language, style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
-                                        }
-                                        if (chapter != null || verse != null) {
-                                            Text(
-                                                listOfNotNull(chapter?.let { "Ch.$it" }, verse?.let { "V.$it" }).joinToString(" · "),
-                                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
-                                            )
-                                        }
-                                        Spacer(Modifier.weight(1f))
-                                        if (score != null) {
-                                            Text(
-                                                "${(score * 100).toInt()}% match",
-                                                fontSize = 10.sp,
-                                                color = BrahmGold,
-                                            )
-                                        }
-                                    }
-                                    Text(
-                                        text.take(320) + if (text.length > 320) "…" else "",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            color = BrahmForeground,
-                                            lineHeight = 19.sp,
-                                        ),
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    item { Spacer(Modifier.height(8.dp)) }
                 }
 
                 // ── Tab row ──

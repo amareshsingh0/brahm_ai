@@ -48,9 +48,9 @@ private val RASHI_LIST = listOf(
 )
 
 private val RASHI_SYMBOLS = mapOf(
-    "Mesha" to "♈", "Vrishabha" to "♉", "Mithuna" to "♊", "Karka" to "♋",
-    "Simha" to "♌", "Kanya" to "♍", "Tula" to "♎", "Vrischika" to "♏",
-    "Dhanu" to "♐", "Makara" to "♑", "Kumbha" to "♒", "Meena" to "♓",
+    "Mesha" to "♈\uFE0E", "Vrishabha" to "♉\uFE0E", "Mithuna" to "♊\uFE0E", "Karka" to "♋\uFE0E",
+    "Simha" to "♌\uFE0E", "Kanya" to "♍\uFE0E", "Tula" to "♎\uFE0E", "Vrischika" to "♏\uFE0E",
+    "Dhanu" to "♐\uFE0E", "Makara" to "♑\uFE0E", "Kumbha" to "♒\uFE0E", "Meena" to "♓\uFE0E",
 )
 
 private val RASHI_LORDS = mapOf(

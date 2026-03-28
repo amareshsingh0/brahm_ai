@@ -1,6 +1,7 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.bimoraai.brahm.ui.rectification
 
-import android.app.DatePickerDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -26,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,52 +87,94 @@ private fun scoreBorder(score: Int) = when {
     else        -> Color(0xFFE5E7EB)
 }
 
-// ── Date picker helper ─────────────────────────────────────────────────────────
+// ── Event date picker — same M3 DatePickerDialog as BirthInputFields ──────────
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventDatePicker(
     date: String,          // stored as "YYYY-MM-DD" for API
     onDateSelected: (String) -> Unit,
 ) {
-    val context = LocalContext.current
+    var showPicker by remember { mutableStateOf(false) }
+
+    val initialMillis = remember(date) {
+        if (date.isBlank()) null
+        else try {
+            val p = date.split("-")
+            Calendar.getInstance().apply {
+                set(p[0].toInt(), p[1].toInt() - 1, p[2].toInt(), 0, 0, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+        } catch (_: Exception) { null }
+    }
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+
     val displayDate = if (date.isNotBlank()) {
-        // Convert YYYY-MM-DD → dd-mm-yyyy for display
-        val parts = date.split("-")
-        if (parts.size == 3) "${parts[2]}-${parts[1]}-${parts[0]}" else date
+        try {
+            val p = date.split("-")
+            val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+            "${p[2].toInt()} ${months[p[1].toInt() - 1]} ${p[0]}"
+        } catch (_: Exception) { date }
     } else ""
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .border(1.dp, BrahmBorder, RoundedCornerShape(10.dp))
-            .background(Color.White)
-            .clickable {
-                val cal = Calendar.getInstance()
-                if (date.isNotBlank()) {
-                    val parts = date.split("-")
-                    if (parts.size == 3) {
-                        cal.set(parts[0].toIntOrNull() ?: cal.get(Calendar.YEAR),
-                            (parts[1].toIntOrNull() ?: 1) - 1,
-                            parts[2].toIntOrNull() ?: 1)
-                    }
-                }
-                DatePickerDialog(
-                    context,
-                    { _, year, month, day ->
-                        onDateSelected("%04d-%02d-%02d".format(year, month + 1, day))
-                    },
-                    cal.get(Calendar.YEAR),
-                    cal.get(Calendar.MONTH),
-                    cal.get(Calendar.DAY_OF_MONTH),
-                ).show()
-            }
-            .padding(horizontal = 12.dp, vertical = 14.dp),
-    ) {
-        Text(
-            text = if (displayDate.isBlank()) "dd-mm-yyyy" else displayDate,
-            fontSize = 13.sp,
-            color = if (displayDate.isBlank()) BrahmMutedForeground.copy(alpha = 0.5f) else BrahmForeground,
+    // Tappable field — same style as BirthInputFields
+    Box {
+        OutlinedTextField(
+            value         = displayDate,
+            onValueChange = {},
+            readOnly      = true,
+            modifier      = Modifier.fillMaxWidth(),
+            label         = { Text("Event Date") },
+            placeholder   = { Text("Select date", color = BrahmMutedForeground) },
+            leadingIcon   = { Icon(Icons.Default.CalendarToday, null, tint = BrahmGold) },
+            trailingIcon  = { Icon(Icons.Default.CalendarMonth, null, tint = BrahmMutedForeground) },
+            singleLine    = true,
+            shape         = RoundedCornerShape(10.dp),
+            colors        = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor   = BrahmGold,
+                unfocusedBorderColor = BrahmBorder,
+            ),
         )
+        Box(Modifier.matchParentSize().clickable { showPicker = true })
+    }
+
+    if (showPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val cal = Calendar.getInstance().apply { timeInMillis = millis }
+                        onDateSelected("%04d-%02d-%02d".format(
+                            cal.get(Calendar.YEAR),
+                            cal.get(Calendar.MONTH) + 1,
+                            cal.get(Calendar.DAY_OF_MONTH),
+                        ))
+                    }
+                    showPicker = false
+                }) { Text("OK", color = BrahmGold) }
+            },
+            dismissButton = { TextButton(onClick = { showPicker = false }) { Text("Cancel") } },
+            colors = DatePickerDefaults.colors(containerColor = BrahmCard),
+        ) {
+            DatePicker(
+                state  = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    containerColor             = BrahmCard,
+                    headlineContentColor       = BrahmForeground,
+                    weekdayContentColor        = BrahmMutedForeground,
+                    navigationContentColor     = BrahmForeground,
+                    yearContentColor           = BrahmForeground,
+                    currentYearContentColor    = BrahmGold,
+                    selectedYearContentColor   = BrahmCard,
+                    selectedYearContainerColor = BrahmGold,
+                    dayContentColor            = BrahmForeground,
+                    todayContentColor          = BrahmGold,
+                    todayDateBorderColor       = BrahmGold,
+                    selectedDayContentColor    = BrahmCard,
+                    selectedDayContainerColor  = BrahmGold,
+                ),
+            )
+        }
     }
 }
 

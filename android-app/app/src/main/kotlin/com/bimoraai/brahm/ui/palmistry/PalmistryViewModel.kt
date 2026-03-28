@@ -35,7 +35,7 @@ class PalmistryViewModel @Inject constructor(
     /** Creates a temp URI for camera capture via FileProvider */
     fun createCameraUri(): Uri {
         val file = File(context.cacheDir, "palm_capture_${System.currentTimeMillis()}.jpg")
-        return FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
 
     fun analyzePalm(uri: Uri) {

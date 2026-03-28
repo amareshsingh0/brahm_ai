@@ -14,7 +14,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.data.CitySearchViewModel
@@ -41,6 +40,8 @@ fun BirthInputFields(
     name: String = "",
     onNameChange: (String) -> Unit = {},
     showName: Boolean = true,
+    showDob: Boolean = true,
+    showTob: Boolean = true,
     cityVmKey: String = "default",
     cityVm: CitySearchViewModel = hiltViewModel(key = cityVmKey),
 ) {
@@ -73,7 +74,7 @@ fun BirthInputFields(
         }
 
         // ── Date of Birth ─────────────────────────────────────────────────────
-        Box {
+        if (showDob) Box {
             OutlinedTextField(
                 value         = if (dob.isEmpty()) "" else formatDateDisplay(dob),
                 onValueChange = {},
@@ -91,7 +92,7 @@ fun BirthInputFields(
         }
 
         // ── Time of Birth ─────────────────────────────────────────────────────
-        Box {
+        if (showTob) Box {
             OutlinedTextField(
                 value         = if (tob.isEmpty()) "" else formatTimeDisplay(tob),
                 onValueChange = {},
@@ -109,7 +110,53 @@ fun BirthInputFields(
         }
 
         // ── Place of Birth ────────────────────────────────────────────────────
-        Box {
+        Column {
+            // Suggestions card shown ABOVE the text field — no Popup, no clipping, keyboard stays up
+            if (showCitySuggestions && suggestions.isNotEmpty()) {
+                androidx.compose.material3.Card(
+                    shape     = RoundedCornerShape(10.dp),
+                    colors    = androidx.compose.material3.CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface),
+                    elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    modifier  = Modifier.fillMaxWidth(),
+                ) {
+                    Column {
+                        suggestions.forEach { city ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onPobChange(city.name)
+                                        onCitySelected(city)
+                                        cityVm.cityQuery.value = ""
+                                        cityConfirmed          = true
+                                        showCitySuggestions    = false
+                                        focusManager.clearFocus()
+                                    }
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(16.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
+                                        style    = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
+                                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                                    )
+                                }
+                            }
+                            if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+
             OutlinedTextField(
                 value         = pob,
                 onValueChange = { v ->
@@ -130,44 +177,6 @@ fun BirthInputFields(
                 shape         = RoundedCornerShape(10.dp),
                 colors        = fieldColors(),
             )
-            // DropdownMenu overlays content below — not clipped by scroll container
-            DropdownMenu(
-                expanded         = showCitySuggestions && suggestions.isNotEmpty(),
-                onDismissRequest = { showCitySuggestions = false },
-                offset           = DpOffset(0.dp, 0.dp),
-                modifier         = Modifier.fillMaxWidth(),
-            ) {
-                suggestions.forEach { city ->
-                    DropdownMenuItem(
-                        text = {
-                            Column {
-                                Text(
-                                    if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
-                                    style    = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    "%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
-                                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
-                                )
-                            }
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrahmGold, modifier = Modifier.size(16.dp))
-                        },
-                        onClick = {
-                            onPobChange(city.name)
-                            onCitySelected(city)
-                            cityVm.cityQuery.value = ""
-                            cityConfirmed          = true
-                            showCitySuggestions    = false
-                            focusManager.clearFocus()
-                        },
-                    )
-                    if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
-                }
-            }
         }
     }
 

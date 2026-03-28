@@ -49,9 +49,11 @@ fun GocharScreen(navController: NavController, vm: GocharScreenViewModel = hiltV
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when {
+                // Show content immediately once sky positions load — don't block full screen
+                // while personal analysis is still loading in background
+                hasData -> GocharContent(gocharData, analyzeData, isLoading)
                 isLoading -> BrahmLoadingSpinner(modifier = Modifier.fillMaxSize())
                 error != null && !hasData -> BrahmErrorView(message = error!!, onRetry = { vm.load() })
-                hasData -> GocharContent(gocharData, analyzeData)
                 else -> GocharInputForm(
                     name = name, dob = dob, tob = tob, pob = pob,
                     error = error,

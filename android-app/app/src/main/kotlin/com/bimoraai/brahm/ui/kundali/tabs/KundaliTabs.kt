@@ -1,5 +1,8 @@
 package com.bimoraai.brahm.ui.kundali.tabs
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -1270,12 +1273,12 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
                 1.dp,
                 if (isActive) Color(0xFFFDE68A) else BrahmBorder,
                 RoundedCornerShape(10.dp),
-            ),
+            )
+            .clickable { expanded = !expanded },
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded }
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1310,39 +1313,42 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
         }
 
         // Active dasha prediction card — 3-column Positive/Challenge/Remedy
-        if (isActive) {
+        AnimatedVisibility(
+            visible = expanded && isActive,
+            enter   = expandVertically(),
+            exit    = shrinkVertically(),
+        ) {
             val pred = DASHA_PREDICTIONS[planet]
             if (pred != null) {
-                HorizontalDivider(color = Color(0xFFFDE68A))
-                Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        "$planet Dasha — Theme & Guidance",
-                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
-                    )
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        // Positive
-                        Column(
-                            Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFD1FAE5)).padding(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text("Positive", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF065F46), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
-                            Text(pred.positive, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF064E3B), fontSize = 10.sp), lineHeight = 14.sp)
-                        }
-                        // Challenge
-                        Column(
-                            Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFFEE2E2)).padding(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text("Challenge", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF991B1B), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
-                            Text(pred.challenge, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF7F1D1D), fontSize = 10.sp), lineHeight = 14.sp)
-                        }
-                        // Remedy
-                        Column(
-                            Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFFEF3C7)).padding(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text("Remedy", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF92400E), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
-                            Text(pred.remedy, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF78350F), fontSize = 10.sp), lineHeight = 14.sp)
+                Column {
+                    HorizontalDivider(color = Color(0xFFFDE68A))
+                    Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            "$planet Dasha — Theme & Guidance",
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
+                        )
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Column(
+                                Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFD1FAE5)).padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text("Positive", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF065F46), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
+                                Text(pred.positive, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF064E3B), fontSize = 10.sp), lineHeight = 14.sp)
+                            }
+                            Column(
+                                Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFFEE2E2)).padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text("Challenge", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF991B1B), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
+                                Text(pred.challenge, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF7F1D1D), fontSize = 10.sp), lineHeight = 14.sp)
+                            }
+                            Column(
+                                Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFFEF3C7)).padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text("Remedy", style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF92400E), fontWeight = FontWeight.SemiBold, fontSize = 10.sp))
+                                Text(pred.remedy, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF78350F), fontSize = 10.sp), lineHeight = 14.sp)
+                            }
                         }
                     }
                 }
@@ -1350,27 +1356,33 @@ private fun DashaCard(dasha: Map<String, Any?>, today: String) {
         }
 
         // Antardasha expansion
-        if (expanded && antardashas.isEmpty()) {
-            HorizontalDivider(color = BrahmBorder)
-            Text(
-                "Antardasha data loading… Please wait or regenerate Kundali.",
-                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
-        if (expanded && antardashas.isNotEmpty()) {
-            HorizontalDivider(color = BrahmBorder)
-            Column(
-                Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    "Antardasha",
-                    style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
-                    modifier = Modifier.padding(bottom = 2.dp),
-                )
-                antardashas.forEach { ad ->
-                    AntardashaRow(ad = ad, today = today, parentColor = dotColor, parentPlanet = planet)
+        AnimatedVisibility(
+            visible = expanded,
+            enter   = expandVertically(),
+            exit    = shrinkVertically(),
+        ) {
+            Column {
+                HorizontalDivider(color = BrahmBorder)
+                if (antardashas.isEmpty()) {
+                    Text(
+                        "Antardasha data loading… Please wait or regenerate Kundali.",
+                        style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                } else {
+                    Column(
+                        Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text(
+                            "Antardasha",
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 10.sp),
+                            modifier = Modifier.padding(bottom = 2.dp),
+                        )
+                        antardashas.forEach { ad ->
+                            AntardashaRow(ad = ad, today = today, parentColor = dotColor, parentPlanet = planet)
+                        }
+                    }
                 }
             }
         }
@@ -1389,13 +1401,16 @@ private fun AntardashaRow(ad: Map<String, Any?>, today: String, parentColor: Col
     val pratyantardashas = ad["pratyantardashas"] as? List<Map<String, Any?>> ?: emptyList()
     var expanded by remember { mutableStateOf(isActive) }
 
-    Column {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (isActive) dotColor.copy(0.08f) else Color.Transparent)
+            .then(if (pratyantardashas.isNotEmpty()) Modifier.clickable { expanded = !expanded } else Modifier),
+    ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(6.dp))
-                .background(if (isActive) dotColor.copy(0.08f) else Color.Transparent)
-                .clickable { if (pratyantardashas.isNotEmpty()) expanded = !expanded }
                 .padding(horizontal = 6.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

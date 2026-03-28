@@ -43,7 +43,7 @@ private val GRAHA_EN = mapOf(
 
 private val GRAHA_COLOR = mapOf(
     "Surya"  to Color(0xFFF59E0B),
-    "Chandra"to Color(0xFF94A3B8),
+    "Chandra" to Color(0xFF94A3B8),
     "Mangal" to Color(0xFFEF4444),
     "Budh"   to Color(0xFF22C55E),
     "Guru"   to Color(0xFFEAB308),
@@ -57,6 +57,12 @@ private val GRAHA_COLOR = mapOf(
 
 private fun JsonObject.str(key: String) = this[key]?.jsonPrimitive?.contentOrNull ?: ""
 private fun JsonObject.obj(key: String) = try { this[key]?.jsonObject } catch (_: Exception) { null }
+
+private val RASHI_SYMBOLS = mapOf(
+    "Mesha" to "♈\uFE0E", "Vrishabha" to "♉\uFE0E", "Mithuna" to "♊\uFE0E", "Karka" to "♋\uFE0E",
+    "Simha" to "♌\uFE0E", "Kanya" to "♍\uFE0E", "Tula" to "♎\uFE0E", "Vrischika" to "♏\uFE0E",
+    "Dhanu" to "♐\uFE0E", "Makara" to "♑\uFE0E", "Kumbha" to "♒\uFE0E", "Meena" to "♓\uFE0E",
+)
 
 // ── Sub Lord Badge ─────────────────────────────────────────────────────────────
 
@@ -118,8 +124,8 @@ fun KPContent(data: JsonObject) {
                     modifier = Modifier
                         .weight(1f)
                         .clip(shape)
-                        .background(if (selected) BrahmPrimary else Color.Transparent)
-                        .border(1.dp, if (selected) BrahmPrimary else BrahmBorder, shape)
+                        .background(if (selected) BrahmGold else Color.Transparent)
+                        .border(1.dp, if (selected) BrahmGold else BrahmBorder, shape)
                         .clickable { selectedTab = idx }
                         .padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center,
@@ -150,8 +156,8 @@ fun KPContent(data: JsonObject) {
                 item {
                     Card(
                         shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = BrahmPrimary.copy(alpha = 0.06f)),
-                        modifier = Modifier.fillMaxWidth().border(1.dp, BrahmPrimary.copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
+                        colors = CardDefaults.cardColors(containerColor = BrahmGold.copy(alpha = 0.06f)),
+                        modifier = Modifier.fillMaxWidth().border(1.dp, BrahmGold.copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
                     ) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("KP LAGNA", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, letterSpacing = 1.sp))
@@ -160,6 +166,12 @@ fun KPContent(data: JsonObject) {
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                Text(
+                                    RASHI_SYMBOLS[lagnaObj.str("rashi")] ?: "",
+                                    fontSize = 26.sp,
+                                    color = BrahmGold,
+                                    fontWeight = FontWeight.Light,
+                                )
                                 Text(lagnaObj.str("rashi"), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                                 Text(
                                     "${"%.2f".format(lagnaObj["longitude"]?.jsonPrimitive?.doubleOrNull ?: 0.0)}°",
@@ -235,7 +247,11 @@ fun KPContent(data: JsonObject) {
                                                 Text(GRAHA_EN[gname] ?: "", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp))
                                             }
                                             // Rashi
-                                            Text(p.str("rashi"), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1.1f))
+                                            Row(Modifier.weight(1.1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                                val sym = RASHI_SYMBOLS[p.str("rashi")]
+                                                if (sym != null) Text(sym, fontSize = 13.sp, color = BrahmGold, fontWeight = FontWeight.Light)
+                                                Text(p.str("rashi"), style = MaterialTheme.typography.bodySmall)
+                                            }
                                             // Degree
                                             Text(
                                                 "${"%.1f".format(p["degree"]?.jsonPrimitive?.doubleOrNull ?: 0.0)}°",
@@ -305,8 +321,12 @@ fun KPContent(data: JsonObject) {
                                                 .padding(horizontal = 12.dp, vertical = 9.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Text("H$houseNum", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = BrahmPrimary), modifier = Modifier.weight(0.7f))
-                                            Text(cusp.str("rashi"), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1.2f))
+                                            Text("H$houseNum", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = BrahmGold), modifier = Modifier.weight(0.7f))
+                                            Row(Modifier.weight(1.2f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                                val sym = RASHI_SYMBOLS[cusp.str("rashi")]
+                                                if (sym != null) Text(sym, fontSize = 13.sp, color = BrahmGold, fontWeight = FontWeight.Light)
+                                                Text(cusp.str("rashi"), style = MaterialTheme.typography.bodySmall)
+                                            }
                                             Text(
                                                 "${"%.1f".format(cusp["degree"]?.jsonPrimitive?.doubleOrNull ?: 0.0)}°",
                                                 style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
@@ -366,7 +386,7 @@ fun KPContent(data: JsonObject) {
                                                 Text(gname, style = MaterialTheme.typography.labelMedium.copy(color = color, fontWeight = FontWeight.SemiBold))
                                                 Text(GRAHA_EN[gname] ?: "", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground, fontSize = 9.sp))
                                             }
-                                            Row(Modifier.weight(2.7f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Row(Modifier.weight(2.7f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                                 if (houseNums.isNullOrEmpty()) {
                                                     Text("—", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                                                 } else {
@@ -441,11 +461,11 @@ fun KPInputForm(
         item {
             Card(
                 shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = BrahmPrimary.copy(alpha = 0.06f)),
-                modifier = Modifier.fillMaxWidth().border(1.dp, BrahmPrimary.copy(alpha = 0.2f), RoundedCornerShape(14.dp)),
+                colors = CardDefaults.cardColors(containerColor = BrahmGold.copy(alpha = 0.06f)),
+                modifier = Modifier.fillMaxWidth().border(1.dp, BrahmGold.copy(alpha = 0.2f), RoundedCornerShape(14.dp)),
             ) {
                 Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("ℹ", fontSize = 14.sp, color = BrahmPrimary)
+                    Text("ℹ", fontSize = 14.sp, color = BrahmGold)
                     Text(
                         "KP System uses the Krishnamurti ayanamsha with Placidus house cusps. Sub Lords are the primary predictive tool — the Sub Lord of a cusp determines whether that house's significations will materialise.",
                         style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),

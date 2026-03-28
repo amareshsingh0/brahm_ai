@@ -33,7 +33,12 @@ class HoroscopeScreenViewModel @Inject constructor(
     val userMoonRashi: StateFlow<String?>     = _userMoonRashi
     val autoSelected:  StateFlow<Boolean>     = _autoSelected
 
-    private val cache = mutableMapOf<String, JsonObject>()
+    // ── Static cache — survives ViewModel recreation on re-navigation ──────────
+    companion object {
+        // Per-rashi result cache (persists across ViewModel recreations)
+        val cache = mutableMapOf<String, JsonObject>()
+        var lastSelectedRashi: String? = null
+    }
 
     // Sanskrit → English mapping matching the website
     private val sanskritToEnglish = mapOf(
@@ -44,24 +49,33 @@ class HoroscopeScreenViewModel @Inject constructor(
     )
 
     init {
-        // Read user's rashi from profile (could be Sanskrit or English)
+        // Determine which rashi to show — synchronous check first
         val profileRashi = userRepository.user.value?.rashi?.takeIf { it.isNotBlank() }
         val janmaRashi = profileRashi?.let { raw ->
-            // Try direct English match first, then Sanskrit map
-            if (rashiNames.contains(raw)) raw
-            else sanskritToEnglish[raw]
+            if (rashiNames.contains(raw)) raw else sanskritToEnglish[raw]
         }
+
+        val targetRashi = janmaRashi ?: lastSelectedRashi ?: "Aries"
+        _selectedRashi.value = targetRashi
+
         if (janmaRashi != null) {
             _userMoonRashi.value = janmaRashi
             _autoSelected.value  = true
-            loadForRashi(janmaRashi)
+        }
+
+        // Restore from static cache — instant display on re-navigation
+        val cached = cache[targetRashi]
+        if (cached != null) {
+            _result.value = cached
         } else {
-            loadForRashi("Aries")
+            loadForRashi(targetRashi)
         }
     }
 
     fun loadForRashi(rashi: String) {
-        _selectedRashi.value = rashi
+        _selectedRashi.value   = rashi
+        lastSelectedRashi      = rashi
+        // Serve from cache instantly
         cache[rashi]?.let { _result.value = it; return }
         viewModelScope.launch {
             _isLoading.value = true
@@ -69,7 +83,10 @@ class HoroscopeScreenViewModel @Inject constructor(
             try {
                 val resp = api.getHoroscope(rashi = rashi)
                 if (resp.isSuccessful) {
-                    resp.body()?.let { cache[rashi] = it; _result.value = it }
+                    resp.body()?.let { result ->
+                        cache[rashi]   = result
+                        _result.value  = result
+                    }
                 } else {
                     _error.value = "Failed to load horoscope."
                 }
