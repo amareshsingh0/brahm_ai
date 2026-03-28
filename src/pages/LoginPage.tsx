@@ -318,10 +318,10 @@ export default function LoginPage() {
                         value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        className={`w-11 h-13 text-center text-xl font-display rounded-xl border transition-all outline-none
-                          bg-muted/20 text-foreground
-                          ${digit ? "border-primary/60 glow-border" : "border-border/40"}
-                          focus:border-primary focus:ring-1 focus:ring-primary/40`}
+                        className={`w-11 h-13 text-center text-xl font-display rounded-xl border-2 transition-all outline-none
+                          bg-white text-foreground shadow-sm
+                          ${digit ? "border-primary" : "border-border"}
+                          focus:border-primary focus:ring-2 focus:ring-primary/30`}
                         style={{ height: "3.25rem" }}
                         autoComplete="one-time-code"
                       />

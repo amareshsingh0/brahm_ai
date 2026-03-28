@@ -112,7 +112,7 @@ export default function AIChatPage() {
       </div>
 
       {/* ── Messages ─────────────────────────────────────────────────── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pb-4 scrollbar-thin">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pb-4" style={{ scrollbarWidth: "none" }}>
         {visibleMessages.length === 0 && !streaming && (
           <EmptyState onSuggestion={send} />
         )}
