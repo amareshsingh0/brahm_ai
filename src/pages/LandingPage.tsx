@@ -258,28 +258,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── FINAL CTA ─── */}
-      <section className="px-5 sm:px-8 py-20 star-field">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-2xl mx-auto text-center space-y-6"
-        >
-          <span className="text-5xl block animate-pulse-glow">🕉️</span>
-          <h2 className="font-display text-4xl text-foreground text-glow-gold">
-            Begin Your Journey
-          </h2>
-          <p className="text-muted-foreground">
-            Join thousands exploring Vedic wisdom through AI. Free to start, no credit card required.
-          </p>
-          <Link to="/login">
-            <Button size="lg" className="gap-2 px-10 font-semibold">
-              Login with OTP <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </motion.div>
-      </section>
 
       {/* ─── FOOTER ─── */}
       <footer className="border-t border-border/20 px-5 sm:px-8 py-8 text-center">
