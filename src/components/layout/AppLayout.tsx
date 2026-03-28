@@ -6,10 +6,8 @@ import { Moon } from "lucide-react";
 import { useLanguageStore } from "@/store/languageStore";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { loadLanguage } from "@/lib/i18n";
-import { useAuthStore } from "@/store/authStore";
-import { Avatar, ProfilePopup } from "./ProfilePopup";
 import { ScrollToTopButton } from "@/components/ui/ScrollToTopButton";
 
 interface AppLayoutProps {
@@ -19,8 +17,6 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { lang } = useLanguageStore();
   const { t, i18n } = useTranslation();
-  const { name, plan, isLoggedIn } = useAuthStore();
-  const [profileOpen, setProfileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -49,33 +45,11 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
 
-            {/* Right: language + user avatar */}
+            {/* Right: language switcher */}
             <div className="flex items-center gap-2">
               <div className="hidden md:block">
                 <LanguageSwitcher variant="full" />
               </div>
-              {isLoggedIn && (
-                <div className="relative md:hidden">
-                  <button
-                    onClick={() => setProfileOpen((v) => !v)}
-                    className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-muted/50 transition-colors"
-                  >
-                    <Avatar name={name ?? ""} size={32} />
-                    <div className="hidden sm:flex flex-col items-start leading-none">
-                      <span className="text-xs font-medium text-foreground max-w-[100px] truncate">{name}</span>
-                      <span className="text-[10px] text-muted-foreground capitalize">{plan}</span>
-                    </div>
-                  </button>
-                  {profileOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 z-50 w-72">
-                        <ProfilePopup onClose={() => setProfileOpen(false)} />
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
           </header>
           <main ref={mainRef} className="flex-1 overflow-x-hidden overflow-y-auto pb-6 px-3 sm:px-5 lg:px-7 pt-5" style={{ maxWidth: "100vw" }}>

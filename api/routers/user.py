@@ -279,3 +279,79 @@ def delete_account(request: Request, session_id: str = Query(default=""),
         return {"deleted": True}
     except Exception as e:
         raise HTTPException(500, f"Account deletion failed: {e}")
+
+
+# ─── Saved Kundali ────────────────────────────────────────────────────────────
+
+class SaveKundaliRequest(BaseModel):
+    name: str = ""
+    birth_date: str
+    birth_time: str
+    birth_lat: float
+    birth_lon: float
+    birth_tz: float = 5.5
+    birth_place: str = ""
+    kundali_json: str  # JSON stringified kundali data
+
+
+@router.get("/user/kundali")
+def get_saved_kundali(request: Request, session_id: str = Query(default="")):
+    """Fetch the user's primary saved kundali (most recent)."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    res = (
+        sb.table("saved_kundalis")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .limit(1)
+        .maybe_single()
+        .execute()
+    )
+    if not res.data:
+        return {"found": False, "kundali": None}
+    return {"found": True, "kundali": res.data}
+
+
+@router.post("/user/kundali")
+def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Query(default="")):
+    """Upsert the user's primary kundali (one per user — overwrites on re-generate)."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    # Check if already exists
+    existing = (
+        sb.table("saved_kundalis")
+        .select("id")
+        .eq("user_id", user_id)
+        .limit(1)
+        .maybe_single()
+        .execute()
+    )
+
+    row = {
+        "user_id": user_id,
+        "label": body.name or "My Chart",
+        "birth_date": body.birth_date,
+        "birth_time": body.birth_time,
+        "birth_lat": body.birth_lat,
+        "birth_lon": body.birth_lon,
+        "birth_tz": body.birth_tz,
+        "birth_place": body.birth_place,
+        "birth_city": body.birth_place,
+        "kundali_json": body.kundali_json,
+    }
+
+    try:
+        if existing.data:
+            sb.table("saved_kundalis").update(row).eq("id", existing.data["id"]).execute()
+        else:
+            sb.table("saved_kundalis").insert(row).execute()
+        return {"saved": True}
+    except Exception as e:
+        raise HTTPException(500, f"Failed to save kundali: {e}")

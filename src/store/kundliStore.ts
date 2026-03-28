@@ -97,6 +97,7 @@ export interface KundliState {
   setSelectedPlanet: (planet: PlanetData | null) => void;
   setHasKundli: (val: boolean) => void;
   setKundaliData: (data: KundaliResponse) => void;
+  clearKundaliData: () => void;
   setCity: (lat: number, lon: number, tz: number) => void;
   setKundaliSettings: (settings: Partial<KundaliSettings>) => void;
 }
@@ -113,6 +114,7 @@ export const useKundliStore = create<KundliState>()(
       setSelectedPlanet: (planet) => set({ selectedPlanet: planet }),
       setHasKundli: (val) => set({ hasKundli: val }),
       setKundaliData: (data) => set({ kundaliData: data, hasKundli: true }),
+      clearKundaliData: () => set({ kundaliData: null, hasKundli: false }),
       setCity: (lat, lon, tz) => set((s) => ({
         birthDetails: s.birthDetails ? { ...s.birthDetails, lat, lon, tz } : null,
       })),
@@ -125,10 +127,10 @@ export const useKundliStore = create<KundliState>()(
     {
       name: 'brahm-birth',
       storage: createJSONStorage(() => localStorage),
-      // Only persist birth details — not large kundaliData (recalculated as needed)
       partialize: (s) => ({
         birthDetails: s.birthDetails,
         hasKundli: s.hasKundli,
+        kundaliData: s.kundaliData,
       }),
     }
   )

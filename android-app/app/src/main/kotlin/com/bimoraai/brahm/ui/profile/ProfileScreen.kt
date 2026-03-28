@@ -22,16 +22,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.ui.main.Route
 import com.bimoraai.brahm.core.theme.*
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,10 +45,14 @@ fun ProfileScreen(
     navController: NavController,
     vm: ProfileViewModel = hiltViewModel(),
 ) {
-    val user by vm.user.collectAsState()
-    val context = LocalContext.current
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    val user       by vm.user.collectAsState()
+    val saveState  by vm.saveState.collectAsState()
+    val suggestions by vm.citySuggestions.collectAsState()
+    val context    = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    var showLogoutDialog   by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showEditSheet      by remember { mutableStateOf(false) }
 
     val savedLang = remember {
         context.getSharedPreferences("brahm_prefs", Context.MODE_PRIVATE)
@@ -124,7 +134,7 @@ fun ProfileScreen(
                     iconColor = Color(0xFF5C6BC0),
                     label = "Profile",
                     subtitle = "Name, birth details, gender",
-                    onClick = { navController.navigate(Route.PROFILE_EDIT) },
+                    onClick = { showEditSheet = true },
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
                 SettingsItem(
@@ -239,6 +249,221 @@ fun ProfileScreen(
             }
 
             Spacer(Modifier.height(32.dp))
+        }
+    }
+
+    // ── Inline Profile Edit Bottom Sheet ────────────────────────────────────
+    if (showEditSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        // Form state pre-filled from current user
+        var fullName   by remember(user) { mutableStateOf(user?.name ?: "") }
+        var dob        by remember(user) { mutableStateOf(user?.date ?: "") }
+        var birthTime  by remember(user) { mutableStateOf(user?.time ?: "") }
+        var birthPlace by remember(user) { mutableStateOf(user?.place ?: "") }
+        var gender     by remember(user) { mutableStateOf(user?.gender ?: "") }
+        var selectedLat by remember(user) { mutableStateOf(user?.lat ?: 0.0) }
+        var selectedLon by remember(user) { mutableStateOf(user?.lon ?: 0.0) }
+        var selectedTz  by remember(user) { mutableStateOf(user?.tz ?: 5.5) }
+        var cityConfirmed by remember(user) { mutableStateOf(user?.place?.isNotEmpty() == true) }
+        var showDatePicker   by remember { mutableStateOf(false) }
+        var showTimePicker   by remember { mutableStateOf(false) }
+        var showCitySuggestions by remember { mutableStateOf(false) }
+        var genderExpanded   by remember { mutableStateOf(false) }
+        val genderOptions    = listOf("Male", "Female", "Other", "Prefer not to say")
+        val datePickerState  = rememberDatePickerState(initialSelectedDateMillis = parseDateToMillis(dob))
+        val (initHour, initMinute) = parseTime(birthTime)
+        val timePickerState  = rememberTimePickerState(initialHour = initHour, initialMinute = initMinute, is24Hour = false)
+
+        // Close sheet on save success
+        LaunchedEffect(saveState) {
+            if (saveState is SaveState.Success) {
+                vm.resetSaveState()
+                showEditSheet = false
+            }
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = { showEditSheet = false },
+            sheetState  = sheetState,
+            containerColor = BrahmBackground,
+        ) {
+            // Header row
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Edit Profile", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                if (saveState is SaveState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(28.dp), color = BrahmGold, strokeWidth = 2.dp)
+                } else {
+                    Button(
+                        onClick = {
+                            focusManager.clearFocus()
+                            vm.saveProfile(fullName, dob, birthTime, birthPlace, gender, selectedLat, selectedLon, selectedTz)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BrahmGold),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+                    ) { Text("Save", color = Color.White, fontWeight = FontWeight.SemiBold) }
+                }
+            }
+
+            if (saveState is SaveState.Error) {
+                Text(
+                    (saveState as SaveState.Error).msg,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.error),
+                )
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                    .padding(16.dp).navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // Full Name
+                OutlinedTextField(
+                    value = fullName, onValueChange = { fullName = it },
+                    modifier = Modifier.fillMaxWidth(), label = { Text("Full Name") }, singleLine = true,
+                    leadingIcon = { Icon(Icons.Default.Person, null, tint = BrahmGold) },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                )
+                // DOB
+                Box {
+                    OutlinedTextField(
+                        value = if (dob.isEmpty()) "" else formatDateDisplay(dob), onValueChange = {},
+                        readOnly = true, modifier = Modifier.fillMaxWidth(), label = { Text("Date of Birth") }, singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = BrahmGold) },
+                        trailingIcon = { Icon(Icons.Default.CalendarMonth, null, tint = BrahmMutedForeground) },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                    )
+                    Box(modifier = Modifier.matchParentSize().clickable { showDatePicker = true })
+                }
+                // Birth Time
+                Box {
+                    OutlinedTextField(
+                        value = if (birthTime.isEmpty()) "" else formatTimeDisplay(birthTime), onValueChange = {},
+                        readOnly = true, modifier = Modifier.fillMaxWidth(), label = { Text("Birth Time") }, singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Schedule, null, tint = BrahmGold) },
+                        trailingIcon = { Icon(Icons.Default.AccessTime, null, tint = BrahmMutedForeground) },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                    )
+                    Box(modifier = Modifier.matchParentSize().clickable { showTimePicker = true })
+                }
+                // Birth Place
+                Column {
+                    Box {
+                        OutlinedTextField(
+                            value = birthPlace,
+                            onValueChange = { v -> birthPlace = v; cityConfirmed = false; vm.cityQuery.value = v; showCitySuggestions = v.length >= 2 },
+                            modifier = Modifier.fillMaxWidth().onFocusChanged { if (!it.isFocused) showCitySuggestions = false },
+                            label = { Text("Birth Place") },
+                            leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = BrahmGold) },
+                            trailingIcon = { if (cityConfirmed) Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF43A047)) },
+                            singleLine = true, shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                        )
+                        DropdownMenu(
+                            expanded = showCitySuggestions && suggestions.isNotEmpty(),
+                            onDismissRequest = { showCitySuggestions = false },
+                            offset = DpOffset(0.dp, 0.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            suggestions.forEach { city ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Text(if (city.country.isNotBlank()) "${city.name}, ${city.country}" else city.name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            Text("%.2f°N  %.2f°E  · UTC+%.1f".format(city.lat, city.lon, city.tz),
+                                                style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                                        }
+                                    },
+                                    leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = BrahmGold, modifier = Modifier.size(16.dp)) },
+                                    onClick = {
+                                        birthPlace = city.name; selectedLat = city.lat; selectedLon = city.lon
+                                        selectedTz = city.tz; cityConfirmed = true; showCitySuggestions = false
+                                        vm.cityQuery.value = ""; focusManager.clearFocus()
+                                    },
+                                )
+                                if (city != suggestions.last()) HorizontalDivider(color = BrahmBorder)
+                            }
+                        }
+                    }
+                    if (cityConfirmed && selectedLat != 0.0) {
+                        Text("%.4f°N  %.4f°E  · TZ +%.1f".format(selectedLat, selectedLon, selectedTz),
+                            style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground),
+                            modifier = Modifier.padding(start = 4.dp, top = 4.dp))
+                    }
+                }
+                // Gender
+                ExposedDropdownMenuBox(expanded = genderExpanded, onExpandedChange = { genderExpanded = it }) {
+                    OutlinedTextField(
+                        value = gender, onValueChange = {}, readOnly = true,
+                        label = { Text("Gender") },
+                        leadingIcon = { Icon(Icons.Default.People, null, tint = BrahmGold) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(), shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrahmGold, unfocusedBorderColor = BrahmBorder),
+                    )
+                    ExposedDropdownMenu(expanded = genderExpanded, onDismissRequest = { genderExpanded = false }) {
+                        genderOptions.forEach { opt ->
+                            DropdownMenuItem(text = { Text(opt) }, onClick = { gender = opt; genderExpanded = false })
+                        }
+                    }
+                }
+            }
+        }
+
+        // Date Picker Dialog
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = { TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val cal = Calendar.getInstance().apply { timeInMillis = millis }
+                        dob = "%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+                    }; showDatePicker = false
+                }) { Text("OK", color = BrahmGold) } },
+                dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } },
+                colors = DatePickerDefaults.colors(containerColor = BrahmCard),
+            ) {
+                DatePicker(state = datePickerState, colors = DatePickerDefaults.colors(
+                    containerColor = BrahmCard, titleContentColor = BrahmMutedForeground,
+                    headlineContentColor = BrahmForeground, weekdayContentColor = BrahmMutedForeground,
+                    subheadContentColor = BrahmMutedForeground, navigationContentColor = BrahmForeground,
+                    yearContentColor = BrahmForeground, currentYearContentColor = BrahmGold,
+                    selectedYearContentColor = BrahmCard, selectedYearContainerColor = BrahmGold,
+                    dayContentColor = BrahmForeground, todayContentColor = BrahmGold,
+                    todayDateBorderColor = BrahmGold, selectedDayContentColor = BrahmCard,
+                    selectedDayContainerColor = BrahmGold,
+                ))
+            }
+        }
+        // Time Picker Dialog
+        if (showTimePicker) {
+            Dialog(onDismissRequest = { showTimePicker = false }) {
+                Surface(shape = RoundedCornerShape(16.dp), color = BrahmCard) {
+                    Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text("Select Birth Time", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                        TimePicker(state = timePickerState, colors = TimePickerDefaults.colors(
+                            clockDialColor = BrahmBackground, selectorColor = BrahmGold,
+                            timeSelectorSelectedContainerColor = BrahmGold, timeSelectorSelectedContentColor = Color.White,
+                            timeSelectorUnselectedContainerColor = Color(0xFFF0EAD6), timeSelectorUnselectedContentColor = BrahmForeground,
+                        ))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+                            Spacer(Modifier.width(8.dp))
+                            TextButton(onClick = { birthTime = "%02d:%02d".format(timePickerState.hour, timePickerState.minute); showTimePicker = false }) { Text("OK", color = BrahmGold) }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -372,3 +597,28 @@ private fun SettingsItem(
         }
     }
 }
+
+// ── Helpers (shared with edit sheet) ─────────────────────────────────────────
+
+private fun parseDateToMillis(date: String): Long? = try {
+    val p = date.split("-")
+    if (p.size != 3) null
+    else Calendar.getInstance().apply { set(p[0].toInt(), p[1].toInt() - 1, p[2].toInt(), 0, 0, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
+} catch (_: Exception) { null }
+
+private fun parseTime(time: String): Pair<Int, Int> = try {
+    val p = time.split(":"); Pair(p[0].toInt(), p[1].toInt())
+} catch (_: Exception) { Pair(6, 0) }
+
+private fun formatDateDisplay(date: String): String = try {
+    val p = date.split("-")
+    val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+    "${p[2].toInt()} ${months[p[1].toInt() - 1]} ${p[0]}"
+} catch (_: Exception) { date }
+
+private fun formatTimeDisplay(time: String): String = try {
+    val p = time.split(":"); val h = p[0].toInt(); val m = p[1].toInt()
+    val ampm = if (h < 12) "AM" else "PM"
+    val h12  = when { h == 0 -> 12; h > 12 -> h - 12; else -> h }
+    "$h12:%02d $ampm".format(m)
+} catch (_: Exception) { time }

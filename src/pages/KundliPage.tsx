@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { KundliChart } from "@/components/charts/KundliChart";
 import { samplePlanets, useKundliStore, type PlanetData } from "@/store/kundliStore";
-import { useKundali } from "@/hooks/useKundali";
+import { useKundali, useSavedKundali } from "@/hooks/useKundali";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -746,6 +746,7 @@ export default function KundliPage() {
   const [vargaCache, setVargaCache] = useState<Record<number, VargaChartData>>();
 
   const kundaliMutation = useKundali();
+  useSavedKundali(); // Loads saved kundali from backend if not already in store
 
   const handleGenerate = useCallback(async (form: LocalForm, city: { lat: number; lon: number; tz: number } | null) => {
     setFormError(null);

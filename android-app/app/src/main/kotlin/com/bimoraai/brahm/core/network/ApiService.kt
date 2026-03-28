@@ -79,6 +79,17 @@ import retrofit2.http.*
     val calc_options: List<String> = listOf("antardasha", "ashtakavarga", "shadbala", "upagraha"),
 )
 
+@Serializable data class SaveKundaliRequest(
+    val name: String = "",
+    val birth_date: String,
+    val birth_time: String,
+    val birth_lat: Double,
+    val birth_lon: Double,
+    val birth_tz: Double = 5.5,
+    val birth_place: String = "",
+    val kundali_json: String,
+)
+
 @Serializable data class ChatRequest(
     val message: String,
     val conversation_id: String? = null,
@@ -159,6 +170,12 @@ interface ApiService {
     // Kundali
     @POST("kundali")
     suspend fun generateKundali(@Body body: KundaliRequest): Response<JsonObject>
+
+    @GET("user/kundali")
+    suspend fun getSavedKundali(): Response<JsonObject>
+
+    @POST("user/kundali")
+    suspend fun saveKundali(@Body body: SaveKundaliRequest): Response<JsonObject>
 
     // Gochar — current sky (GET, no body)
     @GET("gochar")

@@ -214,7 +214,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-12 h-12 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-110 transition-transform"
+            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[55] w-12 h-12 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-110 transition-transform"
             aria-label="Open AI Assistant"
           >
             <Bot className="h-5 w-5 text-primary-foreground" />
@@ -231,7 +231,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/40"
             onClick={() => setOpen(false)}
           />
         )}
@@ -245,7 +245,7 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:w-[420px] z-50 flex flex-col bg-background rounded-t-2xl md:rounded-2xl border-t md:border border-x border-border/40 shadow-2xl overflow-hidden"
+            className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:w-[420px] z-[70] flex flex-col bg-background rounded-t-2xl md:rounded-2xl border-t md:border border-x border-border/40 shadow-2xl overflow-hidden"
             style={{ maxHeight: "85dvh" }}
           >
             {/* Drag handle */}

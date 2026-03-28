@@ -3,32 +3,20 @@
  * All HTTP calls go through here — no per-file base URL.
  */
 
-import { useAuthStore } from '@/store/authStore';
+import { apiFetch } from './apiFetch';
 
 const envBaseUrl = import.meta.env.VITE_API_URL?.trim();
 const BASE_URL = (envBaseUrl ?? '').replace(/\/$/, '');
 
-function createHeaders(headers?: HeadersInit): Headers {
-  const merged = new Headers(headers);
-  const token = useAuthStore.getState().token;
-
-  if (!merged.has('Content-Type')) {
-    merged.set('Content-Type', 'application/json');
-  }
-  if (token && !merged.has('Authorization')) {
-    merged.set('Authorization', `Bearer ${token}`);
-  }
-  merged.set('X-Client', 'web');
-
-  return merged;
-}
-
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${BASE_URL}${path}`;
-  const res = await fetch(url, {
-    headers: createHeaders(options?.headers),
-    ...options,
-  });
+  const headers = new Headers(options?.headers);
+  if (!headers.has('Content-Type') && !(options?.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+  headers.set('X-Client', 'web');
+
+  const res = await apiFetch(url, { ...options, headers });
   if (!res.ok) {
     const detail = await res.text().catch(() => res.statusText);
     throw new Error(`API ${res.status}: ${detail}`);
@@ -81,9 +69,10 @@ export const api = {
     signal?: AbortSignal
   ): void {
     const url = `${BASE_URL}/api/chat`;
-    fetch(url, {
+    const chatHeaders = new Headers({ 'Content-Type': 'application/json', 'X-Client': 'web' });
+    apiFetch(url, {
       method: 'POST',
-      headers: createHeaders(),
+      headers: chatHeaders,
       body: JSON.stringify(body),
       signal,
     })

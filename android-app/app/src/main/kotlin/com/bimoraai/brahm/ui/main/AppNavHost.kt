@@ -17,14 +17,12 @@ import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.ui.auth.LoginScreen
 import com.bimoraai.brahm.ui.auth.OnboardingScreen
-import com.bimoraai.brahm.ui.profile.ProfileSetupScreen
 import kotlinx.coroutines.flow.firstOrNull
 
 // ─── Route constants ──────────────────────────────────────────────────────────
 object Route {
     const val ONBOARDING   = "onboarding"
     const val LOGIN        = "login"
-    const val PROFILE_SETUP = "profile_setup"
     const val MAIN         = "main"
     const val KUNDALI    = "kundali"
     const val CHAT       = "chat"
@@ -41,7 +39,6 @@ object Route {
     const val PALMISTRY  = "palmistry"
     const val HOROSCOPE  = "horoscope"
     const val PROFILE         = "profile"
-    const val PROFILE_EDIT    = "profile_edit"
     const val BILLING         = "billing"
     // New screens
     const val PANCHANG        = "panchang"
@@ -93,17 +90,12 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         }
         composable(Route.LOGIN) {
             LoginScreen(
-                onLoggedIn = { hasBirthData ->
-                    // hasBirthData comes from AuthViewModel after awaiting the profile fetch
-                    val dest = if (hasBirthData) Route.MAIN else Route.PROFILE_SETUP
-                    navController.navigate(dest) {
+                onLoggedIn = { _ ->
+                    navController.navigate(Route.MAIN) {
                         popUpTo(Route.LOGIN) { inclusive = true }
                     }
                 }
             )
-        }
-        composable(Route.PROFILE_SETUP) {
-            ProfileSetupScreen(navController = navController)
         }
         composable(Route.MAIN) {
             MainScreen(navController = navController)
@@ -121,7 +113,6 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.PALMISTRY)      { WithAiFab("palmistry")      { com.bimoraai.brahm.ui.palmistry.PalmistryScreen(navController) } }
         composable(Route.HOROSCOPE)      { WithAiFab("horoscope")      { com.bimoraai.brahm.ui.horoscope.HoroscopeScreen(navController) } }
         composable(Route.PROFILE)        { com.bimoraai.brahm.ui.profile.ProfileScreen(navController) }
-        composable(Route.PROFILE_EDIT)   { com.bimoraai.brahm.ui.profile.ProfileEditScreen(navController) }
         composable(Route.BILLING)        { com.bimoraai.brahm.ui.profile.BillingScreen(navController) }
         composable(Route.PANCHANG)       { WithAiFab("panchang")       { com.bimoraai.brahm.ui.panchang.PanchangScreen(navController) } }
         composable(Route.RASHI)          { WithAiFab("rashi")          { com.bimoraai.brahm.ui.rashi.RashiScreen(navController) } }
