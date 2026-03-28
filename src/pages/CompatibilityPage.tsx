@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslation } from 'react-i18next';
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 import { motion, AnimatePresence } from "framer-motion";
 import PageBot from '@/components/PageBot';
 import { Input } from "@/components/ui/input";
@@ -1120,6 +1121,9 @@ export default function CompatibilityPage() {
   const [result, setResult] = useState<CompatibilityResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const compatibility = useCompatibility();
+
+  const pageData = useMemo(() => result ? { result } : {}, [result]);
+  useRegisterPageBot('compatibility', pageData);
 
   useEffect(() => { getCities().catch(() => {}); }, []); // preload cache
 

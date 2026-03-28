@@ -2,7 +2,7 @@
  * KPPage — Krishnamurti Paddhati (KP) System
  * Shows planet & cusp sub-lords with significators
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Star, MapPin, Loader2, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { searchCities, type City } from "@/lib/cities";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 interface KPPlanet {
   longitude: number;
@@ -70,6 +71,9 @@ export default function KPPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState("");
   const [activeSection, setActiveSection] = useState<"planets" | "cusps">("planets");
+
+  const pageData = useMemo(() => result ? { result } : {}, [result]);
+  useRegisterPageBot('kp', pageData);
 
   async function handleCitySearch(q: string) {
     setCityQ(q);

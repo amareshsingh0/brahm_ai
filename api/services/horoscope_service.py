@@ -5,7 +5,7 @@ Falls back to static text if Gemini is unavailable.
 """
 import os
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from api.config import EPHE_PATH, RASHI_NAMES, DATA_DIR
 
 # ── Static rashi metadata (sign ruler, lucky color/number) ───────────────────
@@ -125,7 +125,7 @@ def get_horoscope(rashi: str, period: str = "daily") -> dict:
     if not meta:
         raise ValueError(f"Unknown rashi: {rashi}")
 
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
     cache_key = (rashi, today)
 
     # Return cached prediction if available for today

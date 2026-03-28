@@ -4,7 +4,7 @@
  * entirely from the kundali store — no backend calls needed.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -14,6 +14,7 @@ import {
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 // ── Rashi index map ─────────────────────────────────────────────────────────
 const RASHI_IDX: Record<string, number> = {

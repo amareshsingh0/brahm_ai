@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { rashiData } from "@/store/kundliStore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useHoroscope } from "@/hooks/useHoroscope";
 import { useKundliStore } from "@/store/kundliStore";
 import { useLivePlanets } from "@/hooks/useLivePlanets";
 import PageBot from '@/components/PageBot';
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 import { Sparkles } from "lucide-react";
 
 // English rashi name → rashi data lookup
@@ -38,6 +39,9 @@ export default function HoroscopePage() {
   }, [userMoonRashi]);
 
   const { data: horoscope, isLoading } = useHoroscope(selectedRashi);
+
+  const pageData = useMemo(() => horoscope ? { horoscope } : {}, [horoscope]);
+  useRegisterPageBot('horoscope', pageData);
 
   const currentRashiMeta = rashiData.find((r) => r.name === selectedRashi);
   const todayMoonRashi = snapshot?.grahas["Chandra"]?.rashi ?? null; // live Moon rashi (Sanskrit)

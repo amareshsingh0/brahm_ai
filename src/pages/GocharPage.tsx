@@ -6,13 +6,14 @@
  * Section 3: Opportunities + Cautions from current sky
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, AlertTriangle, RefreshCw, User } from "lucide-react";
 import { api } from "@/lib/api";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
 import { useTranslation } from 'react-i18next';
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 const GRAHA_SYMBOL: Record<string, string> = {
   Surya: "☉︎", Chandra: "☽︎", Mangal: "♂︎", Budh: "☿︎",
@@ -107,7 +108,7 @@ export default function GocharPage() {
   useEffect(() => { fetchPositions(); }, []);
   useEffect(() => { if (positions) fetchAnalysis(); }, [positions, kundaliData]);
 
-  const pageData = analysis
+  const pageData = useMemo(() => analysis
     ? {
         gochar_summary: analysis.summary,
         opportunities:  analysis.opportunities,
@@ -116,7 +117,8 @@ export default function GocharPage() {
         lagna_rashi:    kundaliData?.lagna?.rashi,
         moon_rashi:     kundaliData?.grahas?.Chandra?.rashi,
       }
-    : {};
+    : {}, [analysis, kundaliData]);
+  useRegisterPageBot('gochar', pageData);
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-5xl mx-auto">

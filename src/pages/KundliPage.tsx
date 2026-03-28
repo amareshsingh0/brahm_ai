@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { KundliChart } from "@/components/charts/KundliChart";
 import { samplePlanets, useKundliStore, type PlanetData } from "@/store/kundliStore";
 import { useKundali, useSavedKundali } from "@/hooks/useKundali";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -747,6 +748,9 @@ export default function KundliPage() {
 
   const kundaliMutation = useKundali();
   useSavedKundali(); // Loads saved kundali from backend if not already in store
+
+  const pageData = useMemo(() => kundaliData ? { kundali_raw: kundaliData } : {}, [kundaliData]);
+  useRegisterPageBot('kundali', pageData);
 
   // When saved kundali loads from backend (new device / after logout), switch to result view
   useEffect(() => {

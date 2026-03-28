@@ -9,15 +9,27 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useRef } from "react";
 import { loadLanguage } from "@/lib/i18n";
 import { ScrollToTopButton } from "@/components/ui/ScrollToTopButton";
+import { useLocation } from "react-router-dom";
+import PageBot from "@/components/PageBot";
+import { usePageBotStore } from "@/store/pageBotStore";
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
+// Routes where PageBot should NOT appear
+const NO_BOT_ROUTES = new Set([
+  '/dashboard', '/today', '/stories', '/library',
+  '/profile', '/billing', '/chat', '/chat-history',
+]);
+
 export function AppLayout({ children }: AppLayoutProps) {
   const { lang } = useLanguageStore();
   const { t, i18n } = useTranslation();
   const mainRef = useRef<HTMLElement | null>(null);
+  const location = useLocation();
+  const { context, data } = usePageBotStore();
+  const showBot = !NO_BOT_ROUTES.has(location.pathname);
 
   useEffect(() => {
     const code = lang.toLowerCase();
@@ -27,12 +39,12 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <CosmicSky />
-      <div className="min-h-screen flex w-full relative" style={{ zIndex: 1 }}>
-        <div className="hidden md:block">
+      <div className="h-screen flex w-full relative overflow-hidden" style={{ zIndex: 1 }}>
+        <div className="hidden md:block h-full">
           <AppSidebar />
         </div>
-        <div className="flex-1 flex flex-col min-h-screen">
-          <header className="h-14 flex items-center justify-between border-b border-border/30 px-4 glass sticky top-0 z-40">
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <header className="h-14 flex-shrink-0 flex items-center justify-between border-b border-border/30 px-4 glass z-40">
             {/* Left: hamburger (mobile) / sidebar trigger (desktop) + logo */}
             <div className="flex items-center gap-2">
               <MobileDrawer />
@@ -58,6 +70,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </div>
       <ScrollToTopButton scrollRef={mainRef} />
+      {showBot && <PageBot pageContext={context} pageData={data} />}
     </SidebarProvider>
   );
 }

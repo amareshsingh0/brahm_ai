@@ -5,10 +5,13 @@ import com.bimoraai.brahm.core.network.UserDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,34 +25,60 @@ class UserRepository @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val _user = MutableStateFlow<UserDto?>(null)
-    val user: StateFlow<UserDto?> = _user.asStateFlow()
+    private val _user        = MutableStateFlow<UserDto?>(null)
+    private val _kundaliJson = MutableStateFlow<String?>(null)   // cached raw kundali_json
+
+    val user:        StateFlow<UserDto?> = _user.asStateFlow()
+    val kundaliJson: StateFlow<String?>  = _kundaliJson.asStateFlow()
 
     init { refresh() }
 
     fun refresh() {
-        scope.launch { fetchUser() }
+        scope.launch { fetchAll() }
     }
 
-    /** Fetches profile and waits for the result — use in login flows before navigation. */
+    /** Fetches profile + kundali in parallel — use in login flows before navigation. */
     suspend fun refreshAndGetUser(): UserDto? {
-        fetchUser()
+        fetchAll()
         return _user.value
     }
 
-    /** Clears cached user — call on logout so stale data doesn't bleed into next session. */
+    /** Clears cached user + kundali — call on logout. */
     fun clear() {
-        _user.value = null
+        _user.value        = null
+        _kundaliJson.value = null
     }
 
-    private suspend fun fetchUser() {
+    /** Pre-populate cached kundali JSON from KundaliViewModel after a fresh generate. */
+    fun cacheKundaliJson(json: String) {
+        _kundaliJson.value = json
+    }
+
+    private suspend fun fetchAll() {
         try {
-            val res = api.getMe()
-            if (res.isSuccessful && res.body() != null) {
-                _user.value = res.body()
+            // Parallel fetch: profile + saved kundali
+            val profileDeferred = scope.async { api.getMe() }
+            val kundaliDeferred = scope.async { api.getSavedKundali() }
+
+            val profileRes = profileDeferred.await()
+            if (profileRes.isSuccessful && profileRes.body() != null) {
+                _user.value = profileRes.body()
+            }
+
+            val kundaliRes = kundaliDeferred.await()
+            if (kundaliRes.isSuccessful) {
+                val body  = kundaliRes.body()
+                val found = body?.get("found")?.let {
+                    (it as? JsonPrimitive)?.contentOrNull == "true" || it.toString() == "true"
+                } ?: false
+                if (found) {
+                    val kundaliObj = body?.get("kundali") as? JsonObject
+                    val json = kundaliObj?.get("kundali_json")?.let { (it as? JsonPrimitive)?.contentOrNull }
+                    if (!json.isNullOrBlank()) _kundaliJson.value = json
+                }
             }
         } catch (e: Exception) {
-            android.util.Log.w("UserRepository", "refresh failed: ${e.message}")
+            android.util.Log.w("UserRepository", "fetchAll failed: ${e.message}")
         }
     }
 

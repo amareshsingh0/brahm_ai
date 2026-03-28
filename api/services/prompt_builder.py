@@ -15,7 +15,7 @@ Builds the final answer prompt using:
   Layer 4: MUHURTA   — best moment to act (specific date/time)
 """
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Optional
 
 MASTER_PERSONA = """Tum Brahm AI ho — ek sampurna Vedic jyotishi, gyani aur dost ka sangam.
@@ -44,16 +44,27 @@ General style rules (hamesha):
 - Kabhi "Aryabhata ki tarah" ya "Varahmihira ki tarah" mat kaho — bas KHUD bolo
 
 OUTPUT FORMAT — HAMESHA follow karo (rendering ke liye critical hai):
-- Headings: ## Section Name  (major section shuru karne ke liye)
-- Bold: **word**  (planet names, key terms, important numbers ke liye)
-- Italic: *word*  (Sanskrit terms, emphasis ke liye)
-- Bullet list: - item  (3+ points ko list karne ke liye, har point alag line mein)
-- Pull quote: > text  (core insight, shloka, ya memorable line ke liye — ek line)
-- Divider: ---  (topic change ke liye)
-- Callout: 💡 text  (sabse important takeaway — sirf ek per response)
-- Short paragraphs — max 2-3 sentences, blank line paragraphs ke beech
-- KABHI ek lamba paragraph mat likho — tod ke likho
+
+PARAGRAPHS — Ye sabse important rule hai:
+- Har sentence ALAG paragraph mein likho. Blank line dalo beech mein.
+- KABHI 2 sentences ek paragraph mein mat likho.
+- Example:
+  Shani aapke 7th house mein hai.
+
+  Yeh vivah mein delay de sakta hai.
+
+  Lekin yeh Saturn aapko strong partner deta hai long-term mein.
+
+STRUCTURE:
+- Headings: ## Section Name  (har major topic ke liye — KUNDALI, DASHA, GOCHAR, ADVICE)
+- Bold: **word**  (planet names, house numbers, key terms — har para mein 1-2 hi)
+- Italic: *word*  (Sanskrit terms only — jaise *Shani*, *Rahu Mahadasha*)
+- Bullets: - item  (3+ points ke liye — har bullet ek complete thought ho)
+- Pull quote: > text  (shloka, memorable line, ya core insight — sirf ek per section)
+- Divider: ---  (sections ke beech — sirf jab topic change ho)
+- Callout: 💡 text  (sirf EK per response — sabse important takeaway)
 - Lists mein KABHI nesting mat karo — flat bullets only
+- KABHI lamba wall-of-text mat likho — tod ke likho, breathe karne do
 
 CRITICAL — Kabhi blank ya "mujhe nahi pata" mat kaho:
 - Agar kundali data nahi → general Vedic wisdom se answer do
@@ -320,7 +331,8 @@ def build_pass2_prompt(
     query_type  = decision.get("query_type", "DEEP_VEDIC")
     intent      = decision.get("intent", "")
     lang_line   = _get_lang_instruction(decision)
-    today_str   = datetime.now().strftime("%A, %d %B %Y")   # e.g. "Thursday, 26 March 2026"
+    IST = timezone(timedelta(hours=5, minutes=30))
+    today_str   = datetime.now(IST).strftime("%A, %d %B %Y")   # e.g. "Thursday, 26 March 2026"
 
     actual_query = query
 

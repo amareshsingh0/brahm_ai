@@ -3,6 +3,7 @@ package com.bimoraai.brahm.ui.chat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -567,8 +568,8 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
                         Text(
                             text = msg.content,
                             modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
-                            color = BrahmForeground,
-                            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 23.sp),
+                            color = Color(0xFF1A1A1A),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 27.sp),
                         )
                     }
                 }
@@ -659,33 +660,45 @@ private fun RichAiCard(text: String) {
 @Composable
 private fun MdBlock(section: MdSection) {
     when (section) {
-        is MdSection.Heading -> Text(
-            text = section.text,
-            style = MaterialTheme.typography.titleSmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = BrahmForeground,
-                letterSpacing = (-0.2).sp,
-                lineHeight = 22.sp,
-            ),
-        )
-        is MdSection.Para -> Text(
-            text = styledText(section.text),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = Color(0xFF3A3A3A),
-                lineHeight = 24.sp,
-            ),
-        )
-        is MdSection.Quote -> Row(Modifier.fillMaxWidth()) {
+        is MdSection.Heading -> Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Box(
                 Modifier
                     .width(3.dp)
-                    .fillMaxHeight()
+                    .height(20.dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(BrahmGold)
             )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = styledText(section.text),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = BrahmForeground,
+                    letterSpacing = (-0.2).sp,
+                    lineHeight = 24.sp,
+                ),
+            )
+        }
+        is MdSection.Para -> Text(
+            text = styledText(section.text),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = Color(0xFF1A1A1A),
+                fontSize = 15.sp,
+                lineHeight = 27.sp,
+            ),
+        )
+        is MdSection.Quote -> Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp))
+                .border(1.dp, Color(0xFFE8D5A3), RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp))
+        ) {
+            Box(Modifier.width(3.dp).background(BrahmGold))
             Surface(
-                color = BrahmGold.copy(alpha = 0.07f),
-                shape = RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp),
+                color = Color(0xFFFFF8E7),
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
@@ -693,17 +706,17 @@ private fun MdBlock(section: MdSection) {
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontStyle = FontStyle.Italic,
-                        color = Color(0xFF3A3A3A),
-                        lineHeight = 22.sp,
+                        color = Color(0xFF92400E),
+                        fontSize = 14.sp,
+                        lineHeight = 25.sp,
                     ),
                 )
             }
         }
         is MdSection.BulletItem -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-            Spacer(Modifier.width(2.dp))
             Box(
                 Modifier
-                    .padding(top = 9.dp)
+                    .padding(top = 11.dp)
                     .size(5.dp)
                     .clip(CircleShape)
                     .background(BrahmGold)
@@ -712,8 +725,9 @@ private fun MdBlock(section: MdSection) {
             Text(
                 text = styledText(section.text),
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color(0xFF3A3A3A),
-                    lineHeight = 22.sp,
+                    color = Color(0xFF1A1A1A),
+                    fontSize = 15.sp,
+                    lineHeight = 27.sp,
                 ),
             )
         }
@@ -723,6 +737,7 @@ private fun MdBlock(section: MdSection) {
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = BrahmGold,
+                    fontSize = 12.sp,
                 ),
                 modifier = Modifier.padding(top = 2.dp).widthIn(min = 22.dp),
             )
@@ -730,60 +745,45 @@ private fun MdBlock(section: MdSection) {
             Text(
                 text = styledText(section.text),
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color(0xFF3A3A3A),
-                    lineHeight = 22.sp,
+                    color = Color(0xFF1A1A1A),
+                    fontSize = 15.sp,
+                    lineHeight = 27.sp,
                 ),
             )
         }
         is MdSection.Callout -> Surface(
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(12.dp),
             color = Color(0xFFFFF8E7),
             border = BorderStroke(1.dp, Color(0xFFE8D5A3)),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(Modifier.padding(12.dp)) {
-                if (section.label.isNotEmpty()) {
-                    Text(
-                        section.label.uppercase(),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color(0xFFB07A00),
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.9.sp,
-                            fontSize = 9.sp,
-                        ),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                }
+            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+                Text("💡", fontSize = 16.sp, modifier = Modifier.padding(top = 1.dp))
+                Spacer(Modifier.width(8.dp))
                 Text(
                     styledText(section.text),
-                    style = MaterialTheme.typography.bodySmall.copy(
+                    style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color(0xFF92400E),
-                        lineHeight = 20.sp,
+                        fontSize = 14.sp,
+                        lineHeight = 24.sp,
+                        fontWeight = FontWeight.Medium,
                     ),
                 )
             }
         }
-        is MdSection.Divider -> {
-            if (section.label.isNotEmpty()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 4.dp),
-                ) {
-                    HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
-                    Text(
-                        section.label,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = BrahmMutedForeground,
-                            letterSpacing = 0.8.sp,
-                            fontSize = 9.sp,
-                        ),
-                    )
-                    HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
-                }
-            } else {
-                HorizontalDivider(color = BrahmBorder, modifier = Modifier.padding(vertical = 4.dp))
-            }
+        is MdSection.Divider -> Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 6.dp).fillMaxWidth(),
+        ) {
+            HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
+            Spacer(Modifier.width(6.dp))
+            Box(Modifier.size(4.dp).clip(CircleShape).background(Color(0xFFE8D5A3)))
+            Spacer(Modifier.width(3.dp))
+            Box(Modifier.size(5.dp).clip(CircleShape).background(BrahmGold.copy(alpha = 0.5f)))
+            Spacer(Modifier.width(3.dp))
+            Box(Modifier.size(4.dp).clip(CircleShape).background(Color(0xFFE8D5A3)))
+            Spacer(Modifier.width(6.dp))
+            HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
         }
     }
 }
@@ -812,7 +812,7 @@ private fun parseMarkdown(raw: String): List<MdSection> {
             t.startsWith("## ")    -> result += MdSection.Heading(t.removePrefix("## "))
             t.startsWith("# ")     -> result += MdSection.Heading(t.removePrefix("# "))
             t.startsWith("> ")     -> result += MdSection.Quote(t.removePrefix("> "))
-            t.startsWith("- ") || t.startsWith("• ") -> {
+            t.startsWith("- ") || t.startsWith("• ") || t.startsWith("* ") -> {
                 result += MdSection.BulletItem(t.drop(2).trim()); numIdx = 0
             }
             t.matches(Regex("\\d+\\.\\s.*")) -> {

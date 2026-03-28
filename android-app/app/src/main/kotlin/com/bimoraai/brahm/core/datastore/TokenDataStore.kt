@@ -29,6 +29,7 @@ class TokenDataStore @Inject constructor(
     private val CHAT_SESSION_ID  = stringPreferencesKey("chat_session_id")
     private val RECENT_TOOLS     = stringPreferencesKey("recent_tools")  // comma-separated routes, max 4
     private val THEME_MODE       = stringPreferencesKey("theme_mode")    // "light" | "dark" | "system"
+    private val KUNDALI_JSON     = stringPreferencesKey("kundali_json")  // persisted kundali for instant load
 
     val accessToken:    Flow<String?> = context.dataStore.data.map { it[ACCESS_TOKEN] }
     val refreshToken:   Flow<String?> = context.dataStore.data.map { it[REFRESH_TOKEN] }
@@ -43,7 +44,8 @@ class TokenDataStore @Inject constructor(
             ?.take(4)
             ?: emptyList()
     }
-    val themeMode: Flow<String> = context.dataStore.data.map { it[THEME_MODE] ?: "system" }
+    val themeMode:   Flow<String>  = context.dataStore.data.map { it[THEME_MODE] ?: "system" }
+    val kundaliJson: Flow<String?> = context.dataStore.data.map { it[KUNDALI_JSON] }
 
     suspend fun saveChatSessionId(id: String) {
         context.dataStore.edit { it[CHAT_SESSION_ID] = id }

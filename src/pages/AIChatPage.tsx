@@ -516,61 +516,190 @@ function MessageBubble({ msg, onFollowUp, onRegenerate }: {
     );
   }
   return (
-    <div className="flex items-end gap-2">
-      <AiAvatar />
-      <div className="flex-1 min-w-0">
-        <div className="max-w-[85%] bg-white border border-border rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-foreground leading-relaxed shadow-sm whitespace-pre-wrap">
-          <MessageContent content={msg.content} />
-        </div>
-        {/* Action buttons — show when message is complete */}
-        {msg.isComplete && msg.content && (
-          <div className="flex items-center gap-1 mt-1.5 max-w-[85%]">
-            <button
-              onClick={copy}
-              title="Copy"
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-            >
-              {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
-              {copied ? "Copied" : "Copy"}
+    <div className="w-full">
+      <RichAiCard content={msg.content} streaming={!msg.isComplete} />
+      {/* Actions */}
+      {msg.isComplete && msg.content && (
+        <div className="flex items-center gap-1 mt-1.5 px-1">
+          <button onClick={copy} title="Copy"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+            {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+          {onRegenerate && (
+            <button onClick={onRegenerate} title="Regenerate"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <RefreshCw className="h-3 w-3" />
+              Regenerate
             </button>
-            {onRegenerate && (
-              <button
-                onClick={onRegenerate}
-                title="Regenerate"
-                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-              >
-                <RefreshCw className="h-3 w-3" />
-                Regenerate
-              </button>
-            )}
-          </div>
-        )}
-        {msg.isComplete && msg.followUps && msg.followUps.length > 0 && (
-          <div className="mt-2 flex flex-col gap-1.5 max-w-[85%]">
-            {msg.followUps.map((q, i) => (
-              <button key={i} onClick={() => onFollowUp(q)}
-                className="text-left text-xs px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors font-medium">
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
+      {msg.isComplete && msg.followUps && msg.followUps.length > 0 && (
+        <div className="mt-2 flex flex-col gap-1.5">
+          {msg.followUps.map((q, i) => (
+            <button key={i} onClick={() => onFollowUp(q)}
+              className="text-left text-xs px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors font-medium">
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Inline markdown ───────────────────────────────────────────────────────────
-function MessageContent({ content }: { content: string }) {
-  const parts = content.split(/(\*\*[^*]+\*\*)/g);
+// ── Markdown renderer ─────────────────────────────────────────────────────────
+type MdBlock =
+  | { type: 'heading'; level: number; text: string }
+  | { type: 'para'; text: string }
+  | { type: 'quote'; text: string }
+  | { type: 'bullet'; text: string }
+  | { type: 'numbered'; n: number; text: string }
+  | { type: 'callout'; text: string }
+  | { type: 'divider' };
+
+function parseMarkdown(raw: string): MdBlock[] {
+  const lines = raw.trim().split('\n');
+  const blocks: MdBlock[] = [];
+  let numIdx = 0;
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { numIdx = 0; continue; }
+    if (t.startsWith('### ')) { blocks.push({ type: 'heading', level: 3, text: t.slice(4) }); continue; }
+    if (t.startsWith('## '))  { blocks.push({ type: 'heading', level: 2, text: t.slice(3) }); continue; }
+    if (t.startsWith('# '))   { blocks.push({ type: 'heading', level: 1, text: t.slice(2) }); continue; }
+    if (t.startsWith('> '))   { blocks.push({ type: 'quote', text: t.slice(2) }); continue; }
+    if (t.startsWith('- ') || t.startsWith('• ') || t.startsWith('* ')) {
+      blocks.push({ type: 'bullet', text: t.slice(2).trim() }); numIdx = 0; continue;
+    }
+    const numMatch = t.match(/^(\d+)\.\s+(.*)/);
+    if (numMatch) { numIdx++; blocks.push({ type: 'numbered', n: numIdx, text: numMatch[2] }); continue; }
+    if (t === '---' || t === '***' || t === '___') { blocks.push({ type: 'divider' }); continue; }
+    if (/^[💡📌✨⚠️🔮🌟]/.test(t)) {
+      blocks.push({ type: 'callout', text: t.replace(/^[💡📌✨⚠️🔮🌟]\s*/, '') }); continue;
+    }
+    blocks.push({ type: 'para', text: t }); numIdx = 0;
+  }
+  return blocks.filter(b => b.type !== 'para' || (b as { type: 'para'; text: string }).text.trim());
+}
+
+function InlineMd({ text }: { text: string }) {
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
   return (
     <>
-      {parts.map((part, i) =>
-        part.startsWith("**") && part.endsWith("**")
-          ? <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
-          : <span key={i}>{part}</span>
-      )}
+      {parts.map((p, i) => {
+        if (p.startsWith('**') && p.endsWith('**'))
+          return <strong key={i} className="font-semibold text-foreground">{p.slice(2, -2)}</strong>;
+        if (p.startsWith('*') && p.endsWith('*') && p.length > 2)
+          return <em key={i} className="italic text-muted-foreground">{p.slice(1, -1)}</em>;
+        if (p.startsWith('`') && p.endsWith('`'))
+          return <code key={i} className="bg-amber-50 text-amber-800 text-[11px] px-1 py-0.5 rounded font-mono">{p.slice(1, -1)}</code>;
+        return <span key={i}>{p}</span>;
+      })}
     </>
+  );
+}
+
+function RichAiCard({ content, streaming }: { content: string; streaming?: boolean }) {
+  const blocks = parseMarkdown(content);
+  const isRich = content.length > 150 || /\n[#*\->]|\*\*|---/.test(content);
+
+  return (
+    <div className="w-full rounded-2xl border border-border/40 shadow-sm overflow-hidden bg-white">
+      {/* Gold accent bar */}
+      <div className="h-[3px] bg-gradient-to-r from-amber-500 via-orange-500 to-transparent" />
+      {/* Label row */}
+      <div className="flex items-center gap-2 px-5 pt-3.5 pb-1">
+        <div className="w-2 h-2 rounded-sm bg-gradient-to-br from-amber-500 to-orange-600 shrink-0" />
+        <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-amber-700/80">Brahm AI</span>
+        {streaming && <span className="ml-1 inline-block w-[3px] h-3.5 bg-amber-500 animate-pulse rounded-sm" />}
+      </div>
+      {/* Content */}
+      <div className="px-5 pb-5 pt-2 flex flex-col gap-3">
+        {!isRich ? (
+          <p className="text-[15px] leading-[1.8] text-[#1a1a1a]">
+            <InlineMd text={content} />
+            {streaming && <span className="inline-block w-0.5 h-[18px] bg-amber-500 ml-0.5 animate-pulse align-middle" />}
+          </p>
+        ) : blocks.map((b, i) => {
+          switch (b.type) {
+            case 'heading':
+              return (
+                <div key={i} className={i > 0 ? 'mt-2' : ''}>
+                  {b.level <= 2
+                    ? <div className="flex items-center gap-2.5">
+                        <div className="w-[3px] h-5 rounded-full bg-amber-500 shrink-0" />
+                        <p className="text-[15px] font-bold text-foreground tracking-tight leading-snug">
+                          <InlineMd text={b.text} />
+                        </p>
+                      </div>
+                    : <p className="text-[11px] font-bold text-amber-600 uppercase tracking-[0.1em]">
+                        <InlineMd text={b.text} />
+                      </p>
+                  }
+                </div>
+              );
+            case 'para':
+              return (
+                <p key={i} className="text-[15px] leading-[1.8] text-[#1a1a1a]">
+                  <InlineMd text={b.text} />
+                </p>
+              );
+            case 'quote':
+              return (
+                <div key={i} className="flex gap-0 rounded-xl overflow-hidden border border-amber-200/70 my-1">
+                  <div className="w-[3px] bg-amber-400 shrink-0" />
+                  <div className="bg-amber-50/80 px-4 py-3 text-[14px] italic leading-[1.75] text-amber-900 flex-1">
+                    <InlineMd text={b.text} />
+                  </div>
+                </div>
+              );
+            case 'bullet':
+              return (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="mt-[10px] w-[6px] h-[6px] rounded-full bg-amber-500 shrink-0" />
+                  <p className="text-[15px] leading-[1.8] text-[#1a1a1a] flex-1">
+                    <InlineMd text={b.text} />
+                  </p>
+                </div>
+              );
+            case 'numbered':
+              return (
+                <div key={i} className="flex items-start gap-3">
+                  <span className="text-[12px] font-bold text-amber-600 shrink-0 mt-[3px] min-w-[20px]">{b.n}.</span>
+                  <p className="text-[15px] leading-[1.8] text-[#1a1a1a] flex-1">
+                    <InlineMd text={b.text} />
+                  </p>
+                </div>
+              );
+            case 'callout':
+              return (
+                <div key={i} className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 my-1">
+                  <span className="text-lg shrink-0 leading-none mt-0.5">💡</span>
+                  <p className="text-[14px] leading-[1.75] text-amber-900 font-medium flex-1">
+                    <InlineMd text={b.text} />
+                  </p>
+                </div>
+              );
+            case 'divider':
+              return (
+                <div key={i} className="flex items-center gap-3 py-1 my-1">
+                  <div className="flex-1 h-px bg-border/50" />
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 rounded-full bg-amber-300" />
+                    <div className="w-1 h-1 rounded-full bg-amber-400" />
+                    <div className="w-1 h-1 rounded-full bg-amber-300" />
+                  </div>
+                  <div className="flex-1 h-px bg-border/50" />
+                </div>
+              );
+            default: return null;
+          }
+        })}
+        {streaming && isRich && <span className="inline-block w-[3px] h-[18px] bg-amber-500 animate-pulse rounded-sm" />}
+      </div>
+    </div>
   );
 }
 

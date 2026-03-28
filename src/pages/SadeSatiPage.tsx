@@ -6,7 +6,7 @@
  * Computes Sade Sati phase, Ashtama Shani, and Kantaka Shani.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   RefreshCw, ChevronDown, ChevronUp, Star,
@@ -16,6 +16,7 @@ import { api } from "@/lib/api";
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from "@/components/PageBot";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -225,13 +226,14 @@ export default function SadeSatiPage() {
     }
   })();
 
-  const pageData = {
+  const pageData = useMemo(() => ({
     moon_rashi: selectedMoon,
     saturn_rashi: shaniRashi,
     sade_sati_status: analysis?.status,
     sade_sati_phase: analysis?.sadeSatiPhase,
     shani_from_moon: analysis?.shaniFromMoon,
-  };
+  }), [selectedMoon, shaniRashi, analysis]);
+  useRegisterPageBot('sade_sati', pageData);
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">

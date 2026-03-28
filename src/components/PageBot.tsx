@@ -34,7 +34,7 @@ function parseMarkdown(raw: string): MdBlock[] {
     if (t.startsWith('## '))  { blocks.push({ type: 'heading', text: t.slice(3) }); continue; }
     if (t.startsWith('# '))   { blocks.push({ type: 'heading', text: t.slice(2) }); continue; }
     if (t.startsWith('> '))   { blocks.push({ type: 'quote',   text: t.slice(2) }); continue; }
-    if (t.startsWith('- ') || t.startsWith('• ')) {
+    if (t.startsWith('- ') || t.startsWith('• ') || t.startsWith('* ')) {
       blocks.push({ type: 'bullet', text: t.slice(2).trim() }); numIdx = 0; continue;
     }
     const numMatch = t.match(/^(\d+)\.\s+(.*)/);
@@ -93,30 +93,33 @@ function RichAiCard({ content }: { content: string }) {
           switch (b.type) {
             case 'heading':
               return (
-                <p key={i} className="text-[12px] font-bold text-foreground leading-snug tracking-tight">
-                  {b.text}
-                </p>
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-[3px] h-4 rounded-full bg-amber-500 shrink-0" />
+                  <p className="text-[13px] font-bold text-foreground leading-snug tracking-tight">
+                    <InlineText text={b.text} />
+                  </p>
+                </div>
               );
             case 'para':
               return (
-                <p key={i} className="text-[11.5px] leading-relaxed text-[#3a3a3a]">
+                <p key={i} className="text-[13px] leading-[1.75] text-[#1a1a1a]">
                   <InlineText text={b.text} />
                 </p>
               );
             case 'quote':
               return (
-                <div key={i} className="flex">
-                  <div className="w-0.5 rounded-full bg-amber-500 shrink-0" />
-                  <div className="ml-2.5 bg-amber-50/60 rounded-r-lg px-2.5 py-2 text-[11.5px] italic leading-relaxed text-[#3a3a3a] flex-1">
+                <div key={i} className="flex gap-0 rounded-lg overflow-hidden border border-amber-200/60">
+                  <div className="w-[3px] bg-amber-400 shrink-0" />
+                  <div className="bg-amber-50/80 px-2.5 py-2 text-[12.5px] italic leading-[1.7] text-amber-900 flex-1">
                     <InlineText text={b.text} />
                   </div>
                 </div>
               );
             case 'bullet':
               return (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                  <p className="text-[11.5px] leading-relaxed text-[#3a3a3a]">
+                <div key={i} className="flex items-start gap-2.5">
+                  <span className="mt-[9px] w-[5px] h-[5px] rounded-full bg-amber-500 shrink-0" />
+                  <p className="text-[13px] leading-[1.75] text-[#1a1a1a] flex-1">
                     <InlineText text={b.text} />
                   </p>
                 </div>
@@ -125,18 +128,16 @@ function RichAiCard({ content }: { content: string }) {
               return (
                 <div key={i} className="flex items-start gap-2">
                   <span className="text-[11px] font-bold text-amber-600 shrink-0 mt-0.5 min-w-[16px]">{b.n}.</span>
-                  <p className="text-[11.5px] leading-relaxed text-[#3a3a3a]">
+                  <p className="text-[13px] leading-[1.75] text-[#1a1a1a] flex-1">
                     <InlineText text={b.text} />
                   </p>
                 </div>
               );
             case 'callout':
               return (
-                <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                  {b.label && (
-                    <p className="text-[9px] font-bold uppercase tracking-wide text-amber-700 mb-1">{b.label}</p>
-                  )}
-                  <p className="text-[11px] leading-relaxed text-amber-900">
+                <div key={i} className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                  <span className="text-sm shrink-0">💡</span>
+                  <p className="text-[12px] leading-[1.7] text-amber-900 font-medium flex-1">
                     <InlineText text={b.text} />
                   </p>
                 </div>
@@ -145,7 +146,11 @@ function RichAiCard({ content }: { content: string }) {
               return (
                 <div key={i} className="flex items-center gap-2 py-1">
                   <div className="flex-1 h-px bg-border/40" />
-                  {b.label && <span className="text-[9px] text-muted-foreground uppercase tracking-wide">{b.label}</span>}
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 rounded-full bg-amber-300" />
+                    <div className="w-1 h-1 rounded-full bg-amber-400" />
+                    <div className="w-1 h-1 rounded-full bg-amber-300" />
+                  </div>
                   <div className="flex-1 h-px bg-border/40" />
                 </div>
               );
