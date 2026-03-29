@@ -239,7 +239,7 @@ private fun NakshatraCard(nakshatra: NakshatraInfo, expanded: Boolean, onClick: 
             // ── Expanded body ────────────────────────────────────────────────
             AnimatedVisibility(visible = expanded) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, bottom = 14.dp),
+                    modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     HorizontalDivider(color = nakshatra.gradStart.copy(alpha = 0.20f))

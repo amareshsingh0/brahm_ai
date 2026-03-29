@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -73,7 +74,7 @@ class UserRepository @Inject constructor(
                 } ?: false
                 if (found) {
                     val kundaliObj = body?.get("kundali") as? JsonObject
-                    val json = kundaliObj?.get("kundali_json")?.let { (it as? JsonPrimitive)?.contentOrNull }
+                    val json: String? = (kundaliObj?.get("kundali_json") as? JsonPrimitive)?.contentOrNull
                     if (!json.isNullOrBlank()) _kundaliJson.value = json
                 }
             }

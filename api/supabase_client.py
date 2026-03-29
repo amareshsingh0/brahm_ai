@@ -5,7 +5,9 @@ ENV vars required:
   SUPABASE_SERVICE_ROLE_KEY=eyJ...
 """
 import os
+import httpx
 from supabase import create_client, Client
+from supabase.lib.client_options import ClientOptions
 
 _client: Client | None = None
 
@@ -15,7 +17,12 @@ def _make_client() -> Client:
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
     if not url or not key:
         raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set")
-    return create_client(url, key)
+    # Force HTTP/1.1 — HTTP/2 streams get terminated by Supabase on idle connections
+    # causing RemoteProtocolError <ConnectionTerminated error_code:1>
+    options = ClientOptions(
+        httpx_client=httpx.Client(http2=False, timeout=30.0)
+    )
+    return create_client(url, key, options=options)
 
 
 def get_supabase() -> Client:

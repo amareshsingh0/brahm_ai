@@ -126,8 +126,8 @@ private fun EventDatePicker(
             modifier      = Modifier.fillMaxWidth(),
             label         = { Text("Event Date") },
             placeholder   = { Text("Select date", color = BrahmMutedForeground) },
-            leadingIcon   = { Icon(Icons.Default.CalendarToday, null) },
-            trailingIcon  = { Icon(Icons.Default.CalendarMonth, null, tint = BrahmMutedForeground) },
+            leadingIcon   = { Icon(Icons.Default.Add, null) },
+            trailingIcon  = { Icon(Icons.Default.KeyboardArrowDown, null, tint = BrahmMutedForeground) },
             singleLine    = true,
             shape         = RoundedCornerShape(14.dp),
             colors        = brahmFieldColors(),
@@ -273,7 +273,7 @@ fun RectificationInputForm(
                         androidx.compose.foundation.lazy.LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            items(UNCERTAINTY_OPTIONS.entries.toList()) { (mins, label) ->
+                            items(UNCERTAINTY_OPTIONS) { (mins, label) ->
                                 val selected = uncertainty == mins
                                 Box(
                                     modifier = Modifier

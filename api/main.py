@@ -72,6 +72,20 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def _supabase_connection_guard(request: Request, call_next):
+    """Reset Supabase client on HTTP/2 RemoteProtocolError and return 503 so client retries."""
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        if "RemoteProtocolError" in type(exc).__name__ or "ConnectionTerminated" in str(exc):
+            from api.supabase_client import reset_supabase
+            reset_supabase()
+            from fastapi.responses import JSONResponse
+            return JSONResponse(status_code=503, content={"detail": "Connection reset, please retry"})
+        raise
+
+
+@app.middleware("http")
 async def _check_user_status(request: Request, call_next):
     """Block suspended or banned users. Supports both JWT (Bearer) and legacy session_id."""
     from fastapi.responses import JSONResponse
