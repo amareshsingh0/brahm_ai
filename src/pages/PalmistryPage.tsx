@@ -310,843 +310,509 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
+function HandUploader({
+  label, role, image, imageName, loading, error, onFile, onReset,
+}: {
+  label: string; role: string; image: string | null; imageName: string;
+  loading: boolean; error: string | null;
+  onFile: (f: File) => void; onReset: () => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const camRef  = useRef<HTMLInputElement>(null);
+  const [drag, setDrag] = useState(false);
+
+  const handle = (f: File) => { if (f.type.startsWith("image/")) onFile(f); };
+
+  return (
+    <div className="space-y-3">
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+        role === "dominant"
+          ? "bg-amber-100 text-amber-800 border border-amber-200"
+          : "bg-purple-50 text-purple-800 border border-purple-200"
+      }`}>
+        <Hand className="h-3.5 w-3.5" />
+        {label}
+      </div>
+
+      {!image ? (
+        <>
+          <div
+            onDrop={e => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f) handle(f); }}
+            onDragOver={e => { e.preventDefault(); setDrag(true); }}
+            onDragLeave={() => setDrag(false)}
+            onClick={() => fileRef.current?.click()}
+            className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer transition-all ${
+              drag ? "border-primary/60 bg-primary/5" : "border-border/30 hover:border-primary/30 hover:bg-muted/10"
+            }`}
+          >
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Upload className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">Drop image or click to upload</p>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handle(f); }} />
+          </div>
+          <button onClick={() => camRef.current?.click()}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border/30 bg-muted/10 hover:bg-muted/20 transition-all text-sm">
+            <Camera className="h-4 w-4 text-primary" /> Use Camera
+          </button>
+          <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handle(f); }} />
+        </>
+      ) : (
+        <div className="relative rounded-xl overflow-hidden border border-border/30">
+          <img src={image} alt="Palm" className="w-full object-contain max-h-48" />
+          <button onClick={onReset} className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 border border-border/50 flex items-center justify-center">
+            <X className="h-3.5 w-3.5" />
+          </button>
+          <div className={`absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+            role === "dominant" ? "bg-amber-600 text-white" : "bg-purple-600 text-white"
+          }`}>
+            {imageName.slice(0, 20)}
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
+          <span className="animate-spin">✦</span> Scanning palm lines…
+        </div>
+      )}
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
 function ScanTab() {
-  const { t } = useTranslation();
-  const [image, setImage] = useState<string | null>(null);
-  const [imageName, setImageName] = useState<string>("");
-  const [dragOver, setDragOver] = useState(false);
-  const [step, setStep] = useState<"upload" | "hand_type" | "questions" | "report">("upload");
-  const [handTypeId, setHandTypeId] = useState<string | null>(null);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selections, setSelections] = useState<Selection[]>([]);
-  const [currentSelection, setCurrentSelection] = useState<string | null>(null);
-  const [report, setReport] = useState<GeneratedReport | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResult, setAiResult] = useState<any>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
+  type Step = "choose_hand" | "scan_dominant" | "scan_non_dominant" | "report";
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const rawFileRef = useRef<File | null>(null);
+  const [step, setStep]                         = useState<Step>("choose_hand");
+  const [dominantHand, setDominantHand]         = useState<"right" | "left">("right");
 
-  const handleFile = (file: File) => {
-    if (!file.type.startsWith("image/")) return;
-    rawFileRef.current = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImage(e.target?.result as string);
-      setImageName(file.name);
-    };
-    reader.readAsDataURL(file);
+  // Dominant hand
+  const [domImage, setDomImage]                 = useState<string | null>(null);
+  const [domImageName, setDomImageName]         = useState("");
+  const [domFile, setDomFile]                   = useState<File | null>(null);
+  const [domLoading, setDomLoading]             = useState(false);
+  const [domError, setDomError]                 = useState<string | null>(null);
+  const [domResult, setDomResult]               = useState<any>(null);
+
+  // Non-dominant hand
+  const [nonDomImage, setNonDomImage]           = useState<string | null>(null);
+  const [nonDomImageName, setNonDomImageName]   = useState("");
+  const [nonDomFile, setNonDomFile]             = useState<File | null>(null);
+  const [nonDomLoading, setNonDomLoading]       = useState(false);
+  const [nonDomError, setNonDomError]           = useState<string | null>(null);
+  const [nonDomResult, setNonDomResult]         = useState<any>(null);
+
+  // Combined
+  const [combLoading, setCombLoading]           = useState(false);
+  const [combError, setCombError]               = useState<string | null>(null);
+  const [combinedResult, setCombinedResult]     = useState<any>(null);
+
+  const nonDominantHand = dominantHand === "right" ? "left" : "right";
+
+  const fileToDataUrl = (f: File) => new Promise<string>((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target?.result as string);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+
+  const handleDomFile = async (f: File) => {
+    setDomFile(f);
+    setDomImage(await fileToDataUrl(f));
+    setDomImageName(f.name);
+    setDomError(null);
   };
 
-  const analyzeWithAI = async () => {
-    if (!rawFileRef.current) return;
-    setAiLoading(true);
-    setAiError(null);
-    setAiResult(null);
+  const handleNonDomFile = async (f: File) => {
+    setNonDomFile(f);
+    setNonDomImage(await fileToDataUrl(f));
+    setNonDomImageName(f.name);
+    setNonDomError(null);
+  };
+
+  const analyzeDominant = async () => {
+    if (!domFile) return;
+    setDomLoading(true);
+    setDomError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", rawFileRef.current);
-      const res = await fetch("/api/palmistry/analyze", { method: "POST", body: formData });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Analysis failed" }));
-        throw new Error(err.detail || "Analysis failed");
-      }
-      const data = await res.json();
-      setAiResult(data);
-      setStep("ai_report" as any);
+      const fd = new FormData();
+      fd.append("file", domFile);
+      fd.append("hand_role", "dominant");
+      const res = await fetch("/api/palmistry/analyze", { method: "POST", body: fd });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || "Analysis failed");
+      setDomResult(await res.json());
+      setStep("scan_non_dominant");
     } catch (e: any) {
-      setAiError(e.message || "Analysis failed. Please try again.");
+      setDomError(e.message || "Analysis failed. Please try again.");
     } finally {
-      setAiLoading(false);
+      setDomLoading(false);
     }
   };
 
-  const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  }, []);
-
-  const reset = () => {
-    setImage(null);
-    setImageName("");
-    setStep("upload");
-    setHandTypeId(null);
-    setQuestionIndex(0);
-    setSelections([]);
-    setCurrentSelection(null);
-    setReport(null);
-    setAiResult(null);
-    setAiError(null);
+  const analyzeNonDominant = async () => {
+    if (!nonDomFile) return;
+    setNonDomLoading(true);
+    setNonDomError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", nonDomFile);
+      fd.append("hand_role", "non_dominant");
+      const res = await fetch("/api/palmistry/analyze", { method: "POST", body: fd });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || "Analysis failed");
+      const ndResult = await res.json();
+      setNonDomResult(ndResult);
+      // Now get combined report
+      await generateCombined(ndResult);
+    } catch (e: any) {
+      setNonDomError(e.message || "Analysis failed. Please try again.");
+    } finally {
+      setNonDomLoading(false);
+    }
   };
 
-  const handleNextQuestion = () => {
-    if (!currentSelection) return;
-    const newSel = [...selections.filter(s => s.questionId !== QUESTIONS[questionIndex].id),
-      { questionId: QUESTIONS[questionIndex].id, optionId: currentSelection }];
-    setSelections(newSel);
-
-    if (questionIndex < QUESTIONS.length - 1) {
-      setQuestionIndex(questionIndex + 1);
-      // Pre-fill if already answered
-      const existing = newSel.find(s => s.questionId === QUESTIONS[questionIndex + 1].id);
-      setCurrentSelection(existing?.optionId ?? null);
-    } else {
-      // Done — generate report
-      const r = buildReport(handTypeId!, newSel);
-      setReport(r);
+  const generateCombined = async (ndResult: any) => {
+    if (!domFile || !nonDomFile) return;
+    setCombLoading(true);
+    setCombError(null);
+    try {
+      const fd = new FormData();
+      fd.append("dominant", domFile);
+      fd.append("non_dominant", nonDomFile);
+      fd.append("dominant_hand", dominantHand);
+      const res = await fetch("/api/palmistry/analyze-both", { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Combined analysis failed");
+      const data = await res.json();
+      setCombinedResult(data);
+    } catch {
+      setCombError("Could not generate combined report. Individual readings are still available.");
+    } finally {
+      setCombLoading(false);
       setStep("report");
     }
   };
 
-  const handlePrevQuestion = () => {
-    if (questionIndex === 0) { setStep("hand_type"); return; }
-    setQuestionIndex(questionIndex - 1);
-    const existing = selections.find(s => s.questionId === QUESTIONS[questionIndex - 1].id);
-    setCurrentSelection(existing?.optionId ?? null);
+  const reset = () => {
+    setStep("choose_hand");
+    setDomImage(null); setDomFile(null); setDomImageName(""); setDomResult(null); setDomError(null);
+    setNonDomImage(null); setNonDomFile(null); setNonDomImageName(""); setNonDomResult(null); setNonDomError(null);
+    setCombinedResult(null); setCombError(null);
   };
 
-  const downloadReport = () => {
-    if (!report) return;
-    const lines = report.selections.map(sel => {
-      const q = QUESTIONS.find(q => q.id === sel.questionId);
-      const opt = q?.options.find(o => o.id === sel.optionId);
-      return `${q?.line}\n  Selected: ${opt?.label}\n  ${opt?.meaning}\n  Vedic: ${opt?.vedic}`;
-    }).join("\n\n");
-    const content = [
-      "HASTA SAMUDRIKA SHASTRA — PALM READING REPORT",
-      "═".repeat(52),
-      `Hand Type: ${report.handType.label} (${report.handType.vedic})`,
-      `Element: ${report.handType.element}`,
-      "",
-      report.handType.vedic_note,
-      "",
-      "LIFE AREA SCORES",
-      ...report.lifeScores.map(a => `  ${a.icon} ${a.area}: ${a.score}/10`),
-      "",
-      "PALM LINE ANALYSIS",
-      lines,
-      "",
-      "STRENGTHS",
-      ...report.strengths.map(s => `  ✦ ${s}`),
-      "",
-      "CHALLENGES & GROWTH AREAS",
-      ...report.challenges.map(c => `  ◆ ${c}`),
-      "",
-      "VEDIC REMEDIES",
-      ...report.remedies.map(r => `  ${r.title}\n  ${r.detail}`),
-      "",
-      "SUMMARY",
-      report.summary,
-      "",
-      `✦ ${report.auspiciousNote}`,
-    ].join("\n");
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "hasta-shastra-reading.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ── Upload Step ──
-  if (step === "upload") {
+  // ── Step 1: Choose dominant hand ──
+  if (step === "choose_hand") {
     return (
-      <div className="grid lg:grid-cols-2 gap-5 max-w-4xl mx-auto">
-        <Card className="cosmic-card border-border/30">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Scan className="h-4 w-4 text-primary zodiac-glow" />
-              {t("palmistry.upload_section_title")}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">{t("palmistry.hand_hint")}</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!image ? (
-              <>
-                <div
-                  onDrop={onDrop}
-                  onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
-                    dragOver ? "border-primary/60 bg-primary/5" : "border-border/30 hover:border-primary/30 hover:bg-muted/10"
-                  }`}
-                >
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Upload className="h-7 w-7 text-primary" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium">{t("palmistry.drop_hint")}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t("palmistry.or")}</p>
-                  </div>
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 border-t border-border/20" />
-                  <span className="text-xs text-muted-foreground">or</span>
-                  <div className="flex-1 border-t border-border/20" />
-                </div>
-                <button
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl border border-border/30 bg-muted/10 hover:bg-muted/20 hover:border-primary/30 transition-all"
-                >
-                  <Camera className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium">{t("palmistry.use_camera")}</span>
-                </button>
-                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-              </>
-            ) : (
-              <div className="space-y-3">
-                <div className="relative rounded-xl overflow-hidden border border-border/30">
-                  <img src={image} alt="Palm" className="w-full object-contain max-h-64" />
-                  <button onClick={reset} className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 border border-border/50 flex items-center justify-center">
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground text-center">{imageName}</p>
-                {aiError && <p className="text-xs text-red-400 text-center">{aiError}</p>}
-                <Button
-                  onClick={analyzeWithAI}
-                  disabled={aiLoading}
-                  className="w-full h-11 font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-0"
-                >
-                  {aiLoading ? (
-                    <><span className="animate-spin mr-2">✦</span> AI is reading your palm...</>
-                  ) : (
-                    <><Sparkles className="h-4 w-4 mr-2" /> AI Palm Reading </>
-                  )}
-                </Button>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 border-t border-border/20" />
-                  <span className="text-xs text-muted-foreground">or answer manually</span>
-                  <div className="flex-1 border-t border-border/20" />
-                </div>
-                <Button onClick={() => setStep("hand_type")} variant="outline" className="w-full h-10 text-sm border-border/30">
-                  <ArrowRight className="h-4 w-4 mr-2" /> Manual Guided Reading
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="max-w-lg mx-auto space-y-6 pt-4">
+        <div className="text-center space-y-2">
+          <div className="flex justify-center">
+            <div className="h-16 w-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center">
+              <Hand className="h-8 w-8 text-amber-600" />
+            </div>
+          </div>
+          <h2 className="font-display text-xl text-foreground">Dual Hand Reading</h2>
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+            Vedic palmistry reads both hands together — the non-dominant hand reveals your soul’s past karma and innate gifts, while the dominant hand shows what you are actively creating in this life.
+          </p>
+        </div>
 
-        <Card className="cosmic-card border-border/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Info className="h-3.5 w-3.5 text-primary" /> {t("palmistry.photo_tips_title")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[
-              { icon: "☀️", titleKey: "palmistry.tip_lighting_title", descKey: "palmistry.tip_lighting_desc" },
-              { icon: "✋", titleKey: "palmistry.tip_open_title",     descKey: "palmistry.tip_open_desc" },
-              { icon: "📸", titleKey: "palmistry.tip_topdown_title",  descKey: "palmistry.tip_topdown_desc" },
-              { icon: "🔍", titleKey: "palmistry.tip_frame_title",    descKey: "palmistry.tip_frame_desc" },
-              { icon: "🤚", titleKey: "palmistry.tip_hand_title",     descKey: "palmistry.tip_hand_desc" },
-              { icon: "🕉️", titleKey: "palmistry.tip_how_title",     descKey: "palmistry.tip_how_desc" },
-            ].map(item => (
-              <div key={item.titleKey} className="flex items-start gap-3">
-                <span className="text-lg">{item.icon}</span>
-                <div>
-                  <p className="text-xs font-semibold text-foreground">{t(item.titleKey)}</p>
-                  <p className="text-xs text-muted-foreground">{t(item.descKey)}</p>
-                </div>
-              </div>
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">Which is your dominant (writing) hand?</p>
+          <div className="grid grid-cols-2 gap-3">
+            {(["right", "left"] as const).map(h => (
+              <button
+                key={h}
+                onClick={() => setDominantHand(h)}
+                className={`p-4 rounded-xl border-2 transition-all text-center ${
+                  dominantHand === h
+                    ? "border-primary bg-primary/10"
+                    : "border-border/30 hover:border-primary/30"
+                }`}
+              >
+                <div className="text-3xl mb-2">{h === "right" ? "🤚" : "🤚"}</div>
+                <p className="text-sm font-semibold capitalize">{h} Hand</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {h === "right" ? "Most common" : "Left-handed"}
+                </p>
+                {dominantHand === h && <CheckCircle2 className="h-4 w-4 text-primary mx-auto mt-2" />}
+              </button>
             ))}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // ── Hand Type Step ──
-  if (step === "hand_type") {
-    return (
-      <div className="max-w-4xl mx-auto space-y-4">
-        {/* Progress */}
-        <div className="flex items-center gap-3 mb-2">
-          <button onClick={() => setStep("upload")} className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
-            <div className="h-full bg-primary rounded-full" style={{ width: "10%" }} />
-          </div>
-          <span className="text-xs text-muted-foreground">Step 1 of {QUESTIONS.length + 1}</span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {image && <img src={image} alt="Palm" className="h-14 w-14 rounded-lg object-cover border border-border/30 flex-shrink-0" />}
-          <div>
-            <h2 className="font-display text-xl text-glow-gold">What is your hand shape?</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Look at your palm and fingers to identify your hand type</p>
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          {HAND_TYPES.map(ht => (
-            <button
-              key={ht.id}
-              onClick={() => setHandTypeId(ht.id)}
-              className={`text-left p-4 rounded-xl border transition-all ${
-                handTypeId === ht.id
-                  ? "border-primary/50 bg-primary/10"
-                  : "border-border/30 bg-muted/5 hover:border-border/50 hover:bg-muted/10"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <span className="text-3xl">{ht.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold text-foreground">{t(`data.palmistry.${ht.id}_hand.label`, { defaultValue: ht.label })}</span>
-                    {handTypeId === ht.id && <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{ht.shape}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{t(`data.palmistry.${ht.id}_hand.element`, { defaultValue: ht.element })}</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {t(`data.palmistry.${ht.id}_hand.traits`, { defaultValue: ht.traits.join(", ") }).split(", ").slice(0, 3).map((tr: string) => (
-                      <span key={tr} className="text-xs px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">{tr}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))}
+        <div className="rounded-xl border border-amber-200/60 bg-amber-50/50 p-4 space-y-2">
+          <p className="text-xs font-semibold text-amber-800 flex items-center gap-1.5"><Info className="h-3.5 w-3.5" /> Vedic Palmistry — Two Hands</p>
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2">
+              <span className="text-xs font-medium text-amber-700 min-w-[110px]">Non-Dominant Hand</span>
+              <span className="text-xs text-amber-900">Past karma, soul gifts, innate potential (Prarabdha)</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-xs font-medium text-amber-700 min-w-[110px]">Dominant Hand</span>
+              <span className="text-xs text-amber-900">Present karma, current path, conscious choices (Kriyamana)</span>
+            </div>
+          </div>
         </div>
 
-        <Button
-          onClick={() => { setStep("questions"); setQuestionIndex(0); setCurrentSelection(selections.find(s => s.questionId === QUESTIONS[0].id)?.optionId ?? null); }}
-          disabled={!handTypeId}
-          className="w-full btn-saffron h-11 font-semibold mt-2"
-        >
-          Continue <ArrowRight className="h-4 w-4 ml-2" />
+        <Button onClick={() => setStep("scan_dominant")} className="w-full h-11 font-semibold">
+          Begin Dual Scan <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
     );
   }
 
-  // ── Question Step ──
-  if (step === "questions") {
-    const q = QUESTIONS[questionIndex];
-    const progress = ((questionIndex + 1) / (QUESTIONS.length + 1)) * 100;
+  // ── Step 2: Scan Dominant Hand ──
+  if (step === "scan_dominant") {
     return (
-      <div className="max-w-4xl mx-auto space-y-4">
+      <div className="max-w-lg mx-auto space-y-5">
         {/* Progress */}
         <div className="flex items-center gap-3">
-          <button onClick={handlePrevQuestion} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => setStep("choose_hand")} className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
-            <motion.div
-              className="h-full bg-primary rounded-full"
-              initial={{ width: `${(questionIndex / (QUESTIONS.length + 1)) * 100}%` }}
-              animate={{ width: `${progress}%` }}
-            />
+            <div className="h-full bg-primary rounded-full w-1/3 transition-all" />
           </div>
-          <span className="text-xs text-muted-foreground">Step {questionIndex + 2} of {QUESTIONS.length + 1}</span>
+          <span className="text-xs text-muted-foreground">Step 1 of 2</span>
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={q.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-4"
-          >
-            <div className="grid lg:grid-cols-5 gap-4">
-              {/* Palm image reference */}
-              {image && (
-                <div className="lg:col-span-2">
-                  <Card className="cosmic-card border-border/30">
-                    <CardContent className="pt-3 pb-3">
-                      <img src={image} alt="Your palm" className="w-full rounded-lg object-contain max-h-48 mb-2" />
-                      <div className="rounded-lg p-2.5 border border-border/20 bg-muted/10 space-y-1">
-                        <p className="text-xs font-semibold" style={{ color: q.color }}>{t(`data.palmistry.questions.${q.id}_line`, { defaultValue: q.line })}</p>
-                        <p className="text-xs text-muted-foreground">{t(`data.palmistry.questions.${q.id}_instruction`, { defaultValue: q.instruction })}</p>
-                        <p className="text-xs text-muted-foreground/60 italic">{t(`data.palmistry.questions.${q.id}_hint`, { defaultValue: q.hint })}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+        <div className="space-y-1">
+          <h2 className="font-display text-lg text-foreground">Scan Your Dominant Hand</h2>
+          <p className="text-sm text-muted-foreground">Your <span className="font-medium text-amber-700 capitalize">{dominantHand}</span> hand — present karma & current life path (Kriyamana)</p>
+        </div>
 
-              {/* Options */}
-              <div className={`${image ? "lg:col-span-3" : "lg:col-span-5"} space-y-2`}>
-                <div className="mb-3">
-                  <h2 className="font-display text-lg text-glow-gold" style={{ color: q.color }}>{t(`data.palmistry.questions.${q.id}_line`, { defaultValue: q.line })}</h2>
-                  <p className="text-xs text-muted-foreground">{q.sanskrit} · {t(`data.palmistry.questions.${q.id}_instruction`, { defaultValue: q.instruction })}</p>
-                </div>
-                {q.options.map(opt => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setCurrentSelection(opt.id)}
-                    className={`w-full text-left p-3 rounded-xl border transition-all ${
-                      currentSelection === opt.id
-                        ? "border-primary/50 bg-primary/8"
-                        : "border-border/30 hover:border-border/50 hover:bg-muted/10"
-                    }`}
-                    style={currentSelection === opt.id ? { borderColor: `${q.color}50`, background: `${q.color}0d` } : {}}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                        currentSelection === opt.id ? "border-primary bg-primary/20" : "border-border/50"
-                      }`} style={currentSelection === opt.id ? { borderColor: q.color } : {}}>
-                        {currentSelection === opt.id && <div className="h-2 w-2 rounded-full" style={{ background: q.color }} />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{t(opt.labelKey, { defaultValue: opt.label })}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{t(opt.descKey, { defaultValue: opt.desc })}</p>
-                        {currentSelection === opt.id && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-2 space-y-1">
-                            <p className="text-xs text-foreground leading-relaxed">{t(opt.meaningKey, { defaultValue: opt.meaning })}</p>
-                            <p className="text-xs italic" style={{ color: q.color }}>✦ {t(opt.vedicKey, { defaultValue: opt.vedic })}</p>
-                          </motion.div>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+        <HandUploader
+          label={`Dominant Hand (${dominantHand.charAt(0).toUpperCase() + dominantHand.slice(1)}) — Present Karma`}
+          role="dominant"
+          image={domImage}
+          imageName={domImageName}
+          loading={domLoading}
+          error={domError}
+          onFile={handleDomFile}
+          onReset={() => { setDomImage(null); setDomFile(null); setDomImageName(""); }}
+        />
 
-            <Button
-              onClick={handleNextQuestion}
-              disabled={!currentSelection}
-              className="w-full btn-saffron h-11 font-semibold"
-            >
-              {questionIndex === QUESTIONS.length - 1 ? (
-                <><Sparkles className="h-4 w-4 mr-2" /> Generate My Reading</>
-              ) : (
-                <>Next <ArrowRight className="h-4 w-4 ml-1.5" /></>
-              )}
-            </Button>
-          </motion.div>
-        </AnimatePresence>
+        <div className="rounded-xl border border-border/30 bg-muted/5 p-3 space-y-1.5">
+          <p className="text-xs font-semibold text-foreground">📸 Photo Tips</p>
+          {["Place hand flat on white surface", "Good natural light, no shadows", "Camera directly above, all lines visible", "All 5 fingers in frame"].map(tip => (
+            <p key={tip} className="text-xs text-muted-foreground flex items-center gap-1.5"><span className="text-primary">·</span>{tip}</p>
+          ))}
+        </div>
+
+        <Button onClick={analyzeDominant} disabled={!domImage || domLoading} className="w-full h-11 font-semibold bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white border-0">
+          {domLoading ? <><span className="animate-spin mr-2">❖</span> AI Scanning Dominant Hand…</> : <><Sparkles className="h-4 w-4 mr-2" /> Scan Dominant Hand</>}
+        </Button>
       </div>
     );
   }
 
-  // ── Report Step ──
-  if (step === "report" && report) {
+  // ── Step 3: Scan Non-Dominant Hand ──
+  if (step === "scan_non_dominant") {
     return (
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 max-w-5xl mx-auto">
-        {/* Header */}
-        <Card className="cosmic-card border-primary/20">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {image && <img src={image} alt="Palm" className="h-16 w-16 rounded-lg object-cover border border-border/30 flex-shrink-0" />}
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                    <h2 className="font-display text-xl text-glow-gold">Your Hasta Shastra Reading</h2>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">{t(`data.palmistry.${report.handType.id}_hand.label`, { defaultValue: report.handType.label })}</Badge>
-                    <Badge variant="outline" className="border-border/30 text-xs">{report.handType.vedic}</Badge>
-                    <Badge variant="outline" className="border-border/30 text-xs">{t(`data.palmistry.${report.handType.id}_hand.element`, { defaultValue: report.handType.element })}</Badge>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={downloadReport} className="border-border/30 text-xs">
-                  <Download className="h-3.5 w-3.5 mr-1.5" /> Download
-                </Button>
-                <Button variant="outline" size="sm" onClick={reset} className="border-border/30 text-xs">
-                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> New Reading
-                </Button>
-              </div>
-            </div>
-            <div className="mt-3 rounded-lg p-3 bg-primary/5 border border-primary/15">
-              <p className="text-xs text-muted-foreground italic leading-relaxed">{t(`data.palmistry.${report.handType.id}_hand.vedic_note`, { defaultValue: report.handType.vedic_note })}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Auspicious note */}
-        <div className="flex items-start gap-3 rounded-xl p-4 border border-primary/20 bg-primary/5">
-          <span className="text-xl">✦</span>
-          <p className="text-sm text-foreground leading-relaxed">{report.auspiciousNote}</p>
-        </div>
-
-        {/* Life areas + Overview */}
-        <div className="grid lg:grid-cols-5 gap-5">
-          <Card className="cosmic-card border-border/30 lg:col-span-3">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Hand Type — {t(`data.palmistry.${report.handType.id}_hand.label`, { defaultValue: report.handType.label })}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                {t(`data.palmistry.${report.handType.id}_hand.traits`, { defaultValue: report.handType.traits.join(", ") }).split(", ").map((tr: string) => (
-                  <div key={tr} className="flex items-center gap-1.5 text-xs text-foreground">
-                    <span className="text-primary">◆</span> {tr}
-                  </div>
-                ))}
-              </div>
-              <div className="gold-divider" />
-              <div className="space-y-1.5 text-xs text-muted-foreground">
-                <div><span className="text-primary font-medium">Careers: </span>{t(`data.palmistry.${report.handType.id}_hand.careers`, { defaultValue: report.handType.careers })}</div>
-                <div><span className="text-primary font-medium">Constitution: </span>{t(`data.palmistry.${report.handType.id}_hand.constitution`, { defaultValue: report.handType.constitution })}</div>
-                <div><span className="text-secondary font-medium">Shadow: </span>{t(`data.palmistry.${report.handType.id}_hand.shadow`, { defaultValue: report.handType.shadow })}</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="cosmic-card border-border/30 lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <Star className="h-3.5 w-3.5 text-primary" /> Life Area Scores
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {report.lifeScores.map((area, i) => (
-                <motion.div key={area.area} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-foreground flex items-center gap-1.5"><span>{area.icon}</span>{area.area}</span>
-                  </div>
-                  <ScoreBar score={area.score} />
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Palm Line Readings */}
-        <div>
-          <h3 className="font-display text-base text-glow-gold mb-3 flex items-center gap-2">
-            <Hand className="h-4 w-4 text-primary" /> Your Palm Lines
-          </h3>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {report.selections.map((sel, i) => {
-              const q = QUESTIONS.find(q => q.id === sel.questionId);
-              const opt = q?.options.find(o => o.id === sel.optionId);
-              if (!q || !opt) return null;
-              return (
-                <motion.div key={sel.questionId} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-                  <Card className="cosmic-card border-border/30 h-full">
-                    <CardContent className="pt-4 space-y-2.5">
-                      <div className="flex items-start gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full flex-shrink-0 mt-1" style={{ background: q.color }} />
-                        <div>
-                          <span className="text-sm font-semibold text-foreground">{t(q.lineKey, { defaultValue: q.line })}</span>
-                          <span className="text-xs text-muted-foreground ml-2">{q.sanskrit}</span>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="text-xs border-border/30 ml-4">{t(opt.labelKey, { defaultValue: opt.label })}</Badge>
-                      <p className="text-xs text-foreground leading-relaxed">{t(opt.meaningKey, { defaultValue: opt.meaning })}</p>
-                      <div className="rounded-md px-2.5 py-2 bg-muted/20 border border-border/15">
-                        <p className="text-xs italic" style={{ color: q.color }}>✦ {t(opt.vedicKey, { defaultValue: opt.vedic })}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
+      <div className="max-w-lg mx-auto space-y-5">
+        {/* Progress */}
+        <div className="flex items-center gap-3">
+          <button onClick={() => setStep("scan_dominant")} className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
+            <div className="h-full bg-primary rounded-full w-2/3 transition-all" />
           </div>
+          <span className="text-xs text-muted-foreground">Step 2 of 2</span>
         </div>
 
-        {/* Strengths, Challenges, Remedies */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          <Card className="cosmic-card border-border/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-primary">Strengths</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {report.strengths.map(s => (
-                <div key={s} className="flex items-start gap-2">
-                  <span className="text-primary text-xs mt-0.5 flex-shrink-0">✦</span>
-                  <p className="text-xs text-foreground leading-relaxed">{s}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="cosmic-card border-border/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-secondary">Growth Areas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {report.challenges.length > 0 ? report.challenges.map(c => (
-                <div key={c} className="flex items-start gap-2">
-                  <span className="text-secondary text-xs mt-0.5 flex-shrink-0">◆</span>
-                  <p className="text-xs text-foreground leading-relaxed">{c}</p>
-                </div>
-              )) : (
-                <p className="text-xs text-muted-foreground italic">Your palm shows a well-balanced karmic profile with no major challenges. Continue on your current path with devotion.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="cosmic-card border-border/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground flex items-center gap-1.5">🕉️ Vedic Remedies</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {report.remedies.map(r => (
-                <div key={r.title} className="space-y-0.5">
-                  <p className="text-xs font-semibold text-foreground">{r.title}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{r.detail}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+        {/* Dominant done badge */}
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs text-green-800">
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
+          <span>Dominant hand ({dominantHand}) scanned ✓ — now scan your {nonDominantHand} hand</span>
         </div>
 
-        {/* Summary */}
-        <Card className="cosmic-card border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base text-glow-gold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary zodiac-glow" /> Your Karmic Path
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-foreground leading-relaxed">{report.summary}</p>
-            <div className="gold-divider mt-4" />
-            <p className="text-xs text-muted-foreground/60 italic mt-3 text-center">
-              Based on Hasta Samudrika Shastra. For complete Jyotish analysis, combine with your Kundali chart.
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
+        <div className="space-y-1">
+          <h2 className="font-display text-lg text-foreground">Scan Your Non-Dominant Hand</h2>
+          <p className="text-sm text-muted-foreground">Your <span className="font-medium text-purple-700 capitalize">{nonDominantHand}</span> hand — past karma & soul gifts (Prarabdha)</p>
+        </div>
+
+        <HandUploader
+          label={`Non-Dominant Hand (${nonDominantHand.charAt(0).toUpperCase() + nonDominantHand.slice(1)}) — Past Karma`}
+          role="non_dominant"
+          image={nonDomImage}
+          imageName={nonDomImageName}
+          loading={nonDomLoading || combLoading}
+          error={nonDomError || combError}
+          onFile={handleNonDomFile}
+          onReset={() => { setNonDomImage(null); setNonDomFile(null); setNonDomImageName(""); }}
+        />
+
+        {combLoading && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse px-1">
+            <span className="animate-spin">❖</span> Generating combined Vedic report…
+          </div>
+        )}
+
+        <Button onClick={analyzeNonDominant} disabled={!nonDomImage || nonDomLoading || combLoading} className="w-full h-11 font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-0">
+          {(nonDomLoading || combLoading) ? <><span className="animate-spin mr-2">❖</span> Scanning & Generating Report…</> : <><Sparkles className="h-4 w-4 mr-2" /> Scan & Generate Combined Report</>}
+        </Button>
+      </div>
     );
   }
 
-  // ── AI Report Step (Gemini Vision) ──
-  if ((step as string) === "ai_report" && aiResult) {
-    const lineColors: Record<string, string> = {
-      "Heart Line": "#E8650A", "Head Line": "#C8860A", "Life Line": "#7CB87A",
-      "Fate Line": "#7A8BAA", "Sun Line": "#F5C842", "Mercury Line": "#9B8ED4",
-    };
-    const lifeAreaIcons: Record<string, string> = {
-      "Love & Relationships": "💕", "Career & Purpose": "🏆", "Health & Vitality": "🌿",
-      "Mental Clarity": "🧠", "Wealth & Prosperity": "✨", "Spiritual Growth": "🕉️",
-    };
-    const mountConditionLabel: Record<string, string> = {
-      well_developed: "Well Developed", flat: "Flat", overdeveloped: "Overdeveloped",
-    };
+  // ── Step 4: Combined Report ──
+  if (step === "report") {
+    const combined = combinedResult?.combined;
+    const dom      = combinedResult?.dominant   || domResult;
+    const nonDom   = combinedResult?.non_dominant || nonDomResult;
+
     return (
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 max-w-5xl mx-auto">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 max-w-4xl mx-auto">
         {/* Header */}
-        <Card className="cosmic-card border-primary/20">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {image && <img src={image} alt="Palm" className="h-16 w-16 rounded-lg object-cover border border-border/30 flex-shrink-0" />}
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Sparkles className="h-4 w-4 text-primary zodiac-glow" />
-                    <h2 className="font-display text-xl text-glow-gold">AI Palm Reading</h2>
-                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-xs"></Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">{aiResult.hand_type}</Badge>
-                    <Badge variant="outline" className="border-border/30 text-xs">{aiResult.hand_type_vedic}</Badge>
-                    <Badge variant="outline" className="border-border/30 text-xs">{aiResult.hand_type_element}</Badge>
-                  </div>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" onClick={reset} className="border-border/30 text-xs">
-                <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> New Reading
-              </Button>
-            </div>
-            {aiResult.hand_type_reading && (
-              <div className="mt-3 rounded-lg p-3 bg-primary/5 border border-primary/15">
-                <p className="text-xs text-muted-foreground italic leading-relaxed">{aiResult.hand_type_reading}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Auspicious note */}
-        {aiResult.auspicious_note && (
-          <div className="flex items-start gap-3 rounded-xl p-4 border border-primary/20 bg-primary/5">
-            <span className="text-xl flex-shrink-0">✦</span>
-            <p className="text-sm text-foreground leading-relaxed">{aiResult.auspicious_note}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-xl text-glow-gold">Dual Palm Reading Complete</h2>
+            <p className="text-xs text-muted-foreground">Dominant: <span className="capitalize font-medium text-amber-700">{dominantHand}</span> · Non-Dominant: <span className="capitalize font-medium text-purple-700">{nonDominantHand}</span></p>
           </div>
-        )}
-
-        {/* Overview + Life Scores */}
-        <div className="grid lg:grid-cols-5 gap-5">
-          {aiResult.overview && (
-            <Card className="cosmic-card border-border/30 lg:col-span-3">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground flex items-center gap-1.5">
-                  <BookOpen className="h-3.5 w-3.5 text-primary" /> Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-foreground leading-relaxed">{aiResult.overview}</p>
-              </CardContent>
-            </Card>
-          )}
-          {aiResult.life_areas?.length > 0 && (
-            <Card className="cosmic-card border-border/30 lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground flex items-center gap-1.5">
-                  <Star className="h-3.5 w-3.5 text-primary" /> Life Area Scores
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {aiResult.life_areas.map((area: any, i: number) => (
-                  <motion.div key={area.area} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-foreground flex items-center gap-1.5">
-                        <span>{lifeAreaIcons[area.area] ?? "✦"}</span>{area.area}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{area.label}</span>
-                    </div>
-                    <ScoreBar score={area.score} />
-                    {area.note && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{area.note}</p>}
-                  </motion.div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+          <Button variant="outline" size="sm" onClick={reset} className="border-border/30 text-xs">
+            <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> New Reading
+          </Button>
         </div>
 
-        {/* Palm Lines */}
-        {aiResult.lines?.length > 0 && (
-          <div>
-            <h3 className="font-display text-base text-glow-gold mb-3 flex items-center gap-2">
-              <Hand className="h-4 w-4 text-primary" /> Palm Line Analysis
-            </h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {aiResult.lines.map((line: any, i: number) => {
-                const color = lineColors[line.name] ?? "#C8860A";
-                return (
-                  <motion.div key={line.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-                    <Card className="cosmic-card border-border/30 h-full">
-                      <CardContent className="pt-4 space-y-2.5">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-2">
-                            <span className="h-2.5 w-2.5 rounded-full flex-shrink-0 mt-1" style={{ background: color }} />
-                            <div>
-                              <span className="text-sm font-semibold text-foreground">{line.name}</span>
-                              <span className="text-xs text-muted-foreground ml-2">{line.sanskrit}</span>
-                            </div>
-                          </div>
-                          {line.score !== undefined && <ScoreBar score={line.score} />}
-                        </div>
-                        {line.visibility && (
-                          <Badge variant="outline" className="text-xs border-border/30 ml-4 capitalize">{line.visibility}</Badge>
-                        )}
-                        {line.observation && (
-                          <p className="text-xs text-muted-foreground leading-relaxed italic">{line.observation}</p>
-                        )}
-                        {line.interpretation && (
-                          <p className="text-xs text-foreground leading-relaxed">{line.interpretation}</p>
-                        )}
-                        {line.vedic_note && (
-                          <div className="rounded-md px-2.5 py-2 bg-muted/20 border border-border/15">
-                            <p className="text-xs italic" style={{ color }}>✦ {line.vedic_note}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Dominant Mounts */}
-        {aiResult.dominant_mounts?.length > 0 && (
-          <div>
-            <h3 className="font-display text-base text-glow-gold mb-3 flex items-center gap-2">
-              <Hand className="h-4 w-4 text-primary" /> Dominant Mounts
-            </h3>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {aiResult.dominant_mounts.map((mount: any, i: number) => (
-                <motion.div key={mount.name + i} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.06 }}>
-                  <Card className="cosmic-card border-border/30 h-full">
-                    <CardContent className="pt-4 space-y-2">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{mount.name}</p>
-                        <p className="text-xs text-muted-foreground">{mount.planet}</p>
-                      </div>
-                      {mount.condition && (
-                        <Badge variant="outline" className="text-xs border-border/30 capitalize">
-                          {mountConditionLabel[mount.condition] ?? mount.condition}
-                        </Badge>
-                      )}
-                      {mount.note && <p className="text-xs text-foreground leading-relaxed">{mount.note}</p>}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Strengths, Challenges, Remedies */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          {aiResult.strengths?.length > 0 && (
-            <Card className="cosmic-card border-border/30">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-primary">Strengths</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {aiResult.strengths.map((s: string) => (
-                  <div key={s} className="flex items-start gap-2">
-                    <span className="text-primary text-xs mt-0.5 flex-shrink-0">✦</span>
-                    <p className="text-xs text-foreground leading-relaxed">{s}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-          {aiResult.challenges?.length > 0 && (
-            <Card className="cosmic-card border-border/30">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-secondary">Growth Areas</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {aiResult.challenges.map((c: string) => (
-                  <div key={c} className="flex items-start gap-2">
-                    <span className="text-secondary text-xs mt-0.5 flex-shrink-0">◆</span>
-                    <p className="text-xs text-foreground leading-relaxed">{c}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-          {aiResult.remedies?.length > 0 && (
-            <Card className="cosmic-card border-border/30">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground flex items-center gap-1.5">🕉️ Vedic Remedies</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {aiResult.remedies.map((r: any) => (
-                  <div key={r.title} className="space-y-0.5">
-                    <p className="text-xs font-semibold text-foreground">{r.title}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{r.detail}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Summary */}
-        {aiResult.summary && (
-          <Card className="cosmic-card border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-glow-gold flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary zodiac-glow" /> Your Karmic Path
+        {/* Combined Synthesis */}
+        {combined && (
+          <Card className="cosmic-card border-amber-200/60 bg-gradient-to-br from-amber-50/30 to-orange-50/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-amber-600" />
+                Combined Vedic Synthesis
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-foreground leading-relaxed">{aiResult.summary}</p>
-              <div className="gold-divider mt-4" />
-              <p className="text-xs text-muted-foreground/60 italic mt-3 text-center">
-                Analyzed by AI · Hasta Samudrika Shastra interpretation
-              </p>
+            <CardContent className="space-y-4">
+              <p className="text-sm leading-relaxed text-foreground">{combined.synthesis}</p>
+
+              {combined.karmic_gap && (
+                <div className="rounded-xl border-l-4 border-amber-500 bg-amber-50/60 px-4 py-3">
+                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Karmic Gap — Past vs Present</p>
+                  <p className="text-sm text-amber-900 leading-relaxed">{combined.karmic_gap}</p>
+                </div>
+              )}
+
+              {combined.soul_mission && (
+                <div className="rounded-xl bg-purple-50 border border-purple-200 px-4 py-3">
+                  <p className="text-xs font-bold text-purple-700 uppercase tracking-wide mb-1">Soul Mission This Lifetime</p>
+                  <p className="text-sm text-purple-900 leading-relaxed">{combined.soul_mission}</p>
+                </div>
+              )}
+
+              {/* Combined Life Areas */}
+              {combined.combined_life_areas && (
+                <div className="space-y-2.5">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Life Area Scores — Both Hands</p>
+                  {combined.combined_life_areas.map((a: any) => (
+                    <div key={a.area} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground">{a.area}</span>
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                          <span className="text-purple-600">Past {a.non_dominant_score}/10</span>
+                          <span className="text-amber-600">Now {a.dominant_score}/10</span>
+                          <span className="font-bold text-foreground">{a.combined_score}/10</span>
+                        </div>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden flex">
+                        <div className="h-full bg-purple-400/60" style={{ width: `${a.non_dominant_score * 10}%` }} />
+                        <div className="h-full bg-amber-500" style={{ width: `${Math.max(0, a.dominant_score - a.non_dominant_score) * 10}%` }} />
+                      </div>
+                      {a.insight && <p className="text-xs text-muted-foreground">{a.insight}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {combined.final_message && (
+                <div className="rounded-xl bg-muted/20 border border-border/30 px-4 py-3">
+                  <p className="text-sm text-foreground leading-relaxed italic">{combined.final_message}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
+
+        {/* Individual Hand Reports */}
+        <div className="grid lg:grid-cols-2 gap-4">
+          {/* Dominant */}
+          {dom && (
+            <Card className="cosmic-card border-amber-200/40">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-xs font-bold capitalize">{dominantHand} Hand</span>
+                  <span className="text-muted-foreground font-normal">Present Karma</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {dom.overview && <p className="text-xs leading-relaxed text-foreground">{dom.overview}</p>}
+                {dom.lines?.slice(0, 4).map((line: any) => (
+                  <div key={line.name} className="border-l-2 border-amber-400 pl-3 space-y-0.5">
+                    <p className="text-xs font-semibold text-foreground">{line.name} <span className="text-muted-foreground font-normal">({line.sanskrit})</span></p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{line.interpretation}</p>
+                    {line.vedic_note && <p className="text-[11px] text-amber-700 italic">{line.vedic_note}</p>}
+                  </div>
+                ))}
+                {combined?.dominant_summary && (
+                  <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5">
+                    <p className="text-xs text-amber-900 leading-relaxed">{combined.dominant_summary}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Non-Dominant */}
+          {nonDom && (
+            <Card className="cosmic-card border-purple-200/40">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs font-bold capitalize">{nonDominantHand} Hand</span>
+                  <span className="text-muted-foreground font-normal">Past Karma</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {nonDom.overview && <p className="text-xs leading-relaxed text-foreground">{nonDom.overview}</p>}
+                {nonDom.lines?.slice(0, 4).map((line: any) => (
+                  <div key={line.name} className="border-l-2 border-purple-400 pl-3 space-y-0.5">
+                    <p className="text-xs font-semibold text-foreground">{line.name} <span className="text-muted-foreground font-normal">({line.sanskrit})</span></p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{line.interpretation}</p>
+                    {line.vedic_note && <p className="text-[11px] text-purple-700 italic">{line.vedic_note}</p>}
+                  </div>
+                ))}
+                {combined?.non_dominant_summary && (
+                  <div className="rounded-lg bg-purple-50 border border-purple-200 p-2.5">
+                    <p className="text-xs text-purple-900 leading-relaxed">{combined.non_dominant_summary}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Remedies */}
+        {combined?.remedies && (
+          <Card className="cosmic-card border-border/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">Vedic Remedies</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {combined.remedies.map((r: any, i: number) => (
+                <div key={i} className="flex gap-3">
+                  <span className="text-primary font-bold text-sm mt-0.5 shrink-0">❖</span>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">{r.title}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{r.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        <p className="text-xs text-muted-foreground/50 italic text-center pb-4">
+          Analyzed by AI · Hasta Samudrika Shastra interpretation · Both hands read together
+        </p>
       </motion.div>
     );
   }

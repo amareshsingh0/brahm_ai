@@ -95,7 +95,7 @@ fun RashiScreen(navController: NavController) {
                     )
                 }
             }
-            ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 80.dp))
+            ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
             } // Box
         }
     } // SwipeBackLayout

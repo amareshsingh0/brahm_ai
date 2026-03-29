@@ -13,7 +13,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
-import com.bimoraai.brahm.core.components.PageBotFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -56,11 +55,6 @@ fun GocharScreen(navController: NavController, vm: GocharScreenViewModel = hiltV
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrahmBackground),
             )
-        },
-        floatingActionButton = {
-            if (hasData) {
-                PageBotFab(pageContext = "gochar", pageData = gocharPageData)
-            }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {

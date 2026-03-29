@@ -213,10 +213,6 @@ private fun buildReport(handTypeId: String, selections: List<Selection>): PalmRe
 
 @Composable
 fun PalmistryScreen(navController: NavController, vm: PalmistryViewModel = hiltViewModel()) {
-    val aiResult  by vm.result.collectAsState()
-    val isLoading by vm.isLoading.collectAsState()
-    val aiError   by vm.error.collectAsState()
-
     var selectedTab by remember { mutableIntStateOf(0) }
 
     SwipeBackLayout(navController) {
@@ -242,7 +238,7 @@ fun PalmistryScreen(navController: NavController, vm: PalmistryViewModel = hiltV
                     }
                 }
                 when (selectedTab) {
-                    0 -> ScanTab(vm, aiResult, isLoading, aiError)
+                    0 -> ScanTab(vm)
                     1 -> LinesTab()
                     2 -> MountsTab()
                     3 -> HandTypeTab()
@@ -252,98 +248,224 @@ fun PalmistryScreen(navController: NavController, vm: PalmistryViewModel = hiltV
     }
 }
 
-// ─── Scan Tab ─────────────────────────────────────────────────────────────────
+// ─── Scan Tab — Dual Hand Flow ────────────────────────────────────────────────
 
 @Composable
-private fun ScanTab(vm: PalmistryViewModel, aiResult: JsonObject?, isLoading: Boolean, aiError: String?) {
-    var step             by remember { mutableStateOf("upload") }
-    var selectedUri      by remember { mutableStateOf<Uri?>(null) }
-    var cameraUri        by remember { mutableStateOf<Uri?>(null) }
-    var handTypeId       by remember { mutableStateOf<String?>(null) }
-    var questionIndex    by remember { mutableIntStateOf(0) }
-    var selections       by remember { mutableStateOf(listOf<Selection>()) }
-    var currentSelection by remember { mutableStateOf<String?>(null) }
-    var report           by remember { mutableStateOf<PalmReport?>(null) }
+private fun ScanTab(vm: PalmistryViewModel) {
+    // Dual-hand state
+    val domResult     by vm.domResult.collectAsState()
+    val nonDomResult  by vm.nonDomResult.collectAsState()
+    val combined      by vm.combined.collectAsState()
+    val domLoading    by vm.domLoading.collectAsState()
+    val nonDomLoading by vm.nonDomLoading.collectAsState()
+    val domError      by vm.domError.collectAsState()
+    val nonDomError   by vm.nonDomError.collectAsState()
+
+    // step: choose_hand | scan_dominant | scan_non_dominant | report
+    var step          by remember { mutableStateOf("choose_hand") }
+    var dominantHand  by remember { mutableStateOf("right") }  // "right" or "left"
+    var domUri        by remember { mutableStateOf<Uri?>(null) }
+    var nonDomUri     by remember { mutableStateOf<Uri?>(null) }
+    var cameraUri     by remember { mutableStateOf<Uri?>(null) }
+    var cameraTarget  by remember { mutableStateOf("dom") }     // which hand camera is for
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) selectedUri = uri
+        if (uri != null) { if (cameraTarget == "dom") domUri = uri else nonDomUri = uri }
     }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) selectedUri = cameraUri
+        if (success) { if (cameraTarget == "dom") domUri = cameraUri else nonDomUri = cameraUri }
     }
     val cameraPermLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) {
-            val uri = vm.createCameraUri()
-            cameraUri = uri
-            cameraLauncher.launch(uri)
-        }
+        if (granted) { val uri = vm.createCameraUri(); cameraUri = uri; cameraLauncher.launch(uri) }
     }
 
+    fun launchGallery(target: String) { cameraTarget = target; galleryLauncher.launch("image/*") }
+    fun launchCamera(target: String)  { cameraTarget = target; cameraPermLauncher.launch(Manifest.permission.CAMERA) }
+
     fun reset() {
-        step = "upload"; selectedUri = null; handTypeId = null
-        questionIndex = 0; selections = listOf(); currentSelection = null; report = null
+        step = "choose_hand"; domUri = null; nonDomUri = null
         vm.clearResult()
     }
 
-    LaunchedEffect(aiResult) { if (aiResult != null) step = "ai_report" }
+    // Auto-advance to report when combined result arrives
+    LaunchedEffect(combined) { if (combined != null) step = "report" }
 
     when (step) {
-        "upload"    -> UploadStep(selectedUri, isLoading, aiError,
-            onGallery     = { galleryLauncher.launch("image/*") },
-            onCamera      = { cameraPermLauncher.launch(Manifest.permission.CAMERA) },
-            onAnalyzeAI   = { selectedUri?.let { vm.analyzePalm(it) } },
-            onManual      = { step = "hand_type" },
-            onReset       = { selectedUri = null })
-        "hand_type" -> HandTypeStep(selectedUri, handTypeId,
-            onSelect  = { handTypeId = it },
-            onContinue= { if (handTypeId != null) { step = "questions"; questionIndex = 0; currentSelection = null } },
-            onBack    = { step = "upload" })
-        "questions" -> QuestionsStep(QUESTIONS[questionIndex], selectedUri, questionIndex, QUESTIONS.size, currentSelection,
-            onSelect  = { currentSelection = it },
-            onNext    = {
-                if (currentSelection != null) {
-                    val newSel = selections.filter { it.questionId != QUESTIONS[questionIndex].id } + Selection(QUESTIONS[questionIndex].id, currentSelection!!)
-                    selections = newSel
-                    if (questionIndex < QUESTIONS.size - 1) {
-                        questionIndex++
-                        currentSelection = newSel.find { it.questionId == QUESTIONS[questionIndex].id }?.optionId
-                    } else {
-                        report = buildReport(handTypeId!!, newSel)
-                        step = "report"
-                    }
-                }
-            },
-            onBack    = { if (questionIndex == 0) { step = "hand_type" } else { questionIndex--; currentSelection = selections.find { it.questionId == QUESTIONS[questionIndex].id }?.optionId } })
-        "report"    -> ReportStep(report!!, selectedUri, onReset = { reset() })
-        "ai_report" -> AiReportStep(aiResult!!, selectedUri, onReset = { reset() })
+        "choose_hand"      -> ChooseHandStep(dominantHand,
+            onSelect   = { dominantHand = it },
+            onContinue = { step = "scan_dominant" })
+
+        "scan_dominant"    -> HandScanStep(
+            role        = "dominant",
+            dominantHand = dominantHand,
+            uri         = domUri,
+            isLoading   = domLoading,
+            error       = domError,
+            domResult   = domResult,
+            onGallery   = { launchGallery("dom") },
+            onCamera    = { launchCamera("dom") },
+            onReset     = { domUri = null },
+            onAnalyze   = { domUri?.let { vm.analyzeDominant(it) } },
+            onNext      = { step = "scan_non_dominant" },
+            onBack      = { step = "choose_hand" })
+
+        "scan_non_dominant"-> HandScanStep(
+            role        = "non_dominant",
+            dominantHand = dominantHand,
+            uri         = nonDomUri,
+            isLoading   = nonDomLoading,
+            error       = nonDomError,
+            domResult   = nonDomResult,
+            onGallery   = { launchGallery("non_dom") },
+            onCamera    = { launchCamera("non_dom") },
+            onReset     = { nonDomUri = null },
+            onAnalyze   = { nonDomUri?.let { u -> domUri?.let { d -> vm.analyzeNonDominantAndCombine(d, u, dominantHand) } } },
+            onNext      = {},
+            onBack      = { step = "scan_dominant" })
+
+        "report" -> {
+            val c   = combined
+            val dom = (c?.get("dominant") as? JsonObject) ?: domResult
+            val nd  = (c?.get("non_dominant") as? JsonObject) ?: nonDomResult
+            val cmb = c?.get("combined") as? JsonObject
+            if (dom != null) DualReportStep(dom, nd, cmb, domUri, nonDomUri, onReset = { reset() })
+        }
     }
 }
 
-// ─── Upload Step ──────────────────────────────────────────────────────────────
+// ─── Step 0: Choose Dominant Hand ─────────────────────────────────────────────
 
 @Composable
-private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, onGallery: () -> Unit, onCamera: () -> Unit, onAnalyzeAI: () -> Unit, onManual: () -> Unit, onReset: () -> Unit) {
-    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+private fun ChooseHandStep(dominantHand: String, onSelect: (String) -> Unit, onContinue: () -> Unit) {
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item {
+            // Header
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("🖐️", fontSize = 28.sp)
+                        Column {
+                            Text("Dual Palm Reading", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = BrahmGold))
+                            Text("Scan both hands for your complete karmic picture", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                        }
+                    }
+                    HorizontalDivider(color = BrahmBorder)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        listOf(
+                            Triple("dominant",     "✦ Dominant Hand", "Kriyamana Karma\nPresent life & current path"),
+                            Triple("non_dominant", "✦ Non-Dominant", "Prarabdha Karma\nPast life & soul origins"),
+                        ).forEach { (_, label, desc) ->
+                            Card(Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E7)), border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.3f))) {
+                                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, color = BrahmGold))
+                                    Text(desc,  style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, lineHeight = 18.sp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         item {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Default.Search, null, tint = BrahmGold, modifier = Modifier.size(18.dp))
-                        Column {
-                            Text("Scan Your Palm", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
-                            Text("Hold your dominant hand flat under good light. All major lines should be visible.", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    Text("Which is your dominant hand?", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
+                    Text("Your dominant hand is the one you write with.", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        listOf("right" to "Right Hand 🤚", "left" to "Left Hand 🤚").forEach { (val_, label) ->
+                            val selected = dominantHand == val_
+                            Card(
+                                onClick = { onSelect(val_) },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = if (selected) BrahmGold.copy(alpha = 0.12f) else Color(0xFFF8F9FA)),
+                                border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) BrahmGold else BrahmBorder),
+                            ) {
+                                Column(Modifier.padding(14.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(if (val_ == "right") "🤚" else "🖐️", fontSize = 28.sp)
+                                    Text(label, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, color = if (selected) BrahmGold else BrahmForeground))
+                                }
+                            }
                         }
                     }
-                    if (selectedUri == null) {
-                        Box(Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFF8F9FA)).border(2.dp, BrahmBorder, RoundedCornerShape(14.dp)).clickable { onCamera() }, contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Box(Modifier.size(56.dp).clip(CircleShape).background(BrahmGold.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) { Text("🖐️", fontSize = 28.sp) }
-                                Text("Tap to take palm photo", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
-                                Text("Hold palm flat under good light", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    Button(onClick = onContinue, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = BrahmGold)) {
+                        Text("Begin Scan →", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─── Step 1 & 2: Scan a Hand ──────────────────────────────────────────────────
+
+@Composable
+private fun HandScanStep(
+    role: String,
+    dominantHand: String,
+    uri: Uri?,
+    isLoading: Boolean,
+    error: String?,
+    domResult: JsonObject?,   // result after analysis (reused for showing "done" state)
+    onGallery: () -> Unit,
+    onCamera: () -> Unit,
+    onReset: () -> Unit,
+    onAnalyze: () -> Unit,
+    onNext: () -> Unit,
+    onBack: () -> Unit,
+) {
+    val isDom     = role == "dominant"
+    val accentCol = if (isDom) BrahmGold else Color(0xFF7C3AED)
+    val handName  = if (isDom) {
+        if (dominantHand == "right") "Right Hand (Dominant)" else "Left Hand (Dominant)"
+    } else {
+        if (dominantHand == "right") "Left Hand (Non-Dominant)" else "Right Hand (Non-Dominant)"
+    }
+    val karmaLabel = if (isDom) "Kriyamana Karma — Present Life" else "Prarabdha Karma — Past Life & Soul Origins"
+    val handEmoji  = if (isDom) "✦" else "☽"
+    val instruction = if (isDom)
+        "Hold your $handName flat under good light. Make sure the major lines are clearly visible."
+    else
+        "Now scan your non-dominant hand. This reveals your past karma and soul's innate gifts."
+
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item {
+            // Step indicator
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                listOf("Choose Hand", "Dominant", "Non-Dominant", "Report").forEachIndexed { i, label ->
+                    val stepNum = if (isDom) 1 else 2
+                    val active  = i == stepNum
+                    val done    = i < stepNum
+                    Box(Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(2.dp)).background(
+                        when { done -> BrahmGold; active -> accentCol; else -> BrahmBorder }
+                    ))
+                }
+            }
+        }
+        item {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Box(Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(accentCol.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                            Text(handEmoji, fontSize = 18.sp, color = accentCol)
+                        }
+                        Column {
+                            Text(handName, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = accentCol))
+                            Text(karmaLabel, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                        }
+                    }
+                    Text(instruction, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, lineHeight = 20.sp))
+
+                    if (uri == null) {
+                        Box(Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFF8F9FA)).border(2.dp, accentCol.copy(alpha = 0.3f), RoundedCornerShape(14.dp)).clickable { onCamera() }, contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("🖐️", fontSize = 32.sp)
+                                Text("Tap to photograph your palm", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+                                Text("Hold flat under good light", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                             }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = onCamera, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = BrahmGold)) {
+                            Button(onClick = onCamera, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = accentCol)) {
                                 Icon(Icons.Default.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Camera", color = Color.White)
                             }
                             OutlinedButton(onClick = onGallery, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BrahmBorder)) {
@@ -352,43 +474,277 @@ private fun UploadStep(selectedUri: Uri?, isLoading: Boolean, aiError: String?, 
                         }
                     } else {
                         Box(Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(14.dp))) {
-                            AsyncImage(model = selectedUri, contentDescription = "Palm", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                            AsyncImage(model = uri, contentDescription = "Palm", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                             IconButton(onClick = onReset, modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(28.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.5f))) {
                                 Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(14.dp))
                             }
                         }
-                        if (aiError != null) Text(aiError, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFDC2626)), textAlign = TextAlign.Center)
-                        Button(onClick = onAnalyzeAI, enabled = !isLoading, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C63FF))) {
-                            if (isLoading) { CircularProgressIndicator(Modifier.size(18.dp), Color.White, strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)); Text("AI is reading your palm...", color = Color.White) }
-                            else { Icon(Icons.Default.AutoAwesome, null, tint = Color.White, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("✦ AI Palm Reading", color = Color.White, fontWeight = FontWeight.SemiBold) }
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
-                            Text("or answer manually", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                            HorizontalDivider(Modifier.weight(1f), color = BrahmBorder)
-                        }
-                        OutlinedButton(onClick = onManual, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BrahmBorder)) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Manual Guided Reading")
+                        if (error != null) Text(error, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFDC2626)), textAlign = TextAlign.Center)
+
+                        if (domResult != null) {
+                            // Analysis done — show mini summary + Next button
+                            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(accentCol.copy(alpha = 0.08f)).padding(10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.CheckCircle, null, tint = accentCol, modifier = Modifier.size(18.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text("Reading complete", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, color = accentCol))
+                                    domResult.s("hand_type")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground)) }
+                                }
+                            }
+                            if (isDom) {
+                                Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = accentCol)) {
+                                    Text("Scan Non-Dominant Hand →", color = Color.White, fontWeight = FontWeight.SemiBold)
+                                }
+                            } else {
+                                // This should not appear as combined auto-navigates
+                                Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = accentCol)) {
+                                    CircularProgressIndicator(Modifier.size(18.dp), Color.White, strokeWidth = 2.dp)
+                                    Spacer(Modifier.width(8.dp)); Text("Generating combined report...", color = Color.White)
+                                }
+                            }
+                        } else {
+                            val btnLabel = if (isDom) "✦ Analyze Dominant Hand" else "☽ Analyze Non-Dominant Hand"
+                            Button(onClick = onAnalyze, enabled = !isLoading, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = accentCol)) {
+                                if (isLoading) { CircularProgressIndicator(Modifier.size(18.dp), Color.White, strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)); Text(if (isDom) "Reading dominant hand..." else "Generating full report...", color = Color.White) }
+                                else { Icon(Icons.Default.AutoAwesome, null, tint = Color.White, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text(btnLabel, color = Color.White, fontWeight = FontWeight.SemiBold) }
+                            }
                         }
                     }
                 }
             }
         }
         item {
-            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Photo Tips", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
-                    listOf("☉" to "Good natural or bright indoor lighting — no harsh shadows on the palm","✋" to "Flat open palm, fingers slightly spread, all major lines clearly visible","📸" to "Hold camera directly above the palm (top-down), at 20–30 cm distance","🔍" to "Fill most of the frame with just the palm — avoid cropping the wrist line","🤚" to "Use your dominant (writing) hand for the main reading","🕉️" to "Relax your hand completely — tension in the fingers distorts the lines").forEach { (icon, tip) ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text(icon, fontSize = 16.sp)
-                            Text(tip, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BrahmBorder)) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Back")
+            }
+        }
+    }
+}
+
+// ─── Step 3: Dual Report ──────────────────────────────────────────────────────
+
+@Composable
+private fun DualReportStep(dom: JsonObject, nonDom: JsonObject?, combined: JsonObject?, domUri: Uri?, nonDomUri: Uri?, onReset: () -> Unit) {
+    val lifeIcons = mapOf("Love & Relationships" to "💕","Career & Purpose" to "🏆","Health & Vitality" to "🌿","Mental Clarity" to "🧠","Wealth & Prosperity" to "✨","Spiritual Growth" to "🕉️")
+    val lineColors = mapOf("Heart Line" to Color(0xFFE8650A),"Head Line" to Color(0xFFC8860A),"Life Line" to Color(0xFF7CB87A),"Fate Line" to Color(0xFF7A8BAA),"Sun Line" to Color(0xFFF5C842),"Mercury Line" to Color(0xFF9B8ED4))
+    val purple = Color(0xFF7C3AED)
+
+    LazyColumn(Modifier.fillMaxSize().background(BrahmBackground), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+
+        // ── Combined Synthesis ──
+        if (combined != null) {
+            item {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E7)), border = BorderStroke(1.dp, BrahmGold.copy(alpha = 0.4f))) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("✦", fontSize = 22.sp, color = BrahmGold)
+                            Text("Karmic Synthesis", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = BrahmGold))
+                            Spacer(Modifier.weight(1f))
+                            IconButton(onClick = onReset, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Refresh, null, tint = BrahmMutedForeground, modifier = Modifier.size(16.dp)) }
+                        }
+                        combined.s("synthesis")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 20.sp)) }
+                    }
+                }
+            }
+            combined.s("karmic_gap")?.let { gap ->
+                item {
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, BrahmGold.copy(alpha = 0.2f), RoundedCornerShape(12.dp)).background(Color.White).padding(14.dp)) {
+                        Box(Modifier.width(3.dp).fillMaxHeight().clip(RoundedCornerShape(2.dp)).background(BrahmGold))
+                        Spacer(Modifier.width(10.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Karmic Gap", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, color = BrahmGold))
+                            Text(gap, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 20.sp))
+                        }
+                    }
+                }
+            }
+            combined.s("soul_mission")?.let { mission ->
+                item {
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(purple.copy(alpha = 0.06f)).border(1.dp, purple.copy(alpha = 0.2f), RoundedCornerShape(12.dp)).padding(14.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("🕉️", fontSize = 18.sp)
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Soul Mission", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, color = purple))
+                            Text(mission, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 20.sp))
+                        }
+                    }
+                }
+            }
+
+            // ── Combined Life Areas ──
+            combined.arr("combined_life_areas")?.mapNotNull { try { it.jsonObject } catch (_: Exception) { null } }?.let { areas ->
+                item {
+                    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text("Life Areas — Both Hands", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) { Box(Modifier.size(8.dp).clip(CircleShape).background(purple)); Text("Past", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground)) }
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) { Box(Modifier.size(8.dp).clip(CircleShape).background(BrahmGold)); Text("Present", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground)) }
+                            }
+                            areas.forEach { area ->
+                                val areaName = area.s("area") ?: return@forEach
+                                val domScore = area["dominant_score"]?.jsonPrimitive?.intOrNull ?: 5
+                                val ndScore  = area["non_dominant_score"]?.jsonPrimitive?.intOrNull ?: 5
+                                val insight  = area.s("insight")
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("${lifeIcons[areaName] ?: "•"} $areaName", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium), modifier = Modifier.weight(1f))
+                                        Text("$ndScore / $domScore", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                                    }
+                                    // Past (non-dominant) bar — purple
+                                    Box(Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp)).background(BrahmBorder)) {
+                                        Box(Modifier.fillMaxWidth(ndScore / 10f).height(5.dp).clip(RoundedCornerShape(3.dp)).background(purple))
+                                    }
+                                    // Present (dominant) bar — gold
+                                    Box(Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp)).background(BrahmBorder)) {
+                                        Box(Modifier.fillMaxWidth(domScore / 10f).height(5.dp).clip(RoundedCornerShape(3.dp)).background(BrahmGold))
+                                    }
+                                    insight?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, lineHeight = 18.sp)) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Final message ──
+            combined.s("final_message")?.let { msg ->
+                item {
+                    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = purple.copy(alpha = 0.06f)), border = BorderStroke(1.dp, purple.copy(alpha = 0.2f))) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("✦ Your Soul's Message", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = purple))
+                            Text(msg, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 20.sp, fontStyle = FontStyle.Italic))
+                        }
+                    }
+                }
+            }
+
+            // ── Remedies ──
+            combined.arr("remedies")?.mapNotNull { try { it.jsonObject } catch (_: Exception) { null } }?.let { remedies ->
+                item {
+                    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("🕯️ Vedic Remedies", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
+                            remedies.forEach { r ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                                    Box(Modifier.size(8.dp).clip(CircleShape).background(BrahmGold).padding(top = 5.dp))
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        r.s("title")?.let { Text(it, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)) }
+                                        r.s("detail")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, lineHeight = 18.sp)) }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+
+        // ── Dominant hand card ──
+        item {
+            HandResultCard(r = dom, uri = domUri, role = "dominant", accentColor = BrahmGold, lineColors = lineColors, lifeIcons = lifeIcons)
+        }
+
+        // ── Non-dominant hand card ──
+        nonDom?.let { nd ->
+            item {
+                HandResultCard(r = nd, uri = nonDomUri, role = "non_dominant", accentColor = purple, lineColors = lineColors, lifeIcons = lifeIcons)
+            }
+        }
+
+        item {
+            OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BrahmBorder)) {
+                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("New Scan")
+            }
+        }
     }
 }
+
+@Composable
+private fun HandResultCard(r: JsonObject, uri: Uri?, role: String, accentColor: Color, lineColors: Map<String, Color>, lifeIcons: Map<String, String>) {
+    val isDom     = role == "dominant"
+    val roleLabel = if (isDom) "✦ Dominant Hand — Present Karma" else "☽ Non-Dominant Hand — Past Karma"
+    val lines     = r.arr("lines")?.mapNotNull { try { it.jsonObject } catch (_: Exception) { null } }
+    val lifeAreas = r.arr("life_areas")?.mapNotNull { try { it.jsonObject } catch (_: Exception) { null } }
+    val strengths = r.arr("strengths")?.mapNotNull { it.jsonPrimitive.contentOrNull }
+    val challenges= r.arr("challenges")?.mapNotNull { it.jsonPrimitive.contentOrNull }
+
+    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, accentColor.copy(alpha = 0.25f)), elevation = CardDefaults.cardElevation(2.dp)) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Header
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                uri?.let { AsyncImage(model = it, contentDescription = null, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop) }
+                Column(Modifier.weight(1f)) {
+                    Text(roleLabel, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, color = accentColor))
+                    r.s("hand_type")?.let { Text(it, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)) }
+                    r.s("hand_type_vedic")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground)) }
+                }
+            }
+            r.s("overview")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 20.sp)) }
+
+            // Lines
+            lines?.takeIf { it.isNotEmpty() }?.let { lineList ->
+                HorizontalDivider(color = BrahmBorder)
+                Text("Palm Lines", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold))
+                lineList.forEach { line ->
+                    val name  = line.s("name") ?: return@forEach
+                    val color = lineColors[name] ?: BrahmGold
+                    val score = line["score"]?.jsonPrimitive?.intOrNull ?: 5
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.width(3.dp).height(14.dp).clip(RoundedCornerShape(2.dp)).background(color)); Spacer(Modifier.width(6.dp))
+                            Text(name, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold), modifier = Modifier.weight(1f))
+                            Text("$score/5", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                        }
+                        line.s("interpretation")?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground, lineHeight = 18.sp)) }
+                    }
+                }
+            }
+
+            // Life areas
+            lifeAreas?.takeIf { it.isNotEmpty() }?.let { areas ->
+                HorizontalDivider(color = BrahmBorder)
+                Text("Life Areas", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold))
+                areas.forEach { area ->
+                    val areaName = area.s("area") ?: return@forEach
+                    val score    = area["score"]?.jsonPrimitive?.intOrNull ?: 5
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("${lifeIcons[areaName] ?: "•"} $areaName", style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                        Box(Modifier.width(80.dp).height(5.dp).clip(RoundedCornerShape(3.dp)).background(BrahmBorder)) {
+                            Box(Modifier.fillMaxWidth(score / 10f).height(5.dp).clip(RoundedCornerShape(3.dp)).background(accentColor))
+                        }
+                        Spacer(Modifier.width(6.dp)); Text("$score", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
+                    }
+                }
+            }
+
+            // Strengths + Challenges
+            if (!strengths.isNullOrEmpty() || !challenges.isNullOrEmpty()) {
+                HorizontalDivider(color = BrahmBorder)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    strengths?.takeIf { it.isNotEmpty() }?.let { list ->
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Strengths", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, color = Color(0xFF16A34A)))
+                            list.forEach { Text("✓ $it", style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 18.sp)) }
+                        }
+                    }
+                    challenges?.takeIf { it.isNotEmpty() }?.let { list ->
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Challenges", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, color = Color(0xFFDC2626)))
+                            list.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 18.sp)) }
+                        }
+                    }
+                }
+            }
+
+            // Summary
+            r.s("summary")?.let { summary ->
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(accentColor.copy(alpha = 0.06f)).padding(10.dp)) {
+                    Text(summary, style = MaterialTheme.typography.bodySmall.copy(color = BrahmForeground, lineHeight = 20.sp, fontStyle = FontStyle.Italic))
+                }
+            }
+        }
+    }
+}
+
 
 // ─── Hand Type Step ───────────────────────────────────────────────────────────
 

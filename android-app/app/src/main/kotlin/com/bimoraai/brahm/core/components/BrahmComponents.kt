@@ -202,7 +202,7 @@ fun AskBrahmAiChip(
         onClick = onAsk,
         label = { Text("💬  Ask Brahm AI", style = MaterialTheme.typography.labelLarge) },
         leadingIcon = {
-            Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(Icons.Default.SmartToy, contentDescription = null, modifier = Modifier.size(16.dp))
         },
         modifier = modifier,
         colors = AssistChipDefaults.assistChipColors(
@@ -281,7 +281,7 @@ fun PageBotFab(
         contentColor = Color.White,
         elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
     ) {
-        Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = "Ask Brahm AI")
+        Icon(Icons.Default.SmartToy, contentDescription = "Ask Brahm AI")
     }
 
     if (showSheet) {
@@ -608,20 +608,30 @@ private fun BotMsgBubble(msg: BotMsg, isStreaming: Boolean = false, onLongPress:
     }
 }
 
-// ─── ScrollToTopFab — shows when user scrolls UP (not at top) ──
+// ─── ScrollToTopFab — shows briefly when scrolling UP, auto-hides after 1.5s ──
 @Composable
 fun ScrollToTopFab(listState: LazyListState, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
-    // Track scroll direction: show only when scrolling UP and not already at top
     val isScrollingUp by remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex > 0 &&
-            listState.lastScrolledBackward
+            listState.firstVisibleItemIndex > 0 && listState.lastScrolledBackward
         }
     }
-    val visible = isScrollingUp
+
+    // Auto-hide: visible only for 1.5s after scroll activity stops
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(isScrollingUp) {
+        if (isScrollingUp) {
+            visible = true
+            kotlinx.coroutines.delay(1500)
+            visible = false
+        }
+    }
+
     AnimatedVisibility(
         visible = visible,
+        // Positioned above PageBotFab (which is at bottom=16dp, 56dp tall → top at 72dp)
+        // Place ScrollToTopFab above it with gap: bottom = 72 + 8 + 44 = 124 → use bottom=88dp offset from PageBotFab bottom
         modifier = modifier,
         enter = fadeIn() + scaleIn(initialScale = 0.7f),
         exit  = fadeOut() + scaleOut(targetScale = 0.7f),

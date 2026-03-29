@@ -218,6 +218,15 @@ interface ApiService {
     @POST("palmistry/analyze")
     suspend fun analyzePalm(
         @Part image: okhttp3.MultipartBody.Part,
+        @Query("hand_role") handRole: String = "dominant",
+    ): Response<JsonObject>
+
+    @Multipart
+    @POST("palmistry/analyze-both")
+    suspend fun analyzeBothPalms(
+        @Part dominant: okhttp3.MultipartBody.Part,
+        @Part non_dominant: okhttp3.MultipartBody.Part,
+        @Query("dominant_hand") dominantHand: String = "right",
     ): Response<JsonObject>
 
     // Sky — current planetary positions
