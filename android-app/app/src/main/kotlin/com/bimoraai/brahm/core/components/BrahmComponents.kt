@@ -202,7 +202,7 @@ fun AskBrahmAiChip(
         onClick = onAsk,
         label = { Text("💬  Ask Brahm AI", style = MaterialTheme.typography.labelLarge) },
         leadingIcon = {
-            Icon(Icons.Default.SmartToy, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(Icons.Default.Android, contentDescription = null, modifier = Modifier.size(16.dp))
         },
         modifier = modifier,
         colors = AssistChipDefaults.assistChipColors(
@@ -281,7 +281,7 @@ fun PageBotFab(
         contentColor = Color.White,
         elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
     ) {
-        Icon(Icons.Default.SmartToy, contentDescription = "Ask Brahm AI")
+        Icon(Icons.Default.Android, contentDescription = "Ask Brahm AI")
     }
 
     if (showSheet) {
