@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
 @HiltViewModel
@@ -87,10 +89,20 @@ class GemstoneScreenViewModel @Inject constructor(
             try {
                 // Prefer saved kundali — fast DB lookup, avoids heavy recalculation
                 val savedResp = api.getSavedKundali()
-                val result = if (savedResp.isSuccessful && savedResp.body() != null) {
-                    savedResp.body()
-                } else {
-                    // Fallback: lightweight kundali (no divisional charts / dashas)
+                val result: JsonObject? = if (savedResp.isSuccessful && savedResp.body() != null) {
+                    val body = savedResp.body()!!
+                    val found = body["found"]?.jsonPrimitive?.content == "true" ||
+                                body["found"].toString() == "true"
+                    if (found) {
+                        val kundaliJsonStr = body["kundali"]?.jsonObject?.get("kundali_json")?.jsonPrimitive?.content
+                        if (!kundaliJsonStr.isNullOrBlank()) {
+                            try { com.bimoraai.brahm.core.network.json.parseToJsonElement(kundaliJsonStr).jsonObject }
+                            catch (_: Exception) { null }
+                        } else null
+                    } else null
+                } else null
+
+                val finalResult = result ?: run {
                     val resp = api.generateKundali(KundaliRequest(
                         name         = name.value.ifBlank { "User" },
                         date         = dob.value,
@@ -104,9 +116,9 @@ class GemstoneScreenViewModel @Inject constructor(
                     if (resp.isSuccessful) resp.body() else null
                 }
 
-                if (result != null) {
-                    _result.value  = result
-                    cachedResult   = result
+                if (finalResult != null) {
+                    _result.value  = finalResult
+                    cachedResult   = finalResult
                     _hasData.value = true
                 } else {
                     _error.value = "Calculation failed. Please check birth details."

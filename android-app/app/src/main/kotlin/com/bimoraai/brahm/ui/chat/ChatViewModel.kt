@@ -76,11 +76,17 @@ class ChatViewModel @Inject constructor(
     private val api: ApiService,
 ) : ViewModel() {
 
+    // Process-level cache — ArchivedChatsScreen shows data instantly on nav
+    companion object {
+        private var cachedSessions:  List<ChatSession> = emptyList()
+        private var cachedArchived:  List<ChatSession> = emptyList()
+    }
+
     private val _messages          = MutableStateFlow<List<ChatMessage>>(emptyList())
     private val _isStreaming       = MutableStateFlow(false)
-    private val _sessions          = MutableStateFlow<List<ChatSession>>(emptyList())
-    private val _archivedSessions  = MutableStateFlow<List<ChatSession>>(emptyList())
-    private val _sessionsLoading   = MutableStateFlow(false)
+    private val _sessions          = MutableStateFlow(cachedSessions)
+    private val _archivedSessions  = MutableStateFlow(cachedArchived)
+    private val _sessionsLoading   = MutableStateFlow(cachedArchived.isEmpty())
 
     val messages          = _messages.asStateFlow()
     val isStreaming       = _isStreaming.asStateFlow()
@@ -151,6 +157,8 @@ class ChatViewModel @Inject constructor(
 
                 val parsed   = parseArr(respNormal)
                 val archived = parseArr(respArchived)
+                cachedSessions          = parsed
+                cachedArchived          = archived
                 _sessions.value         = parsed
                 _archivedSessions.value = archived
 

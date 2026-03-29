@@ -331,6 +331,7 @@ internal fun SessionRow(
     session: ChatSession,
     isArchived: Boolean   = false,
     archiveLabel: String  = "Archive",
+    tapOpensMenu: Boolean = false,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onPin: () -> Unit,
@@ -344,10 +345,17 @@ internal fun SessionRow(
     Box {
         Surface(
             color = Color.Transparent,
-            modifier = Modifier.combinedClickable(
-                onClick      = onClick,
-                onLongClick  = { showMenu = true },
-            ),
+            modifier = if (tapOpensMenu) {
+                Modifier.combinedClickable(
+                    onClick     = { showMenu = true },
+                    onLongClick = { showMenu = true },
+                )
+            } else {
+                Modifier.combinedClickable(
+                    onClick     = onClick,
+                    onLongClick = { showMenu = true },
+                )
+            },
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
@@ -604,13 +612,13 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
     }
 }
 
-private fun isRichResponse(text: String): Boolean =
+internal fun isRichResponse(text: String): Boolean =
     text.length > 200 || text.contains('\n') || text.contains("**") ||
     text.contains("\n- ") || text.contains("\n• ") || text.contains("\n# ")
 
 // ── Rich AI card ──────────────────────────────────────────────────────────────
 @Composable
-private fun RichAiCard(text: String) {
+internal fun RichAiCard(text: String) {
     val sections = remember(text) { parseMarkdown(text) }
 
     Card(
@@ -659,7 +667,7 @@ private fun RichAiCard(text: String) {
 }
 
 @Composable
-private fun MdBlock(section: MdSection) {
+internal fun MdBlock(section: MdSection) {
     when (section) {
         is MdSection.Heading -> Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -790,7 +798,7 @@ private fun MdBlock(section: MdSection) {
 }
 
 // ── Markdown data model ───────────────────────────────────────────────────────
-private sealed class MdSection {
+internal sealed class MdSection {
     data class Heading(val text: String)                        : MdSection()
     data class Para(val text: String)                           : MdSection()
     data class Quote(val text: String)                          : MdSection()
@@ -801,7 +809,7 @@ private sealed class MdSection {
 }
 
 // ── Markdown parser ───────────────────────────────────────────────────────────
-private fun parseMarkdown(raw: String): List<MdSection> {
+internal fun parseMarkdown(raw: String): List<MdSection> {
     val result  = mutableListOf<MdSection>()
     var numIdx  = 0
 
@@ -831,7 +839,7 @@ private fun parseMarkdown(raw: String): List<MdSection> {
 }
 
 // ── Inline bold/italic/code → AnnotatedString ─────────────────────────────────
-private fun styledText(text: String) = buildAnnotatedString {
+internal fun styledText(text: String) = buildAnnotatedString {
     val regex  = Regex("""\*\*(.*?)\*\*|\*(.*?)\*|`(.*?)`""")
     var cursor = 0
     regex.findAll(text).forEach { m ->

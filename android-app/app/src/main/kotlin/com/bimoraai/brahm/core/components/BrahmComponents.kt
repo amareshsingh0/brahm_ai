@@ -541,13 +541,15 @@ fun PageBotSheet(
     }
 }
 
-private val followupsRegex = Regex("""\[FOLLOWUPS:\s*(.*?)\]""", setOf(RegexOption.DOT_MATCHES_ALL))
+private val followupsRegex   = Regex("""\[FOLLOWUPS:\s*(.*?)\]""", setOf(RegexOption.DOT_MATCHES_ALL))
+private val confidenceRegex  = Regex("""\[CONFIDENCE:\s*\w+\]""")
 
-/** Strips the [FOLLOWUPS: ...] tag from text and returns (cleanText, listOfSuggestions). */
+/** Strips [CONFIDENCE] and [FOLLOWUPS] tags; returns (cleanText, followUpSuggestions). */
 private fun parseFollowups(text: String): Pair<String, List<String>> {
-    val match = followupsRegex.find(text) ?: return text to emptyList()
-    val clean = text.substring(0, match.range.first).trimEnd()
-    val items = match.groupValues[1]
+    val noConf = confidenceRegex.replace(text, "").trim()
+    val match  = followupsRegex.find(noConf) ?: return noConf to emptyList()
+    val clean  = noConf.substring(0, match.range.first).trimEnd()
+    val items  = match.groupValues[1]
         .split("|")
         .map { it.trim().removeSurrounding("\"") }
         .filter { it.isNotBlank() }
@@ -575,7 +577,7 @@ private fun BotMsgBubble(msg: BotMsg, isStreaming: Boolean = false, onLongPress:
     } else {
         val (cleanText, _) = parseFollowups(msg.text)
         if (isStreaming || cleanText.isBlank()) {
-            // Stream tokens as plain text
+            // Streaming — plain text preview
             Surface(
                 shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
                 color = Color(0xFFF5F0E8),
@@ -591,20 +593,9 @@ private fun BotMsgBubble(msg: BotMsg, isStreaming: Boolean = false, onLongPress:
                 )
             }
         } else {
-            // Complete — use rich card from ChatScreen (reuse same logic via Surface for PageBot)
-            Surface(
-                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
-                color = Color(0xFFF5F0E8),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(onClick = {}, onLongClick = onLongPress),
-            ) {
-                Text(
-                    text     = cleanText.ifBlank { "…" },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = BrahmForeground,
-                )
+            // Complete — rich markdown card (same as ChatScreen)
+            Box(modifier = Modifier.combinedClickable(onClick = {}, onLongClick = onLongPress)) {
+                com.bimoraai.brahm.ui.chat.RichAiCard(cleanText)
             }
         }
     }

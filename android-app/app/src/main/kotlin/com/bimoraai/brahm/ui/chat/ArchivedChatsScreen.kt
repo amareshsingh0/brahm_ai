@@ -64,7 +64,7 @@ fun ArchivedChatsScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("📦", fontSize = 40.sp)
                     Text("No archived chats", style = MaterialTheme.typography.titleMedium.copy(color = BrahmMutedForeground))
-                    Text("Long-press a chat to archive it", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                    Text("Tap any chat to manage it", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                 }
             }
         } else {
@@ -77,7 +77,8 @@ fun ArchivedChatsScreen(
                         session      = session,
                         isArchived   = true,
                         archiveLabel = "Unarchive",
-                        onClick      = { vm.loadSession(session); navController.popBackStack() },
+                        tapOpensMenu = true,
+                        onClick      = {},
                         onDelete     = { vm.deleteSession(session) },
                         onPin        = {},
                         onArchive    = { vm.unarchiveSession(session) },

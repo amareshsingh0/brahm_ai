@@ -111,9 +111,17 @@ class SadeSatiScreenViewModel @Inject constructor(
             // Prefer saved kundali — fast DB lookup, no heavy recalculation
             val savedResp = api.getSavedKundali()
             val (moonR, lagnaR) = if (savedResp.isSuccessful && savedResp.body() != null) {
-                val k = savedResp.body()!!
-                val mr = k["grahas"]?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
-                val lr = k["lagna"]?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                val body  = savedResp.body()!!
+                val found = body["found"]?.jsonPrimitive?.content == "true" || body["found"].toString() == "true"
+                val k: kotlinx.serialization.json.JsonObject? = if (found) {
+                    val jsonStr = body["kundali"]?.jsonObject?.get("kundali_json")?.jsonPrimitive?.content
+                    if (!jsonStr.isNullOrBlank()) {
+                        try { com.bimoraai.brahm.core.network.json.parseToJsonElement(jsonStr).jsonObject }
+                        catch (_: Exception) { null }
+                    } else null
+                } else null
+                val mr = k?.get("grahas")?.jsonObject?.get("Chandra")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
+                val lr = k?.get("lagna")?.jsonObject?.get("rashi")?.jsonPrimitive?.contentOrNull ?: ""
                 mr to lr
             } else {
                 // Fallback: lightweight kundali (no divisional charts / dashas)

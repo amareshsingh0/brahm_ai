@@ -9,6 +9,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import okhttp3.ConnectionPool
 import okhttp3.MediaType.Companion.toMediaType
@@ -35,6 +37,9 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(tokenDataStore: TokenDataStore): OkHttpClient {
+        // Prevents concurrent refresh calls when multiple requests expire simultaneously
+        val refreshMutex = Mutex()
+
         val logging = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG)
                 HttpLoggingInterceptor.Level.BODY
@@ -63,43 +68,60 @@ object NetworkModule {
             }
             // Auto-refresh expired JWT on 401 — retries the original request once
             .authenticator { _, response ->
-                // Don't retry if already retried, or if no auth was sent
+                // Don't retry if already retried
                 if (response.request.header("X-Auth-Retry") != null) return@authenticator null
-                val refreshToken = runBlocking { tokenDataStore.refreshToken.firstOrNull() }
-                    ?: return@authenticator null
 
-                val body = """{"refresh_token":"$refreshToken"}"""
-                    .toRequestBody("application/json".toMediaType())
-                val refreshRequest = Request.Builder()
-                    .url("${BuildConfig.BASE_URL}auth/refresh")
-                    .post(body)
-                    .build()
+                runBlocking {
+                    refreshMutex.withLock {
+                        // Re-check: another thread may have already refreshed while we waited
+                        val currentAccess = tokenDataStore.accessToken.firstOrNull()
+                        val sentAccess    = response.request.header("Authorization")
+                            ?.removePrefix("Bearer ")?.trim()
 
-                val refreshResponse = try {
-                    refreshClient.newCall(refreshRequest).execute()
-                } catch (_: Exception) { return@authenticator null }
+                        // If the token in DataStore is newer than the one that failed, just retry
+                        if (currentAccess != null && currentAccess != sentAccess) {
+                            return@withLock response.request.newBuilder()
+                                .header("Authorization", "Bearer $currentAccess")
+                                .header("X-Auth-Retry", "true")
+                                .build()
+                        }
 
-                if (!refreshResponse.isSuccessful) {
-                    // Only clear tokens on explicit auth rejection (401/403)
-                    // Do NOT clear on 5xx or network errors — that would log the user out unnecessarily
-                    if (refreshResponse.code == 401 || refreshResponse.code == 403) {
-                        runBlocking { tokenDataStore.clear() }
+                        val refreshToken = tokenDataStore.refreshToken.firstOrNull()
+                            ?: return@withLock null
+
+                        val body = """{"refresh_token":"$refreshToken"}"""
+                            .toRequestBody("application/json".toMediaType())
+                        val refreshRequest = Request.Builder()
+                            .url("${BuildConfig.BASE_URL}auth/refresh")
+                            .post(body)
+                            .build()
+
+                        val refreshResponse = try {
+                            refreshClient.newCall(refreshRequest).execute()
+                        } catch (_: Exception) { return@withLock null }
+
+                        if (!refreshResponse.isSuccessful) {
+                            // Only clear tokens on explicit auth rejection — not on 5xx/network errors
+                            if (refreshResponse.code == 401 || refreshResponse.code == 403) {
+                                tokenDataStore.clear()
+                            }
+                            return@withLock null
+                        }
+
+                        val bodyStr    = refreshResponse.body?.string() ?: return@withLock null
+                        val newAccess  = try { JSONObject(bodyStr).optString("access_token")  } catch (_: Exception) { null }
+                        val newRefresh = try { JSONObject(bodyStr).optString("refresh_token") } catch (_: Exception) { null }
+
+                        if (newAccess.isNullOrBlank()) return@withLock null
+
+                        tokenDataStore.saveTokens(newAccess, newRefresh ?: refreshToken)
+
+                        response.request.newBuilder()
+                            .header("Authorization", "Bearer $newAccess")
+                            .header("X-Auth-Retry", "true")
+                            .build()
                     }
-                    return@authenticator null
                 }
-
-                val bodyStr = refreshResponse.body?.string() ?: return@authenticator null
-                val newAccess  = try { JSONObject(bodyStr).optString("access_token")  } catch (_: Exception) { null }
-                val newRefresh = try { JSONObject(bodyStr).optString("refresh_token") } catch (_: Exception) { null }
-
-                if (newAccess.isNullOrBlank()) return@authenticator null
-
-                runBlocking { tokenDataStore.saveTokens(newAccess, newRefresh ?: refreshToken) }
-
-                response.request.newBuilder()
-                    .header("Authorization", "Bearer $newAccess")
-                    .header("X-Auth-Retry", "true")
-                    .build()
             }
             .addInterceptor(logging)
             .build()

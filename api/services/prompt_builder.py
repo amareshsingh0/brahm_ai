@@ -454,16 +454,6 @@ Apne general knowledge se answer do. Agar natural lage toh ek line mein Vedic/ka
     else:
         sections.append("Focused jawab do. Sirf jo poochha hai usi ka jawab. Max 200 words. Padding avoid karo.")
 
-    # Confidence tag
-    if query_type != "CONVERSATIONAL":
-        sections.append(
-            "\nResponse ke BILKUL AKHIR mein — ek line — confidence tag:\n"
-            "[CONFIDENCE: HIGH] — kundali + dasha + gochar teeno available\n"
-            "[CONFIDENCE: MEDIUM] — sirf kundali, ya dasha/gochar mein se ek\n"
-            "[CONFIDENCE: LOW] — birth data nahi, ya partial data\n"
-            "Sirf tag — koi explanation nahi."
-        )
-
     # ── Follow-up loop (MANDATORY — always include) ──────────────────────────
     # These chips drive the infinite exploration experience like ChatGPT/Grok.
     # Rules:
