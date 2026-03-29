@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
@@ -68,7 +69,7 @@ class SseManager @Inject constructor(
 
         val request = Request.Builder()
             .url("${BuildConfig.BASE_URL}chat")
-            .post(RequestBody.create("application/json".toMediaTypeOrNull(), body))
+            .post(body.toRequestBody("application/json".toMediaTypeOrNull()))
             .apply { if (token != null) header("Authorization", "Bearer $token") }
             .build()
 

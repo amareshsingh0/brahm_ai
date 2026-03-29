@@ -14,6 +14,7 @@ import { useGrahan } from "@/hooks/useGrahan";
 import { searchCities, type City } from "@/lib/cities";
 import type { CalendarDayData, FestivalEntry, Eclipse } from "@/types/api";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 // Week headers and month names are used in static contexts (sub-components without t()).
@@ -527,6 +528,7 @@ function DayListRow({ day, onClick, eclipse }: { day: CalendarDayData; onClick: 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CalendarPage() {
   const { t } = useTranslation();
+  useRegisterPageBot('calendar', {});
   const now = new Date();
   const [year,       setYear]       = useState(now.getFullYear());
   const [month,      setMonth]      = useState(now.getMonth() + 1);

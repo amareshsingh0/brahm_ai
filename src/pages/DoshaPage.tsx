@@ -339,6 +339,7 @@ const CARD_REMEDIES = {
 export default function DoshaPage() {
   const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
+  useRegisterPageBot('dosha', kundaliData ? { grahas: kundaliData.grahas, doshas: kundaliData.doshas } : {});
 
   if (!kundaliData) {
     return (

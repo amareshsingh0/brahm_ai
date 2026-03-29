@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Users, BookOpen, TreePine } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 const GOTRA_STATIC = [
   { name: "Bharadwaj", sanskrit: "भारद्वाज", rishi: "Maharshi Bharadwaj", rishiDev: "महर्षि भारद्वाज", veda: "Rig Veda", pravara: ["Angirasa", "Barhaspatya", "Bharadwaja"], pravaraD: ["अंगिरस", "बार्हस्पत्य", "भारद्वाज"], deity: "Brihaspati (Jupiter)", deityKey: "data.gotra.deity_bharadwaj", descKey: "data.gotra.bharadwaj_desc", notableDescendants: ["Dronacharya", "Ashwatthama"], notableD: ["द्रोणाचार्य", "अश्वत्थामा"], relatedGotras: ["Angirasa", "Garg"], relatedD: ["अंगिरस", "गर्ग"] },
@@ -28,6 +29,7 @@ const RULES_STATIC = [
 
 export default function GotraFinderPage() {
   const { t, i18n } = useTranslation();
+  useRegisterPageBot('gotra', {});
   const [search, setSearch] = useState("");
   const isEn = i18n.language === "en";
 

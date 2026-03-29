@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Volume2, ChevronDown, ChevronUp } from "lucide-react";
 import { useSearch } from "@/hooks/useSearch";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 const MANTRA_STATIC = [
   { id: 1, name: "Gayatri Mantra", deity: "Savitri (Sun)", deityKey: "mantras.deity_savitri", source: "Rig Veda 3.62.10", sourceDev: "ऋग्वेद ३.६२.१०", sanskrit: "ॐ भूर्भुवः स्वः\nतत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि\nधियो यो नः प्रचोदयात्॥", transliteration: "Om Bhur Bhuvah Svah\nTat Savitur Varenyam\nBhargo Devasya Dhimahi\nDhiyo Yo Nah Prachodayat", meaningKey: "data.mantras.gayatri_meaning", benefitsKey: "data.mantras.gayatri_benefits", chantCount: 108, category: "Universal", categoryKey: "mantras.cat_universal" },
@@ -31,6 +32,7 @@ const categoryColors: Record<string, string> = {
 
 export default function MantraDictionaryPage() {
   const { t, i18n } = useTranslation();
+  useRegisterPageBot('mantra', {});
   const [search, setSearch] = useState("");
   const { data: ragResults } = useSearch(search);
   const [expanded, setExpanded] = useState<number | null>(null);

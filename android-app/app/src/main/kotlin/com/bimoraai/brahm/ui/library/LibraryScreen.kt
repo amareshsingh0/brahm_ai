@@ -338,7 +338,7 @@ fun LibraryScreen(navController: NavController) {
 
             ScrollToTopFab(
                 listState,
-                Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 80.dp),
+                Modifier.align(Alignment.BottomEnd),
             )
         }
     }

@@ -100,7 +100,7 @@ fun GotraScreen(navController: NavController) {
                 )
             }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
+        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
     } // SwipeBackLayout

@@ -89,7 +89,7 @@ export default function LoginPage() {
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Please try again.";
+      const msg = err instanceof Error ? err.message : "Failed to send OTP. Please try again.";
       toast({ title: "Failed to send OTP", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);

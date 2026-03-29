@@ -577,6 +577,6 @@ fun RectificationContent(data: JsonObject, onReset: () -> Unit) {
                 }
             }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
+        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     }
 }

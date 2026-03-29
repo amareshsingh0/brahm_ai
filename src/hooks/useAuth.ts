@@ -52,27 +52,37 @@ export const useAuth = () => {
 
   // ── Phone OTP ────────────────────────────────────────────────
   const sendOtp = async (phone: string) => {
-    const res = await fetch(`${API}/auth/otp/send`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone: `+91${phone}`, purpose: "login" }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API}/auth/otp/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: `+91${phone}`, purpose: "login" }),
+      });
+    } catch {
+      throw new Error("Unable to connect. Please check your internet connection.");
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || "Failed to send OTP");
+      throw new Error(err.detail || "Failed to send OTP. Please try again.");
     }
     return res.json();
   };
 
   const verifyOtp = async (phone: string, otp: string) => {
-    const res = await fetch(`${API}/auth/otp/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone: `+91${phone}`, otp, purpose: "login" }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API}/auth/otp/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: `+91${phone}`, otp, purpose: "login" }),
+      });
+    } catch {
+      throw new Error("Unable to connect. Please check your internet connection.");
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || "Invalid OTP");
+      throw new Error(err.detail || "Invalid OTP. Please try again.");
     }
     const data = await res.json();
     const authUser: AuthUser = {

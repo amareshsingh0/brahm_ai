@@ -93,6 +93,16 @@ android {
     }
 }
 
+def enableCrashlyticsMappingUpload = providers.gradleProperty("enableCrashlyticsMappingUpload")
+    .map { it.toBoolean() }
+    .orElse(false)
+    .get()
+def isCiBuild = providers.environmentVariable("CI")
+    .map { it.equalsIgnoreCase("true") || it == "1" }
+    .orElse(false)
+    .get()
+def shouldUploadCrashlyticsMappings = enableCrashlyticsMappingUpload || isCiBuild
+
 // Disable Sentry ProGuard mapping auto-upload (path-with-spaces issue on Windows)
 sentry {
     autoUploadProguardMapping = false
@@ -100,6 +110,9 @@ sentry {
 }
 
 afterEvaluate {
+    tasks.matching { it.name.startsWith("uploadCrashlyticsMappingFile") }.configureEach {
+        enabled = shouldUploadCrashlyticsMappings
+    }
     tasks.matching { it.name.contains("uploadSentryProguardMappings") }.configureEach {
         enabled = false
     }
@@ -201,4 +214,3 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
 }
-

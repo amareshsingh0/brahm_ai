@@ -18,12 +18,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.*
@@ -350,7 +350,7 @@ fun CalendarScreen(
                         Surface(shape = btnShape, color = MaterialTheme.colorScheme.surface, border = btnBorder,
                             modifier = Modifier.height(btnHeight)) {
                             Row(modifier = Modifier.padding(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                listOf("grid" to Icons.Default.GridView, "list" to Icons.Default.List).forEach { (mode, icon) ->
+                                listOf("grid" to Icons.Default.GridView, "list" to Icons.AutoMirrored.Filled.List).forEach { (mode, icon) ->
                                     Box(
                                         modifier = Modifier
                                             .size(34.dp)
@@ -496,7 +496,7 @@ fun CalendarScreen(
 
             item { Spacer(Modifier.height(80.dp)) }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
+        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
 
@@ -516,7 +516,7 @@ fun CalendarScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -1377,4 +1377,3 @@ private fun TagChip(label: String, bg: Color) {
         )
     }
 }
-

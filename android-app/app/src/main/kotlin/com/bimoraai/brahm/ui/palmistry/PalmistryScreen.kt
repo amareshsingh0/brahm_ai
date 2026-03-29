@@ -372,7 +372,7 @@ private fun ChooseHandStep(dominantHand: String, onSelect: (String) -> Unit, onC
                     Text("Which is your dominant hand?", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
                     Text("Your dominant hand is the one you write with.", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        listOf("right" to "Right Hand 🤚", "left" to "Left Hand 🤚").forEach { (val_, label) ->
+                        listOf("right" to "Right Hand", "left" to "Left Hand").forEach { (val_, label) ->
                             val selected = dominantHand == val_
                             Card(
                                 onClick = { onSelect(val_) },

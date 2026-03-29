@@ -12,7 +12,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.net.SocketTimeoutException
 import javax.inject.Inject
+
+private fun friendlyNetworkError(e: Exception): String = when (e) {
+    is SocketTimeoutException -> "Request timed out. Please check your internet and try again."
+    is IOException            -> "Unable to connect. Please check your internet connection."
+    else                      -> "Something went wrong. Please try again."
+}
 
 sealed class AuthState {
     object Idle : AuthState()
@@ -47,7 +55,7 @@ class AuthViewModel @Inject constructor(
                     _state.value = AuthState.Error(msg)
                 }
             } catch (e: Exception) {
-                _state.value = AuthState.Error(e.message ?: "Network error")
+                _state.value = AuthState.Error(friendlyNetworkError(e))
             }
         }
     }
@@ -67,11 +75,10 @@ class AuthViewModel @Inject constructor(
                         hasBirthData = user?.date?.isNotBlank() == true && user.place.isNotBlank()
                     )
                 } else {
-                    val errBody = res.errorBody()?.string()?.take(300)
-                    _state.value = AuthState.Error(errBody ?: "Invalid OTP. Please try again.")
+                    _state.value = AuthState.Error("Invalid OTP. Please try again.")
                 }
             } catch (e: Exception) {
-                _state.value = AuthState.Error(e.message ?: "Network error")
+                _state.value = AuthState.Error(friendlyNetworkError(e))
             }
         }
     }
@@ -94,7 +101,7 @@ class AuthViewModel @Inject constructor(
                     _state.value = AuthState.Error(errBody ?: "Google login failed.")
                 }
             } catch (e: Exception) {
-                _state.value = AuthState.Error(e.message ?: "Network error")
+                _state.value = AuthState.Error(friendlyNetworkError(e))
             }
         }
     }

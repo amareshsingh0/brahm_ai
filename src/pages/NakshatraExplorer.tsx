@@ -3,9 +3,11 @@ import { nakshatraData } from "@/store/kundliStore";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 export default function NakshatraExplorer() {
   const { t } = useTranslation();
+  useRegisterPageBot('nakshatra', {});
   const [selected, setSelected] = useState<typeof nakshatraData[0] | null>(null);
 
   return (

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Gem, Info, AlertTriangle, Star, ChevronDown, ChevronUp } from "lucide-react";
 import { useKundliStore } from "@/store/kundliStore";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 // ── Data tables ───────────────────────────────────────────────────────────────
 
@@ -242,6 +243,7 @@ function GeneralGuide() {
 export default function GemstoneRecommendationsPage() {
   const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
+  useRegisterPageBot('gemstone', kundaliData ? { grahas: kundaliData.grahas } : {});
 
   if (!kundaliData) {
     return (

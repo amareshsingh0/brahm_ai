@@ -137,7 +137,17 @@ class TodayViewModel @Inject constructor(
                     _error.value = res.errorBody()?.string()?.take(200) ?: "Failed to load Panchang (${res.code()})"
                 }
             } catch (e: Exception) {
-                _error.value = e.message ?: "Network error"
+                val msg = e.message ?: ""
+                _error.value = when {
+                    msg.contains("reset", ignoreCase = true) ||
+                    msg.contains("refused", ignoreCase = true) ||
+                    msg.contains("timeout", ignoreCase = true) ||
+                    msg.contains("connect", ignoreCase = true) ||
+                    msg.contains("network", ignoreCase = true) ||
+                    msg.contains("Unable to resolve", ignoreCase = true) ->
+                        "Could not connect to server. Please check your internet connection."
+                    else -> "Something went wrong. Please try again."
+                }
             } finally {
                 _isLoading.value = false
             }

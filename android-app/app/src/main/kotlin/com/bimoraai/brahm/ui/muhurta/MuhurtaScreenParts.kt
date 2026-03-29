@@ -1,12 +1,15 @@
 package com.bimoraai.brahm.ui.muhurta
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +25,7 @@ import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
+import java.util.Calendar
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
@@ -168,7 +172,7 @@ fun MuhurtaContent(data: JsonObject) {
             }
         }
     }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
+    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     } // Box
 }
 
@@ -210,19 +214,12 @@ fun MuhurtaInputForm(
         }
 
         item {
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Date Range", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(value = fromDate, onValueChange = onFromDateChange, label = { Text("From (YYYY-MM-DD)") },
-                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
-                            colors = brahmFieldColors())
-                        OutlinedTextField(value = toDate, onValueChange = onToDateChange, label = { Text("To (YYYY-MM-DD)") },
-                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
-                            colors = brahmFieldColors())
-                    }
-                }
-            }
+            DateRangePicker(
+                fromDate = fromDate,
+                toDate = toDate,
+                onFromDateChange = onFromDateChange,
+                onToDateChange = onToDateChange,
+            )
         }
 
         item {
@@ -240,6 +237,119 @@ fun MuhurtaInputForm(
                     BrahmButton(text = "Find Muhurtas", onClick = onCalculate)
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateRangePicker(
+    fromDate: String,
+    toDate: String,
+    onFromDateChange: (String) -> Unit,
+    onToDateChange: (String) -> Unit,
+) {
+    var showFromPicker by remember { mutableStateOf(false) }
+    var showToPicker   by remember { mutableStateOf(false) }
+
+    fun millisToYmd(millis: Long): String {
+        val cal = Calendar.getInstance().apply { timeInMillis = millis }
+        return "%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+    }
+    fun ymdDisplay(s: String): String = if (s.length == 10) {
+        val p = s.split("-")
+        val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+        "${p[2].toIntOrNull() ?: p[2]} ${months.getOrElse((p[1].toIntOrNull() ?: 1) - 1) { p[1] }} ${p[0]}"
+    } else s
+    fun ymdToMillis(s: String): Long? = if (s.length == 10) runCatching {
+        val p = s.split("-")
+        Calendar.getInstance().apply {
+            set(p[0].toInt(), p[1].toInt() - 1, p[2].toInt())
+        }.timeInMillis
+    }.getOrNull() else null
+
+    val fromPickerState = rememberDatePickerState(initialSelectedDateMillis = ymdToMillis(fromDate))
+    val toPickerState   = rememberDatePickerState(initialSelectedDateMillis = ymdToMillis(toDate))
+
+    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = BrahmCard)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Date Range", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // From
+                Box(Modifier.weight(1f)) {
+                    OutlinedTextField(
+                        value = if (fromDate.isEmpty()) "" else ymdDisplay(fromDate),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("From") },
+                        leadingIcon = { Icon(Icons.Default.CalendarMonth, null, tint = BrahmGold) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = brahmFieldColors(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Box(Modifier.matchParentSize().clickable { showFromPicker = true })
+                }
+                // To
+                Box(Modifier.weight(1f)) {
+                    OutlinedTextField(
+                        value = if (toDate.isEmpty()) "" else ymdDisplay(toDate),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("To") },
+                        leadingIcon = { Icon(Icons.Default.CalendarMonth, null, tint = BrahmGold) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = brahmFieldColors(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Box(Modifier.matchParentSize().clickable { showToPicker = true })
+                }
+            }
+        }
+    }
+
+    if (showFromPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showFromPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    fromPickerState.selectedDateMillis?.let { onFromDateChange(millisToYmd(it)) }
+                    showFromPicker = false
+                }) { Text("OK", color = BrahmGold) }
+            },
+            dismissButton = { TextButton(onClick = { showFromPicker = false }) { Text("Cancel") } },
+            colors = DatePickerDefaults.colors(containerColor = BrahmCard),
+        ) {
+            DatePicker(state = fromPickerState, colors = DatePickerDefaults.colors(
+                containerColor = BrahmCard, titleContentColor = BrahmMutedForeground,
+                headlineContentColor = BrahmForeground, weekdayContentColor = BrahmMutedForeground,
+                navigationContentColor = BrahmForeground, dayContentColor = BrahmForeground,
+                todayContentColor = BrahmGold, todayDateBorderColor = BrahmGold,
+                selectedDayContentColor = BrahmCard, selectedDayContainerColor = BrahmGold,
+            ))
+        }
+    }
+
+    if (showToPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showToPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    toPickerState.selectedDateMillis?.let { onToDateChange(millisToYmd(it)) }
+                    showToPicker = false
+                }) { Text("OK", color = BrahmGold) }
+            },
+            dismissButton = { TextButton(onClick = { showToPicker = false }) { Text("Cancel") } },
+            colors = DatePickerDefaults.colors(containerColor = BrahmCard),
+        ) {
+            DatePicker(state = toPickerState, colors = DatePickerDefaults.colors(
+                containerColor = BrahmCard, titleContentColor = BrahmMutedForeground,
+                headlineContentColor = BrahmForeground, weekdayContentColor = BrahmMutedForeground,
+                navigationContentColor = BrahmForeground, dayContentColor = BrahmForeground,
+                todayContentColor = BrahmGold, todayDateBorderColor = BrahmGold,
+                selectedDayContentColor = BrahmCard, selectedDayContainerColor = BrahmGold,
+            ))
         }
     }
 }

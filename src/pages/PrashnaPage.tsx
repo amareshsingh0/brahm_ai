@@ -14,6 +14,7 @@ import { KundliChart } from "@/components/charts/KundliChart";
 import PageBot from "@/components/PageBot";
 import type { KundaliResponse } from "@/types/api";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 
 interface PrashnaResult extends KundaliResponse {
@@ -43,6 +44,7 @@ function verdictStyle(v: string) {
 export default function PrashnaPage() {
   const { t } = useTranslation();
   const birthDetails = useKundliStore(s => s.birthDetails);
+  useRegisterPageBot('prashna', birthDetails ? { birthDetails } : {});
 
   const QUESTION_TYPES = [
     { value: "general",      label: t("prashna.qt_general") },

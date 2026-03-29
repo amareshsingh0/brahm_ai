@@ -8,6 +8,7 @@ import { useKundliStore } from "@/store/kundliStore";
 import { searchCities, getCities, type City } from "@/lib/cities";
 import PageBot from "@/components/PageBot";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface LifeEvent {
@@ -63,6 +64,7 @@ function scoreBar(score: number) {
 export default function RectificationPage() {
   const { t } = useTranslation();
   const birthDetails = useKundliStore(s => s.birthDetails);
+  useRegisterPageBot('rectification', birthDetails ? { birthDetails } : {});
 
   const EVENT_TYPES = [
     { value: "marriage",       label: t("rectification.evt_marriage") },

@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -78,6 +79,7 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
 
     Scaffold(
         containerColor = BrahmBackground,
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             BrahmBottomNav(
                 currentRoute = currentRoute,
@@ -92,7 +94,7 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
             modifier = Modifier
                 .fillMaxSize()
                 .background(BrahmBackground)
-                .padding(innerPadding),
+                .padding(bottom = innerPadding.calculateBottomPadding()),
             enterTransition    = { fadeIn(tween(180)) + slideInVertically { it / 25 } },
             exitTransition     = { fadeOut(tween(130)) },
             popEnterTransition = { fadeIn(tween(180)) },

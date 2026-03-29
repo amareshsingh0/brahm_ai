@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -128,7 +131,7 @@ private fun KundaliResultView(
     Column(Modifier.fillMaxSize()) {
         // ── Header ──────────────────────────────────────────────────────────
         Surface(color = Color.White, shadowElevation = 1.dp) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(Modifier.windowInsetsPadding(WindowInsets.statusBars).padding(16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(
@@ -359,7 +362,7 @@ private fun KundaliResultView(
 
             item { Spacer(Modifier.height(16.dp)) }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
+        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
 }

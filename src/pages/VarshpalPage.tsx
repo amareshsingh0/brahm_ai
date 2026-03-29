@@ -14,6 +14,7 @@ import { KundliChart } from "@/components/charts/KundliChart";
 import PageBot from "@/components/PageBot";
 import type { KundaliResponse } from "@/types/api";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 interface VarshpalResult extends KundaliResponse {
   varshphal_year: number;
@@ -35,6 +36,7 @@ const ORDER = ["Surya","Chandra","Mangal","Budh","Guru","Shukra","Shani","Rahu",
 export default function VarshpalPage() {
   const { t } = useTranslation();
   const birthDetails = useKundliStore(s => s.birthDetails);
+  useRegisterPageBot('varshphal', birthDetails ? { birthDetails } : {});
   const year = new Date().getFullYear();
 
   // Birth data

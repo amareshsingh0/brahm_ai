@@ -9,6 +9,9 @@ import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -79,6 +82,7 @@ fun ProfileScreen(
 
     Scaffold(
         containerColor = BrahmBackground,
+        contentWindowInsets = WindowInsets(0),
     ) { padding ->
         Column(
             modifier = Modifier
@@ -95,7 +99,7 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .statusBarsPadding()
+                            .windowInsetsPadding(WindowInsets.statusBars)
                             .padding(horizontal = 20.dp, vertical = 16.dp),
                     )
                 Row(
@@ -431,7 +435,7 @@ fun ProfileScreen(
                         label = { Text("Gender") },
                         leadingIcon = { Icon(Icons.Default.People, null) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(), shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable), shape = RoundedCornerShape(14.dp),
                         colors = brahmFieldColors(),
                     )
                     ExposedDropdownMenu(expanded = genderExpanded, onDismissRequest = { genderExpanded = false }) {

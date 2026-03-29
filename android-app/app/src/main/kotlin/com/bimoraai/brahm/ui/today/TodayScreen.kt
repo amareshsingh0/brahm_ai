@@ -6,6 +6,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -163,6 +166,15 @@ fun TodayScreen(
     // Live clock
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(1_000); now = System.currentTimeMillis() } }
+
+    // Auto-retry on network error after 3 seconds
+    LaunchedEffect(error) {
+        val e = error ?: return@LaunchedEffect
+        if (e.contains("connect", ignoreCase = true) || e.contains("internet", ignoreCase = true)) {
+            delay(3_000)
+            vm.load()
+        }
+    }
     val timeStr = remember(now) {
         val cal = java.util.Calendar.getInstance()
         "%02d:%02d:%02d".format(cal.get(java.util.Calendar.HOUR_OF_DAY), cal.get(java.util.Calendar.MINUTE), cal.get(java.util.Calendar.SECOND))
@@ -262,7 +274,11 @@ fun TodayScreen(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(
+            start = 8.dp, end = 8.dp,
+            top = 12.dp + WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
+            bottom = 12.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
 
@@ -663,7 +679,7 @@ fun TodayScreen(
 
         item { Spacer(Modifier.height(12.dp)) }
     }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
+    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     } // Box
 }
 

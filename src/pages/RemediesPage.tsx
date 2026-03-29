@@ -3,6 +3,7 @@ import { remediesData, samplePlanets } from "@/store/kundliStore";
 import { useState } from "react";
 import { Gem, Music, Calendar, Palette, Gift, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 const ENGLISH_TO_RASHI_KEY: Record<string, string> = {
   Aries: "mesha", Taurus: "vrishabha", Gemini: "mithuna", Cancer: "karka",
@@ -12,6 +13,7 @@ const ENGLISH_TO_RASHI_KEY: Record<string, string> = {
 
 export default function RemediesPage() {
   const { t, i18n } = useTranslation();
+  useRegisterPageBot('remedies', {});
   const [selectedPlanet, setSelectedPlanet] = useState("Sun");
   const remedy = remediesData.find((r) => r.planet === selectedPlanet)!;
   const planet = samplePlanets.find((p) => p.name === selectedPlanet);

@@ -225,7 +225,7 @@ fun GocharContent(gocharData: JsonObject?, analyzeData: JsonObject?, isLoading: 
             item { Spacer(Modifier.height(80.dp)) }
         }
 
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp))
+        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     }
 }
 

@@ -18,6 +18,7 @@ import {
 import { useKundliStore } from "@/store/kundliStore";
 import PageBot from '@/components/PageBot';
 import { useTranslation } from 'react-i18next';
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 // ── Planet meta ───────────────────────────────────────────────────────────────
 
@@ -915,6 +916,7 @@ function TodayForYou({ snapshot }: { snapshot: LivePlanetsSnapshot }) {
 
 export default function SkyPage() {
   const { t } = useTranslation();
+  useRegisterPageBot('sky', {});
   const snapshot = useLivePlanets();
 
   const visibleCount = useMemo(() => {

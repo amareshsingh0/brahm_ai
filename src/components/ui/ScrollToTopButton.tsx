@@ -15,12 +15,18 @@ export function ScrollToTopButton({ scrollRef }: { scrollRef: React.RefObject<HT
       const scrollingUp = current < lastScrollTop.current;
       lastScrollTop.current = current;
 
-      if (scrollingUp && current > 200) {
-        setVisible(true);
-        // Auto-hide after 1.5s of no scroll activity
-        if (hideTimer.current) clearTimeout(hideTimer.current);
-        hideTimer.current = setTimeout(() => setVisible(false), 1500);
+      if (current === 0) {
+        setVisible(false);
+        return;
       }
+      if (scrollingUp) {
+        setVisible(true);
+      } else {
+        setVisible(false);
+      }
+      // Auto-hide 0.5s after scrolling stops
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => setVisible(false), 500);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
@@ -36,10 +42,9 @@ export function ScrollToTopButton({ scrollRef }: { scrollRef: React.RefObject<HT
       onClick={scrollToTop}
       aria-label="Scroll to top"
       className={cn(
-        // Positioned above the PageBot FAB (which is at bottom-20/md:bottom-6)
-        "fixed bottom-36 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all duration-300",
+        "fixed bottom-24 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all duration-300",
         "bg-amber-600 text-white hover:bg-amber-700 active:scale-95",
-        "md:bottom-20 md:right-6",
+        "md:bottom-16 md:right-6",
         visible ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none",
       )}
     >

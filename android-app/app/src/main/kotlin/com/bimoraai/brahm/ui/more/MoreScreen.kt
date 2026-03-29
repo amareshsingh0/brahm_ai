@@ -10,6 +10,9 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -128,7 +131,7 @@ fun MoreScreen(navController: NavController) {
     ) {
         // ── Header ──────────────────────────────────────────────────────────────
         Surface(color = BrahmCard, shadowElevation = 1.dp) {
-            Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp)) {
+            Column(Modifier.windowInsetsPadding(WindowInsets.statusBars).padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp)) {
                 Text(
                     "Explore",
                     style = MaterialTheme.typography.headlineSmall.copy(

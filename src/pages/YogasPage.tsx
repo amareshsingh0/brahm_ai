@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { yogasData, useKundliStore } from "@/store/kundliStore";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 const effectStyles = {
   benefic: { badge: "bg-emerald-500/20 text-emerald-400", border: "border-emerald-500/20" },
@@ -11,6 +12,7 @@ const effectStyles = {
 export default function YogasPage() {
   const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
+  useRegisterPageBot('yogas', kundaliData ? { yogas: kundaliData.yogas } : {});
 
   // Use real yogas if kundali is calculated, else fallback to sample
   const presentYogas = kundaliData?.yogas

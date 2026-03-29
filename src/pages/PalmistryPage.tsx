@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import PageBot from '@/components/PageBot';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -966,6 +967,7 @@ function HandTypeTab() {
 
 export default function PalmistryPage() {
   const { t } = useTranslation();
+  useRegisterPageBot('palmistry', {});
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>

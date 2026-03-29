@@ -2,10 +2,12 @@ import { motion } from "framer-motion";
 import { RashiCard } from "@/components/cards/RashiCard";
 import { rashiData, useKundliStore } from "@/store/kundliStore";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 export default function RashiExplorer() {
   const { t } = useTranslation();
   const kundaliData = useKundliStore((s) => s.kundaliData);
+  useRegisterPageBot('rashi', {});
 
   // Extract user's Moon/Lagna/Sun rashi from saved kundali (English names)
   const lagnaRashi  = kundaliData?.lagna?.rashi_en  ?? kundaliData?.lagna?.rashi  ?? null;

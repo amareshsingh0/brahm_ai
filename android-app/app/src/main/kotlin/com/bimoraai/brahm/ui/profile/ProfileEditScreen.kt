@@ -270,7 +270,7 @@ fun ProfileEditScreen(
                         trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
                         modifier      = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
                         shape         = RoundedCornerShape(14.dp),
                         colors        = brahmFieldColors(),
                     )

@@ -8,6 +8,7 @@ import { usePanchang } from "@/hooks/usePanchang";
 import { api } from "@/lib/api";
 import { useKundliStore } from "@/store/kundliStore";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 interface Muhurta {
   event: string;
@@ -146,6 +147,7 @@ const QUALITY_CLS: Record<string, string> = {
 
 export default function MuhurtaPage() {
   const { t } = useTranslation();
+  useRegisterPageBot('muhurta', {});
   const d = new Date();
   const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const { data: panchang } = usePanchang({ date: today });

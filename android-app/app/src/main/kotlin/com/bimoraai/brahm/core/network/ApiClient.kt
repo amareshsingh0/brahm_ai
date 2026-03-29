@@ -80,8 +80,11 @@ object NetworkModule {
                 } catch (_: Exception) { return@authenticator null }
 
                 if (!refreshResponse.isSuccessful) {
-                    // Refresh token is expired/invalid — clear all tokens so the app redirects to login
-                    runBlocking { tokenDataStore.clear() }
+                    // Only clear tokens on explicit auth rejection (401/403)
+                    // Do NOT clear on 5xx or network errors — that would log the user out unnecessarily
+                    if (refreshResponse.code == 401 || refreshResponse.code == 403) {
+                        runBlocking { tokenDataStore.clear() }
+                    }
                     return@authenticator null
                 }
 

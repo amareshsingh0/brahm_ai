@@ -11,6 +11,7 @@ import { useKundliStore } from "@/store/kundliStore";
 import type { FestivalEntry, Eclipse } from "@/types/api";
 import CalendarPage from "./CalendarPage";
 import { useTranslation } from "react-i18next";
+import { useRegisterPageBot } from "@/hooks/useRegisterPageBot";
 
 // ── Rules reference modal content ────────────────────────────────────────────
 const SUTAK_RULES = [
@@ -695,6 +696,7 @@ function EclipseCard({ eclipse, index }: { eclipse: Eclipse; index: number }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function GrahanPage() {
   const { t } = useTranslation();
+  useRegisterPageBot('grahan', {});
   const year = new Date().getFullYear();
   const { birthDetails } = useKundliStore();
 

@@ -20,10 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -309,6 +310,7 @@ fun WithAiFab(
             pageData    = pageData,
             modifier    = Modifier
                 .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
                 .padding(end = 16.dp, bottom = 16.dp),
         )
     }
@@ -530,7 +532,7 @@ fun PageBotSheet(
                     if (streaming) {
                         CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Default.Send, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Icon(Icons.AutoMirrored.Filled.Send, null, tint = Color.White, modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -612,37 +614,44 @@ private fun BotMsgBubble(msg: BotMsg, isStreaming: Boolean = false, onLongPress:
 @Composable
 fun ScrollToTopFab(listState: LazyListState, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
-    val isScrollingUp by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex > 0 && listState.lastScrolledBackward
-        }
+    var visible by remember { mutableStateOf(false) }
+
+    // Track scroll direction via snapshotFlow — detects each frame
+    LaunchedEffect(listState) {
+        var prevIndex = 0
+        var prevOffset = 0
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                val atTop    = index == 0
+                val scrolledUp = index < prevIndex || (index == prevIndex && offset < prevOffset)
+                prevIndex  = index
+                prevOffset = offset
+                if (atTop) visible = false
+                else if (scrolledUp) visible = true
+            }
     }
 
-    // Auto-hide: visible only for 1.5s after scroll activity stops
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(isScrollingUp) {
-        if (isScrollingUp) {
-            visible = true
-            kotlinx.coroutines.delay(1500)
-            visible = false
-        }
+    // Auto-hide 0.5s after the last scroll frame (restarts on every scroll event)
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        kotlinx.coroutines.delay(500)
+        visible = false
     }
 
     AnimatedVisibility(
-        visible = visible,
-        // Positioned above PageBotFab (which is at bottom=16dp, 56dp tall → top at 72dp)
-        // Place ScrollToTopFab above it with gap: bottom = 72 + 8 + 44 = 124 → use bottom=88dp offset from PageBotFab bottom
-        modifier = modifier,
+        visible  = visible,
+        modifier = modifier
+            .navigationBarsPadding()
+            .padding(end = 16.dp, bottom = 80.dp),
         enter = fadeIn() + scaleIn(initialScale = 0.7f),
         exit  = fadeOut() + scaleOut(targetScale = 0.7f),
     ) {
         FloatingActionButton(
-            onClick = { scope.launch { listState.animateScrollToItem(0) } },
-            shape = CircleShape,
+            onClick        = { scope.launch { listState.animateScrollToItem(0) } },
+            shape          = CircleShape,
             containerColor = BrahmGold,
             contentColor   = Color.White,
-            modifier = Modifier.size(44.dp),
-            elevation = FloatingActionButtonDefaults.elevation(4.dp),
+            modifier       = Modifier.size(44.dp),
+            elevation      = FloatingActionButtonDefaults.elevation(4.dp),
         ) {
             Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top", modifier = Modifier.size(22.dp))
         }
