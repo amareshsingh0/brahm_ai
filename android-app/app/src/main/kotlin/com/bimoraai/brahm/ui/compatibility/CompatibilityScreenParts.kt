@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.*
@@ -456,7 +455,7 @@ fun CompatibilityContent(data: JsonObject, onEdit: () -> Unit = {}) {
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             // ── Header: names + Edit ──
@@ -677,7 +676,6 @@ fun CompatibilityContent(data: JsonObject, onEdit: () -> Unit = {}) {
             }
         }
 
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     }
 }
 
@@ -700,7 +698,7 @@ fun CompatibilityInputForm(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

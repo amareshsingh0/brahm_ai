@@ -34,7 +34,7 @@ fun MuhurtaScreen(navController: NavController, vm: MuhurtaScreenViewModel = hil
             TopAppBar(
                 title = {
                     Column {
-                        Text("Muhurta", fontWeight = FontWeight.Bold)
+                        Text("Muhurta", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Auspicious Timings", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

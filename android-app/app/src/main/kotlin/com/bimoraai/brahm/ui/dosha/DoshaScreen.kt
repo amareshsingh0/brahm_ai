@@ -32,7 +32,7 @@ fun DoshaScreen(navController: NavController, vm: DoshaScreenViewModel = hiltVie
             TopAppBar(
                 title = {
                     Column {
-                        Text("Dosha Analysis", fontWeight = FontWeight.Bold)
+                        Text("Dosha Analysis", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Mangal · Kaal Sarp · Pitra · Grahan", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

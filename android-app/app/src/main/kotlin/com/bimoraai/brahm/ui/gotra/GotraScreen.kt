@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -54,7 +53,7 @@ fun GotraScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gotra Finder", fontWeight = FontWeight.Bold) },
+                title = { Text("Gotra Finder", fontWeight = FontWeight.Bold, color = BrahmGold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -69,7 +68,7 @@ fun GotraScreen(navController: NavController) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().background(BrahmBackground).padding(padding),
-            contentPadding = PaddingValues(12.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, top = 4.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
@@ -100,7 +99,6 @@ fun GotraScreen(navController: NavController) {
                 )
             }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
     } // SwipeBackLayout

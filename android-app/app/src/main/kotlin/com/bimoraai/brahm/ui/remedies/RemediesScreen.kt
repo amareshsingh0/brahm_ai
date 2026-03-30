@@ -55,7 +55,7 @@ fun RemediesScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Planetary Remedies", fontWeight = FontWeight.Bold) },
+                title = { Text("Planetary Remedies", fontWeight = FontWeight.Bold, color = BrahmGold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -98,7 +98,7 @@ fun RemediesScreen(navController: NavController) {
 private fun RemedyPage(remedy: PlanetRemedy) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Hero

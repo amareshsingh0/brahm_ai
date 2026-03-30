@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.theme.*
@@ -219,7 +218,7 @@ fun LibraryScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Vedic Library", fontWeight = FontWeight.Bold) },
+                title = { Text("Vedic Library", fontWeight = FontWeight.Bold, color = BrahmGold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -239,7 +238,7 @@ fun LibraryScreen(navController: NavController) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp),
+                contentPadding = PaddingValues(bottom = 8.dp),
             ) {
                 // ── Search bar ──
                 item {
@@ -336,10 +335,6 @@ fun LibraryScreen(navController: NavController) {
                 item { Spacer(Modifier.height(8.dp)) }
             }
 
-            ScrollToTopFab(
-                listState,
-                Modifier.align(Alignment.BottomEnd),
-            )
         }
     }
     } // SwipeBackLayout

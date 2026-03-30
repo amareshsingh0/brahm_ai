@@ -1,5 +1,6 @@
 package com.bimoraai.brahm.ui.today
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.expandVertically
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -25,18 +27,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.bimoraai.brahm.core.components.*
 import com.bimoraai.brahm.core.data.CitySearchViewModel
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.main.Route
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.*
+import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -160,6 +167,7 @@ fun TodayScreen(
     val hasBirthData  by vm.hasBirthData.collectAsState()
     val todayEvents   by vm.todayEvents.collectAsState()
     val panchangCity  by vm.panchangCity.collectAsState()
+    val avatarUrl     by vm.avatarUrl.collectAsState()
     val citySuggestions by cityVm.suggestions.collectAsState()
     val cityQuery     by cityVm.cityQuery.collectAsState()
 
@@ -271,31 +279,92 @@ fun TodayScreen(
 
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(
-            start = 8.dp, end = 8.dp,
-            top = 12.dp + WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-            bottom = 12.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
+    Column(Modifier.fillMaxSize().background(BrahmBackground)) {
 
-        // ── 1. Greeting header ───────────────────────────────────────────────
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    "Namaste${if (!userName.isNullOrBlank()) ", $userName" else ""}! 🙏",
-                    style = MaterialTheme.typography.headlineSmall.copy(color = BrahmGold, fontWeight = FontWeight.Bold),
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(dateStr, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                    Text("·", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
-                    Text(timeStr, style = MaterialTheme.typography.bodySmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
+        // ── Fixed greeting header (does not scroll) ──────────────────────────
+        val context = LocalContext.current
+        // Local fallback: show local file immediately if cloud URL not yet loaded
+        val localPhotoPath = remember {
+            context.getSharedPreferences("brahm_prefs", Context.MODE_PRIVATE)
+                .getString("profile_photo_path", null)
+        }
+        val avatarSource: Any? = when {
+            !avatarUrl.isNullOrBlank() -> avatarUrl
+            localPhotoPath != null && File(localPhotoPath).exists() -> File(localPhotoPath)
+            else -> null
+        }
+
+        Surface(
+            color = BrahmBackground,
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        "Namaste${if (!userName.isNullOrBlank()) ", $userName" else ""}! 🙏",
+                        style = MaterialTheme.typography.headlineSmall.copy(color = BrahmGold, fontWeight = FontWeight.Bold),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(dateStr, style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                        Text("·", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
+                        Text(timeStr, style = MaterialTheme.typography.bodySmall.copy(color = BrahmGold, fontWeight = FontWeight.SemiBold))
+                    }
+                }
+                // Profile avatar — tapping navigates to Profile tab
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .clickable { onNavigateTab("tab_profile") },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (avatarSource != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(avatarSource)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Profile",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize().clip(CircleShape)
+                                .border(2.dp, BrahmGold.copy(alpha = 0.6f), CircleShape),
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(BrahmGold),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                (userName?.firstOrNull() ?: "U").toString().uppercase(),
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                            )
+                        }
+                    }
                 }
             }
         }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(
+            start = 8.dp, end = 8.dp,
+            top = 4.dp, bottom = 4.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
 
         // ── 2. Complete Profile nudge ────────────────────────────────────────
         if (!hasBirthData) {
@@ -677,9 +746,9 @@ fun TodayScreen(
             }
         } // end if (p != null)
 
-        item { Spacer(Modifier.height(12.dp)) }
-    }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
+        item { Spacer(Modifier.height(4.dp)) }
+    } // LazyColumn
+    } // Column
     } // Box
 }
 

@@ -42,7 +42,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmErrorView
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 import java.time.LocalTime
@@ -104,7 +103,7 @@ fun SkyScreen(navController: NavController, vm: SkyViewModel = hiltViewModel()) 
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Live Sky", fontWeight = FontWeight.Bold)
+                            Text("Live Sky", fontWeight = FontWeight.Bold, color = BrahmGold)
                             Text("Real-time sidereal positions", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                         }
                     },
@@ -145,29 +144,24 @@ private fun SkyContent(snapshot: SkySnapshot, timeStr: String, vm: SkyViewModel,
     val tabs = listOf("Live Sky", "24h Movement", "Today for You")
 
     Column(modifier = modifier.fillMaxSize().background(BrahmBackground)) {
-        // ── Header row ──
+        // ── Time row ──
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column {
-                Text(
-                    "Live Sky",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = BrahmForeground),
-                )
-                Text(
-                    "Real-time sidereal positions · Updates every second",
-                    style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
-                )
-            }
-            Column(horizontalAlignment = Alignment.End) {
+            Text(
+                "Real-time sidereal positions · Updates every second",
+                style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),
+                modifier = Modifier.weight(1f),
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     timeStr,
-                    style = MaterialTheme.typography.titleLarge.copy(
+                    style = MaterialTheme.typography.bodyMedium.copy(
                         fontFamily = FontFamily.Monospace,
                         color = BrahmGold,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                     ),
                 )
                 Text("IST", style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground))
@@ -239,7 +233,7 @@ private fun LiveSkyTab(snapshot: SkySnapshot) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, top = 4.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         // Cosmic energy summary
@@ -295,7 +289,6 @@ private fun LiveSkyTab(snapshot: SkySnapshot) {
 
         item { Spacer(Modifier.height(16.dp)) }
     }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     } // Box
 }
 

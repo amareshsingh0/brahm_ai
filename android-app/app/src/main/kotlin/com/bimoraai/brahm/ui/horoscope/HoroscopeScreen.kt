@@ -29,7 +29,7 @@ fun HoroscopeScreen(navController: NavController, vm: HoroscopeScreenViewModel =
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Daily Horoscope", fontWeight = FontWeight.Bold)
+                            Text("Daily Horoscope", fontWeight = FontWeight.Bold, color = BrahmGold)
                             Text(
                                 "Select your Rashi",
                                 style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground),

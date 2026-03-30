@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
@@ -59,7 +58,7 @@ fun GocharContent(gocharData: JsonObject?, analyzeData: JsonObject?, isLoading: 
         LazyColumn(
             state           = listState,
             modifier        = Modifier.fillMaxSize().background(BrahmBackground),
-            contentPadding  = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            contentPadding  = PaddingValues(horizontal = 16.dp, top = 4.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
 
@@ -222,10 +221,9 @@ fun GocharContent(gocharData: JsonObject?, analyzeData: JsonObject?, isLoading: 
                 }
             }
 
-            item { Spacer(Modifier.height(80.dp)) }
+            item { Spacer(Modifier.height(8.dp)) }
         }
 
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     }
 }
 
@@ -537,7 +535,7 @@ fun GocharInputForm(
 ) {
     LazyColumn(
         modifier        = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding  = PaddingValues(16.dp),
+        contentPadding  = PaddingValues(horizontal = 16.dp, top = 4.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

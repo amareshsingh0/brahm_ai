@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmCard
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.data.CitySearchViewModel
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
@@ -494,9 +493,8 @@ fun CalendarScreen(
                 }
             }
 
-            item { Spacer(Modifier.height(80.dp)) }
+            item { Spacer(Modifier.height(8.dp)) }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
 
@@ -509,7 +507,7 @@ fun CalendarScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Vedic Calendar", fontWeight = FontWeight.Bold)
+                            Text("Vedic Calendar", fontWeight = FontWeight.Bold, color = BrahmGold)
                             Text("Panchang · Festivals · Eclipses", fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                         }

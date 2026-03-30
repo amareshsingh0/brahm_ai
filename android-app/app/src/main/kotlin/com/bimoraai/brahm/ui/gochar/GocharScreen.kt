@@ -44,7 +44,7 @@ fun GocharScreen(navController: NavController, vm: GocharScreenViewModel = hiltV
             TopAppBar(
                 title = {
                     Column {
-                        Text("Planetary Transits", fontWeight = FontWeight.Bold)
+                        Text("Planetary Transits", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Gochar Analysis", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

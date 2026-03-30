@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -73,7 +72,7 @@ fun HoroscopeContent(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, top = 4.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
 
@@ -280,6 +279,5 @@ fun HoroscopeContent(
         // bottom padding
         item { Spacer(Modifier.height(16.dp)) }
     }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     } // Box
 }

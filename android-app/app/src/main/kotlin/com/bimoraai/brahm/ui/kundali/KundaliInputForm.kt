@@ -6,9 +6,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
+import com.bimoraai.brahm.core.theme.BrahmGold
 
 @Composable
 fun KundaliInputForm(
@@ -26,10 +28,17 @@ fun KundaliInputForm(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .statusBarsPadding()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Enter Birth Details", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            "Enter Birth Details",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                color = BrahmGold,
+            ),
+        )
 
         BirthInputFields(
             name          = name,

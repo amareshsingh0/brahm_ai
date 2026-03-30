@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.data.CitySearchViewModel
@@ -225,7 +224,7 @@ fun PanchangScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("🗓️ Panchang", fontWeight = FontWeight.Bold)
+                            Text("🗓️ Panchang", fontWeight = FontWeight.Bold, color = BrahmGold)
                             Text("$year · ${cityName ?: "Ujjain"}",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
@@ -417,7 +416,7 @@ private fun FestivalsTab(
         state = listState,
         modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(top = 12.dp, bottom = 80.dp),
+        contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp),
     ) {
         // Search bar
         item {
@@ -532,7 +531,6 @@ private fun FestivalsTab(
             }
         }
     }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     } // Box
 }
 
@@ -642,7 +640,7 @@ private fun EclipsesTab(grahan: JsonObject?, isLoading: Boolean, error: String?,
         state = listState,
         modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(top = 12.dp, bottom = 80.dp),
+        contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp),
     ) {
         // Info + rules
         item {
@@ -672,7 +670,6 @@ private fun EclipsesTab(grahan: JsonObject?, isLoading: Boolean, error: String?,
             items(eclipses) { eclipse -> GrahanCard(eclipse) }
         }
     }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     } // Box
 }
 

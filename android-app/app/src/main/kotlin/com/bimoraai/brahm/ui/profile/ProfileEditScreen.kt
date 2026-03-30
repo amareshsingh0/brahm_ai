@@ -86,7 +86,7 @@ fun ProfileEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Profile", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)) },
+                title = { Text("Edit Profile", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold, color = BrahmGold)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

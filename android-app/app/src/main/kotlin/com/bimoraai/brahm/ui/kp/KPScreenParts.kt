@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
@@ -434,7 +433,6 @@ fun KPContent(data: JsonObject) {
                 }
             }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
 }
@@ -454,7 +452,7 @@ fun KPInputForm(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         // Info card

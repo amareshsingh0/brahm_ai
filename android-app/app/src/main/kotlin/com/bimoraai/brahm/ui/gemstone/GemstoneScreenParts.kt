@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
@@ -164,7 +163,7 @@ fun GemstoneContent(kundaliData: JsonObject) {
         LazyColumn(
             state           = listState,
             modifier        = Modifier.fillMaxSize().background(BrahmBackground),
-            contentPadding  = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            contentPadding  = PaddingValues(horizontal = 16.dp, top = 4.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             // Page header
@@ -316,11 +315,10 @@ fun GemstoneContent(kundaliData: JsonObject) {
                     "Disclaimer: Gemstone recommendations are for spiritual/astrological guidance only. Always consult a qualified astrologer and medical professional. Results may vary.",
                     style = MaterialTheme.typography.labelSmall.copy(color = BrahmMutedForeground.copy(0.55f), fontSize = 9.sp, lineHeight = 13.sp),
                 )
-                Spacer(Modifier.height(60.dp))
+                Spacer(Modifier.height(8.dp))
             }
         }
 
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     }
 }
 
@@ -514,7 +512,7 @@ fun GemstoneInputForm(
 ) {
     LazyColumn(
         modifier        = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding  = PaddingValues(16.dp),
+        contentPadding  = PaddingValues(horizontal = 16.dp, top = 4.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

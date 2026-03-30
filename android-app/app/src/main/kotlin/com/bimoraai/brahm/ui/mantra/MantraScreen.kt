@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -113,7 +112,7 @@ fun MantraScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mantra Dictionary", fontWeight = FontWeight.Bold) },
+                title = { Text("Mantra Dictionary", fontWeight = FontWeight.Bold, color = BrahmGold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -128,7 +127,7 @@ fun MantraScreen(navController: NavController) {
         ) {
             // Category filter
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(categories) { cat ->
@@ -147,7 +146,7 @@ fun MantraScreen(navController: NavController) {
             Box(Modifier.fillMaxSize()) {
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(12.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, top = 4.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(filtered, key = { it.deity }) { mantra ->
@@ -158,7 +157,6 @@ fun MantraScreen(navController: NavController) {
                     )
                 }
             }
-            ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
             } // Box
         }
     }

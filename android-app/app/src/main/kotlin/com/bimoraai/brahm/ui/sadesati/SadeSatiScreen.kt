@@ -32,7 +32,7 @@ fun SadeSatiScreen(navController: NavController, vm: SadeSatiScreenViewModel = h
             TopAppBar(
                 title = {
                     Column {
-                        Text("Sade Sati", fontWeight = FontWeight.Bold)
+                        Text("Sade Sati", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Saturn 7½ Year Transit", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

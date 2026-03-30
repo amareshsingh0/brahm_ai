@@ -33,7 +33,7 @@ fun PrashnaScreen(navController: NavController, vm: PrashnaScreenViewModel = hil
             TopAppBar(
                 title = {
                     Column {
-                        Text("Prashna Kundali", fontWeight = FontWeight.Bold)
+                        Text("Prashna Kundali", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Question Astrology", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

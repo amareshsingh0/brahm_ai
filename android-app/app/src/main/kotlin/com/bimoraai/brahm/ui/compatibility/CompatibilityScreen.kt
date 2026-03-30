@@ -37,7 +37,7 @@ fun CompatibilityScreen(navController: NavController, vm: CompatibilityScreenVie
             TopAppBar(
                 title = {
                     Column {
-                        Text("Kundali Matching", fontWeight = FontWeight.Bold)
+                        Text("Kundali Matching", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Ashta-Koot Compatibility", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

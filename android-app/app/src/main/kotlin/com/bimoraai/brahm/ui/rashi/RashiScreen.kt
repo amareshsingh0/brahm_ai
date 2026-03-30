@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -64,7 +63,7 @@ fun RashiScreen(navController: NavController) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Rashi Explorer", fontWeight = FontWeight.Bold) },
+                    title = { Text("Rashi Explorer", fontWeight = FontWeight.Bold, color = BrahmGold) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -82,7 +81,7 @@ fun RashiScreen(navController: NavController) {
                     .fillMaxSize()
                     .background(BrahmBackground)
                     .padding(padding),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, top = 4.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(rashiList) { rashi ->
@@ -95,7 +94,6 @@ fun RashiScreen(navController: NavController) {
                     )
                 }
             }
-            ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
             } // Box
         }
     } // SwipeBackLayout

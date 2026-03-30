@@ -32,7 +32,7 @@ fun GemstoneScreen(navController: NavController, vm: GemstoneScreenViewModel = h
             TopAppBar(
                 title = {
                     Column {
-                        Text("Gemstone Recommendations", fontWeight = FontWeight.Bold)
+                        Text("Gemstone Recommendations", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Based on your Lagna & planets", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

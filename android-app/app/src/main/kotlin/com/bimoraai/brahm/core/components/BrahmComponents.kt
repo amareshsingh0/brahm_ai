@@ -11,8 +11,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -21,7 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
@@ -203,7 +205,7 @@ fun AskBrahmAiChip(
         onClick = onAsk,
         label = { Text("💬  Ask Brahm AI", style = MaterialTheme.typography.labelLarge) },
         leadingIcon = {
-            Icon(Icons.Default.Android, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(Icons.Default.SmartToy, contentDescription = null, modifier = Modifier.size(16.dp))
         },
         modifier = modifier,
         colors = AssistChipDefaults.assistChipColors(
@@ -282,7 +284,7 @@ fun PageBotFab(
         contentColor = Color.White,
         elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
     ) {
-        Icon(Icons.Default.Android, contentDescription = "Ask Brahm AI")
+        Icon(Icons.Default.SmartToy, contentDescription = "Ask Brahm AI")
     }
 
     if (showSheet) {
@@ -371,13 +373,13 @@ fun PageBotSheet(
         onDismissRequest = onDismiss,
         containerColor   = Color.White,
         sheetState       = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        windowInsets     = WindowInsets.ime,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp)
-                .imePadding(),
+                .padding(bottom = 8.dp),
         ) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -601,50 +603,3 @@ private fun BotMsgBubble(msg: BotMsg, isStreaming: Boolean = false, onLongPress:
     }
 }
 
-// ─── ScrollToTopFab — shows briefly when scrolling UP, auto-hides after 1.5s ──
-@Composable
-fun ScrollToTopFab(listState: LazyListState, modifier: Modifier = Modifier) {
-    val scope = rememberCoroutineScope()
-    var visible by remember { mutableStateOf(false) }
-
-    // Track scroll direction via snapshotFlow — detects each frame
-    LaunchedEffect(listState) {
-        var prevIndex = 0
-        var prevOffset = 0
-        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
-            .collect { (index, offset) ->
-                val atTop    = index == 0
-                val scrolledUp = index < prevIndex || (index == prevIndex && offset < prevOffset)
-                prevIndex  = index
-                prevOffset = offset
-                if (atTop) visible = false
-                else if (scrolledUp) visible = true
-            }
-    }
-
-    // Auto-hide 0.5s after the last scroll frame (restarts on every scroll event)
-    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-        kotlinx.coroutines.delay(500)
-        visible = false
-    }
-
-    AnimatedVisibility(
-        visible  = visible,
-        modifier = modifier
-            .navigationBarsPadding()
-            .padding(end = 16.dp, bottom = 80.dp),
-        enter = fadeIn() + scaleIn(initialScale = 0.7f),
-        exit  = fadeOut() + scaleOut(targetScale = 0.7f),
-    ) {
-        FloatingActionButton(
-            onClick        = { scope.launch { listState.animateScrollToItem(0) } },
-            shape          = CircleShape,
-            containerColor = BrahmGold,
-            contentColor   = Color.White,
-            modifier       = Modifier.size(44.dp),
-            elevation      = FloatingActionButtonDefaults.elevation(4.dp),
-        ) {
-            Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top", modifier = Modifier.size(22.dp))
-        }
-    }
-}

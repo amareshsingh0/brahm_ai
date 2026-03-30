@@ -36,7 +36,7 @@ fun RectificationScreen(navController: NavController, vm: RectificationScreenVie
             TopAppBar(
                 title = {
                     Column {
-                        Text("Birth Time Rectification", fontWeight = FontWeight.Bold)
+                        Text("Birth Time Rectification", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Find your exact birth time", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

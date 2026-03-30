@@ -2,6 +2,7 @@ package com.bimoraai.brahm.core.network
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -43,7 +44,10 @@ import retrofit2.http.*
     val tz: Double = 5.5,
     val rashi: String = "",
     val nakshatra: String = "",
+    val avatar_url: String? = null,
 )
+
+@Serializable data class AvatarResponse(val avatar_url: String)
 
 // Used by POST /user — update profile
 @Serializable data class UpdateProfileRequest(
@@ -164,6 +168,13 @@ interface ApiService {
 
     @POST("user")
     suspend fun updateProfile(@Body body: UpdateProfileRequest): Response<UserDto>
+
+    @Multipart
+    @POST("user/avatar")
+    suspend fun uploadAvatar(@Part photo: MultipartBody.Part): Response<AvatarResponse>
+
+    @DELETE("user/avatar")
+    suspend fun removeAvatar(): Response<JsonObject>
 
     // Panchang — GET with query params (backend: GET /api/panchang?date=&lat=&lon=&tz=)
     @GET("panchang")

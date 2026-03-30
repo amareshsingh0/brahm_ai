@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
 import com.bimoraai.brahm.core.components.brahmFieldColors
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.network.City
 import com.bimoraai.brahm.core.theme.*
 import java.util.Calendar
@@ -61,7 +60,7 @@ fun MuhurtaContent(data: JsonObject) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // ── Special Muhurtas ──
@@ -172,7 +171,6 @@ fun MuhurtaContent(data: JsonObject) {
             }
         }
     }
-    ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
     } // Box
 }
 
@@ -192,7 +190,7 @@ fun MuhurtaInputForm(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

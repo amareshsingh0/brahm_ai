@@ -165,7 +165,7 @@ private fun KundaliResultView(
         androidx.compose.foundation.lazy.LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // ── Settings strip ───────────────────────────────────────────────
@@ -362,7 +362,6 @@ private fun KundaliResultView(
 
             item { Spacer(Modifier.height(16.dp)) }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
 }

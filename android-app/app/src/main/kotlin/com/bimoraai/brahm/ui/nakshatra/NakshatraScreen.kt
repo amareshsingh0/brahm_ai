@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 
@@ -85,7 +84,7 @@ fun NakshatraScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Nakshatra Explorer", fontWeight = FontWeight.Bold)
+                        Text("Nakshatra Explorer", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("27 Lunar Mansions", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },
@@ -103,7 +102,7 @@ fun NakshatraScreen(navController: NavController) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().background(BrahmBackground).padding(padding),
-            contentPadding = PaddingValues(12.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, top = 4.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(nakshatraList) { n ->
@@ -114,7 +113,6 @@ fun NakshatraScreen(navController: NavController) {
                 )
             }
         }
-        ScrollToTopFab(listState, Modifier.align(Alignment.BottomEnd))
         } // Box
     }
     } // SwipeBackLayout

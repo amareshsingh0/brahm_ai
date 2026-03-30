@@ -2,11 +2,16 @@
 User profile router — JWT-based (Bearer token), with legacy session_id fallback.
 """
 import os
+import uuid
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, UploadFile, File
 from pydantic import BaseModel
-from api.models.user import UserProfile
+from api.models.user import UserProfile, AvatarResponse
 from api.supabase_client import get_supabase
+
+AVATAR_BUCKET = "avatars"
+AVATAR_MAX_BYTES = 5 * 1024 * 1024   # 5 MB
+ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp"}
 
 router = APIRouter()
 
@@ -63,6 +68,7 @@ def get_user(request: Request, session_id: str = Query(default="")):
         plan=row.get("plan", "free"),
         phone=row.get("phone"),
         email=row.get("email"),
+        avatar_url=row.get("avatar_url"),
     )
 
 
@@ -90,6 +96,81 @@ def upsert_user(profile: UserProfile, request: Request, session_id: str = Query(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Profile update failed: {e}")
     return profile
+
+
+# ── Avatar ────────────────────────────────────────────────────────────────────
+
+@router.post("/user/avatar", response_model=AvatarResponse)
+async def upload_avatar(
+    request: Request,
+    photo: UploadFile = File(...),
+    session_id: str = Query(default=""),
+):
+    """Upload a profile photo to Supabase Storage and save the public URL."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    content_type = photo.content_type or ""
+    if content_type not in ALLOWED_MIME:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {content_type}. Use JPEG/PNG/WEBP.")
+
+    file_bytes = await photo.read()
+    if len(file_bytes) > AVATAR_MAX_BYTES:
+        raise HTTPException(status_code=400, detail="File too large. Max 5 MB.")
+
+    ext = "jpg" if "jpeg" in content_type else content_type.split("/")[-1]
+    storage_path = f"{user_id}.{ext}"
+
+    sb = get_supabase()
+    try:
+        # Upsert — overwrites existing avatar for this user
+        sb.storage.from_(AVATAR_BUCKET).upload(
+            path=storage_path,
+            file=file_bytes,
+            file_options={"content-type": content_type, "upsert": "true"},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Storage upload failed: {e}")
+
+    public_url = sb.storage.from_(AVATAR_BUCKET).get_public_url(storage_path)
+
+    # Add cache-busting query param so Coil always reloads after update
+    cache_bust = str(uuid.uuid4())[:8]
+    public_url_versioned = f"{public_url}?v={cache_bust}"
+
+    try:
+        sb.table("users").update({"avatar_url": public_url_versioned}).eq("id", user_id).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB update failed: {e}")
+
+    return AvatarResponse(avatar_url=public_url_versioned)
+
+
+@router.delete("/user/avatar")
+async def remove_avatar(
+    request: Request,
+    session_id: str = Query(default=""),
+):
+    """Remove profile photo from Supabase Storage and clear avatar_url."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sb = get_supabase()
+    # Try to delete both jpg and png variants (we don't know which was uploaded)
+    for ext in ("jpg", "png", "webp"):
+        try:
+            sb.storage.from_(AVATAR_BUCKET).remove([f"{user_id}.{ext}"])
+        except Exception:
+            pass
+
+    try:
+        sb.table("users").update({"avatar_url": None}).eq("id", user_id).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB update failed: {e}")
+
+    return {"ok": True}
 
 
 # ── Chat History ──────────────────────────────────────────────────────────────

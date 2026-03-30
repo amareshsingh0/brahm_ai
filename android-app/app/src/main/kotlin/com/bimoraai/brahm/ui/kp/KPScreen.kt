@@ -33,7 +33,7 @@ fun KPScreen(navController: NavController, vm: KPScreenViewModel = hiltViewModel
             TopAppBar(
                 title = {
                     Column {
-                        Text("KP System", fontWeight = FontWeight.Bold)
+                        Text("KP System", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Krishnamurti Paddhati", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },

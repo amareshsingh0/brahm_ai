@@ -26,7 +26,6 @@ import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BirthInputFields
 import com.bimoraai.brahm.core.components.BrahmButton
 import com.bimoraai.brahm.core.components.BrahmLoadingSpinner
-import com.bimoraai.brahm.core.components.ScrollToTopFab
 import com.bimoraai.brahm.core.components.SwipeBackLayout
 import com.bimoraai.brahm.core.theme.*
 import kotlinx.serialization.json.JsonObject
@@ -81,7 +80,7 @@ fun YogasScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Yogas", fontWeight = FontWeight.Bold) },
+                    title = { Text("Yogas", fontWeight = FontWeight.Bold, color = BrahmGold) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -96,7 +95,7 @@ fun YogasScreen(
                 LazyColumn(
                     state           = listState,
                     modifier        = Modifier.fillMaxSize().background(BrahmBackground).padding(padding),
-                    contentPadding  = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                    contentPadding  = PaddingValues(horizontal = 16.dp, top = 4.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
 
@@ -217,13 +216,9 @@ fun YogasScreen(
                         }
                     }
 
-                    item { Spacer(Modifier.height(80.dp)) }
+                    item { Spacer(Modifier.height(8.dp)) }
                 }
 
-                ScrollToTopFab(
-                    listState,
-                    Modifier.align(Alignment.BottomEnd),
-                )
             }
         }
     }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -37,6 +39,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.theme.*
+import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,34 +67,81 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
     Scaffold(
         contentWindowInsets = WindowInsets.ime,
         topBar = {
-            Surface(color = Color.White, shadowElevation = 1.dp) {
+            Surface(color = Color.White, shadowElevation = 2.dp) {
                 Column {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .statusBarsPadding()
-                            .padding(horizontal = 4.dp, vertical = 4.dp),
+                            .padding(start = 14.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Spacer(Modifier.weight(1f))
-                        // History button
+                        // ── Bot avatar ────────────────────────────────────────
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.radialGradient(listOf(Color(0xFFFFF3E0), Color(0xFFFFE0B2)))
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("🔮", fontSize = 20.sp)
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        // ── Name + status ─────────────────────────────────────
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Brahm AI",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = BrahmForeground,
+                                ),
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF43A047)),
+                                )
+                                Text(
+                                    if (isStreaming) "Typing…" else "Online • Vedic AI Guide",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = if (isStreaming) BrahmGold else Color(0xFF43A047),
+                                        fontSize = 10.sp,
+                                    ),
+                                )
+                            }
+                        }
+                        // ── Action buttons ────────────────────────────────────
                         IconButton(onClick = {
                             vm.loadAllSessions()
                             showHistory = true
                         }) {
                             Icon(Icons.Default.History, contentDescription = "Chat History", tint = BrahmMutedForeground)
                         }
-                        // New Chat button
                         IconButton(onClick = { vm.startNewChat() }) {
                             Icon(Icons.Default.EditNote, contentDescription = "New Chat", tint = BrahmGold)
                         }
                     }
+                    // ── Disclaimer banner ─────────────────────────────────────
                     Surface(color = Color(0xFFFFFBEB)) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Text("⚠️", fontSize = 11.sp)
                             Spacer(Modifier.width(6.dp))
-                            Text("AI can make mistakes • Please verify important information",
-                                style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF92400E), fontSize = 10.sp))
+                            Text(
+                                "AI can make mistakes • Please verify important information",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = Color(0xFF92400E), fontSize = 10.sp,
+                                ),
+                            )
                         }
                     }
                 }
@@ -101,16 +152,17 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     OutlinedTextField(
                         value = input,
                         onValueChange = { input = it },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 46.dp),
                         placeholder = { Text("Message Brahm AI...", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium) },
-                        shape = RoundedCornerShape(20.dp),
-                        maxLines = 5,
+                        shape = RoundedCornerShape(24.dp),
+                        maxLines = 4,
+                        textStyle = MaterialTheme.typography.bodyMedium,
                         colors = brahmFieldColors(),
                     )
                     Spacer(Modifier.width(8.dp))
@@ -133,20 +185,30 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
         },
         containerColor = BrahmBackground,
     ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            if (messages.isEmpty()) {
-                item { EmptyState(onSuggestionClick = { vm.sendMessage(it) }) }
+        val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+        val keyboardOpen = imeBottom > 100
+
+        Box(Modifier.fillMaxSize().padding(padding)) {
+            // Empty state — centered, hidden when keyboard opens to avoid squishing
+            if (messages.isEmpty() && !showTyping && !keyboardOpen) {
+                EmptyState(onSuggestionClick = { vm.sendMessage(it) })
             }
-            items(visibleMessages) { msg ->
-                ChatBubble(msg, onFollowUpClick = { vm.sendFollowUp(it) })
-            }
-            if (showTyping) {
-                item { TypingIndicator() }
+
+            // Message list — only rendered when there are messages or typing
+            if (messages.isNotEmpty() || showTyping) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(visibleMessages) { msg ->
+                        ChatBubble(msg, onFollowUpClick = { vm.sendFollowUp(it) })
+                    }
+                    if (showTyping) {
+                        item { TypingIndicator() }
+                    }
+                }
             }
         }
     }
@@ -454,31 +516,77 @@ private fun EmptyState(onSuggestionClick: (String) -> Unit) {
         "What does my moon sign say?",
         "Tell me about Sade Sati",
         "Explain Jupiter in 7th house",
+        "What is my lucky gemstone?",
     )
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(top = 40.dp, bottom = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier.size(72.dp).clip(CircleShape).background(Color(0xFFFFF3CD)),
-            contentAlignment = Alignment.Center,
-        ) { Text("🔮", fontSize = 32.sp) }
-        Spacer(Modifier.height(16.dp))
-        Text("Brahm AI", style = MaterialTheme.typography.titleLarge.copy(color = BrahmForeground, fontWeight = FontWeight.SemiBold))
-        Spacer(Modifier.height(6.dp))
-        Text("Your Vedic astrology guide.\nAsk about planets, kundali, doshas & more.",
-            style = MaterialTheme.typography.bodyMedium.copy(color = BrahmMutedForeground),
-            textAlign = TextAlign.Center)
-        Spacer(Modifier.height(28.dp))
-        suggestions.forEach { suggestion ->
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = Color(0xFFFFF8E7),
-                border = BorderStroke(1.dp, Color(0xFFE8D5A3)),
-                modifier = Modifier.padding(vertical = 4.dp).clickable { onSuggestionClick(suggestion) },
-            ) {
-                Text(suggestion, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF92400E)))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 28.dp)
+                .padding(bottom = 40.dp),   // shift slightly above true center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            // Bot avatar
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(listOf(Color(0xFFFFF8E7), Color(0xFFFFECC0)))
+                    ),
+                contentAlignment = Alignment.Center,
+            ) { Text("🔮", fontSize = 36.sp) }
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                "Brahm AI",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = BrahmForeground, fontWeight = FontWeight.Bold,
+                ),
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Your Vedic astrology guide.\nAsk about planets, kundali, doshas & more.",
+                style = MaterialTheme.typography.bodyMedium.copy(color = BrahmMutedForeground),
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(Modifier.height(28.dp))
+
+            // Suggestion chips — 2 per row
+            val chunked = suggestions.chunked(2)
+            chunked.forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    row.forEach { suggestion ->
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color(0xFFFFF8E7),
+                            border = BorderStroke(1.dp, Color(0xFFE8D5A3)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = 4.dp)
+                                .clickable { onSuggestionClick(suggestion) },
+                        ) {
+                            Text(
+                                suggestion,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = Color(0xFF92400E),
+                                ),
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -562,7 +670,7 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
                         ))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 4.dp),
+                            modifier = Modifier.padding(start = 14.dp, top = 8.dp, bottom = 2.dp),
                         ) {
                             Box(Modifier.size(6.dp).background(
                                 Brush.linearGradient(listOf(Color(0xFFD97706), Color(0xFFD4540A))),
@@ -633,7 +741,7 @@ internal fun RichAiCard(text: String) {
         ))
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp),
+            modifier = Modifier.padding(start = 14.dp, top = 8.dp, bottom = 2.dp),
         ) {
             Box(Modifier.size(6.dp).background(
                 Brush.linearGradient(listOf(Color(0xFFD97706), Color(0xFFD4540A))),
@@ -646,7 +754,7 @@ internal fun RichAiCard(text: String) {
             ))
         }
         Column(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 10.dp),
         ) {
             sections.forEachIndexed { idx, section ->
                 MdBlock(section)

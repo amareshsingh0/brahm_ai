@@ -18,3 +18,8 @@ class UserProfile(BaseModel):
     plan: str = "free"           # free | standard | premium
     phone: Optional[str] = None
     email: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+
+class AvatarResponse(BaseModel):
+    avatar_url: str

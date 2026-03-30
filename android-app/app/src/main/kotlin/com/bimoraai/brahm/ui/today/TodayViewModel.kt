@@ -34,6 +34,7 @@ class TodayViewModel @Inject constructor(
     private val _userName = MutableStateFlow<String?>(null)
     private val _smartAlert = MutableStateFlow<SmartAlert?>(null)
     private val _hasBirthData = MutableStateFlow(false)
+    private val _avatarUrl = MutableStateFlow<String?>(null)
 
     val panchang = _panchang.asStateFlow()
     val isLoading = _isLoading.asStateFlow()
@@ -42,6 +43,7 @@ class TodayViewModel @Inject constructor(
     val userName = _userName.asStateFlow()
     val smartAlert = _smartAlert.asStateFlow()
     val hasBirthData = _hasBirthData.asStateFlow()
+    val avatarUrl = _avatarUrl.asStateFlow()
 
     // Cache today's panchang — it won't change until midnight
     private var cachedDate: String? = null
@@ -73,6 +75,7 @@ class TodayViewModel @Inject constructor(
                     _userName.value = user.name.takeIf { it.isNotBlank() }
                     _hasBirthData.value = user.date.isNotBlank() && user.place.isNotBlank()
                     _smartAlert.value = deriveSmartAlert(user.nakshatra, user.rashi)
+                    _avatarUrl.value = user.avatar_url
                 }
             }
         }

@@ -34,7 +34,7 @@ fun VarshpalScreen(navController: NavController, vm: VarshpalScreenViewModel = h
             TopAppBar(
                 title = {
                     Column {
-                        Text("Varshphal", fontWeight = FontWeight.Bold)
+                        Text("Varshphal", fontWeight = FontWeight.Bold, color = BrahmGold)
                         Text("Solar Return Chart", style = MaterialTheme.typography.bodySmall.copy(color = BrahmMutedForeground))
                     }
                 },
