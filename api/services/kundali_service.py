@@ -806,17 +806,17 @@ def calc_kundali(
             "planets": planets_in,
         })
 
-    # Compute aspects for each bhava
+    # Compute aspects for each bhava — Rahu/Ketu excluded (chaya grahas, no graha drishti)
     def _aspects(gname, g_house):
-        asp = {(g_house + 5) % 12 + 1}  # 7th from planet (1-indexed)
+        if gname in ("Rahu", "Ketu"):
+            return set()
+        asp = {(g_house + 5) % 12 + 1}  # 7th aspect (all planets)
         if gname == "Mangal":
             asp.update({(g_house + 2) % 12 + 1, (g_house + 6) % 12 + 1})
         elif gname == "Guru":
             asp.update({(g_house + 3) % 12 + 1, (g_house + 7) % 12 + 1})
         elif gname == "Shani":
             asp.update({(g_house + 1) % 12 + 1, (g_house + 8) % 12 + 1})
-        elif gname in ("Rahu", "Ketu"):
-            asp.update({(g_house + 3) % 12 + 1, (g_house + 7) % 12 + 1})
         return asp
 
     aspected_by_house = {i+1: [] for i in range(12)}

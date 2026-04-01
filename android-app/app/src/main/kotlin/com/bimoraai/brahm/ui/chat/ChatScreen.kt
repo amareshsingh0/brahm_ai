@@ -226,6 +226,7 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
+                .navigationBarsPadding()
                 .imePadding(),
         ) {
             // ── Messages area ──────────────────────────────────────────────────

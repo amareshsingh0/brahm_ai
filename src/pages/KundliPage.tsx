@@ -43,11 +43,13 @@ const SPECIAL_ASPECTS: Record<string, number[]> = {
   Shani:  [2, 9],   // 3rd and 10th
 };
 
-/** Compute map of house → aspecting planet names from grahaRows */
+/** Compute map of house → aspecting planet names from grahaRows.
+ *  Rahu/Ketu are chaya grahas — no graha drishti in classical Parashara. */
 function computeAspects(rows: Array<{ gn: string; house: number }>): Record<number, string[]> {
   const result: Record<number, string[]> = {};
   for (let h = 1; h <= 12; h++) result[h] = [];
   for (const { gn, house } of rows) {
+    if (gn === "Rahu" || gn === "Ketu") continue;
     const offsets = [6, ...(SPECIAL_ASPECTS[gn] ?? [])];
     for (const off of offsets) {
       const aspH = (house - 1 + off) % 12 + 1;

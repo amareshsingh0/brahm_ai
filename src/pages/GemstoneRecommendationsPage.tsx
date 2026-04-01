@@ -58,8 +58,6 @@ const STONE_WEAR: Record<string, WearEntry> = {
   Shani:   { metal: "Iron or Silver",    metalKey: "gemstones.metal_iron_silver", finger: "Middle finger", fingerKey: "gemstones.finger_middle", day: "Saturday",  dayKey: "gemstones.day_saturday",  mantra: "ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः" },
 };
 
-// House lords for benefic section — 4th, 9th, 10th house lords derived from lagna
-// We derive 4th/9th/10th lord rashis by counting from lagna
 const RASHI_ORDER = [
   "Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya",
   "Tula","Vrischika","Dhanu","Makara","Kumbha","Meena",
@@ -69,6 +67,45 @@ function rashiAt(lagnaRashi: string, houseOffset: number): string {
   const idx = RASHI_ORDER.indexOf(lagnaRashi);
   if (idx === -1) return "";
   return RASHI_ORDER[(idx + houseOffset) % 12];
+}
+
+// Each planet rules these rashis (classical, no Uranus/Neptune)
+const PLANET_RULES: Record<string, string[]> = {
+  Surya:   ["Simha"],
+  Chandra: ["Karka"],
+  Mangal:  ["Mesha", "Vrischika"],
+  Budh:    ["Mithuna", "Kanya"],
+  Guru:    ["Dhanu", "Meena"],
+  Shukra:  ["Vrishabha", "Tula"],
+  Shani:   ["Makara", "Kumbha"],
+  Rahu:    [],
+  Ketu:    [],
+};
+
+// Dusthana houses — lords of these should NOT be recommended
+const DUSTHANA = new Set([3, 6, 8, 12]);
+// Benefic houses — lords of at least one of these qualify
+const BENEFIC_HOUSES = new Set([1, 4, 5, 9, 10]);
+
+/**
+ * Returns true if a planet is a functional benefic for the given lagna.
+ * A planet qualifies if it rules at least one benefic house (1,4,5,9,10)
+ * AND does NOT rule a dusthana (3,6,8,12) as its ONLY house.
+ * (If it rules both benefic + dusthana, benefic wins — classical rule.)
+ */
+function isFunctionalBenefic(planet: string, lagnaRashi: string): boolean {
+  const lagnaIdx = RASHI_ORDER.indexOf(lagnaRashi);
+  if (lagnaIdx === -1) return false;
+  const ruledRashis = PLANET_RULES[planet] ?? [];
+  if (ruledRashis.length === 0) return false;
+
+  const ruledHouses = ruledRashis.map(
+    (r) => ((RASHI_ORDER.indexOf(r) - lagnaIdx + 12) % 12) + 1
+  );
+
+  const hasBenefic  = ruledHouses.some((h) => BENEFIC_HOUSES.has(h));
+  const onlyDusthana = ruledHouses.every((h) => DUSTHANA.has(h));
+  return hasBenefic && !onlyDusthana;
 }
 
 // Gem color → Tailwind accent
@@ -268,10 +305,11 @@ export default function GemstoneRecommendationsPage() {
   const primaryEntry  = LAGNA_STONE[lagnaRashi];
   const secondaryEntry = LAGNA_STONE[moonRashi];
 
-  // Benefic house lords: 4th, 9th, 10th from lagna
+  // Benefic house lords: 4th, 5th, 9th, 10th from lagna (trikona + kendra)
   const beneficHouses = [
-    { label: t("gemstones.house_4th"), house: 3 },
-    { label: t("gemstones.house_9th"), house: 8 },
+    { label: t("gemstones.house_4th"),  house: 3 },
+    { label: t("gemstones.house_5th"),  house: 4 },
+    { label: t("gemstones.house_9th"),  house: 8 },
     { label: t("gemstones.house_10th"), house: 9 },
   ];
 
@@ -301,8 +339,9 @@ export default function GemstoneRecommendationsPage() {
     Guru: "Dhanu", Shukra: "Vrishabha", Shani: "Makara",
     Rahu: "", Ketu: "",
   };
+  // Debilitated planets — only functional benefics (strengthen what matters)
   const debilitatedPlanets = Object.entries(grahas)
-    .filter(([, g]) => g?.status?.includes("Neecha"))
+    .filter(([planet, g]) => g?.status?.includes("Neecha") && isFunctionalBenefic(planet, lagnaRashi))
     .map(([planet]) => {
       // Stone for the debilitated planet itself (strengthen it)
       const lordRashi = PLANET_LORD_RASHI[planet];
@@ -311,9 +350,9 @@ export default function GemstoneRecommendationsPage() {
     })
     .filter((d) => d.entry !== null) as { planet: string; entry: StoneEntry }[];
 
-  // Exalted planets (fortify strength)
+  // Exalted planets — only functional benefics for this lagna
   const exaltedPlanets = Object.entries(grahas)
-    .filter(([, g]) => g?.status?.includes("Uchcha"))
+    .filter(([planet, g]) => g?.status?.includes("Uchcha") && isFunctionalBenefic(planet, lagnaRashi))
     .map(([planet]) => {
       const lordRashi = PLANET_LORD_RASHI[planet];
       const entry = LAGNA_STONE[lordRashi ?? ""] ?? null;
