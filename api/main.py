@@ -31,7 +31,7 @@ from api.routers import (
     chat, kundali, panchang, compatibility,
     search, planets, muhurta, grahan,
     horoscope, user, cities, festivals, calendar, palmistry, gochar, rectification,
-    prashna, varshphal, kp, admin, auth, subscriptions, marriage,
+    prashna, varshphal, kp, admin, auth, subscriptions, marriage, payments,
 )
 from api.services.rag_service import load_all
 from api.dependencies import G
@@ -203,6 +203,7 @@ _JYOTISH_ROUTERS = [
     (varshphal.router,     "Jyotish"),
     (kp.router,            "Jyotish"),
     (marriage.router,      "Jyotish"),
+    (payments.router,      "Payments"),
     (chat.router,          "RAG"),
     (search.router,        "RAG"),
     (user.router,          "User"),

@@ -23,7 +23,7 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val api: ApiService,
+    val apiService: ApiService,
     private val tokenDataStore: TokenDataStore,
     private val userRepository: UserRepository,
     @ApplicationContext private val appContext: Context,
@@ -58,7 +58,7 @@ class ProfileViewModel @Inject constructor(
                 val file = File(filePath)
                 val requestBody = file.asRequestBody("image/jpeg".toMediaType())
                 val part = MultipartBody.Part.createFormData("photo", "avatar.jpg", requestBody)
-                val res = api.uploadAvatar(part)
+                val res = apiService.uploadAvatar(part)
                 if (res.isSuccessful) {
                     userRepository.refresh()   // pull new avatar_url into UserDto
                     _photoUploadState.value = PhotoUploadState.Success
@@ -78,7 +78,7 @@ class ProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                api.removeAvatar()
+                apiService.removeAvatar()
                 userRepository.refresh()
             } catch (_: Exception) {}
         }
@@ -95,7 +95,7 @@ class ProfileViewModel @Inject constructor(
         .map { q ->
             if (q.length < 2) return@map emptyList()
             try {
-                val res = api.searchCities(q)
+                val res = apiService.searchCities(q)
                 if (res.isSuccessful) res.body()?.results?.take(6) ?: emptyList()
                 else emptyList()
             } catch (_: Exception) { emptyList() }
@@ -141,7 +141,7 @@ class ProfileViewModel @Inject constructor(
                     phone      = current?.phone,
                     email      = current?.email,
                 )
-                val res = api.updateProfile(req)
+                val res = apiService.updateProfile(req)
                 if (res.isSuccessful) {
                     userRepository.refresh()
                     _saveState.value = SaveState.Success
@@ -163,7 +163,7 @@ class ProfileViewModel @Inject constructor(
 
     fun logout(onDone: () -> Unit) {
         viewModelScope.launch {
-            try { api.logout() } catch (_: Exception) {}
+            try { apiService.logout() } catch (_: Exception) {}
             tokenDataStore.clear()
             userRepository.clear()
             prefs.edit().clear().apply()   // wipe profile_photo_path + any other prefs

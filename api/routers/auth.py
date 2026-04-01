@@ -320,28 +320,31 @@ def verify_otp(req: VerifyOtpRequest, request: Request):
         }).execute()
 
     # Log login — with device info + geo
-    _ip  = _get_ip(request)
-    _ua  = request.headers.get("user-agent", "")
-    _dev = _parse_ua(_ua)
-    _geo = _get_location(_ip)
-    _cli = request.headers.get("X-Client", "web")
-    sb.table("login_log").insert({
-        "user_id":      user_id,
-        "phone":        phone,
-        "ip":           _ip,
-        "user_agent":   _ua,
-        "device":       f"{_dev['device_type']} · {_dev['browser']} · {_dev['os']}",
-        "login_method": "phone_otp",
-        "client":       _cli,
-        "country":      _geo.get("country"),
-        "country_code": _geo.get("country_code"),
-        "city":         _geo.get("city"),
-        "region":       _geo.get("region"),
-        "isp":          _geo.get("isp"),
-        "lat":          _geo.get("lat"),
-        "lon":          _geo.get("lon"),
-        "success":      True,
-    }).execute()
+    try:
+        _ip  = _get_ip(request)
+        _ua  = request.headers.get("user-agent", "")
+        _dev = _parse_ua(_ua)
+        _geo = _get_location(_ip)
+        _cli = request.headers.get("X-Client", "web")
+        sb.table("login_log").insert({
+            "user_id":      user_id,
+            "phone":        phone,
+            "ip":           _ip,
+            "user_agent":   _ua,
+            "device":       f"{_dev['device_type']} · {_dev['browser']} · {_dev['os']}",
+            "login_method": "phone_otp",
+            "client":       _cli,
+            "country":      _geo.get("country"),
+            "country_code": _geo.get("country_code"),
+            "city":         _geo.get("city"),
+            "region":       _geo.get("region"),
+            "isp":          _geo.get("isp"),
+            "lat":          _geo.get("lat"),
+            "lon":          _geo.get("lon"),
+            "success":      True,
+        }).execute()
+    except Exception:
+        pass  # never break login due to logging failure
 
     # Generate tokens
     access_token   = _make_access_token(user_id, phone, plan)
@@ -539,27 +542,30 @@ def google_login(req: GoogleAuthRequest, request: Request):
         }).execute()
 
     # Log login — with device info + geo
-    _ip  = _get_ip(request)
-    _ua  = request.headers.get("user-agent", "")
-    _dev = _parse_ua(_ua)
-    _geo = _get_location(_ip)
-    _cli = request.headers.get("X-Client", req.device_type or "web")
-    sb.table("login_log").insert({
-        "user_id":      user_id,
-        "ip":           _ip,
-        "user_agent":   _ua,
-        "device":       f"{_dev['device_type']} · {_dev['browser']} · {_dev['os']}",
-        "login_method": "google",
-        "client":       _cli,
-        "country":      _geo.get("country"),
-        "country_code": _geo.get("country_code"),
-        "city":         _geo.get("city"),
-        "region":       _geo.get("region"),
-        "isp":          _geo.get("isp"),
-        "lat":          _geo.get("lat"),
-        "lon":          _geo.get("lon"),
-        "success":      True,
-    }).execute()
+    try:
+        _ip  = _get_ip(request)
+        _ua  = request.headers.get("user-agent", "")
+        _dev = _parse_ua(_ua)
+        _geo = _get_location(_ip)
+        _cli = request.headers.get("X-Client", req.device_type or "web")
+        sb.table("login_log").insert({
+            "user_id":      user_id,
+            "ip":           _ip,
+            "user_agent":   _ua,
+            "device":       f"{_dev['device_type']} · {_dev['browser']} · {_dev['os']}",
+            "login_method": "google",
+            "client":       _cli,
+            "country":      _geo.get("country"),
+            "country_code": _geo.get("country_code"),
+            "city":         _geo.get("city"),
+            "region":       _geo.get("region"),
+            "isp":          _geo.get("isp"),
+            "lat":          _geo.get("lat"),
+            "lon":          _geo.get("lon"),
+            "success":      True,
+        }).execute()
+    except Exception:
+        pass  # never break login due to logging failure
 
     # Generate tokens
     access_token  = _make_access_token(user_id, phone, plan)

@@ -97,32 +97,27 @@ export function LoginsTab({ items, loading }: { items: LoginEntry[]; loading: bo
             {/* Detail grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {/* Device */}
-              {l.device && (
-                <InfoRow Icon={DevIcon} label="Device">
-                  {l.device}
-                </InfoRow>
-              )}
+              <InfoRow Icon={DevIcon} label="Device">
+                {l.device || "Unknown device"}
+              </InfoRow>
 
               {/* IP address */}
-              {l.ip && (
-                <InfoRow Icon={Wifi} label="IP Address">
-                  <span className="font-mono">{l.ip}</span>
-                </InfoRow>
-              )}
+              <InfoRow Icon={Wifi} label="IP Address">
+                <span className="font-mono">{l.ip || "—"}</span>
+              </InfoRow>
 
               {/* Location */}
-              {location && (
-                <InfoRow Icon={MapPin} label="Location">
-                  <span>{flag} {location}</span>
-                </InfoRow>
-              )}
+              <InfoRow Icon={MapPin} label="Location">
+                {location
+                  ? <span>{flag} {location}</span>
+                  : <span className="text-muted-foreground">Location unavailable</span>
+                }
+              </InfoRow>
 
               {/* ISP */}
-              {l.isp && (
-                <InfoRow Icon={Globe} label="ISP / Network">
-                  {l.isp}
-                </InfoRow>
-              )}
+              <InfoRow Icon={Globe} label="ISP / Network">
+                {l.isp || "—"}
+              </InfoRow>
             </div>
 
             {/* Map link if lat/lon available */}

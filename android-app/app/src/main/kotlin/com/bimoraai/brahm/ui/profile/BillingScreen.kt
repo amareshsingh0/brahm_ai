@@ -1,5 +1,8 @@
 package com.bimoraai.brahm.ui.profile
 
+import android.content.Context
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -16,13 +19,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.theme.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 // plan: "free" | "standard" | "premium"
 private data class PlanInfo(
@@ -174,11 +184,15 @@ fun BillingScreen(
             }
 
             // ── Plan cards ──────────────────────────────────────────────────────
+            val context = LocalContext.current
             PLANS.forEach { plan ->
                 PlanCard(
                     plan        = plan,
                     isCurrent   = plan.key == currentPlan,
                     isYearly    = isYearly,
+                    onSubscribe = { planKey, period ->
+                        openCheckout(context, vm, planKey, period)
+                    },
                 )
             }
 
@@ -226,8 +240,31 @@ private fun PeriodTab(
     }
 }
 
+private fun openCheckout(context: Context, vm: ProfileViewModel, planKey: String, period: String) {
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val body = buildJsonObject {
+                put("plan", planKey)
+                put("period", period)
+            }
+            val resp = vm.apiService.checkout(body)
+            if (resp.isSuccessful) {
+                val url = resp.body()
+                    ?.get("payment_url")?.toString()?.trim('"')
+                    ?: return@launch
+                CoroutineScope(Dispatchers.Main).launch {
+                    CustomTabsIntent.Builder()
+                        .setShowTitle(true)
+                        .build()
+                        .launchUrl(context, Uri.parse(url))
+                }
+            }
+        } catch (_: Exception) { }
+    }
+}
+
 @Composable
-private fun PlanCard(plan: PlanInfo, isCurrent: Boolean, isYearly: Boolean) {
+private fun PlanCard(plan: PlanInfo, isCurrent: Boolean, isYearly: Boolean, onSubscribe: (String, String) -> Unit) {
     val borderColor = if (isCurrent) plan.accentColor else BrahmBorder
     val borderWidth = if (isCurrent) 2.dp else 1.dp
 
@@ -323,8 +360,9 @@ private fun PlanCard(plan: PlanInfo, isCurrent: Boolean, isYearly: Boolean) {
 
             // ── CTA button ────────────────────────────────────────────────────
             if (!isCurrent && plan.key != "free") {
+                val period = if (isYearly) "yearly" else "monthly"
                 Button(
-                    onClick = { /* TODO: open payment flow */ },
+                    onClick = { onSubscribe(plan.key, period) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = plan.gradStart,

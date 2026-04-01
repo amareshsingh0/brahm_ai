@@ -280,6 +280,10 @@ interface ApiService {
     @POST("marriage")
     suspend fun getMarriageAnalysis(@Body body: JsonObject): Response<JsonObject>
 
+    // Payment checkout — create Cashfree order
+    @POST("checkout")
+    suspend fun checkout(@Body body: JsonObject): Response<JsonObject>
+
     // Calendar — monthly grid with per-day tithi, festivals, special day flags
     @GET("calendar/month")
     suspend fun getCalendar(

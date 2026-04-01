@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, ChevronRight, Sparkles, Star, Crown, Shield } from "lucide-react";
+import { Check, ChevronRight, Sparkles, Star, Crown, Shield, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
 import { usePlans, useCheckout } from "@/hooks/useSubscription";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import type { AuthPlan } from "@/store/authStore";
 import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 type Period = "monthly" | "yearly";
 
@@ -36,10 +38,42 @@ export default function SubscriptionPage() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const currentPlan = useAuthStore((s) => s.plan);
+  const setPlan     = useAuthStore((s) => s.setPlan);
   const { data: plans = [] } = usePlans();
-  const checkout = useCheckout();
-  const { toast } = useToast();
+  const checkout    = useCheckout();
+  const { toast }   = useToast();
+  const queryClient = useQueryClient();
+
+  // ── Handle return from Cashfree payment ─────────────────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("order_id");
+    const plan    = params.get("plan");
+    if (!orderId) return;
+
+    // Clean URL without reload
+    window.history.replaceState({}, "", "/subscription");
+
+    setVerifying(true);
+    api.get<{ status: string; activated: boolean }>(`/api/payment/verify/${orderId}`)
+      .then((res) => {
+        if (res.status === "PAID" && res.activated) {
+          setPaymentSuccess(true);
+          if (plan) setPlan(plan as AuthPlan);
+          queryClient.invalidateQueries({ queryKey: ["subscription"] });
+          toast({ title: "Payment successful!", description: "Your plan is now active." });
+        } else {
+          toast({ title: "Payment pending", description: "We'll activate your plan once confirmed.", variant: "destructive" });
+        }
+      })
+      .catch(() => {
+        toast({ title: "Could not verify payment", description: "Contact support if amount was deducted.", variant: "destructive" });
+      })
+      .finally(() => setVerifying(false));
+  }, []);
 
   const yearlyDiscount = (monthly: number, yearly: number) => {
     if (!monthly) return 0;
@@ -50,18 +84,32 @@ export default function SubscriptionPage() {
     if (planId === "free" || planId === currentPlan) return;
     try {
       const result = await checkout.mutateAsync({ plan: planId, period });
-      if (result.payment_url) window.open(result.payment_url, "_blank");
-      else toast({ title: "Checkout created", description: `Order: ${result.order_id}` });
+      if (result.payment_url) {
+        window.location.href = result.payment_url;  // same tab — return_url brings back
+      } else {
+        toast({ title: "Checkout created", description: `Order: ${result.order_id}` });
+      }
     } catch {
-      toast({
-        title: "Payment coming soon",
-        description: "Cashfree integration will be enabled shortly.",
-      });
+      toast({ title: "Checkout failed", description: "Please try again.", variant: "destructive" });
     }
   };
 
   return (
     <div className="p-4 sm:p-6 space-y-8 max-w-4xl mx-auto w-full">
+
+      {/* Payment return banners */}
+      {verifying && (
+        <div className="flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-amber-700">
+          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+          <span className="text-sm font-medium">Verifying your payment…</span>
+        </div>
+      )}
+      {paymentSuccess && (
+        <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-green-700">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span className="text-sm font-medium">Payment successful! Your plan is now active.</span>
+        </div>
+      )}
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
