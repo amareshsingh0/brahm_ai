@@ -689,7 +689,7 @@ def analyze_marriage(req: MarriageRequest):
         return {"status": "error", "detail": err}
 
     grahas  = data["grahas"]       # {planet: {rashi, house, degree, ...}}
-    dashas  = data["dasha"]        # [{lord, start, end, antardashas: [...]}]
+    dashas  = data.get("dashas") or data.get("dasha", [])  # [{lord, start, end, antardashas: [...]}]
     lagna   = data["lagna"]["rashi"]
     navamsa = data.get("navamsha", {})  # D9 chart
 
