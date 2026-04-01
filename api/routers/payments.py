@@ -186,10 +186,11 @@ async def cashfree_webhook(request: Request):
     ts     = request.headers.get("x-webhook-timestamp", "")
 
     # Verify signature: HMAC-SHA256(timestamp + raw_body, secret)
-    if secret and sig_header and ts:
+    webhook_secret = os.getenv("CASHFREE_WEBHOOK_SECRET", secret)  # dedicated webhook secret if set
+    if webhook_secret and sig_header and ts:
         import base64
         expected_b64 = base64.b64encode(
-            hmac.new(secret.encode(), (ts + raw_body.decode()).encode(), hashlib.sha256).digest()
+            hmac.new(webhook_secret.encode(), (ts + raw_body.decode()).encode(), hashlib.sha256).digest()
         ).decode()
         if not hmac.compare_digest(expected_b64, sig_header):
             raise HTTPException(status_code=403, detail="Invalid webhook signature")
