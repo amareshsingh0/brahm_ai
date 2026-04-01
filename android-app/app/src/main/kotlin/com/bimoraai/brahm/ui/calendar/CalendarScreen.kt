@@ -37,7 +37,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.components.BrahmCard
 import com.bimoraai.brahm.core.data.CitySearchViewModel
@@ -160,6 +163,16 @@ fun CalendarScreen(
 
     // Sync yearInput when vm year changes (e.g., from goToday)
     LaunchedEffect(year) { yearInput = year.toString() }
+
+    // Refresh on resume — handles midnight date change while app is open
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) vm.checkDateChange()
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
 
     val content: @Composable (PaddingValues) -> Unit = { padding ->
         val listState = rememberLazyListState()

@@ -22,10 +22,10 @@ class CalendarViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    private val now = LocalDate.now()
+    private var lastKnownDate = LocalDate.now()
 
-    val year        = MutableStateFlow(now.year)
-    val month       = MutableStateFlow(now.monthValue)
+    val year        = MutableStateFlow(lastKnownDate.year)
+    val month       = MutableStateFlow(lastKnownDate.monthValue)
     val tradition   = MutableStateFlow("smarta")
     val lunarSystem = MutableStateFlow("amanta")
 
@@ -85,6 +85,17 @@ class CalendarViewModel @Inject constructor(
 
     fun setTradition(t: String) { tradition.value = t; load() }
     fun setLunarSystem(s: String) { lunarSystem.value = s; load() }
+
+    /** Call this from screen's OnResume/LaunchedEffect — refreshes if date changed at midnight */
+    fun checkDateChange() {
+        val today = LocalDate.now()
+        if (today != lastKnownDate) {
+            lastKnownDate = today
+            year.value = today.year
+            month.value = today.monthValue
+            load()
+        }
+    }
 
     fun load() {
         viewModelScope.launch {

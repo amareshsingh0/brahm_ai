@@ -891,7 +891,9 @@ private fun ChatBubble(
                         Text("…", modifier = Modifier.padding(14.dp, 10.dp), color = BrahmMutedForeground)
                     }
                 }
-                else -> RichAiCard(msg.content)
+                msg.isComplete -> RichAiCard(msg.content)
+                // Streaming — close unclosed markers so markdown renders cleanly mid-stream
+                else -> RichAiCard(closeUnclosedMarkers(msg.content))
             }
 
             // Follow-up chips
@@ -1184,6 +1186,31 @@ internal fun parseMarkdown(raw: String): List<MdSection> {
         }
     }
     return result.filter { it !is MdSection.Para || (it as MdSection.Para).text.isNotBlank() }
+}
+
+/**
+ * Close any unclosed inline markdown markers so the streaming render looks correct.
+ * e.g. "**partial" → "**partial**"  |  "*italic" → "*italic*"
+ * Operates only on the last line (where partial tokens always arrive).
+ */
+internal fun closeUnclosedMarkers(text: String): String {
+    if (text.isBlank()) return text
+    val lines = text.lines().toMutableList()
+    val last  = lines.lastOrNull() ?: return text
+
+    // Close unclosed bold **
+    val boldParts = last.split("**")
+    val closedLast = if (boldParts.size % 2 == 0) {
+        // Even split count = odd number of ** = unclosed
+        last + "**"
+    } else {
+        // Try closing unclosed single * (that are not **)
+        val stripped = last.replace(Regex("""\*\*(.*?)\*\*"""), "")
+        val singleStars = stripped.count { it == '*' }
+        if (singleStars % 2 != 0) "$last*" else last
+    }
+    lines[lines.lastIndex] = closedLast
+    return lines.joinToString("\n")
 }
 
 // ── Inline bold/italic/code → AnnotatedString ─────────────────────────────────

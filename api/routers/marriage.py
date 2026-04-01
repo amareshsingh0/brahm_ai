@@ -711,7 +711,7 @@ def analyze_marriage(req: MarriageRequest):
     # ── 3. Score dasha windows ────────────────────────────────────────────────
     timing = _score_windows(
         dashas, seventh_lord, fifth_lord, eleventh_lord, second_lord,
-        grahas, 7, lagna_rashi_i,
+        grahas, 7, lagna_rashi_i, dt.year,
     )
 
     # ── 4. Delay factors ──────────────────────────────────────────────────────
