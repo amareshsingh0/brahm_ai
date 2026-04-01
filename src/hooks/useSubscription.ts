@@ -3,11 +3,28 @@
  * Fetches from GET /api/subscription which returns the admin-configured
  * plan, daily usage, and exact feature list for this user.
  */
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export interface Plan {
+  id:                   string;
+  name:                 string;
+  name_hi:              string;
+  description:          string;
+  price_monthly:        number;
+  price_yearly:         number;
+  badge_text:           string | null;
+  daily_message_limit:  number | null;
+  features:             string[];   // display strings for the pricing page
+}
+
+export interface CheckoutResult {
+  payment_url?: string;
+  order_id?:    string;
+}
 
 export interface SubscriptionInfo {
   plan_id:               string;        // "free" | "basic" | "pro" | custom
@@ -89,4 +106,22 @@ export function useFeatureAccess(featureKey: string): boolean {
 export function useSubscriptionStatus() {
   const { info, ...rest } = useSubscription();
   return { ...rest, data: info };
+}
+
+/** Fetch all active public plans for the pricing/subscription page. */
+export function usePlans() {
+  return useQuery<Plan[]>({
+    queryKey: ["plans"],
+    queryFn:  () => api.get<Plan[]>("/api/plans"),
+    staleTime: 5 * 60 * 1000,   // 5 min — plans don't change often
+    retry: false,
+    placeholderData: [],
+  });
+}
+
+/** Initiate checkout for a plan. */
+export function useCheckout() {
+  return useMutation<CheckoutResult, Error, { plan: string; period: string }>({
+    mutationFn: (body) => api.post<CheckoutResult>("/api/checkout", body),
+  });
 }
