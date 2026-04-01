@@ -113,3 +113,11 @@
     to   { opacity: 1; transform: translateY(0);   }
   }
 }
+
+@layer components {
+  .field-input {
+    @apply w-full bg-white border border-border rounded-lg px-3 py-2 text-foreground text-sm
+           focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-200
+           disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed;
+  }
+}

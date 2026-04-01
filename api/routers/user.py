@@ -406,6 +406,23 @@ def get_saved_kundali(request: Request, session_id: str = Query(default="")):
         return {"found": False, "kundali": None}
 
 
+@router.get("/user/subscription")
+async def get_user_subscription_endpoint(
+    request: Request,
+    session_id: str = Query(default=""),
+):
+    """Return the authenticated user's current subscription plan, usage, and features."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    from api.services.subscription_service import get_user_subscription
+    try:
+        return await get_user_subscription(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Subscription lookup failed: {e}")
+
+
 @router.post("/user/kundali")
 def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Query(default="")):
     """Upsert the user's primary kundali (one per user — overwrites on re-generate)."""

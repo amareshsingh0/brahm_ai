@@ -1,7 +1,6 @@
 package com.bimoraai.brahm.ui.about
 
 import android.webkit.WebView
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,16 +15,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.bimoraai.brahm.core.theme.*
+
+// ── Legal doc index → (asset file, screen title) ─────────────────────────────
+private val legalDocs = listOf(
+    "privacy_policy.html"    to "Privacy Policy",
+    "terms_of_use.html"      to "Terms of Use",
+    "cancellation_policy.html" to "Cancellation Policy",
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(navController: NavController) {
     val context = LocalContext.current
-    var legalDoc by remember { mutableStateOf<String?>(null) }
 
     val versionName = remember {
         try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0" }
@@ -61,24 +65,23 @@ fun AboutScreen(navController: NavController) {
                 icon = Icons.Default.PrivacyTip,
                 iconColor = Color(0xFF546E7A),
                 label = "Privacy Policy",
-                onClick = { legalDoc = "privacy" },
+                onClick = { navController.navigate("legal/0") },
             )
             AboutItem(
                 icon = Icons.Default.Description,
                 iconColor = Color(0xFF5C6BC0),
                 label = "Terms of Use",
-                onClick = { legalDoc = "terms" },
+                onClick = { navController.navigate("legal/1") },
             )
             AboutItem(
                 icon = Icons.Default.Cancel,
                 iconColor = Color(0xFFE53935),
                 label = "Cancellation Policy",
-                onClick = { legalDoc = "cancellation" },
+                onClick = { navController.navigate("legal/2") },
             )
 
             Spacer(Modifier.weight(1f))
 
-            // App version at bottom
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -86,11 +89,7 @@ fun AboutScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
+                Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                     Icon(Icons.Default.AutoAwesome, null, tint = BrahmGold, modifier = Modifier.size(24.dp))
                 }
                 Column {
@@ -100,69 +99,47 @@ fun AboutScreen(navController: NavController) {
             }
         }
     }
+}
 
-    // Legal doc bottom sheet
-    legalDoc?.let { doc ->
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val title = when (doc) {
-            "privacy" -> "Privacy Policy"; "terms" -> "Terms of Use"; else -> "Cancellation Policy"
-        }
-        val assetFile = when (doc) {
-            "privacy" -> "privacy_policy.html"; "terms" -> "terms_of_use.html"; else -> "cancellation_policy.html"
-        }
-        ModalBottomSheet(
-            onDismissRequest = { legalDoc = null },
-            sheetState = sheetState,
-            containerColor = BrahmCard,
-            dragHandle = {
-                Box(
-                    Modifier.fillMaxWidth().padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        Modifier
-                            .size(width = 36.dp, height = 4.dp)
-                            .background(BrahmMutedForeground.copy(alpha = 0.3f), RoundedCornerShape(2.dp))
-                    )
+// ── Full-screen legal document viewer ────────────────────────────────────────
+// One dedicated Scaffold per doc — WebView fills the entire safe area with
+// padding(innerPadding). No ModalBottomSheet, no inset juggling.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LegalDocScreen(navController: NavController, docIndex: Int) {
+    val (assetFile, title) = legalDocs.getOrElse(docIndex) { legalDocs[0] }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(title, fontWeight = FontWeight.SemiBold) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = BrahmBackground,
+                    titleContentColor = BrahmForeground,
+                    navigationIconContentColor = BrahmForeground,
+                ),
+            )
+        },
+        containerColor = BrahmBackground,
+    ) { innerPadding ->
+        AndroidView(
+            factory = { ctx ->
+                WebView(ctx).apply {
+                    settings.javaScriptEnabled = false
+                    settings.cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
+                    isVerticalScrollBarEnabled = true
+                    loadUrl("file:///android_asset/$assetFile")
                 }
             },
-        ) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.88f)
-            ) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                )
-                HorizontalDivider(color = BrahmBorder)
-                AndroidView(
-                    factory = { ctx ->
-                        WebView(ctx).apply {
-                            settings.javaScriptEnabled = false
-                            settings.cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
-                            isVerticalScrollBarEnabled = true
-                            loadUrl("file:///android_asset/$assetFile")
-                        }
-                    },
-                    update = { webView ->
-                        // Reload when switching between docs (privacy → terms → cancellation)
-                        val current = webView.url ?: ""
-                        if (!current.endsWith(assetFile)) {
-                            webView.loadUrl("file:///android_asset/$assetFile")
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                )
-                // Shrinks WebView by nav bar height so its bottom sits above the nav bar.
-                // Without this, WebView extends behind the nav bar and last lines are hidden.
-                Spacer(Modifier.navigationBarsPadding())
-            }
-        }
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        )
     }
 }
 
@@ -186,15 +163,7 @@ private fun AboutItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .then(
-                        Modifier
-                            .padding(0.dp)
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
+            Box(modifier = Modifier.size(36.dp), contentAlignment = Alignment.Center) {
                 Icon(icon, null, tint = iconColor, modifier = Modifier.size(22.dp))
             }
             Text(

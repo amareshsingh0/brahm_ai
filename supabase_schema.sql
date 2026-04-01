@@ -253,6 +253,77 @@ CREATE TRIGGER users_updated_at
   BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+-- ── Feature Flags ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS feature_flags (
+  key                  TEXT PRIMARY KEY,
+  name                 TEXT NOT NULL,
+  description          TEXT,
+  category             TEXT DEFAULT 'general',
+  is_globally_enabled  BOOLEAN NOT NULL DEFAULT true,
+  created_at           TIMESTAMPTZ DEFAULT now()
+);
+
+-- ── Subscription Plans ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS subscription_plans (
+  id                   TEXT PRIMARY KEY,
+  name                 TEXT NOT NULL,
+  description          TEXT,
+  price_inr            INTEGER NOT NULL DEFAULT 0,
+  duration_days        INTEGER NOT NULL DEFAULT 30,
+  daily_message_limit  INTEGER,
+  daily_token_limit    INTEGER,
+  features             JSONB NOT NULL DEFAULT '[]',
+  is_active            BOOLEAN NOT NULL DEFAULT true,
+  sort_order           INTEGER NOT NULL DEFAULT 0,
+  badge_text           TEXT,
+  created_at           TIMESTAMPTZ DEFAULT now(),
+  updated_at           TIMESTAMPTZ DEFAULT now()
+);
+
+-- ── Daily Usage ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS daily_usage (
+  id            BIGSERIAL PRIMARY KEY,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  usage_date    DATE NOT NULL DEFAULT CURRENT_DATE,
+  messages_used INTEGER NOT NULL DEFAULT 0,
+  tokens_used   INTEGER NOT NULL DEFAULT 0,
+  plan_id       TEXT,
+  UNIQUE(user_id, usage_date)
+);
+CREATE INDEX IF NOT EXISTS idx_daily_usage_user_date ON daily_usage(user_id, usage_date);
+
+-- ── Default seed data ─────────────────────────────────────────────────────────
+INSERT INTO feature_flags (key, name, description, category) VALUES
+  ('ai_chat',         'AI Chat',              'Main AI chat assistant',            'ai'),
+  ('kundali',         'Kundali',              'Kundali generation and analysis',   'astrology'),
+  ('palm_reading',    'Palm Reading',         'AI palmistry analysis',             'ai'),
+  ('live_sky_today',  'Live Sky Today',       'Today for You in live sky',         'astrology'),
+  ('muhurta',         'Muhurta',              'Auspicious time calculator',        'astrology'),
+  ('horoscope_ai',    'Horoscope AI',         'AI horoscope analysis',             'ai'),
+  ('compatibility',   'Compatibility',        'Kundali matching',                  'astrology'),
+  ('gochar',          'Gochar',               'Transit analysis',                  'astrology'),
+  ('kp_system',       'KP System',            'Krishnamurti Paddhati',             'astrology'),
+  ('dosha',           'Dosha Analysis',       'Dosha detection and remedies',      'astrology'),
+  ('gemstone',        'Gemstone',             'Gemstone recommendations',          'astrology'),
+  ('nakshatra',       'Nakshatra',            'Nakshatra analysis',                'astrology'),
+  ('prashna',         'Prashna Kundali',      'Horary astrology',                  'astrology'),
+  ('varshphal',       'Varshphal',            'Solar return chart',                'astrology'),
+  ('rectification',   'Rectification',        'Birth time rectification',          'astrology'),
+  ('pdf_export',      'PDF Export',           'Export kundali as PDF',             'tools'),
+  ('chat_history',    'Chat History',         'Save and view chat history',        'tools'),
+  ('panchang',        'Panchang',             'Daily panchang (always free)',       'astrology')
+ON CONFLICT (key) DO NOTHING;
+
+INSERT INTO subscription_plans (id, name, description, price_inr, duration_days, daily_message_limit, daily_token_limit, features, is_active, sort_order, badge_text) VALUES
+  ('free',  'Free',  'Basic access with panchang',   0,   0,  0,  0,      '["panchang"]', true, 0, NULL),
+  ('basic', 'Basic', 'Perfect for regular users',  299,  30, 30, 100000,
+   '["ai_chat","kundali","palm_reading","live_sky_today","muhurta","horoscope_ai","compatibility","gochar","kp_system","dosha","gemstone","nakshatra","prashna","varshphal","rectification","pdf_export","chat_history","panchang"]',
+   true, 1, 'Popular'),
+  ('pro',   'Pro',   'For power users',            499,  30, 65, 250000,
+   '["ai_chat","kundali","palm_reading","live_sky_today","muhurta","horoscope_ai","compatibility","gochar","kp_system","dosha","gemstone","nakshatra","prashna","varshphal","rectification","pdf_export","chat_history","panchang"]',
+   true, 2, 'Best Value')
+ON CONFLICT (id) DO NOTHING;
+
 -- ── ROW LEVEL SECURITY ────────────────────────────────────────
 -- Service role key (backend) bypasses RLS — full access
 -- Frontend (anon key) blocked — all access via FastAPI backend only
@@ -267,3 +338,6 @@ ALTER TABLE saved_kundalis   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE palmistry_log    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deleted_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_log        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE feature_flags    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscription_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE daily_usage      ENABLE ROW LEVEL SECURITY;

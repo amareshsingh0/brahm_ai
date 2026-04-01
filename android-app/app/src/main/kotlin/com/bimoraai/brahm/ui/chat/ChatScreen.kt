@@ -9,6 +9,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,6 +68,8 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
     val listState       = rememberLazyListState()
     val keyboard        = LocalSoftwareKeyboardController.current
     var showHistory     by remember { mutableStateOf(false) }
+    val snackbarState   = remember { SnackbarHostState() }
+    val scope           = rememberCoroutineScope()
 
     // ── Voice input ───────────────────────────────────────────────────────────
     val context      = LocalContext.current
@@ -125,6 +129,16 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
+        snackbarHost = {
+            SnackbarHost(snackbarState, modifier = Modifier.padding(bottom = 8.dp)) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFF1A1A1A),
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(10.dp),
+                )
+            }
+        },
         topBar = {
             Surface(color = Color.White, shadowElevation = 2.dp) {
                 Column {
@@ -222,14 +236,21 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
                     EmptyState(onSuggestionClick = { vm.sendMessage(it) })
                 }
                 if (messages.isNotEmpty() || showTyping) {
+                    val lastAssistantIdx = visibleMessages.indexOfLast { it.role == "assistant" && it.isComplete }
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        items(visibleMessages) { msg ->
-                            ChatBubble(msg, onFollowUpClick = { vm.sendFollowUp(it) })
+                        itemsIndexed(visibleMessages) { idx, msg ->
+                            ChatBubble(
+                                msg = msg,
+                                onFollowUpClick = { vm.sendFollowUp(it) },
+                                isLastAssistant = idx == lastAssistantIdx && !isStreaming,
+                                onCopy = { scope.launch { snackbarState.showSnackbar("Copied") } },
+                                onRegenerate = { vm.regenerate() },
+                            )
                         }
                         if (showTyping) {
                             item { TypingIndicator() }
@@ -820,13 +841,32 @@ private fun AiAvatar() {
 
 // ── Chat bubble ───────────────────────────────────────────────────────────────
 @Composable
-private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
+private fun ChatBubble(
+    msg: ChatMessage,
+    onFollowUpClick: (String) -> Unit,
+    isLastAssistant: Boolean = false,
+    onCopy: () -> Unit = {},
+    onRegenerate: () -> Unit = {},
+) {
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+
     if (msg.role == "user") {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.End,
+        ) {
             Surface(
                 shape = RoundedCornerShape(topStart = 18.dp, topEnd = 4.dp, bottomStart = 18.dp, bottomEnd = 18.dp),
                 color = BrahmGold,
-                modifier = Modifier.widthIn(max = 290.dp),
+                modifier = Modifier
+                    .widthIn(max = 290.dp)
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            clipboard.setText(androidx.compose.ui.text.AnnotatedString(msg.content))
+                            onCopy()
+                        },
+                    ),
             ) {
                 Text(
                     text = msg.content,
@@ -851,40 +891,6 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
                         Text("…", modifier = Modifier.padding(14.dp, 10.dp), color = BrahmMutedForeground)
                     }
                 }
-                !msg.isComplete -> {
-                    // Streaming — card with inline label
-                    Card(
-                        shape = RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(1.dp),
-                        border = BorderStroke(1.dp, BrahmBorder),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Box(Modifier.fillMaxWidth().height(2.dp).background(
-                            Brush.horizontalGradient(listOf(BrahmGold, Color(0xFFD4540A), Color.Transparent))
-                        ))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(start = 14.dp, top = 8.dp, bottom = 2.dp),
-                        ) {
-                            Box(Modifier.size(6.dp).background(
-                                Brush.linearGradient(listOf(Color(0xFFD97706), Color(0xFFD4540A))),
-                                shape = RoundedCornerShape(2.dp),
-                            ))
-                            Spacer(Modifier.width(6.dp))
-                            Text("BRAHM AI", style = MaterialTheme.typography.labelSmall.copy(
-                                color = Color(0xFFB45309), fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.2.sp, fontSize = 8.sp,
-                            ))
-                        }
-                        Text(
-                            text = msg.content,
-                            modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
-                            color = Color(0xFF1A1A1A),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 27.sp),
-                        )
-                    }
-                }
                 else -> RichAiCard(msg.content)
             }
 
@@ -906,6 +912,45 @@ private fun ChatBubble(msg: ChatMessage, onFollowUpClick: (String) -> Unit) {
                                     color = Color(0xFF92400E),
                                     fontWeight = FontWeight.Medium,
                                 ),
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Copy + Regenerate action row — only on completed messages
+            if (msg.isComplete) {
+                Row(
+                    modifier = Modifier.padding(top = 4.dp, start = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // Copy
+                    IconButton(
+                        onClick = {
+                            clipboard.setText(androidx.compose.ui.text.AnnotatedString(msg.content))
+                            onCopy()
+                        },
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.ContentCopy,
+                            contentDescription = "Copy",
+                            tint = BrahmMutedForeground,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    // Regenerate — only on the last assistant message
+                    if (isLastAssistant) {
+                        IconButton(
+                            onClick = onRegenerate,
+                            modifier = Modifier.size(32.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = "Regenerate",
+                                tint = BrahmMutedForeground,
+                                modifier = Modifier.size(16.dp),
                             )
                         }
                     }

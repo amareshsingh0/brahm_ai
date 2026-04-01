@@ -31,7 +31,7 @@ from api.routers import (
     chat, kundali, panchang, compatibility,
     search, planets, muhurta, grahan,
     horoscope, user, cities, festivals, calendar, palmistry, gochar, rectification,
-    prashna, varshphal, kp, admin, auth,
+    prashna, varshphal, kp, admin, auth, subscriptions,
 )
 from api.services.rag_service import load_all
 from api.dependencies import G
@@ -206,6 +206,7 @@ _JYOTISH_ROUTERS = [
     (search.router,        "RAG"),
     (user.router,          "User"),
     (palmistry.router,     "Palmistry"),
+    (subscriptions.router, "Subscription"),
 ]
 
 # Mount at /api/v1 (current version)

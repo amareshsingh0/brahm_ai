@@ -244,6 +244,10 @@ interface ApiService {
     @GET("planets/now")
     suspend fun getPlanetsNow(): Response<JsonObject>
 
+    // Subscription — current plan + usage + features
+    @GET("subscription")
+    suspend fun getSubscription(): Response<JsonObject>
+
     // Vedic Library — RAG search
     @GET("search")
     suspend fun searchVedicLibrary(@Query("q") query: String): Response<JsonObject>

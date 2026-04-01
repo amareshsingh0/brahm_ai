@@ -1340,3 +1340,316 @@ def clear_logs(x_admin_key: str = Header(None)):
     except Exception:
         pass
     return {"cleared": True}
+
+
+# ─── PLAN MANAGEMENT ──────────────────────────────────────────────────────────
+
+class PlanBody(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    price_inr: int = 0
+    duration_days: int = 30
+    daily_message_limit: Optional[int] = None
+    daily_token_limit: Optional[int] = None
+    features: list = []
+    is_active: bool = True
+    sort_order: int = 0
+    badge_text: Optional[str] = None
+
+
+class PlanUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price_inr: Optional[int] = None
+    duration_days: Optional[int] = None
+    daily_message_limit: Optional[int] = None
+    daily_token_limit: Optional[int] = None
+    features: Optional[list] = None
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
+    badge_text: Optional[str] = None
+
+
+@router.get("/admin/plans")
+def list_plans(x_admin_key: str = Header(None)):
+    """List all subscription plans (including inactive)."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    try:
+        rows = _sb(lambda: sb.table("subscription_plans").select("*").order("sort_order").execute()).data or []
+        return {"plans": rows}
+    except Exception as e:
+        raise HTTPException(500, f"Plans error: {e}")
+
+
+@router.post("/admin/plans")
+def create_plan(body: PlanBody, x_admin_key: str = Header(None)):
+    """Create a new subscription plan."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    try:
+        row = body.model_dump()
+        row["updated_at"] = datetime.now(timezone.utc).isoformat()
+        _sb(lambda: sb.table("subscription_plans").insert(row).execute())
+        _admin_log("admin", "create_plan", body.id, "plan", {"name": body.name, "price_inr": body.price_inr})
+        return {"created": body.id}
+    except Exception as e:
+        raise HTTPException(500, f"Create plan error: {e}")
+
+
+@router.put("/admin/plans/{plan_id}")
+def update_plan(plan_id: str, body: PlanUpdate, x_admin_key: str = Header(None)):
+    """Update an existing subscription plan."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not updates:
+        raise HTTPException(400, "Nothing to update")
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    try:
+        _sb(lambda: sb.table("subscription_plans").update(updates).eq("id", plan_id).execute())
+        _admin_log("admin", "update_plan", plan_id, "plan", {"updates": list(updates.keys())})
+        return {"updated": plan_id}
+    except Exception as e:
+        raise HTTPException(500, f"Update plan error: {e}")
+
+
+@router.delete("/admin/plans/{plan_id}")
+def delete_plan(plan_id: str, x_admin_key: str = Header(None)):
+    """Delete a plan — only allowed if no active subscriptions use it."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    try:
+        # Check for active subscriptions using this plan
+        active_count = _sb(
+            lambda: sb.table("subscriptions")
+            .select("id", count="exact")
+            .eq("plan", plan_id)
+            .eq("status", "active")
+            .execute()
+        ).count or 0
+        if active_count > 0:
+            raise HTTPException(400, f"Cannot delete plan '{plan_id}': {active_count} active subscription(s) use it.")
+        _sb(lambda: sb.table("subscription_plans").delete().eq("id", plan_id).execute())
+        _admin_log("admin", "delete_plan", plan_id, "plan", {})
+        return {"deleted": plan_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Delete plan error: {e}")
+
+
+@router.patch("/admin/plans/{plan_id}/toggle")
+def toggle_plan(plan_id: str, x_admin_key: str = Header(None)):
+    """Toggle is_active for a plan."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    try:
+        res = _sb(lambda: sb.table("subscription_plans").select("is_active").eq("id", plan_id).maybe_single().execute())
+        if not res or not res.data:
+            raise HTTPException(404, f"Plan '{plan_id}' not found")
+        current = res.data.get("is_active", True)
+        new_val = not current
+        _sb(lambda: sb.table("subscription_plans").update({
+            "is_active": new_val,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", plan_id).execute())
+        _admin_log("admin", "toggle_plan", plan_id, "plan", {"is_active": new_val})
+        return {"plan_id": plan_id, "is_active": new_val}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Toggle plan error: {e}")
+
+
+# ─── FEATURE FLAG MANAGEMENT ──────────────────────────────────────────────────
+
+class FeatureFlagBody(BaseModel):
+    key: str
+    name: str
+    description: Optional[str] = None
+    category: str = "general"
+    is_globally_enabled: bool = True
+
+
+class FeatureFlagUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    is_globally_enabled: Optional[bool] = None
+
+
+@router.get("/admin/feature-flags")
+def list_feature_flags(x_admin_key: str = Header(None)):
+    """List all feature flags."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    try:
+        rows = _sb(lambda: sb.table("feature_flags").select("*").order("category").order("key").execute()).data or []
+        return {"flags": rows}
+    except Exception as e:
+        raise HTTPException(500, f"Feature flags error: {e}")
+
+
+@router.post("/admin/feature-flags")
+def create_feature_flag(body: FeatureFlagBody, x_admin_key: str = Header(None)):
+    """Create a new feature flag."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    try:
+        _sb(lambda: sb.table("feature_flags").insert(body.model_dump()).execute())
+        _admin_log("admin", "create_feature_flag", body.key, "feature_flag", {"name": body.name})
+        return {"created": body.key}
+    except Exception as e:
+        raise HTTPException(500, f"Create feature flag error: {e}")
+
+
+@router.patch("/admin/feature-flags/{key}")
+def update_feature_flag(key: str, body: FeatureFlagUpdate, x_admin_key: str = Header(None)):
+    """Update a feature flag (name, description, is_globally_enabled)."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not updates:
+        raise HTTPException(400, "Nothing to update")
+    try:
+        res = _sb(lambda: sb.table("feature_flags").select("key").eq("key", key).maybe_single().execute())
+        if not res or not res.data:
+            raise HTTPException(404, f"Feature flag '{key}' not found")
+        _sb(lambda: sb.table("feature_flags").update(updates).eq("key", key).execute())
+        _admin_log("admin", "update_feature_flag", key, "feature_flag", {"updates": updates})
+        return {"updated": key}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Update feature flag error: {e}")
+
+
+@router.delete("/admin/feature-flags/{key}")
+def delete_feature_flag(key: str, x_admin_key: str = Header(None)):
+    """Delete a feature flag."""
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+    try:
+        _sb(lambda: sb.table("feature_flags").delete().eq("key", key).execute())
+        _admin_log("admin", "delete_feature_flag", key, "feature_flag", {})
+        return {"deleted": key}
+    except Exception as e:
+        raise HTTPException(500, f"Delete feature flag error: {e}")
+
+
+# ─── USAGE STATS ──────────────────────────────────────────────────────────────
+
+@router.get("/admin/usage/stats")
+def get_usage_stats(
+    x_admin_key: str = Header(None),
+    days: int = Query(7, ge=1, le=90),
+):
+    """
+    Aggregated usage stats.
+    Returns:
+      daily_totals: [{date, total_messages, total_tokens, unique_users}]
+      top_users:    [{user_id, name, messages, tokens}]
+      plan_breakdown: {basic: 120, pro: 45, ...}
+    """
+    _check(x_admin_key)
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(503, "Database unavailable")
+
+    from datetime import timezone as _tz
+    ist_offset = timedelta(hours=5, minutes=30)
+    since_ist = (datetime.now(_tz.utc) + ist_offset - timedelta(days=days)).date().isoformat()
+
+    try:
+        # Daily totals
+        daily_rows = _sb(
+            lambda: sb.table("daily_usage")
+            .select("usage_date, messages_used, tokens_used, user_id")
+            .gte("usage_date", since_ist)
+            .order("usage_date")
+            .execute()
+        ).data or []
+
+        # Aggregate by date
+        from collections import defaultdict
+        date_agg: dict = defaultdict(lambda: {"total_messages": 0, "total_tokens": 0, "users": set()})
+        user_agg: dict = defaultdict(lambda: {"messages": 0, "tokens": 0})
+
+        for r in daily_rows:
+            d = r.get("usage_date", "")
+            date_agg[d]["total_messages"] += r.get("messages_used", 0)
+            date_agg[d]["total_tokens"]   += r.get("tokens_used", 0)
+            date_agg[d]["users"].add(r.get("user_id"))
+            uid = r.get("user_id", "")
+            user_agg[uid]["messages"] += r.get("messages_used", 0)
+            user_agg[uid]["tokens"]   += r.get("tokens_used", 0)
+
+        daily_totals = [
+            {
+                "date":           d,
+                "total_messages": v["total_messages"],
+                "total_tokens":   v["total_tokens"],
+                "unique_users":   len(v["users"]),
+            }
+            for d, v in sorted(date_agg.items())
+        ]
+
+        # Top users (by message count)
+        top_user_ids = sorted(user_agg.keys(), key=lambda u: user_agg[u]["messages"], reverse=True)[:20]
+        top_users = []
+        if top_user_ids:
+            try:
+                user_rows = sb.table("users").select("id, name").in_("id", top_user_ids).execute().data or []
+                name_map = {u["id"]: u.get("name", "") for u in user_rows}
+            except Exception:
+                name_map = {}
+            for uid in top_user_ids:
+                top_users.append({
+                    "user_id":  uid,
+                    "name":     name_map.get(uid, ""),
+                    "messages": user_agg[uid]["messages"],
+                    "tokens":   user_agg[uid]["tokens"],
+                })
+
+        # Plan breakdown (active subscriptions)
+        plan_breakdown: dict = {}
+        try:
+            plan_rows = _sb(
+                lambda: sb.table("daily_usage")
+                .select("plan_id")
+                .gte("usage_date", since_ist)
+                .execute()
+            ).data or []
+            from collections import Counter
+            plan_counts = Counter(r.get("plan_id") or "free" for r in plan_rows)
+            plan_breakdown = dict(plan_counts)
+        except Exception:
+            pass
+
+        return {
+            "daily_totals":   daily_totals,
+            "top_users":      top_users,
+            "plan_breakdown": plan_breakdown,
+        }
+
+    except Exception as e:
+        raise HTTPException(500, f"Usage stats error: {e}")

@@ -1,119 +1,86 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+/**
+ * useSubscription — dynamic subscription + feature flag hook.
+ * Fetches from GET /api/subscription which returns the admin-configured
+ * plan, daily usage, and exact feature list for this user.
+ */
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 
-export interface Plan {
-  id: "free" | "standard" | "premium";
-  name: string;
-  name_hi: string;
-  price_monthly: number;
-  price_yearly: number;
-  currency: string;
-  features: string[];
-  limits: { ai_chat_daily: number; kundali_saves: number };
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+export interface SubscriptionInfo {
+  plan_id:               string;        // "free" | "basic" | "pro" | custom
+  plan_name:             string;
+  price_inr:             number;
+  duration_days:         number;
+  daily_message_limit:   number | null; // null = unlimited
+  daily_token_limit:     number | null;
+  badge_text:            string | null;
+  status:                "active" | "expired" | "none";
+  expires_at:            string | null;
+  days_remaining:        number | null;
+  messages_used_today:   number;
+  tokens_used_today:     number;
+  features:              string[];      // e.g. ["ai_chat", "kundali", ...]
+  is_free:               boolean;
 }
 
-export interface SubscriptionStatus {
-  plan: "free" | "standard" | "premium";
-  status: "active" | "cancelled" | "expired";
-  started_at: string | null;
-  expires_at: string | null;
-  period: "monthly" | "yearly" | null;
-}
+const FREE_FALLBACK: SubscriptionInfo = {
+  plan_id:             "free",
+  plan_name:           "Free",
+  price_inr:           0,
+  duration_days:       0,
+  daily_message_limit: 0,
+  daily_token_limit:   0,
+  badge_text:          null,
+  status:              "none",
+  expires_at:          null,
+  days_remaining:      null,
+  messages_used_today: 0,
+  tokens_used_today:   0,
+  features:            ["panchang"],
+  is_free:             true,
+};
 
-export interface CheckoutResponse {
-  payment_session_id: string;
-  order_id: string;
-  payment_url: string;
-}
+// ── Main hook ─────────────────────────────────────────────────────────────────
 
-const PLAN_ORDER: Record<string, number> = { free: 0, standard: 1, premium: 2 };
-
-export function usePlans() {
-  return useQuery<Plan[]>({
-    queryKey: ["subscription", "plans"],
-    queryFn: () => api.get<{ plans: Plan[] }>("/api/subscription/plans").then((r) => r.plans),
-    staleTime: 60 * 60 * 1000,
-    placeholderData: [
-      {
-        id: "free",
-        name: "Free",
-        name_hi: "निःशुल्क",
-        price_monthly: 0,
-        price_yearly: 0,
-        currency: "INR",
-        features: [
-          "Daily Horoscope",
-          "Today's Panchang",
-          "Festival Calendar",
-          "Palmistry AI Analysis",
-          "Basic Kundali (view only)",
-          "5 AI Chat messages / day",
-        ],
-        limits: { ai_chat_daily: 5, kundali_saves: 1 },
-      },
-      {
-        id: "standard",
-        name: "Standard",
-        name_hi: "मानक",
-        price_monthly: 199,
-        price_yearly: 1999,
-        currency: "INR",
-        features: [
-          "Everything in Free, plus:",
-          "Unlimited AI Chat",
-          "Full Kundali + All 7 Tabs",
-          "Gochar Transits",
-          "Compatibility Analysis",
-          "Muhurta Finder",
-          "Save unlimited charts",
-        ],
-        limits: { ai_chat_daily: -1, kundali_saves: -1 },
-      },
-      {
-        id: "premium",
-        name: "Premium",
-        name_hi: "प्रीमियम",
-        price_monthly: 399,
-        price_yearly: 3999,
-        currency: "INR",
-        features: [
-          "Everything in Standard, plus:",
-          "Gemstone Recommendations",
-          "Dosha + Sade Sati Reports",
-          "Varshphal Annual Chart",
-          "Prashna Kundali",
-          "KP System",
-          "Vedic Scripture Library",
-          "Priority GPU inference",
-        ],
-        limits: { ai_chat_daily: -1, kundali_saves: -1 },
-      },
-    ],
-  });
-}
-
-export function useSubscriptionStatus() {
+export function useSubscription() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  return useQuery<SubscriptionStatus>({
-    queryKey: ["subscription", "status"],
-    queryFn: () => api.get<SubscriptionStatus>("/api/subscription/status"),
-    enabled: isLoggedIn,
-    staleTime: 30 * 1000,
-    retry: false,
-    placeholderData: { plan: "free", status: "active", started_at: null, expires_at: null, period: null },
+
+  const query = useQuery<SubscriptionInfo>({
+    queryKey: ["subscription"],
+    queryFn:  () => api.get<SubscriptionInfo>("/api/subscription"),
+    enabled:  isLoggedIn,
+    staleTime: 60 * 1000,        // 1 min — usage updates after each chat
+    retry:    false,
+    placeholderData: FREE_FALLBACK,
   });
+
+  const info = query.data ?? FREE_FALLBACK;
+
+  return {
+    ...query,
+    info,
+    /** Check if the user has access to a specific feature key */
+    hasFeature: (key: string) => info.features.includes(key),
+    /** How many messages remaining today (null = unlimited) */
+    messagesRemaining: info.daily_message_limit == null
+      ? null
+      : Math.max(0, (info.daily_message_limit ?? 0) - info.messages_used_today),
+    /** 0-1 fraction of daily message quota used */
+    usageFraction: (!info.daily_message_limit || info.daily_message_limit === 0)
+      ? 0
+      : Math.min(1, info.messages_used_today / info.daily_message_limit),
+    isPaid: !info.is_free && info.status === "active",
+    isExpired: info.status === "expired",
+  };
 }
 
-export function useCheckout() {
-  return useMutation({
-    mutationFn: ({ plan, period }: { plan: string; period: "monthly" | "yearly" }) =>
-      api.post<CheckoutResponse>("/api/subscription/checkout", { plan, period }),
-  });
-}
+// ── Convenience selector ──────────────────────────────────────────────────────
 
-/** Returns true if current plan meets the minimum required plan. */
-export function usePlanCheck(minPlan: "free" | "standard" | "premium") {
-  const plan = useAuthStore((s) => s.plan);
-  return PLAN_ORDER[plan] >= PLAN_ORDER[minPlan];
+/** Returns true if the user has access to a specific feature. */
+export function useFeatureAccess(featureKey: string): boolean {
+  const { hasFeature } = useSubscription();
+  return hasFeature(featureKey);
 }

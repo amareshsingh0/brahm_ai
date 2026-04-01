@@ -68,6 +68,8 @@ export function preloadAll() {
     "/admin/logs?page=1&limit=50",
     "/admin/deleted-accounts?page=1&limit=30",
     "/admin/subscriptions?page=1&limit=30",
+    "/admin/plans",
+    "/admin/feature-flags",
   ];
   paths.forEach((p) => aFetch(p).catch(() => {}));
 }

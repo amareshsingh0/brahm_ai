@@ -151,7 +151,7 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.HOROSCOPE)      { WithAiFab("horoscope")      { com.bimoraai.brahm.ui.horoscope.HoroscopeScreen(navController) } }
         composable(Route.PROFILE)        { com.bimoraai.brahm.ui.profile.ProfileScreen(navController) }
         composable(Route.BILLING)        { com.bimoraai.brahm.ui.profile.BillingScreen(navController) }
-        composable(Route.PANCHANG)       { WithAiFab("panchang")       { com.bimoraai.brahm.ui.panchang.PanchangScreen(navController) } }
+        composable(Route.PANCHANG)       { com.bimoraai.brahm.ui.panchang.PanchangScreen(navController) }
         composable(Route.RASHI)          { WithAiFab("rashi")          { com.bimoraai.brahm.ui.rashi.RashiScreen(navController) } }
         composable(Route.NAKSHATRA)      { WithAiFab("nakshatra")      { com.bimoraai.brahm.ui.nakshatra.NakshatraScreen(navController) } }
         composable(Route.YOGAS)          { WithAiFab("yogas")          { com.bimoraai.brahm.ui.yogas.YogasScreen(navController) } }
@@ -164,5 +164,9 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.CALENDAR)       { WithAiFab("calendar")       { com.bimoraai.brahm.ui.calendar.CalendarScreen(navController) } }
         composable(Route.ARCHIVED_CHATS) { com.bimoraai.brahm.ui.chat.ArchivedChatsScreen(navController) }
         composable(Route.ABOUT)          { com.bimoraai.brahm.ui.about.AboutScreen(navController) }
+        composable("legal/{index}") { backStackEntry ->
+            val index = backStackEntry.arguments?.getString("index")?.toIntOrNull() ?: 0
+            com.bimoraai.brahm.ui.about.LegalDocScreen(navController = navController, docIndex = index)
+        }
     }
 }

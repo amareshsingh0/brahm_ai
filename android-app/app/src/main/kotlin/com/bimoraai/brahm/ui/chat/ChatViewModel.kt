@@ -289,6 +289,17 @@ class ChatViewModel @Inject constructor(
 
     fun sendFollowUp(question: String) = sendMessage(question)
 
+    fun regenerate() {
+        if (_isStreaming.value) return
+        val lastUserMsg = _messages.value.lastOrNull { it.role == "user" } ?: return
+        // Drop the last assistant reply (and any trailing empty messages)
+        val trimmed = _messages.value
+            .dropLastWhile { it.role == "assistant" }
+            .dropLast(1) // drop the user message too; sendMessage re-adds it
+        _messages.value = trimmed
+        sendMessage(lastUserMsg.content)
+    }
+
     private fun updateLast(content: String, followUps: List<String> = emptyList(), isComplete: Boolean = false) {
         val list = _messages.value.toMutableList()
         if (list.isNotEmpty()) {

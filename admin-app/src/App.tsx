@@ -10,6 +10,8 @@ import LogsPage        from "@/pages/LogsPage";
 import DeletedAccountsPage from "@/pages/DeletedAccountsPage";
 import ApiMonitorPage     from "@/pages/ApiMonitorPage";
 import SubscriptionsPage  from "@/pages/SubscriptionsPage";
+import PlansPage          from "@/pages/PlansPage";
+import FeatureFlagsPage   from "@/pages/FeatureFlagsPage";
 
 export default function App() {
   return (
@@ -28,6 +30,8 @@ export default function App() {
           <Route path="/chats"     element={<ChatsPage />} />
           <Route path="/api-monitor"    element={<ApiMonitorPage />} />
           <Route path="/subscriptions"  element={<SubscriptionsPage />} />
+          <Route path="/plans"          element={<PlansPage />} />
+          <Route path="/feature-flags"  element={<FeatureFlagsPage />} />
           <Route path="/logs"        element={<LogsPage />} />
           <Route path="/deleted-accounts" element={<DeletedAccountsPage />} />
         </Route>
