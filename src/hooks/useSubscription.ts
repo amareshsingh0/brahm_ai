@@ -84,3 +84,9 @@ export function useFeatureAccess(featureKey: string): boolean {
   const { hasFeature } = useSubscription();
   return hasFeature(featureKey);
 }
+
+/** Backward-compat alias — returns { data: SubscriptionInfo } shape. */
+export function useSubscriptionStatus() {
+  const { info, ...rest } = useSubscription();
+  return { ...rest, data: info };
+}
