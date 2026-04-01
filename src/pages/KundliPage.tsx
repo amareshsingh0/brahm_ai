@@ -27,6 +27,27 @@ const RASHI_LIST_IDX = [
   "Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya",
   "Tula","Vrischika","Dhanu","Makara","Kumbha","Meena",
 ];
+const NAKSHATRA_NAMES = [
+  "Ashwini","Bharani","Krittika","Rohini","Mrigashira","Ardra",
+  "Punarvasu","Pushya","Ashlesha","Magha","Purva Phalguni","Uttara Phalguni",
+  "Hasta","Chitra","Swati","Vishakha","Anuradha","Jyeshtha",
+  "Moola","Purva Ashadha","Uttara Ashadha","Shravana","Dhanishtha",
+  "Shatabhisha","Purva Bhadrapada","Uttara Bhadrapada","Revati",
+];
+const NAKSHATRA_LORDS = [
+  "Ketu","Shukra","Surya","Chandra","Mangal","Rahu",
+  "Guru","Shani","Budh","Ketu","Shukra","Surya",
+  "Chandra","Mangal","Rahu","Guru","Shani","Budh",
+  "Ketu","Shukra","Surya","Chandra","Mangal","Rahu",
+  "Guru","Shani","Budh",
+];
+/** Compute nakshatra, pada, lord from absolute sidereal longitude (0–360°) */
+function getNakshatraFromLon(absLon: number): { nakshatra: string; pada: number; lord: string } {
+  const segSize = 360 / 27; // 13.333...°
+  const idx = Math.floor(absLon / segSize) % 27;
+  const pada = Math.floor((absLon % segSize) / (segSize / 4)) + 1;
+  return { nakshatra: NAKSHATRA_NAMES[idx], pada, lord: NAKSHATRA_LORDS[idx] };
+}
 /** Houses ruled by `gn` given the lagna rashi name */
 function getRulerOf(gn: string, lagnaRashi: string): number[] {
   const lagnaIdx = RASHI_LIST_IDX.indexOf(lagnaRashi);
@@ -1161,7 +1182,10 @@ export default function KundliPage() {
                         const rulerOf = getRulerOf(gn, navLagna);
                         const lon = d1g?.longitude ?? (d1g ? d1g.degree + RASHI_LIST_IDX.indexOf(d1g.rashi) * 30 : 0);
                         const deg = projectedDeg(lon, 9);
-                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: d1g?.nakshatra ?? "", nakshatra_lord: d1g?.nakshatra_lord ?? "", pada: d1g?.pada ?? 0, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                        const vRashiIdx9 = RASHI_LIST_IDX.indexOf(g.rashi);
+                        const absVargaLon9 = vRashiIdx9 * 30 + (d1g?.degree ?? 0);
+                        const nak9 = getNakshatraFromLon(absVargaLon9);
+                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: nak9.nakshatra, nakshatra_lord: nak9.lord, pada: nak9.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                       }
                       const vc = kundaliData.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
                       const g = vc?.grahas?.[gn];
@@ -1170,7 +1194,10 @@ export default function KundliPage() {
                       const rulerOf = getRulerOf(gn, vargaLagna);
                       const lon = d1g?.longitude ?? (d1g ? d1g.degree + RASHI_LIST_IDX.indexOf(d1g.rashi) * 30 : 0);
                       const deg = projectedDeg(lon, div);
-                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: d1g?.nakshatra ?? "", nakshatra_lord: d1g?.nakshatra_lord ?? "", pada: d1g?.pada ?? 0, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                      const vRashiIdx = RASHI_LIST_IDX.indexOf(g.rashi);
+                      const absVargaLon = vRashiIdx * 30 + (d1g?.degree ?? 0);
+                      const nak = getNakshatraFromLon(absVargaLon);
+                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: nak.nakshatra, nakshatra_lord: nak.lord, pada: nak.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                     }).filter(Boolean) : [];
 
                     return (
@@ -1419,6 +1446,14 @@ export default function KundliPage() {
                                 {(() => {
                                   const validRows = grahaRows.filter(Boolean) as NonNullable<typeof grahaRows[number]>[];
                                   const aspectMap = computeAspects(validRows);
+                                  // Build residents map from grahaRows (varga houses don't include planet lists)
+                                  const houseResidentsMap: Record<number, string[]> = {};
+                                  if (!isBc) {
+                                    for (const r of validRows) {
+                                      if (!houseResidentsMap[r.house]) houseResidentsMap[r.house] = [];
+                                      houseResidentsMap[r.house].push(r.gn);
+                                    }
+                                  }
                                   return (
                                     <table className="w-full min-w-[320px] text-xs table-fixed">
                                       <colgroup>
@@ -1445,8 +1480,10 @@ export default function KundliPage() {
                                           let residents: string[] = [];
                                           if (isBc && kundaliData.bhav_chalit) {
                                             residents = GRAHA_ORDER.filter(gn => kundaliData.bhav_chalit!.planets[gn] === h.house);
-                                          } else {
+                                          } else if (div === 1) {
                                             residents = h.planets ?? [];
+                                          } else {
+                                            residents = houseResidentsMap[h.house] ?? [];
                                           }
                                           const aspectors = aspectMap[h.house] ?? [];
                                           return (
