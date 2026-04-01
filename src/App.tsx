@@ -24,6 +24,7 @@ const ProfilePage  = lazy(() => import("./pages/ProfilePage"));
 const PanchangPage = lazy(() => import("./pages/PanchangPage"));
 const GrahanPage   = lazy(() => import("./pages/GrahanPage"));
 const GocharPage   = lazy(() => import("./pages/GocharPage"));
+const MarriagePage = lazy(() => import("./pages/MarriagePage"));
 const CompatibilityPage = lazy(() => import("./pages/CompatibilityPage"));
 const RashiExplorer = lazy(() => import("./pages/RashiExplorer"));
 const NakshatraExplorer = lazy(() => import("./pages/NakshatraExplorer"));
@@ -138,6 +139,7 @@ function TransitionRoutes() {
           <Route path="/sade-sati"    element={<AppLayout><SadeSatiPage /></AppLayout>} />
           <Route path="/gemstones"    element={<AppLayout><GemstoneRecommendationsPage /></AppLayout>} />
           <Route path="/chat-history" element={<AppLayout><ChatHistoryPage /></AppLayout>} />
+          <Route path="/marriage"     element={<AppLayout><MarriagePage /></AppLayout>} />
         </Route>
 
         <Route path="/admin" element={<AdminPage />} />

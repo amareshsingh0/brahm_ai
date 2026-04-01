@@ -210,6 +210,96 @@ async def execute_tools(
         except Exception as e:
             results["muhurta_error"] = str(e)
 
+    # ── Marriage (Vivah) analysis ─────────────────────────────────────────────
+    if "marriage" in services:
+        try:
+            raw = await _get_kundali()
+            if raw:
+                from api.routers.marriage import (
+                    _get_7th_house, _score_windows, _evaluate_delay_factors,
+                    _analyze_spouse_profile, _check_marriage_yogas, _estimate_age_range,
+                    _score_to_prob, _prob_to_pct,
+                )
+                from api.config import RASHI_LORDS, RASHI_NAMES
+
+                grahas  = raw.get("grahas", {})
+                dashas  = raw.get("dashas", raw.get("dasha", []))
+                lagna   = raw.get("lagna", {}).get("rashi", "Mesha")
+                navamsa = raw.get("navamsha", {})
+
+                lagna_i         = RASHI_NAMES.index(lagna) if lagna in RASHI_NAMES else 0
+                seventh_rashi_i = _get_7th_house(lagna_i)
+                fifth_rashi_i   = (lagna_i + 4) % 12
+                eleventh_rashi_i= (lagna_i + 10) % 12
+                second_rashi_i  = (lagna_i + 1) % 12
+                seventh_lord    = RASHI_LORDS.get(seventh_rashi_i, "Shukra")
+                fifth_lord      = RASHI_LORDS.get(fifth_rashi_i, "Guru")
+                eleventh_lord   = RASHI_LORDS.get(eleventh_rashi_i, "Shani")
+                second_lord     = RASHI_LORDS.get(second_rashi_i, "Shukra")
+                seventh_sign    = RASHI_NAMES[seventh_rashi_i]
+
+                # Need antardasha-level dashas — re-calc with antardasha if not present
+                has_antars = any(d.get("antardashas") for d in dashas)
+                if not has_antars:
+                    from api.services.kundali_service import calc_kundali
+                    parsed = _parse_birth_data(user_birth_data)
+                    if parsed:
+                        yr, mo, dy, hr, mn, lt, ln, tz, nm = parsed
+                        raw2, _ = await loop.run_in_executor(
+                            None, lambda: calc_kundali(yr, mo, dy, hr, mn, lt, ln, tz, nm,
+                                                        calc_options=["antardasha"])
+                        )
+                        if raw2:
+                            dashas = raw2.get("dashas", raw2.get("dasha", dashas))
+
+                timing = await loop.run_in_executor(None, lambda: _score_windows(
+                    dashas, seventh_lord, fifth_lord, eleventh_lord, second_lord,
+                    grahas, 7, lagna_i,
+                ))
+                delays = await loop.run_in_executor(None, lambda: _evaluate_delay_factors(
+                    grahas, 7, seventh_lord, lagna_i,
+                ))
+                timing["estimated_age_range"] = _estimate_age_range(delays, timing, 0)
+                current  = timing.get("current_period")
+                best_prob = current["probability"] if current else (
+                    timing["favorable_windows"][0]["probability"] if timing["favorable_windows"] else "Moderate"
+                )
+                timing["overall_probability"]     = best_prob
+                timing["overall_probability_pct"] = _prob_to_pct(best_prob)
+
+                spouse = await loop.run_in_executor(None, lambda: _analyze_spouse_profile(
+                    grahas, seventh_sign, seventh_lord, navamsa,
+                    user_birth_data.get("gender", "male"), lagna_i,
+                ))
+                yogas = await loop.run_in_executor(None, lambda: _check_marriage_yogas(
+                    grahas, lagna_i, seventh_lord,
+                ))
+                present_yogas = [y["name"] for y in yogas if y.get("present")]
+                current_str   = (
+                    f"{current['period']} (score {current['score']}, {current['probability']})"
+                    if current else "Not in a marriage dasha currently"
+                )
+                fav_str = "; ".join([
+                    f"{w['period']} ({w['start'][:7]}–{w['end'][:7]}, {w['probability']})"
+                    for w in timing["favorable_windows"][:3]
+                ])
+                results["marriage"] = {
+                    "overall_probability":  best_prob,
+                    "current_dasha":        current_str,
+                    "favorable_windows":    fav_str or "None identified",
+                    "next_strong_window":   timing.get("next_strong_window", "—"),
+                    "estimated_age_range":  timing.get("estimated_age_range", "—"),
+                    "7th_house":            seventh_sign,
+                    "7th_lord":             seventh_lord,
+                    "spouse_traits":        ", ".join(spouse.get("traits", [])[:4]),
+                    "profession_hint":      spouse.get("profession_hint", ""),
+                    "active_yogas":         ", ".join(present_yogas) or "None",
+                    "delay_factors":        ", ".join(d["factor"] for d in delays) or "None",
+                    "karaka_strength":      spouse.get("karaka_strength", ""),
+                }
+        except Exception as e:
+            results["marriage_error"] = str(e)
+
     # ── Compatibility (already in page_data) ─────────────────────────────────
     if "compatibility" in services and page_data:
         results["compatibility"] = {

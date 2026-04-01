@@ -210,6 +210,29 @@ def _format_tool_results(results: dict) -> str:
                     lines.append(f"  {k}: {p[k]}")
             parts.append("\n".join(lines))
 
+    # Marriage (Vivah) analysis
+    if "marriage" in results and not results.get("marriage_error"):
+        m = results["marriage"]
+        if isinstance(m, dict):
+            lines = ["[VIVAH ANALYSIS — Classical Jyotish]"]
+            lines.append(f"  Overall probability: {m.get('overall_probability','?')}")
+            lines.append(f"  Current dasha: {m.get('current_dasha','?')}")
+            lines.append(f"  Favorable windows: {m.get('favorable_windows','?')}")
+            lines.append(f"  Next strong window: {m.get('next_strong_window','?')}")
+            lines.append(f"  Estimated age range: {m.get('estimated_age_range','?')}")
+            lines.append(f"  7th house: {m.get('7th_house','?')} | 7th lord: {m.get('7th_lord','?')}")
+            if m.get("spouse_traits"):
+                lines.append(f"  Spouse traits: {m['spouse_traits']}")
+            if m.get("profession_hint"):
+                lines.append(f"  Profession hint: {m['profession_hint']}")
+            if m.get("active_yogas"):
+                lines.append(f"  Active yogas: {m['active_yogas']}")
+            if m.get("delay_factors"):
+                lines.append(f"  Delay factors: {m['delay_factors']}")
+            if m.get("karaka_strength"):
+                lines.append(f"  Karaka: {m['karaka_strength']}")
+            parts.append("\n".join(lines))
+
     return "\n\n".join(parts)
 
 
@@ -246,6 +269,29 @@ def _format_page_data(page_context: str, page_data: dict) -> str:
         planets = page_data.get("planets", {})
         planet_lines = "\n".join([f"  {k}: {v}" for k, v in planets.items()]) if planets else ""
         return f"[Live Sky Data]\n{planet_lines}"
+
+    elif page_context == "marriage":
+        result = page_data.get("result", page_data)
+        timing  = result.get("marriage_timing", {})
+        spouse  = result.get("spouse_profile", {})
+        yogas   = result.get("marriage_yogas", [])
+        delays  = result.get("delay_factors", [])
+        current = timing.get("current_period") or {}
+        favs    = timing.get("favorable_windows", [])
+        present_yogas = [y["name"] for y in yogas if y.get("present")]
+        delay_names   = [d["factor"] for d in delays]
+        fav_str = "; ".join([f"{w.get('period','?')} ({w.get('probability','?')})" for w in favs[:3]])
+        return f"""[Marriage Analysis — Vivah Jyotish]
+  Overall probability: {timing.get('overall_probability','?')} ({timing.get('overall_probability_pct','?')}%)
+  Estimated age range: {timing.get('estimated_age_range','?')}
+  Current dasha: {current.get('period','?')} (score {current.get('score','?')})
+  Favorable windows: {fav_str or 'None identified'}
+  Next strong window: {timing.get('next_strong_window','?')}
+  7th house sign: {spouse.get('7th_house_sign_en', spouse.get('7th_house_sign','?'))}
+  7th lord: {spouse.get('7th_lord','?')} in house {spouse.get('7th_lord_house','?')}
+  Spouse traits: {', '.join(spouse.get('traits',[])[:4])}
+  Active yogas: {', '.join(present_yogas) or 'None'}
+  Delay factors: {', '.join(delay_names) or 'None'}"""
 
     else:
         try:

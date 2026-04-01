@@ -45,6 +45,13 @@ export interface UserRow {
 export interface UserDetail extends UserRow {
   birth_time?: string;
   city?:       string;
+  gender?:     string;
+  // Auth info
+  google_id?:       string;
+  apple_id?:        string;
+  phone_verified?:  boolean;
+  signup_ip?:       string;
+  signup_device?:   string;   // 'web' | 'android' | 'ios'
   subscription?: {
     plan:              string;
     period:            string;
@@ -107,12 +114,22 @@ export interface PaymentRow {
 }
 
 export interface LoginEntry {
-  id:          number;
-  ip:          string;
-  device:      string;
-  success:     boolean;
+  id:           number;
+  ip:           string;
+  device:       string;       // "Mobile · Chrome · Android"
+  user_agent?:  string;
+  login_method: string;       // "phone_otp" | "google" | "apple"
+  client:       string;       // "web" | "android" | "ios"
+  country?:     string;
+  country_code?: string;      // "IN", "US", etc.
+  city?:        string;
+  region?:      string;
+  isp?:         string;
+  lat?:         number;
+  lon?:         number;
+  success:      boolean;
   fail_reason?: string;
-  logged_at:   string;
+  logged_at:    string;
 }
 
 export interface AdminLogEntry {

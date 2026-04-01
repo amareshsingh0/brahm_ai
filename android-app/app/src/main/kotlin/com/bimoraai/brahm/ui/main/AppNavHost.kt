@@ -57,6 +57,7 @@ object Route {
     const val CALENDAR           = "calendar"
     const val ARCHIVED_CHATS     = "archived_chats"
     const val ABOUT              = "about"
+    const val MARRIAGE           = "marriage"
 }
 
 // Routes that are accessible without a valid token (auth screens)
@@ -163,6 +164,7 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.LIBRARY)        { WithAiFab("library")        { com.bimoraai.brahm.ui.library.LibraryScreen(navController) } }
         composable(Route.CALENDAR)       { WithAiFab("calendar")       { com.bimoraai.brahm.ui.calendar.CalendarScreen(navController) } }
         composable(Route.ARCHIVED_CHATS) { com.bimoraai.brahm.ui.chat.ArchivedChatsScreen(navController) }
+        composable(Route.MARRIAGE)       { WithAiFab("marriage")       { com.bimoraai.brahm.ui.marriage.MarriageScreen(navController) } }
         composable(Route.ABOUT)          { com.bimoraai.brahm.ui.about.AboutScreen(navController) }
         composable("legal/{index}") { backStackEntry ->
             val index = backStackEntry.arguments?.getString("index")?.toIntOrNull() ?: 0

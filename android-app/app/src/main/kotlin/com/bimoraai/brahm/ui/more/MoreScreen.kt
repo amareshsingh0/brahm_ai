@@ -59,6 +59,7 @@ data class ToolCard(
 private val tools = listOf(
     ToolCard(Icons.Default.Explore,                    "Gochar",         "Planetary transits",       Route.GOCHAR,        Color(0xFF6C63FF), Color(0xFF3B2FBF), ToolCategory.Analysis),
     ToolCard(Icons.Default.Favorite,                   "Compatibility",  "Kundali matching",         Route.COMPATIBILITY, Color(0xFFE8445A), Color(0xFFB0203A), ToolCategory.Analysis),
+    ToolCard(Icons.Default.FavoriteBorder,             "Marriage",       "Vivah timing & spouse",    Route.MARRIAGE,      Color(0xFFEC4899), Color(0xFF9D174D), ToolCategory.Analysis),
     ToolCard(Icons.Default.Schedule,                   "Muhurta",        "Auspicious timings",       Route.MUHURTA,       Color(0xFF20A090), Color(0xFF0D6B60), ToolCategory.Analysis),
     ToolCard(Icons.Default.Timelapse,                  "Sade Sati",      "Saturn transit",           Route.SADE_SATI,     Color(0xFF5C6BC0), Color(0xFF303F9F), ToolCategory.Analysis),
     ToolCard(Icons.Default.HealthAndSafety,            "Dosha Check",    "Manglik, Kaal Sarpa",      Route.DOSHA,         Color(0xFFE53935), Color(0xFFB71C1C), ToolCategory.Analysis),

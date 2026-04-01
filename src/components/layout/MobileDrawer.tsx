@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Star, Globe, Clock, Sun, Bot,
   Sparkles, BookOpen, Moon as MoonIcon, Heart, Gem, Compass,
   Zap, Hand, Eclipse, Calendar, Library, Music, TreePine,
-  HelpCircle, ShieldAlert, Activity, ChevronUp,
+  HelpCircle, ShieldAlert, Activity, ChevronUp, HeartHandshake,
 } from "lucide-react";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -28,6 +28,7 @@ const exploreNavItems = [
   { key: "remedies",      url: "/remedies",       icon: Gem },
   { key: "gemstones",     url: "/gemstones",      icon: Gem },
   { key: "compatibility", url: "/compatibility",  icon: Heart },
+  { key: "marriage",      url: "/marriage",       icon: HeartHandshake },
   { key: "palmistry",     url: "/palmistry",      icon: Hand },
   { key: "gochar",        url: "/gochar",         icon: MoonIcon },
   { key: "rectification", url: "/rectification",  icon: Clock },

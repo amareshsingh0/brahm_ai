@@ -2,9 +2,9 @@
  * PageBot — floating AI assistant for every page.
  * Features: birth data form, save kundali prompt, follow-up loop system.
  */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Loader2, ChevronDown, Trash2, UserCircle, X as XIcon, Plus, BookOpen, Save, CheckCircle, Copy, RefreshCw } from 'lucide-react';
+import { Bot, Send, Loader2, ChevronDown, Trash2, UserCircle, X as XIcon, Plus, BookOpen, Save, CheckCircle, Copy, RefreshCw, Mic } from 'lucide-react';
 import { useChat, type BirthFormData, type SaveKundaliPromptData } from '@/hooks/useChat';
 import { useFactSheet } from '@/hooks/useFactSheet';
 import { useKundliStore } from '@/store/kundliStore';
@@ -166,6 +166,7 @@ const PAGE_SUGGESTIONS: Record<string, string[]> = {
   kundali:       ['Sabse strong graha kaun hai?', 'Agle saal kaisa rahega?', 'Career ke liye best period?'],
   panchang:      ['Aaj ka din kaisa rahega?', 'Rahukaal mein kya nahi karna chahiye?', 'Aaj ki tithi ka mahatva?'],
   compatibility: ['Yeh score achha hai?', 'Nadi dosha ke upay?', 'Vivah ke liye sahi samay?'],
+  marriage:      ['Meri shaadi kab hogi?', 'Spouse kaisa hoga/hogi?', 'Delay factors ke upay batao'],
   sky:           ['Aaj ke graha mujhpe kaisa asar karenge?', 'Kaunsa graha vakri hai?', 'Shani ka asar kaisa rahega?'],
   palmistry:     ['Meri jeewan rekha kaisi hai?', 'Career line kya kehti hai?', 'Vivah rekha?'],
   horoscope:     ['Aaj ka din kaisa rahega?', 'Is mahine ka overview?', 'Lucky time kab hai?'],
@@ -311,6 +312,54 @@ function SaveKundaliCard({
   );
 }
 
+// ── Voice Input Bar ────────────────────────────────────────────────────────────
+function VoiceInputBar({ transcript, onStop }: { transcript: string; onStop: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.18 }}
+      className="px-3 py-3 border-t border-border/30 bg-amber-50/60 shrink-0 flex items-center gap-3"
+    >
+      {/* Animated rings */}
+      <div className="relative flex items-center justify-center shrink-0" style={{ width: 44, height: 44 }}>
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full border-2 border-amber-400/50"
+            animate={{ scale: [1, 1.45 + i * 0.25, 1], opacity: [0.55, 0.08, 0.55] }}
+            transition={{ duration: 0.9 + i * 0.2, repeat: Infinity, delay: i * 0.18, ease: 'easeInOut' }}
+            style={{ width: 24 + i * 10, height: 24 + i * 10 }}
+          />
+        ))}
+        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center z-10 shadow-md shadow-amber-300/40">
+          <Mic className="h-3.5 w-3.5 text-white" />
+        </div>
+      </div>
+
+      {/* Transcript / status */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide">Listening…</p>
+        {transcript ? (
+          <p className="text-xs text-foreground truncate mt-0.5">{transcript}</p>
+        ) : (
+          <p className="text-[10px] text-muted-foreground mt-0.5">Speak now…</p>
+        )}
+      </div>
+
+      {/* Cancel */}
+      <button
+        onClick={onStop}
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+      >
+        <XIcon className="h-3.5 w-3.5" />
+        Cancel
+      </button>
+    </motion.div>
+  );
+}
+
 export default function PageBot({ pageContext = 'general', pageData = {} }: PageBotProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -319,6 +368,54 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const factInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Voice input ──────────────────────────────────────────────────────────────
+  const [isListening, setIsListening]     = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
+  const recognitionRef   = useRef<SpeechRecognition | null>(null);
+  const transcriptRef    = useRef('');   // stable ref to avoid stale closure in onend
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
+
+  const startListening = useCallback(() => {
+    const SR = (window as unknown as { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition })
+      .SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition;
+    if (!SR) return;
+
+    transcriptRef.current = '';
+    setVoiceTranscript('');
+
+    const rec = new SR();
+    rec.lang = navigator.language || 'en-US';
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const t = Array.from(e.results).map((r) => r[0].transcript).join('');
+      transcriptRef.current = t;
+      setVoiceTranscript(t);
+    };
+
+    rec.onend = () => {
+      setIsListening(false);
+      const final = transcriptRef.current.trim();
+      if (final) setInput(final);
+      setVoiceTranscript('');
+    };
+
+    rec.onerror = () => {
+      setIsListening(false);
+      setVoiceTranscript('');
+    };
+
+    recognitionRef.current = rec;
+    rec.start();
+    setIsListening(true);
+  }, []);
 
   const { facts, addFact, removeFact } = useFactSheet();
 
@@ -587,9 +684,13 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
               <SaveKundaliCard data={saveKundaliPrompt} onConfirm={() => {}} onDismiss={dismissSavePrompt} />
             )}
 
-            {/* Birth Form OR Input */}
+            {/* Birth Form OR Voice Bar OR Input */}
             {showBirthForm ? (
               <BirthForm onSubmit={submitBirthForm} />
+            ) : isListening ? (
+              <AnimatePresence>
+                <VoiceInputBar transcript={voiceTranscript} onStop={stopListening} />
+              </AnimatePresence>
             ) : (
               <div className="px-3 py-3 border-t border-border/30 bg-muted/10 shrink-0">
                 <div className="flex gap-2">
@@ -602,9 +703,22 @@ export default function PageBot({ pageContext = 'general', pageData = {} }: Page
                     className="text-xs h-9 bg-muted/20 border-border/30 flex-1"
                     disabled={streaming}
                   />
-                  <Button size="sm" className="h-9 w-9 p-0" onClick={handleSend} disabled={!input.trim() || streaming}>
-                    {streaming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                  </Button>
+                  {input.trim() ? (
+                    <Button size="sm" className="h-9 w-9 p-0" onClick={handleSend} disabled={streaming}>
+                      {streaming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-9 w-9 p-0 border-border/30 hover:bg-amber-50 hover:border-amber-300 transition-colors"
+                      onClick={startListening}
+                      disabled={streaming}
+                      title="Voice input"
+                    >
+                      <Mic className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  )}
                 </div>
               </div>
             )}

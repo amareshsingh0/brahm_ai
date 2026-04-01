@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS users (
   notif_grahan    BOOLEAN DEFAULT TRUE,
   notif_festivals BOOLEAN DEFAULT FALSE,
   fcm_token       TEXT,
+  google_id       TEXT UNIQUE,             -- set if signed up via Google
+  apple_id        TEXT UNIQUE,             -- set if signed up via Apple
+  phone_verified  BOOLEAN DEFAULT FALSE,
   signup_ip       TEXT,
   signup_device   TEXT,                    -- 'web' | 'android' | 'ios'
   language        TEXT DEFAULT 'english',  -- legacy alias for lang_pref
@@ -45,16 +48,41 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- ── LOGIN LOG ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS login_log (
-  id          BIGSERIAL PRIMARY KEY,
-  user_id     TEXT REFERENCES users(id) ON DELETE CASCADE,
-  phone       TEXT,
-  ip          TEXT,
-  device      TEXT,
-  user_agent  TEXT,
-  success     BOOLEAN DEFAULT TRUE,
-  fail_reason TEXT,
-  logged_at   TIMESTAMPTZ DEFAULT now()
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      TEXT REFERENCES users(id) ON DELETE CASCADE,
+  phone        TEXT,
+  ip           TEXT,
+  device       TEXT,             -- "Mobile · Chrome · Android"
+  user_agent   TEXT,
+  login_method TEXT DEFAULT 'phone_otp', -- 'phone_otp' | 'google' | 'apple'
+  client       TEXT DEFAULT 'web',       -- 'web' | 'android' | 'ios'
+  country      TEXT,
+  country_code TEXT,             -- ISO 3166-1 alpha-2, e.g. "IN"
+  city         TEXT,
+  region       TEXT,
+  isp          TEXT,
+  lat          FLOAT,
+  lon          FLOAT,
+  success      BOOLEAN DEFAULT TRUE,
+  fail_reason  TEXT,
+  logged_at    TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migration: add new columns to existing login_log table
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS login_method TEXT DEFAULT 'phone_otp';
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS client       TEXT DEFAULT 'web';
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS country      TEXT;
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS country_code TEXT;
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS city         TEXT;
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS region       TEXT;
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS isp          TEXT;
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS lat          FLOAT;
+ALTER TABLE login_log ADD COLUMN IF NOT EXISTS lon          FLOAT;
+
+-- Migration: add auth columns to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id      TEXT UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS apple_id       TEXT UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT FALSE;
 
 -- ── SUBSCRIPTIONS ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS subscriptions (

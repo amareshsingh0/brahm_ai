@@ -71,7 +71,7 @@ export default function UserDetailPage() {
       aFetch<KundaliEntry[]>(`/admin/users/${id}/kundalis`),
       aFetch<PalmEntry[]>(`/admin/users/${id}/palms`),
       aFetch<PaymentRow[]>(`/admin/users/${id}/payments`),
-      aFetch<LoginEntry[]>(`/admin/users/${id}/logins`),
+      aFetch<{ items: LoginEntry[] }>(`/admin/users/${id}/logins`),
     ]).then(([userData, chatsData, kundData, palmData, payData, loginData]) => {
       setUser(userData);
       const cd = chatsData as { items: ChatMsg[]; page: number; pages: number };
@@ -81,7 +81,7 @@ export default function UserDetailPage() {
       setKundalis(kundData as KundaliEntry[]);
       setPalms(palmData as PalmEntry[]);
       setPayments(payData as PaymentRow[]);
-      setLogins(loginData as LoginEntry[]);
+      setLogins((loginData as { items: LoginEntry[] }).items ?? []);
     }).finally(() => setLoading(false));
   }, [id]);
 

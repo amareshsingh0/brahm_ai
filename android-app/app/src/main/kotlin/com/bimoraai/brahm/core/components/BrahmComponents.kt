@@ -331,6 +331,7 @@ private val PAGE_SUGGESTIONS = mapOf(
     "compatibility" to listOf("Yeh score achha hai?", "Nadi dosha ke upay?", "Vivah ke liye sahi samay?"),
     "prashna"       to listOf("Kya meri wish poori hogi?", "Prashna kundali kya keh rahi hai?", "Lagna lord strong hai?"),
     "rectification" to listOf("Mera sahi janam samay kya hai?", "Rectification kaise kaam karta hai?", "Dasha se birth time confirm karo"),
+    "marriage"      to listOf("Meri shaadi kab hogi?", "Spouse kaisa hoga/hogi?", "Manglik dosha hai kya?"),
 )
 
 private val PAGE_LABELS = mapOf(
@@ -346,6 +347,7 @@ private val PAGE_LABELS = mapOf(
     "compatibility" to "Compatibility",
     "prashna"       to "Prashna Kundali",
     "rectification" to "Rectification",
+    "marriage"      to "Marriage Analysis",
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

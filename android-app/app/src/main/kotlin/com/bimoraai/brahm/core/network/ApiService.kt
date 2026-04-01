@@ -276,6 +276,10 @@ interface ApiService {
     @POST("gochar/analyze")
     suspend fun analyzeGochar(@Body body: JsonObject): Response<JsonObject>
 
+    // Marriage (Vivah) analysis
+    @POST("marriage")
+    suspend fun getMarriageAnalysis(@Body body: JsonObject): Response<JsonObject>
+
     // Calendar — monthly grid with per-day tithi, festivals, special day flags
     @GET("calendar/month")
     suspend fun getCalendar(

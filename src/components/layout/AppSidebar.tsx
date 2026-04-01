@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Star, Globe, Clock, Sparkles, BookOpen, Moon, Heart,
   Gem, Sun, Compass, Zap, Hand, Eclipse, Calendar, Bot, Library,
-  Music, TreePine, HelpCircle, ShieldAlert, Activity, ChevronUp,
+  Music, TreePine, HelpCircle, ShieldAlert, Activity, ChevronUp, HeartHandshake,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -30,6 +30,7 @@ const exploreNavItems = [
   { key: "remedies",      url: "/remedies",       icon: Gem },
   { key: "gemstones",     url: "/gemstones",      icon: Gem },
   { key: "compatibility", url: "/compatibility",  icon: Heart },
+  { key: "marriage",      url: "/marriage",       icon: HeartHandshake },
   { key: "palmistry",     url: "/palmistry",      icon: Hand },
   { key: "gochar",        url: "/gochar",         icon: Moon },
   { key: "rectification", url: "/rectification",  icon: Clock },

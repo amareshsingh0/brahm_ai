@@ -88,6 +88,7 @@ Rules for calc_services (only fill if needs_calculation=true):
 - "muhurta": auspicious timing for an event
 - "kundali": full birth chart — for all personal chart questions
 - "gochar": current transit positions
+- "marriage": full Vivah (marriage) analysis — timing, spouse profile, yogas, delay factors. Use when user asks about marriage timing ("shaadi kab hogi", "when will I get married"), spouse ("spouse kaisa hoga"), marriage yogas, or marriage delays/obstacles
 
 Rules for response_depth:
 - basic: CONVERSATIONAL, SIMPLE_FACT, SMALL_TALK, GENERAL_KNOWLEDGE

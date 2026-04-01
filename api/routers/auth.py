@@ -102,6 +102,76 @@ def _get_ip(request: Request | None) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
     return forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "")
 
+
+def _parse_ua(ua: str) -> dict:
+    """Parse User-Agent string → os, browser, device_type."""
+    u = ua.lower()
+    # OS
+    if "android" in u:
+        os_name = "Android"
+    elif "iphone" in u:
+        os_name = "iOS (iPhone)"
+    elif "ipad" in u:
+        os_name = "iOS (iPad)"
+    elif "windows nt 10" in u or "windows nt 11" in u:
+        os_name = "Windows 10/11"
+    elif "windows" in u:
+        os_name = "Windows"
+    elif "mac os x" in u or "macos" in u:
+        os_name = "macOS"
+    elif "linux" in u:
+        os_name = "Linux"
+    else:
+        os_name = "Unknown OS"
+    # Browser
+    if "edg/" in u or "edge/" in u:
+        browser = "Edge"
+    elif "samsungbrowser" in u:
+        browser = "Samsung Browser"
+    elif "opr/" in u or "opera" in u:
+        browser = "Opera"
+    elif "firefox" in u:
+        browser = "Firefox"
+    elif "chrome" in u:
+        browser = "Chrome"
+    elif "safari" in u:
+        browser = "Safari"
+    else:
+        browser = "Unknown"
+    # Device type
+    if "android" in u or "iphone" in u:
+        device_type = "Mobile"
+    elif "ipad" in u:
+        device_type = "Tablet"
+    else:
+        device_type = "Desktop"
+    return {"os": os_name, "browser": browser, "device_type": device_type}
+
+
+def _get_location(ip: str) -> dict:
+    """Geo-lookup via ip-api.com (free, no key, 45 req/min). Returns {} on failure."""
+    if not ip or ip in ("127.0.0.1", "::1", "localhost", ""):
+        return {}
+    try:
+        import urllib.request as _req
+        import json as _json
+        url = f"http://ip-api.com/json/{ip}?fields=status,country,countryCode,regionName,city,isp,lat,lon"
+        with _req.urlopen(url, timeout=2) as resp:
+            data = _json.loads(resp.read().decode())
+            if data.get("status") == "success":
+                return {
+                    "country":      data.get("country"),
+                    "country_code": data.get("countryCode"),
+                    "region":       data.get("regionName"),
+                    "city":         data.get("city"),
+                    "isp":          data.get("isp"),
+                    "lat":          data.get("lat"),
+                    "lon":          data.get("lon"),
+                }
+    except Exception:
+        pass
+    return {}
+
 def _send_sms_msg91(phone: str, otp: str):
     """Send OTP via MSG91 API."""
     import httpx
@@ -249,13 +319,28 @@ def verify_otp(req: VerifyOtpRequest, request: Request):
             "last_login":     _now().isoformat(),
         }).execute()
 
-    # Log login
+    # Log login — with device info + geo
+    _ip  = _get_ip(request)
+    _ua  = request.headers.get("user-agent", "")
+    _dev = _parse_ua(_ua)
+    _geo = _get_location(_ip)
+    _cli = request.headers.get("X-Client", "web")
     sb.table("login_log").insert({
-        "user_id":    user_id,
-        "phone":      phone,
-        "ip":         _get_ip(request),
-        "user_agent": request.headers.get("user-agent", ""),
-        "success":    True,
+        "user_id":      user_id,
+        "phone":        phone,
+        "ip":           _ip,
+        "user_agent":   _ua,
+        "device":       f"{_dev['device_type']} · {_dev['browser']} · {_dev['os']}",
+        "login_method": "phone_otp",
+        "client":       _cli,
+        "country":      _geo.get("country"),
+        "country_code": _geo.get("country_code"),
+        "city":         _geo.get("city"),
+        "region":       _geo.get("region"),
+        "isp":          _geo.get("isp"),
+        "lat":          _geo.get("lat"),
+        "lon":          _geo.get("lon"),
+        "success":      True,
     }).execute()
 
     # Generate tokens
@@ -453,12 +538,27 @@ def google_login(req: GoogleAuthRequest, request: Request):
             "last_login": _now().isoformat(),
         }).execute()
 
-    # Log login
+    # Log login — with device info + geo
+    _ip  = _get_ip(request)
+    _ua  = request.headers.get("user-agent", "")
+    _dev = _parse_ua(_ua)
+    _geo = _get_location(_ip)
+    _cli = request.headers.get("X-Client", req.device_type or "web")
     sb.table("login_log").insert({
-        "user_id":    user_id,
-        "ip":         _get_ip(request),
-        "user_agent": request.headers.get("user-agent", ""),
-        "success":    True,
+        "user_id":      user_id,
+        "ip":           _ip,
+        "user_agent":   _ua,
+        "device":       f"{_dev['device_type']} · {_dev['browser']} · {_dev['os']}",
+        "login_method": "google",
+        "client":       _cli,
+        "country":      _geo.get("country"),
+        "country_code": _geo.get("country_code"),
+        "city":         _geo.get("city"),
+        "region":       _geo.get("region"),
+        "isp":          _geo.get("isp"),
+        "lat":          _geo.get("lat"),
+        "lon":          _geo.get("lon"),
+        "success":      True,
     }).execute()
 
     # Generate tokens
