@@ -786,7 +786,9 @@ def calc_kundali(
             "speed": round(g["speed"], 4),
             "combust": _is_combust(gn, g["longitude"], grahas["Surya"]["longitude"], g["retro"]),
             "ruler_of": [(r_i - lagna_rashi_i) % 12 + 1
-                         for r_i, lord in RASHI_LORDS.items() if lord == gn],
+                         for r_i, lord in RASHI_LORDS.items() if lord == gn]
+                        + ([(10 - lagna_rashi_i) % 12 + 1] if gn == "Rahu" else [])   # Rahu co-rules Kumbha
+                        + ([(7  - lagna_rashi_i) % 12 + 1] if gn == "Ketu" else []),   # Ketu co-rules Vrischika
             "lat_ecl": round(g.get("lat_ecl", 0.0), 4),
             "ra":      round(g.get("ra", 0.0), 4),
             "dec":     round(g.get("dec", 0.0), 4),

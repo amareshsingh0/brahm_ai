@@ -31,9 +31,13 @@ const RASHI_LIST_IDX = [
 function getRulerOf(gn: string, lagnaRashi: string): number[] {
   const lagnaIdx = RASHI_LIST_IDX.indexOf(lagnaRashi);
   if (lagnaIdx < 0) return [];
-  return Object.entries(RASHI_LORDS_IDX)
+  const houses = Object.entries(RASHI_LORDS_IDX)
     .filter(([, lord]) => lord === gn)
     .map(([ri]) => (Number(ri) - lagnaIdx + 12) % 12 + 1);
+  // Rahu co-rules Kumbha (idx 10), Ketu co-rules Vrischika (idx 7)
+  if (gn === "Rahu") houses.push((10 - lagnaIdx + 12) % 12 + 1);
+  if (gn === "Ketu") houses.push((7  - lagnaIdx + 12) % 12 + 1);
+  return houses;
 }
 
 // Extra aspect offsets (all planets have 7th = offset 6)
@@ -1134,13 +1138,18 @@ export default function KundliPage() {
                     const vargaHouses = getVargaHouses(div);
                     // Graha detail rows for this chart
                     const grahaRows = kundaliData ? GRAHA_ORDER.map(gn => {
-                      // Always get D1 base data for longitude/nakshatra (actual ecliptic position)
                       const d1g = kundaliData.grahas[gn];
-                      // ruler_of computed client-side from D1 lagna (reliable, no backend dependency)
                       const d1Lagna = kundaliData.lagna.rashi;
-                      const rulerOf = getRulerOf(gn, d1Lagna);
+
+                      // Projected varga longitude: scale degree-within-segment to 0–30°
+                      function projectedDeg(lon: number, n: number): number {
+                        const segSize = 30 / n;
+                        return (lon % segSize) / segSize * 30;
+                      }
+
                       if (isBc || div === 1) {
                         if (!d1g) return null;
+                        const rulerOf = getRulerOf(gn, d1Lagna);
                         const rashiHouse = d1g.house;
                         const bcHouse = kundaliData.bhav_chalit?.planets[gn] ?? rashiHouse;
                         return { gn, rashi: d1g.rashi, house: rashiHouse, bcHouse, degree: d1g.degree, d1Rashi: d1g.rashi, nakshatra: d1g.nakshatra, nakshatra_lord: d1g.nakshatra_lord, pada: d1g.pada, retro: d1g.retro, combust: d1g.combust, status: d1g.status, ruler_of: rulerOf, isD1: true };
@@ -1148,12 +1157,20 @@ export default function KundliPage() {
                       if (div === 9) {
                         const g = kundaliData.navamsha?.[gn];
                         if (!g) return null;
-                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: d1g?.degree ?? 0, d1Rashi: d1g?.rashi ?? g.rashi, nakshatra: d1g?.nakshatra ?? "", nakshatra_lord: d1g?.nakshatra_lord ?? "", pada: d1g?.pada ?? 0, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                        const navLagna = kundaliData.navamsha_lagna?.rashi ?? d1Lagna;
+                        const rulerOf = getRulerOf(gn, navLagna);
+                        const lon = d1g?.longitude ?? (d1g ? d1g.degree + RASHI_LIST_IDX.indexOf(d1g.rashi) * 30 : 0);
+                        const deg = projectedDeg(lon, 9);
+                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: d1g?.nakshatra ?? "", nakshatra_lord: d1g?.nakshatra_lord ?? "", pada: d1g?.pada ?? 0, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                       }
                       const vc = kundaliData.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
                       const g = vc?.grahas?.[gn];
                       if (!g) return null;
-                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: d1g?.degree ?? 0, d1Rashi: d1g?.rashi ?? g.rashi, nakshatra: d1g?.nakshatra ?? "", nakshatra_lord: d1g?.nakshatra_lord ?? "", pada: d1g?.pada ?? 0, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                      const vargaLagna = vc?.lagna?.rashi ?? d1Lagna;
+                      const rulerOf = getRulerOf(gn, vargaLagna);
+                      const lon = d1g?.longitude ?? (d1g ? d1g.degree + RASHI_LIST_IDX.indexOf(d1g.rashi) * 30 : 0);
+                      const deg = projectedDeg(lon, div);
+                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: d1g?.nakshatra ?? "", nakshatra_lord: d1g?.nakshatra_lord ?? "", pada: d1g?.pada ?? 0, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                     }).filter(Boolean) : [];
 
                     return (
