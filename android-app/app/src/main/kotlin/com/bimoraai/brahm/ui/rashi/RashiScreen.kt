@@ -81,7 +81,7 @@ fun RashiScreen(navController: NavController) {
                     .fillMaxSize()
                     .background(BrahmBackground)
                     .padding(padding),
-                contentPadding = PaddingValues(horizontal = 14.dp, top = 4.dp, bottom = 12.dp),
+                contentPadding = PaddingValues(start = 14.dp, top = 4.dp, end = 14.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(rashiList) { rashi ->

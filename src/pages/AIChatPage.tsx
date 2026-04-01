@@ -87,7 +87,7 @@ export default function AIChatPage() {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] sm:h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-[calc(100vh-3rem)] sm:h-[calc(100vh-1.5rem)]">
 
       {/* ── Top bar: disclaimer + action buttons ─────────────────────── */}
       <div className="flex-shrink-0 mb-3 flex items-center gap-2">

@@ -18,6 +18,7 @@ import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.data.UserRepository
 import com.bimoraai.brahm.ui.auth.LoginScreen
 import com.bimoraai.brahm.ui.auth.OnboardingScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import androidx.compose.runtime.collectAsState
 
@@ -55,6 +56,7 @@ object Route {
     const val LIBRARY         = "library"
     const val CALENDAR           = "calendar"
     const val ARCHIVED_CHATS     = "archived_chats"
+    const val ABOUT              = "about"
 }
 
 // Routes that are accessible without a valid token (auth screens)
@@ -64,38 +66,52 @@ private val authRoutes = setOf(Route.ONBOARDING, Route.LOGIN)
 fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose.hiltViewModel<MainViewModel>().tokenDataStore) {
     val navController = rememberNavController()
 
-    // Determine start destination asynchronously — runBlocking on main thread causes ANR/blank
-    var startDestination by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) {
-        val hasToken = tokenDataStore.accessToken.firstOrNull() != null
-        startDestination = if (hasToken) Route.MAIN else Route.ONBOARDING
+    // ── Instant start destination (no blank-screen flash) ─────────────────────
+    // YouTube / ChatGPT / Grok pattern:
+    //   1. Read sync SharedPreferences flag → route decided in first frame, no coroutine.
+    //   2. Token refresh runs silently in background AFTER the UI is already visible.
+    //   3. If refresh fails with 401 → auth guard redirects to LOGIN.
+    val startDestination = remember {
+        if (tokenDataStore.hasTokenSync()) Route.MAIN else Route.ONBOARDING
     }
 
-    // Show blank background while checking token (replaces splash screen delay)
-    if (startDestination == null) {
-        Box(modifier = Modifier.fillMaxSize().background(BrahmBackground))
-        return
-    }
-
-    // Global auth guard — when accessToken becomes null (logout, token clear, refresh failure),
-    // immediately redirect to LOGIN unless already on an auth screen
+    // ── Global auth guard ──────────────────────────────────────────────────────
+    // Token refresh is handled EXCLUSIVELY by ApiClient's mutex-protected OkHttp
+    // authenticator. Having a second independent refresh path here caused a race:
+    // both callers would use the refresh token simultaneously → server rotates it →
+    // the slower caller got 401 on the refresh → called clear() → random logout.
+    //
+    // Now: only one path refreshes tokens. This guard just watches for explicit
+    // clear() (real logout / genuinely expired refresh token confirmed by server).
     val accessToken by tokenDataStore.accessToken.collectAsState(initial = "loading")
     val currentEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route
+    var guardActive by remember { mutableStateOf(false) }
+
+    // Activate only after DataStore emits a real value — "loading" sentinel prevents
+    // false triggers while DataStore initialises on first app open.
+    LaunchedEffect(accessToken) {
+        if (accessToken != "loading") guardActive = true
+    }
 
     LaunchedEffect(accessToken) {
-        // "loading" sentinel means we haven't received the first DataStore emission yet
-        if (accessToken == "loading") return@LaunchedEffect
+        if (!guardActive) return@LaunchedEffect
         if (accessToken == null && currentRoute != null && currentRoute !in authRoutes) {
-            navController.navigate(Route.LOGIN) {
-                popUpTo(0) { inclusive = true }
+            // Small stabilisation delay: DataStore writes are async, and saveTokens()
+            // clears then re-saves — avoid firing on the brief null window mid-write.
+            delay(300)
+            val confirmedNull = tokenDataStore.accessToken.firstOrNull()
+            if (confirmedNull == null) {
+                navController.navigate(Route.LOGIN) {
+                    popUpTo(0) { inclusive = true }
+                }
             }
         }
     }
 
     NavHost(
         navController = navController,
-        startDestination = startDestination!!,
+        startDestination = startDestination,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
         enterTransition    = { fadeIn(tween(180)) },
         exitTransition     = { fadeOut(tween(120)) },
@@ -147,5 +163,6 @@ fun AppNavHost(tokenDataStore: TokenDataStore = androidx.hilt.navigation.compose
         composable(Route.LIBRARY)        { WithAiFab("library")        { com.bimoraai.brahm.ui.library.LibraryScreen(navController) } }
         composable(Route.CALENDAR)       { WithAiFab("calendar")       { com.bimoraai.brahm.ui.calendar.CalendarScreen(navController) } }
         composable(Route.ARCHIVED_CHATS) { com.bimoraai.brahm.ui.chat.ArchivedChatsScreen(navController) }
+        composable(Route.ABOUT)          { com.bimoraai.brahm.ui.about.AboutScreen(navController) }
     }
 }

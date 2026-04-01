@@ -166,6 +166,8 @@ class ProfileViewModel @Inject constructor(
             try { api.logout() } catch (_: Exception) {}
             tokenDataStore.clear()
             userRepository.clear()
+            prefs.edit().clear().apply()   // wipe profile_photo_path + any other prefs
+            _localPhotoPath.value = null
             onDone()
         }
     }

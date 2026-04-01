@@ -39,6 +39,17 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bimoraai.brahm.core.components.brahmFieldColors
 import com.bimoraai.brahm.core.theme.*
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 
@@ -56,6 +67,54 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
     val keyboard        = LocalSoftwareKeyboardController.current
     var showHistory     by remember { mutableStateOf(false) }
 
+    // ── Voice input ───────────────────────────────────────────────────────────
+    val context      = LocalContext.current
+    var isListening  by remember { mutableStateOf(false) }
+    var voiceRms     by remember { mutableStateOf(0f) }
+    val recognizer   = remember(context) { SpeechRecognizer.createSpeechRecognizer(context) }
+
+    DisposableEffect(Unit) {
+        recognizer.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {
+                voiceRms = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f)
+            }
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onError(error: Int) { isListening = false; voiceRms = 0f }
+            override fun onResults(results: Bundle?) {
+                val text = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
+                if (!text.isNullOrEmpty()) input = text
+                isListening = false; voiceRms = 0f
+            }
+            override fun onPartialResults(partial: Bundle?) {
+                val text = partial?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
+                if (!text.isNullOrEmpty()) input = text
+            }
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+        onDispose { recognizer.destroy() }
+    }
+
+    fun startListening() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault().toLanguageTag())
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, java.util.Locale.getDefault().toLanguageTag())
+            putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, false)
+        }
+        input = ""
+        recognizer.startListening(intent)
+        isListening = true
+        voiceRms = 0f
+    }
+
+    val permLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) startListening() }
+
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1)
     }
@@ -65,7 +124,7 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
     val canSend         = input.isNotBlank() && !isStreaming
 
     Scaffold(
-        contentWindowInsets = WindowInsets.ime,
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             Surface(color = Color.White, shadowElevation = 2.dp) {
                 Column {
@@ -147,66 +206,96 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
                 }
             }
         },
-        bottomBar = {
-            Surface(color = Color.White, shadowElevation = 8.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    OutlinedTextField(
-                        value = input,
-                        onValueChange = { input = it },
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 46.dp),
-                        placeholder = { Text("Message Brahm AI...", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium) },
-                        shape = RoundedCornerShape(24.dp),
-                        maxLines = 4,
-                        textStyle = MaterialTheme.typography.bodyMedium,
-                        colors = brahmFieldColors(),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
-                            .background(if (canSend) BrahmGold else BrahmBorder)
-                            .clickable(enabled = canSend) {
-                                vm.sendMessage(input.trim())
-                                input = ""
-                                keyboard?.hide()
-                            },
-                        contentAlignment = Alignment.Center,
+        containerColor = BrahmBackground,
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
+                .imePadding(),
+        ) {
+            // ── Messages area ──────────────────────────────────────────────────
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+                val keyboardOpen = imeBottom > 100
+                if (messages.isEmpty() && !showTyping && !keyboardOpen) {
+                    EmptyState(onSuggestionClick = { vm.sendMessage(it) })
+                }
+                if (messages.isNotEmpty() || showTyping) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Color.White, modifier = Modifier.size(20.dp))
+                        items(visibleMessages) { msg ->
+                            ChatBubble(msg, onFollowUpClick = { vm.sendFollowUp(it) })
+                        }
+                        if (showTyping) {
+                            item { TypingIndicator() }
+                        }
                     }
                 }
             }
-        },
-        containerColor = BrahmBackground,
-    ) { padding ->
-        val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
-        val keyboardOpen = imeBottom > 100
 
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            // Empty state — centered, hidden when keyboard opens to avoid squishing
-            if (messages.isEmpty() && !showTyping && !keyboardOpen) {
-                EmptyState(onSuggestionClick = { vm.sendMessage(it) })
-            }
-
-            // Message list — only rendered when there are messages or typing
-            if (messages.isNotEmpty() || showTyping) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(visibleMessages) { msg ->
-                        ChatBubble(msg, onFollowUpClick = { vm.sendFollowUp(it) })
-                    }
-                    if (showTyping) {
-                        item { TypingIndicator() }
+            // ── Input bar ──────────────────────────────────────────────────────
+            Surface(color = Color.White, shadowElevation = 8.dp) {
+                if (isListening) {
+                    VoiceInputBar(
+                        rmsValue = voiceRms,
+                        onStop   = { recognizer.stopListening(); isListening = false; voiceRms = 0f },
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OutlinedTextField(
+                            value = input,
+                            onValueChange = { input = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text("Message Brahm AI...", color = BrahmMutedForeground, style = MaterialTheme.typography.bodyMedium) },
+                            shape = RoundedCornerShape(24.dp),
+                            maxLines = 4,
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                            colors = brahmFieldColors(),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        if (input.isNotBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(if (canSend) BrahmGold else BrahmBorder)
+                                    .clickable(enabled = canSend) {
+                                        vm.sendMessage(input.trim())
+                                        input = ""
+                                        keyboard?.hide()
+                                    },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Color.White, modifier = Modifier.size(18.dp))
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(BrahmGold.copy(alpha = 0.1f))
+                                    .clickable {
+                                        val granted = ContextCompat.checkSelfPermission(
+                                            context, android.Manifest.permission.RECORD_AUDIO
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                        if (granted) startListening()
+                                        else permLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                                    },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.Default.Mic, contentDescription = "Voice Input", tint = BrahmGold, modifier = Modifier.size(22.dp))
+                            }
+                        }
                     }
                 }
             }
@@ -509,6 +598,110 @@ internal fun SessionRow(
     }
 }
 
+// ── Voice recording bar ───────────────────────────────────────────────────────
+@Composable
+private fun VoiceInputBar(rmsValue: Float, onStop: () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "voice")
+
+    val ring1Alpha by infiniteTransition.animateFloat(
+        initialValue = 0.07f, targetValue = 0.18f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "a1",
+    )
+    val ring2Scale by infiniteTransition.animateFloat(
+        initialValue = 1.0f, targetValue = 1.22f,
+        animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "s2",
+    )
+    val ring3Scale by infiniteTransition.animateFloat(
+        initialValue = 1.05f, targetValue = 1.32f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "s3",
+    )
+
+    val ampBoost = 1f + rmsValue * 0.4f
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        // Cancel button
+        IconButton(onClick = onStop, modifier = Modifier.size(40.dp)) {
+            Icon(
+                Icons.Default.Close,
+                contentDescription = "Cancel",
+                tint = BrahmMutedForeground,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+
+        // Animated pulsing mic
+        Box(modifier = Modifier.size(100.dp), contentAlignment = Alignment.Center) {
+            // Outermost slow ring
+            Box(
+                modifier = Modifier
+                    .size((80f * ring3Scale * ampBoost).dp)
+                    .clip(CircleShape)
+                    .background(BrahmGold.copy(alpha = ring1Alpha * 0.5f))
+            )
+            // Middle ring
+            Box(
+                modifier = Modifier
+                    .size((64f * ring2Scale * ampBoost).dp)
+                    .clip(CircleShape)
+                    .background(BrahmGold.copy(alpha = ring1Alpha))
+            )
+            // Inner glow
+            Box(
+                modifier = Modifier
+                    .size((50f * ampBoost).dp)
+                    .clip(CircleShape)
+                    .background(BrahmGold.copy(alpha = 0.22f))
+            )
+            // Core mic button — tap to stop
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(BrahmGold)
+                    .clickable(onClick = onStop),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Default.Mic,
+                    contentDescription = "Stop listening",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+
+        // Labels
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(72.dp),
+        ) {
+            Text(
+                "Listening",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = BrahmGold,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+            )
+            Text(
+                "Tap to stop",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = BrahmMutedForeground,
+                    fontSize = 10.sp,
+                ),
+            )
+        }
+    }
+}
+
 // ── Empty state ───────────────────────────────────────────────────────────────
 @Composable
 private fun EmptyState(onSuggestionClick: (String) -> Unit) {
@@ -531,6 +724,7 @@ private fun EmptyState(onSuggestionClick: (String) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             // Bot avatar
+            /*
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -549,6 +743,7 @@ private fun EmptyState(onSuggestionClick: (String) -> Unit) {
                     color = BrahmForeground, fontWeight = FontWeight.Bold,
                 ),
             )
+            */
             Spacer(Modifier.height(6.dp))
             Text(
                 "Your Vedic astrology guide.\nAsk about planets, kundali, doshas & more.",

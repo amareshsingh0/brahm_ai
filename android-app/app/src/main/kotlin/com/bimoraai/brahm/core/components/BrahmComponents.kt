@@ -12,7 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.lazy.LazyColumn
 
 import androidx.compose.foundation.lazy.items
@@ -373,11 +372,11 @@ fun PageBotSheet(
         onDismissRequest = onDismiss,
         containerColor   = Color.White,
         sheetState       = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        windowInsets     = WindowInsets.ime,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .imePadding()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 8.dp),
         ) {

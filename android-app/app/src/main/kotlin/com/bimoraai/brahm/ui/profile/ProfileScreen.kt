@@ -85,7 +85,7 @@ fun ProfileScreen(
     var showLanguageDialog  by remember { mutableStateOf(false) }
     var showEditSheet       by remember { mutableStateOf(false) }
     var showPhotoSheet      by remember { mutableStateOf(false) }
-    var legalDoc            by remember { mutableStateOf<String?>(null) }
+
 
     val savedLang = remember {
         context.getSharedPreferences("brahm_prefs", Context.MODE_PRIVATE)
@@ -273,7 +273,7 @@ fun ProfileScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, bottom = 18.dp),
+                            .padding(start = 20.dp, end = 20.dp, bottom = 18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
@@ -380,26 +380,15 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                SettingsSectionLabel("Legal")
+                SettingsSectionLabel("About")
                 SettingsGroup {
                     SettingsItem(
-                        icon = Icons.Default.PrivacyTip, iconColor = Color(0xFF546E7A),
-                        label = "Privacy Policy", subtitle = "How we handle your data",
-                        onClick = { legalDoc = "privacy" },
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
-                    SettingsItem(
-                        icon = Icons.Default.Description, iconColor = Color(0xFF5C6BC0),
-                        label = "Terms of Use", subtitle = "Rules for using Brahm AI",
-                        onClick = { legalDoc = "terms" },
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = BrahmBorder)
-                    SettingsItem(
-                        icon = Icons.Default.Cancel, iconColor = Color(0xFFE53935),
-                        label = "Cancellation Policy", subtitle = "Refunds and subscription cancellation",
-                        onClick = { legalDoc = "cancellation" },
+                        icon = Icons.Default.Info, iconColor = Color(0xFFB07A00),
+                        label = "About Brahm AI", subtitle = "Privacy, Terms & more",
+                        onClick = { navController.navigate(com.bimoraai.brahm.ui.main.Route.ABOUT) },
                     )
                 }
+
 
                 Spacer(Modifier.height(24.dp))
 
@@ -797,43 +786,6 @@ fun ProfileScreen(
                     }
                 }
             }
-        }
-    }
-
-    // ── Legal Doc Bottom Sheet ───────────────────────────────────────────────
-    legalDoc?.let { doc ->
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val title = when (doc) {
-            "privacy" -> "Privacy Policy"; "terms" -> "Terms of Use"; else -> "Cancellation Policy"
-        }
-        val assetFile = when (doc) {
-            "privacy" -> "privacy_policy.html"; "terms" -> "terms_of_use.html"; else -> "cancellation_policy.html"
-        }
-        ModalBottomSheet(
-            onDismissRequest = { legalDoc = null },
-            sheetState = sheetState,
-            containerColor = BrahmCard,
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-                IconButton(onClick = { legalDoc = null }) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = BrahmMutedForeground)
-                }
-            }
-            HorizontalDivider(color = BrahmBorder)
-            AndroidView(
-                factory = { ctx ->
-                    WebView(ctx).apply {
-                        settings.javaScriptEnabled = false
-                        loadUrl("file:///android_asset/$assetFile")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp, max = 600.dp).navigationBarsPadding(),
-            )
         }
     }
 

@@ -10,6 +10,18 @@
         <item name="android:windowBackground">#F7F7F8</item>
     </style>
 
+    <!-- uCrop — fullscreen, hides status bar & fixes nav bar insets -->
+    <style name="Theme.BrahmAI.UCrop" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="colorPrimary">#B07A00</item>
+        <item name="colorPrimaryDark">#B07A00</item>
+        <item name="colorAccent">#B07A00</item>
+    </style>
+
     <!-- Splash screen — shows animated icon before Compose loads -->
     <style name="Theme.BrahmAI.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#F7F7F8</item>

@@ -455,7 +455,7 @@ fun CompatibilityContent(data: JsonObject, onEdit: () -> Unit = {}) {
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
-            contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
+            contentPadding = PaddingValues(start = 8.dp, top = 4.dp, end = 8.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             // ── Header: names + Edit ──
@@ -698,7 +698,7 @@ fun CompatibilityInputForm(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
+        contentPadding = PaddingValues(start = 8.dp, top = 4.dp, end = 8.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

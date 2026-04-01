@@ -1,7 +1,9 @@
 package com.bimoraai.brahm.core.data
 
+import android.content.Context
 import com.bimoraai.brahm.core.network.ApiService
 import com.bimoraai.brahm.core.network.UserDto
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -10,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -17,22 +21,35 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Singleton that loads and caches the logged-in user's profile once.
- * Inject this into any ViewModel that needs birth data pre-fill.
+ * Singleton that caches the logged-in user's profile.
+ *
+ * On app open the cached UserDto is emitted INSTANTLY from SharedPreferences
+ * (same disk-first strategy as YouTube / ChatGPT / Grok), while a background
+ * network refresh silently updates it.  This eliminates the "looks logged-out"
+ * flash on app reopen.
  */
 @Singleton
 class UserRepository @Inject constructor(
     private val api: ApiService,
+    @ApplicationContext private val context: Context,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val _user        = MutableStateFlow<UserDto?>(null)
-    private val _kundaliJson = MutableStateFlow<String?>(null)   // cached raw kundali_json
+    // SharedPreferences for synchronous disk read — DataStore is async-only
+    private val prefs = context.getSharedPreferences("brahm_user_cache", Context.MODE_PRIVATE)
+    private val jsonCodec = Json { ignoreUnknownKeys = true }
+
+    // Emit cached data immediately — no network required on first compose pass
+    private val _user        = MutableStateFlow<UserDto?>(loadCachedUser())
+    private val _kundaliJson = MutableStateFlow<String?>(prefs.getString("kundali_json", null))
 
     val user:        StateFlow<UserDto?> = _user.asStateFlow()
     val kundaliJson: StateFlow<String?>  = _kundaliJson.asStateFlow()
 
-    init { refresh() }
+    init {
+        // Cached data already emitted above — silently refresh from network
+        refresh()
+    }
 
     fun refresh() {
         scope.launch { fetchAll() }
@@ -48,22 +65,25 @@ class UserRepository @Inject constructor(
     fun clear() {
         _user.value        = null
         _kundaliJson.value = null
+        prefs.edit().clear().apply()
     }
 
     /** Pre-populate cached kundali JSON from KundaliViewModel after a fresh generate. */
     fun cacheKundaliJson(json: String) {
         _kundaliJson.value = json
+        prefs.edit().putString("kundali_json", json).apply()
     }
 
     private suspend fun fetchAll() {
         try {
-            // Parallel fetch: profile + saved kundali
             val profileDeferred = scope.async { api.getMe() }
             val kundaliDeferred = scope.async { api.getSavedKundali() }
 
             val profileRes = profileDeferred.await()
             if (profileRes.isSuccessful && profileRes.body() != null) {
-                _user.value = profileRes.body()
+                val user = profileRes.body()!!
+                _user.value = user
+                persistUser(user)   // update disk cache for next cold start
             }
 
             val kundaliRes = kundaliDeferred.await()
@@ -74,8 +94,11 @@ class UserRepository @Inject constructor(
                 } ?: false
                 if (found) {
                     val kundaliObj = body?.get("kundali") as? JsonObject
-                    val json: String? = (kundaliObj?.get("kundali_json") as? JsonPrimitive)?.contentOrNull
-                    if (!json.isNullOrBlank()) _kundaliJson.value = json
+                    val raw: String? = (kundaliObj?.get("kundali_json") as? JsonPrimitive)?.contentOrNull
+                    if (!raw.isNullOrBlank()) {
+                        _kundaliJson.value = raw
+                        prefs.edit().putString("kundali_json", raw).apply()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -83,10 +106,13 @@ class UserRepository @Inject constructor(
         }
     }
 
-    /** Called immediately after login — stores name/plan from auth response without a network round-trip */
+    /**
+     * Called immediately after login — stores name/plan from auth response without
+     * a network round-trip so the main screen shows user info instantly after login.
+     */
     fun setFromAuth(name: String?, plan: String, phone: String?, email: String?) {
         val current = _user.value
-        _user.value = UserDto(
+        val updated = UserDto(
             session_id = current?.session_id ?: "",
             name       = name?.takeIf { it.isNotBlank() } ?: current?.name ?: "",
             plan       = plan,
@@ -102,7 +128,9 @@ class UserRepository @Inject constructor(
             rashi      = current?.rashi ?: "",
             nakshatra  = current?.nakshatra ?: "",
         )
-        // Also do a full refresh in background to get complete profile
+        _user.value = updated
+        persistUser(updated)
+        // Full refresh in background for complete profile
         refresh()
     }
 
@@ -110,5 +138,18 @@ class UserRepository @Inject constructor(
     fun hasBirthData(): Boolean {
         val u = _user.value ?: return false
         return u.date.isNotBlank() && u.place.isNotBlank()
+    }
+
+    // ── Disk cache ────────────────────────────────────────────────────────────
+
+    private fun loadCachedUser(): UserDto? {
+        val raw = prefs.getString("user_dto", null) ?: return null
+        return try { jsonCodec.decodeFromString<UserDto>(raw) } catch (_: Exception) { null }
+    }
+
+    private fun persistUser(user: UserDto) {
+        try {
+            prefs.edit().putString("user_dto", jsonCodec.encodeToString(user)).apply()
+        } catch (_: Exception) {}
     }
 }

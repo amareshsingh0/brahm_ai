@@ -72,7 +72,7 @@ fun VarshpalContent(data: JsonObject) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
+        contentPadding = PaddingValues(start = 8.dp, top = 4.dp, end = 8.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
 
@@ -290,7 +290,7 @@ fun VarshpalInputForm(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BrahmBackground),
-        contentPadding = PaddingValues(horizontal = 8.dp, top = 4.dp, bottom = 12.dp),
+        contentPadding = PaddingValues(start = 8.dp, top = 4.dp, end = 8.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

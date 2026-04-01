@@ -24,6 +24,7 @@ class TokenDataStore @Inject constructor(
 ) {
     private val ACCESS_TOKEN     = stringPreferencesKey("access_token")
     private val REFRESH_TOKEN    = stringPreferencesKey("refresh_token")
+    private val TOKEN_EXPIRY     = androidx.datastore.preferences.core.longPreferencesKey("token_expiry") // unix seconds
     private val USER_ID          = stringPreferencesKey("user_id")
     private val USER_PLAN        = stringPreferencesKey("user_plan")
     private val CHAT_SESSION_ID  = stringPreferencesKey("chat_session_id")
@@ -33,6 +34,7 @@ class TokenDataStore @Inject constructor(
 
     val accessToken:    Flow<String?> = context.dataStore.data.map { it[ACCESS_TOKEN] }
     val refreshToken:   Flow<String?> = context.dataStore.data.map { it[REFRESH_TOKEN] }
+    val tokenExpiry:    Flow<Long>    = context.dataStore.data.map { it[TOKEN_EXPIRY] ?: 0L }
     val userId:         Flow<String?> = context.dataStore.data.map { it[USER_ID] }
     val userPlan:       Flow<String?> = context.dataStore.data.map { it[USER_PLAN] }
     val chatSessionId:  Flow<String?> = context.dataStore.data.map { it[CHAT_SESSION_ID] }
@@ -55,10 +57,31 @@ class TokenDataStore @Inject constructor(
         context.dataStore.edit { it.remove(CHAT_SESSION_ID) }
     }
 
+    // ── Sync auth flag (SharedPreferences) ───────────────────────────────────
+    // DataStore reads are async — we mirror "has token" in SharedPreferences for
+    // instant app-open routing without a blank-screen flash (same as YouTube/ChatGPT).
+    private val authPrefs = context.getSharedPreferences("brahm_auth_sync", Context.MODE_PRIVATE)
+
+    /** Synchronous — safe to call on main thread during composition. */
+    fun hasTokenSync(): Boolean = authPrefs.getBoolean("has_token", false)
+
     suspend fun saveTokens(accessToken: String, refreshToken: String) {
+        // Decode JWT expiry from payload (base64url, no padding)
+        val expiry = try {
+            val payload = accessToken.split(".")[1]
+            val decoded = android.util.Base64.decode(
+                payload, android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING
+            )
+            org.json.JSONObject(String(decoded)).optLong("exp", 0L)
+        } catch (_: Exception) { 0L }
+
+        // Write sync flag first — instant read on next app open
+        authPrefs.edit().putBoolean("has_token", true).apply()
+
         context.dataStore.edit { prefs ->
             prefs[ACCESS_TOKEN]  = accessToken
             prefs[REFRESH_TOKEN] = refreshToken
+            if (expiry > 0L) prefs[TOKEN_EXPIRY] = expiry
         }
     }
 
@@ -88,6 +111,7 @@ class TokenDataStore @Inject constructor(
     }
 
     suspend fun clear() {
+        authPrefs.edit().clear().apply()   // clear sync flag
         context.dataStore.edit { it.clear() }
     }
 }

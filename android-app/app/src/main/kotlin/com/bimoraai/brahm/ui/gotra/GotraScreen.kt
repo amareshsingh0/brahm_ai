@@ -68,7 +68,7 @@ fun GotraScreen(navController: NavController) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().background(BrahmBackground).padding(padding),
-            contentPadding = PaddingValues(horizontal = 12.dp, top = 4.dp, bottom = 12.dp),
+            contentPadding = PaddingValues(start = 12.dp, top = 4.dp, end = 12.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {

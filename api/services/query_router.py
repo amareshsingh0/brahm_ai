@@ -110,8 +110,8 @@ _CONVERSATIONAL_FALLBACK = {
     "needs_rag": False,
     "kundali_focus": [],
     "response_depth": "basic",
-    "response_lang": "hi",
-    "user_language_style": "hinglish",
+    "response_lang": "en",
+    "user_language_style": "pure_english",
     "birth_data": {"date": None, "time": None, "place": None, "name": None},
 }
 

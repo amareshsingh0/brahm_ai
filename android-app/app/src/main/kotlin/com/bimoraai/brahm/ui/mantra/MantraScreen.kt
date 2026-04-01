@@ -146,7 +146,7 @@ fun MantraScreen(navController: NavController) {
             Box(Modifier.fillMaxSize()) {
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(horizontal = 12.dp, top = 4.dp, bottom = 12.dp),
+                contentPadding = PaddingValues(start = 12.dp, top = 4.dp, end = 12.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(filtered, key = { it.deity }) { mantra ->

@@ -142,12 +142,12 @@ private val CHOG_EXPLAIN = mapOf(
 
 private data class QuickItem(val icon: ImageVector, val gs: Color, val ge: Color, val title: String, val route: String, val useTab: Boolean = false)
 private val QUICK_ITEMS = listOf(
-    QuickItem(Icons.AutoMirrored.Filled.Chat, Color(0xFF6C63FF), Color(0xFF3B2FBF), "Brahm AI",   "tab_chat",    useTab = true),
-    QuickItem(Icons.Default.Stars,            Color(0xFFD4A017), Color(0xFF9A6E00), "My Kundali", "tab_kundali", useTab = true),
-    QuickItem(Icons.Default.CalendarViewDay,  Color(0xFF0288D1), Color(0xFF01579B), "Panchang",   Route.PANCHANG),
-    QuickItem(Icons.Default.NightsStay,       Color(0xFF1A237E), Color(0xFF0D1442), "Live Sky",   Route.SKY),
     QuickItem(Icons.Default.PanTool,          Color(0xFF8B5CF6), Color(0xFF5B21B6), "Palmistry",  Route.PALMISTRY),
+    QuickItem(Icons.AutoMirrored.Filled.Chat, Color(0xFF6C63FF), Color(0xFF3B2FBF), "Brahm AI",   "tab_chat",    useTab = true),
     QuickItem(Icons.Default.Favorite,         Color(0xFFE8445A), Color(0xFFB0203A), "Compat.",    Route.COMPATIBILITY),
+    QuickItem(Icons.Default.NightsStay,       Color(0xFF1A237E), Color(0xFF0D1442), "Live Sky",   Route.SKY),
+    QuickItem(Icons.Default.CalendarViewDay,  Color(0xFF0288D1), Color(0xFF01579B), "Panchang",   Route.PANCHANG),
+    QuickItem(Icons.Default.MusicNote,        Color(0xFFD4540A), Color(0xFF92400E), "Mantras",    Route.MANTRA),
 )
 
 // ─── Screen ───────────────────────────────────────────────────────────────────

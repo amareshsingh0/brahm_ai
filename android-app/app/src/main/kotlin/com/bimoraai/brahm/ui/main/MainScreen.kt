@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -25,6 +26,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,6 +38,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.bimoraai.brahm.core.datastore.TokenDataStore
 import com.bimoraai.brahm.core.theme.*
 import com.bimoraai.brahm.ui.chat.ChatScreen
@@ -77,14 +81,23 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
         }
     }
 
+    // Hide bottom nav when keyboard is open so chat input sits flush to keyboard
+    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+
     Scaffold(
         containerColor = BrahmBackground,
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            BrahmBottomNav(
-                currentRoute = currentRoute,
-                onTabSelected = { navigateTab(it) },
-            )
+            if (!imeVisible) {
+                val userRepo = hiltViewModel<MainViewModel>().userRepository
+                val user by userRepo.user.collectAsState()
+                BrahmBottomNav(
+                    currentRoute = currentRoute,
+                    onTabSelected = { navigateTab(it) },
+                    avatarUrl = user?.avatar_url,
+                    userName = user?.name,
+                )
+            }
         },
         // Each feature screen has its own PageBotFab with page-specific data & session
     ) { innerPadding ->
@@ -114,6 +127,8 @@ fun MainScreen(navController: NavController, tokenDataStore: TokenDataStore? = n
 private fun BrahmBottomNav(
     currentRoute: String?,
     onTabSelected: (String) -> Unit,
+    avatarUrl: String? = null,
+    userName: String? = null,
 ) {
     Surface(
         tonalElevation = 0.dp,
@@ -142,6 +157,8 @@ private fun BrahmBottomNav(
                         selected = selected,
                         onClick = { onTabSelected(tab.route) },
                         modifier = Modifier.weight(1f),
+                        avatarUrl = if (tab.route == "tab_profile") avatarUrl else null,
+                        userName = if (tab.route == "tab_profile") userName else null,
                     )
                 }
             }
@@ -155,6 +172,8 @@ private fun BrahmNavItem(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    avatarUrl: String? = null,
+    userName: String? = null,
 ) {
     val scale by animateFloatAsState(
         targetValue = if (selected) 1.08f else 1f,
@@ -184,14 +203,54 @@ private fun BrahmNavItem(
                 .background(if (selected) BrahmGold else Color.Transparent),
         )
         Spacer(Modifier.height(6.dp))
-        Icon(
-            imageVector = tab.icon,
-            contentDescription = tab.label,
-            tint = iconColor,
-            modifier = Modifier
-                .size(22.dp)
-                .scale(scale),
-        )
+        if (avatarUrl != null) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .scale(scale)
+                    .clip(CircleShape)
+                    .then(
+                        if (selected) Modifier.background(BrahmGold)
+                        else Modifier.background(Color(0xFF9E9E9E).copy(alpha = 0.3f))
+                    )
+                    .padding(1.5.dp)
+                    .clip(CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "Profile",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                )
+            }
+        } else if (tab.route == "tab_profile" && !userName.isNullOrBlank()) {
+            // Initials fallback
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .scale(scale)
+                    .clip(CircleShape)
+                    .background(if (selected) BrahmGold else Color(0xFF9E9E9E)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = userName.first().uppercaseChar().toString(),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
+            }
+        } else {
+            Icon(
+                imageVector = tab.icon,
+                contentDescription = tab.label,
+                tint = iconColor,
+                modifier = Modifier
+                    .size(22.dp)
+                    .scale(scale),
+            )
+        }
         Spacer(Modifier.height(3.dp))
         Text(
             text = tab.label,
