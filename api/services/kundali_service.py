@@ -653,8 +653,11 @@ def calc_kundali(
     }
 
     # ── Lagna (Ascendant) ──────────────────────────────────────────
-    _, ascmc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
-    lagna = ascmc[0]
+    # Compute tropical ascendant then subtract ayanamsa explicitly.
+    # Using FLG_SIDEREAL in houses_ex can give inconsistent results
+    # across pyswisseph versions compared to manual subtraction.
+    _, ascmc_trop = swe.houses_ex(jd, lat, lon, b'P')
+    lagna = (ascmc_trop[0] - ayanamsha) % 360
     lagna_rashi_i = int(lagna / 30)
 
     # Whole Sign houses

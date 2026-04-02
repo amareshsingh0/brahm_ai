@@ -1157,16 +1157,17 @@ export default function KundliPage() {
                     const chartPlanets = getVargaPlanets(div);
                     const chartLagna = getVargaLagna(div);
                     const vargaHouses = getVargaHouses(div);
+
+                    // Projected varga longitude: scale degree-within-segment to 0–30°
+                    const projectedDeg = (lon: number, n: number): number => {
+                      const segSize = 30 / n;
+                      return (lon % segSize) / segSize * 30;
+                    };
+
                     // Graha detail rows for this chart
                     const grahaRows = kundaliData ? GRAHA_ORDER.map(gn => {
                       const d1g = kundaliData.grahas[gn];
                       const d1Lagna = kundaliData.lagna.rashi;
-
-                      // Projected varga longitude: scale degree-within-segment to 0–30°
-                      function projectedDeg(lon: number, n: number): number {
-                        const segSize = 30 / n;
-                        return (lon % segSize) / segSize * 30;
-                      }
 
                       if (isBc || div === 1) {
                         if (!d1g) return null;
@@ -1295,10 +1296,23 @@ export default function KundliPage() {
                                         <tr className="border-b border-border/10 bg-amber-500/5">
                                           <td className="px-2 py-1.5 font-medium text-amber-400">Lagna</td>
                                           <td className="px-2 py-1.5 font-mono text-foreground truncate">
-                                            {isD1full ? degToDMS(l.degree, l.rashi) : chartLagna}
+                                            {isD1full
+                                              ? degToDMS(l.degree, l.rashi)
+                                              : (() => {
+                                                  const absLon = l.full_degree ?? (RASHI_LIST_IDX.indexOf(l.rashi) * 30 + l.degree);
+                                                  const vDeg = projectedDeg(absLon, div);
+                                                  return degToDMS(vDeg, chartLagna);
+                                                })()}
                                           </td>
                                           <td className="px-2 py-1.5 text-muted-foreground truncate">
-                                            {isD1full ? `${l.nakshatra}${l.pada ? ` P${l.pada}` : ""}` : "—"}
+                                            {isD1full
+                                              ? `${l.nakshatra}${l.pada ? ` P${l.pada}` : ""}`
+                                              : (() => {
+                                                  const lagnaVRashiIdx = RASHI_LIST_IDX.indexOf(chartLagna);
+                                                  const absVLon = lagnaVRashiIdx * 30 + l.degree;
+                                                  const lNak = getNakshatraFromLon(absVLon);
+                                                  return `${lNak.nakshatra} P${lNak.pada}`;
+                                                })()}
                                           </td>
                                           <td className="px-2 py-1.5 text-center text-muted-foreground">—</td>
                                           <td className="px-2 py-1.5 text-center font-medium text-foreground">H1</td>
@@ -1480,8 +1494,6 @@ export default function KundliPage() {
                                           let residents: string[] = [];
                                           if (isBc && kundaliData.bhav_chalit) {
                                             residents = GRAHA_ORDER.filter(gn => kundaliData.bhav_chalit!.planets[gn] === h.house);
-                                          } else if (div === 1) {
-                                            residents = h.planets ?? [];
                                           } else {
                                             residents = houseResidentsMap[h.house] ?? [];
                                           }
