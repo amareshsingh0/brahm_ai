@@ -1181,20 +1181,18 @@ export default function KundliPage() {
                         if (!g) return null;
                         const navLagna = kundaliData.navamsha_lagna?.rashi ?? d1Lagna;
                         const rulerOf = getRulerOf(gn, navLagna);
-                        const lon = d1g?.longitude ?? (d1g ? d1g.degree + RASHI_LIST_IDX.indexOf(d1g.rashi) * 30 : 0);
-                        const deg = projectedDeg(lon, 9);
+                        const deg9 = d1g?.degree ?? 0;
                         const vRashiIdx9 = RASHI_LIST_IDX.indexOf(g.rashi);
-                        const absVargaLon9 = vRashiIdx9 * 30 + (d1g?.degree ?? 0);
+                        const absVargaLon9 = vRashiIdx9 * 30 + deg9;
                         const nak9 = getNakshatraFromLon(absVargaLon9);
-                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: nak9.nakshatra, nakshatra_lord: nak9.lord, pada: nak9.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg9, d1Rashi: g.rashi, nakshatra: nak9.nakshatra, nakshatra_lord: nak9.lord, pada: nak9.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                       }
                       const vc = kundaliData.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
                       const g = vc?.grahas?.[gn];
                       if (!g) return null;
                       const vargaLagna = vc?.lagna?.rashi ?? d1Lagna;
                       const rulerOf = getRulerOf(gn, vargaLagna);
-                      const lon = d1g?.longitude ?? (d1g ? d1g.degree + RASHI_LIST_IDX.indexOf(d1g.rashi) * 30 : 0);
-                      const deg = projectedDeg(lon, div);
+                      const deg = d1g?.degree ?? 0;
                       const vRashiIdx = RASHI_LIST_IDX.indexOf(g.rashi);
                       const absVargaLon = vRashiIdx * 30 + (d1g?.degree ?? 0);
                       const nak = getNakshatraFromLon(absVargaLon);
@@ -1298,11 +1296,7 @@ export default function KundliPage() {
                                           <td className="px-2 py-1.5 font-mono text-foreground truncate">
                                             {isD1full
                                               ? degToDMS(l.degree, l.rashi)
-                                              : (() => {
-                                                  const absLon = l.full_degree ?? (RASHI_LIST_IDX.indexOf(l.rashi) * 30 + l.degree);
-                                                  const vDeg = projectedDeg(absLon, div);
-                                                  return degToDMS(vDeg, chartLagna);
-                                                })()}
+                                              : degToDMS(l.degree, chartLagna)}
                                           </td>
                                           <td className="px-2 py-1.5 text-muted-foreground truncate">
                                             {isD1full

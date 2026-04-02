@@ -83,12 +83,12 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 5:
         # D-5: Panchamsha — 5 parts of 6° each
-        # BPHS: Odd signs → from Mesha (0), Even signs → from Dhanu (8)
+        # BPHS: Movable signs → Mesha (0), Fixed signs → Vrischika (7), Dual signs → Karka (3)
         part = int(deg_in_rashi / 6.0)
         part = min(part, 4)
-        is_odd = (rashi_i % 2 == 0)
-        start = 0 if is_odd else 8  # Mesha for odd, Dhanu for even
-        return (start + part) % 12
+        modality = rashi_i % 3  # 0=movable, 1=fixed, 2=dual
+        starts = [0, 7, 3]  # Mesha, Vrischika, Karka
+        return (starts[modality] + part) % 12
 
     elif division == 6:
         # D-6: Shashthamsha — 6 parts of 5° each
@@ -110,12 +110,12 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 8:
         # D-8: Ashtamsha — 8 parts of 3°45' each
-        # Parashara (BPHS): Odd signs → all parts from Mesha (0), Even signs → all parts from Vrischika (7)
+        # BPHS: Movable signs → Mesha (0), Fixed signs → Vrischika (7), Dual signs → Karka (3)
         part = int(deg_in_rashi / 3.75)
         part = min(part, 7)
-        is_odd = (rashi_i % 2 == 0)
-        start = 0 if is_odd else 7  # Mesha for odd, Vrischika for even
-        return (start + part) % 12
+        modality = rashi_i % 3  # 0=movable, 1=fixed, 2=dual
+        starts = [0, 7, 3]  # Mesha, Vrischika, Karka
+        return (starts[modality] + part) % 12
 
     elif division == 9:
         # D-9: Navamsha — 9 parts of 3°20'
@@ -137,10 +137,12 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 11:
         # D-11: Ekadashamsha (Rudramsha) — 11 parts of 2°43'38" each
-        # BPHS: All signs count from same sign (no odd/even split)
+        # BPHS: Odd signs count from same sign, Even signs count from next sign
         part = int(deg_in_rashi / (30.0 / 11))
         part = min(part, 10)
-        return (rashi_i + part) % 12
+        is_odd = (rashi_i % 2 == 0)
+        start = rashi_i if is_odd else (rashi_i + 1) % 12
+        return (start + part) % 12
 
     elif division == 12:
         # D-12: Dwadashamsha — 12 parts of 2°30'
