@@ -423,6 +423,19 @@ async def get_user_subscription_endpoint(
         raise HTTPException(status_code=500, detail=f"Subscription lookup failed: {e}")
 
 
+@router.delete("/user/kundali")
+def delete_saved_kundali(request: Request, session_id: str = Query(default="")):
+    """Delete the user's saved kundali (used before regenerating to clear stale cache)."""
+    user_id = _get_user_id(request, session_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        get_supabase().table("saved_kundalis").delete().eq("user_id", user_id).execute()
+        return {"deleted": True}
+    except Exception as e:
+        raise HTTPException(500, f"Failed to delete kundali: {e}")
+
+
 @router.post("/user/kundali")
 def save_kundali(body: SaveKundaliRequest, request: Request, session_id: str = Query(default="")):
     """Upsert the user's primary kundali (one per user — overwrites on re-generate)."""

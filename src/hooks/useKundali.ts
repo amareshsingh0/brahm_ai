@@ -1,17 +1,13 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { BirthDetails, KundaliResponse } from '../types/api';
-import { useKundliStore } from '../store/kundliStore';
+import type { KundaliResponse } from '../types/api';
+import { useKundliStore, type BirthDetails } from '../store/kundliStore';
 import { useAuthStore } from '../store/authStore';
-
-interface KundaliRequestPayload extends BirthDetails {
-  ayanamsha?: string;
-  rahu_mode?: string;
-  calc_options?: string[];
-}
 
 async function saveKundaliToBackend(details: BirthDetails, data: KundaliResponse) {
   try {
+    // Delete stale saved kundali first, then insert fresh — prevents stale cache on other devices
+    await api.delete('/api/user/kundali').catch(() => {});
     await api.post('/api/user/kundali', {
       name: details.name,
       birth_date: details.dateOfBirth,
