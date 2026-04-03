@@ -83,12 +83,13 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 5:
         # D-5: Panchamsha — 5 parts of 6° each
-        # BPHS: Movable signs → Mesha (0), Fixed signs → Vrischika (7), Dual signs → Karka (3)
+        # BPHS classical rule (JHora / Parashara Light verified):
+        # Odd signs  → Mesha(0), Kumbha(10), Dhanu(8), Mithuna(2), Tula(6)
+        # Even signs → Vrishabha(1), Kanya(5), Meena(11), Makara(9), Vrischika(7)
         part = int(deg_in_rashi / 6.0)
         part = min(part, 4)
-        modality = rashi_i % 3  # 0=movable, 1=fixed, 2=dual
-        starts = [0, 7, 3]  # Mesha, Vrischika, Karka
-        return (starts[modality] + part) % 12
+        is_odd = (rashi_i % 2 == 0)  # 0-indexed: Mesha=0 is odd
+        return [0, 10, 8, 2, 6][part] if is_odd else [1, 5, 11, 9, 7][part]
 
     elif division == 6:
         # D-6: Shashthamsha — 6 parts of 5° each
@@ -110,13 +111,13 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 8:
         # D-8: Ashtamsha — 8 parts of 3°45' each
-        # Element-based (Drik-verified):
-        # Fire (0,4,8) → Mesha(0), Earth (1,5,9) → Simha(4), Air (2,6,10) → Simha(4), Water (3,7,11) → Dhanu(8)
+        # Modality-based (equivalent to multiply-by-8 formula, standard Parashari):
+        # Movable → Mesha(0), Fixed → Dhanu(8), Dual → Simha(4)
         part = int(deg_in_rashi / 3.75)
         part = min(part, 7)
-        elem = rashi_i % 4  # 0=Fire, 1=Earth, 2=Air, 3=Water
-        starts = [0, 4, 4, 8]  # Mesha, Simha, Simha, Dhanu
-        return (starts[elem] + part) % 12
+        modality = rashi_i % 3  # 0=movable, 1=fixed, 2=dual
+        starts = [0, 8, 4]  # Mesha, Dhanu, Simha
+        return (starts[modality] + part) % 12
 
     elif division == 9:
         # D-9: Navamsha — 9 parts of 3°20'
