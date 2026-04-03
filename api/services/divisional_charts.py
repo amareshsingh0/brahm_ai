@@ -162,11 +162,11 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 20:
         # D-20: Vimshamsha — 20 parts of 1°30'
-        # Movable→Mesha, Fixed→Dhanu, Dual→Simha
+        # Movable→Mesha, Fixed→Simha, Dual→Dhanu
         part = int(deg_in_rashi / 1.5)
         part = min(part, 19)
         modality = rashi_i % 3
-        starts = [0, 8, 4]
+        starts = [0, 4, 8]
         return (starts[modality] + part) % 12
 
     elif division == 24:
