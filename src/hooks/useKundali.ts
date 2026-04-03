@@ -40,7 +40,9 @@ export function useKundali() {
         tz: details.tz,
         ayanamsha: settings.ayanamsha,
         rahu_mode: settings.rahuMode,
-        calc_options: ["antardasha", "pratyantar", "sukshma", "upagraha", "shadbala", "ashtakavarga"],
+        calc_options: ["antardasha", "pratyantar", "sukshma", "upagraha", "shadbala", "ashtakavarga",
+          // Core varga charts for AI analysis
+          "d2","d3","d4","d5","d6","d7","d8","d9","d10","d11","d12","d16","d20","d24","d27","d30","d40","d45","d60"],
       };
       return api.post<KundaliResponse>('/api/kundali', payload);
     },

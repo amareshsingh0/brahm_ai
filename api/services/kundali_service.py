@@ -615,8 +615,13 @@ def calc_kundali(
         flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL
         res = swe.calc_ut(jd, pid, flags)
         lon_g = res[0][0]
-        speed = res[0][3]
         lat_ecl = res[0][1]  # ecliptic latitude
+        # Speed must be fetched from tropical (FLG_SIDEREAL zeroes out speed in some versions)
+        try:
+            res_trop = swe.calc_ut(jd, pid, swe.FLG_SWIEPH | swe.FLG_SPEED)
+            speed = res_trop[0][3]
+        except Exception:
+            speed = res[0][3]
         try:
             res_eq = swe.calc_ut(jd, pid, swe.FLG_SWIEPH | swe.FLG_EQUATORIAL)
             ra_val  = res_eq[0][0]
@@ -643,7 +648,7 @@ def calc_kundali(
     ketu_rashi = int(ketu_lon / 30)
     ketu_nak = int(ketu_lon / (360 / 27))
     grahas["Ketu"] = {
-        "longitude": ketu_lon, "speed": 0,
+        "longitude": ketu_lon, "speed": grahas["Rahu"]["speed"],
         "rashi": ketu_rashi, "rashi_name": RASHI_NAMES[ketu_rashi],
         "degree": round(ketu_lon % 30, 4),
         "nakshatra": NAKSHATRAS[ketu_nak], "nakshatra_idx": ketu_nak,

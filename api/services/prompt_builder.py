@@ -34,6 +34,24 @@ You have access to:
 3. GOCHAR  — whether current transits support it (Guru/Shani/Rahu position)
 4. MUHURTA — best time to act if action is needed (only when relevant)
 
+VARGA CHART USAGE (critical — use automatically based on topic):
+- Career/profession/job → use D-10 (Dashamsha) planet positions
+- Marriage/spouse/relationship → use D-9 (Navamsha) + D-7 (Saptamsha)
+- Children/progeny → use D-7 (Saptamsha)
+- Education/learning/studies → use D-24 (Chaturvimshamsha)
+- Spirituality/moksha/meditation → use D-20 (Vimshamsha)
+- Health/disease/enemies → use D-6 (Shashthamsha)
+- Property/home/real estate → use D-4 (Chaturthamsha)
+- Wealth/income/money → use D-2 (Hora) + D-11 (Ekadashamsha)
+- Siblings/courage → use D-3 (Drekkana)
+- Vehicles/comforts/happiness → use D-16 (Shodashamsha)
+- Strength/vitality/sports → use D-27 (Saptavimshamsha)
+- Parents/ancestors → use D-12 (Dwadashamsha)
+- Past life karma/overall fate → use D-60 (Shashtiamsha)
+- Misfortune/evils/obstacles → use D-30 (Trimshamsha)
+- General well-being → use D-45 (Akshavedamsha)
+RULE: When answering any life topic, FIRST check the relevant varga chart (if available in data), THEN combine with D-1 and Dasha for complete answer. Always mention what the varga chart shows specifically.
+
 General style rules (always):
 - Reply in the EXACT language and style the user writes in (see language instruction below)
 - Be specific, not generic — say "Saturn is in your 7th house" not vague platitudes
@@ -121,6 +139,12 @@ def _format_kundali(summary: dict) -> str:
     if summary.get("navamsha"):
         nav_parts = [f"{n}: {v}" for n, v in summary["navamsha"].items()]
         lines.append(f"  D-9 Planets: {', '.join(nav_parts)}")
+    # Other Varga charts (D-2 through D-60)
+    if summary.get("varga_charts"):
+        for div_key, vc in summary["varga_charts"].items():
+            lines.append(f"  {div_key} — {vc.get('name', div_key)}: Lagna={vc.get('lagna','?')}")
+            if vc.get("planets"):
+                lines.append(f"    Planets: {', '.join(vc['planets'])}")
     return "\n".join(lines)
 
 
@@ -292,6 +316,18 @@ def _format_page_data(page_context: str, page_data: dict) -> str:
   Spouse traits: {', '.join(spouse.get('traits',[])[:4])}
   Active yogas: {', '.join(present_yogas) or 'None'}
   Delay factors: {', '.join(delay_names) or 'None'}"""
+
+    elif page_context == "kundali":
+        # kundali page — kundali_raw is the full chart, already handled via compress_kundali
+        # Just note the active tab/chart if present
+        active_tab = page_data.get("active_tab", "")
+        active_varga = page_data.get("active_varga", "")
+        parts = []
+        if active_tab:
+            parts.append(f"Active tab: {active_tab}")
+        if active_varga:
+            parts.append(f"Active varga chart: {active_varga}")
+        return f"[Kundali Page]\n  {' | '.join(parts)}" if parts else ""
 
     else:
         try:
@@ -489,9 +525,12 @@ Apne general knowledge se answer do. Agar natural lage toh ek line mein Vedic/ka
         if has_dasha:        layers_available.append("Dasha (Layer 2)")
         if has_gochar:       layers_available.append("Gochar (Layer 3)")
         if "muhurta" in tool_results: layers_available.append("Muhurta (Layer 4)")
+        varga_available = list(kundali_summary.get("varga_charts", {}).keys()) if kundali_summary else []
+        varga_note = f" Varga charts available: {', '.join(varga_available)}." if varga_available else ""
         sections.append(
-            f"Available data: {', '.join(layers_available) if layers_available else 'general knowledge'}. "
-            "Sab layers use karo jo available hain. Specific, insightful, actionable jawab do. Max 350 words."
+            f"Available data: {', '.join(layers_available) if layers_available else 'general knowledge'}.{varga_note} "
+            "Sab layers use karo jo available hain. Topic ke relevant varga chart ko ZAROOR use karo — specific planet positions batao. "
+            "Specific, insightful, actionable jawab do. Max 350 words."
         )
     elif depth == "basic":
         sections.append(

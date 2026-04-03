@@ -56,6 +56,39 @@ def compress_kundali(kundali: dict) -> dict:
                 parts.append(nd["status"])
             nav_summary[name] = " ".join(parts)
 
+    # Varga charts (D-3 through D-60) — compress each to lagna + planet summary
+    varga_raw = kundali.get("varga_charts", {})
+    varga_summary = {}
+    _VARGA_NAMES = {
+        "D-2": "Hora (Wealth)", "D-3": "Drekkana (Siblings)", "D-4": "Chaturthamsha (Property)",
+        "D-5": "Panchamsha (Fame)", "D-6": "Shashthamsha (Health)", "D-7": "Saptamsha (Children)",
+        "D-8": "Ashtamsha (Obstacles)", "D-10": "Dashamsha (Career)",
+        "D-11": "Ekadashamsha (Gains)", "D-12": "Dwadashamsha (Parents)",
+        "D-16": "Shodashamsha (Vehicles)", "D-20": "Vimshamsha (Spirituality)",
+        "D-24": "Chaturvimshamsha (Education)", "D-27": "Saptavimshamsha (Strength)",
+        "D-30": "Trimshamsha (Misfortune)", "D-40": "Khavedamsha (Auspicious)",
+        "D-45": "Akshavedamsha (Well-being)", "D-60": "Shashtiamsha (Past Life Karma)",
+    }
+    for div_key, vc in varga_raw.items():
+        if not vc:
+            continue
+        vc_lagna = vc.get("lagna", {}).get("rashi", "?")
+        vc_grahas = vc.get("grahas", {})
+        planet_parts = []
+        for pname in _NAV_KEY:
+            pg = vc_grahas.get(pname)
+            if pg:
+                s = f"{pname}: {pg.get('rashi','?')} {pg.get('house','?')}H"
+                if pg.get("status") and pg["status"] not in ("Normal", ""):
+                    s += f" ({pg['status']})"
+                planet_parts.append(s)
+        name_label = _VARGA_NAMES.get(div_key, div_key)
+        varga_summary[div_key] = {
+            "name": name_label,
+            "lagna": vc_lagna,
+            "planets": planet_parts,
+        }
+
     return {
         "lagna":         lagna.get("rashi", "?"),
         "lagna_degree":  lagna.get("degree", "?"),
@@ -74,6 +107,7 @@ def compress_kundali(kundali: dict) -> dict:
         "yogas":         yoga_names,
         "navamsha_lagna": nav_lagna,
         "navamsha":      nav_summary,
+        "varga_charts":  varga_summary,
     }
 
 

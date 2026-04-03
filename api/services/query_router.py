@@ -57,7 +57,7 @@ Rules for query_type:
 - SMALL_TALK: casual chitchat, personal feelings, mood, "kya chal raha hai" etc.
 - SIMPLE_FACT: basic planet/rashi/nakshatra info, no personal chart needed
 - DEEP_VEDIC: scripture quote/shlok meaning, complex yoga theory — needs book search
-- CHART_ANALYSIS: about user's personal life, future, dasha, career, health, marriage
+- CHART_ANALYSIS: about user's personal life, future, dasha, career, health, marriage, OR any divisional chart question (D1/D9/D10/D20/D60 etc.), varga chart explanation, planet in specific house/sign, yogas, doshas, nakshatra analysis — ALL personal chart queries
 - REPORT_ANALYSIS: explaining a report currently visible (compatibility score, panchang data)
 - RECOMMENDATION: muhurta, auspicious date, remedy, what to do
 - GENERAL_KNOWLEDGE: non-Vedic questions (news, sports, general life advice, science, etc.)

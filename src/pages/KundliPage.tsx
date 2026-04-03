@@ -775,7 +775,11 @@ export default function KundliPage() {
   const kundaliMutation = useKundali();
   useSavedKundali(); // Loads saved kundali from backend if not already in store
 
-  const pageData = useMemo(() => kundaliData ? { kundali_raw: kundaliData } : {}, [kundaliData]);
+  const pageData = useMemo(() => kundaliData ? {
+    kundali_raw: kundaliData,
+    active_tab: activeTab,
+    active_varga: activeTab === "charts" ? `D-${selectedVargaL} and D-${selectedVargaR}` : undefined,
+  } : {}, [kundaliData, activeTab, selectedVargaL, selectedVargaR]);
   useRegisterPageBot('kundali', pageData);
 
   // When saved kundali loads from backend (new device / after logout), switch to result view
