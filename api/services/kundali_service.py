@@ -693,6 +693,7 @@ def calc_kundali(
         navamsha_out[gn] = {
             "rashi": gd["rashi"],
             "house": gd["house"],
+            "degree": gd.get("degree"),
             "status": gd["status"],
             "retro": gd["retro"],
         }

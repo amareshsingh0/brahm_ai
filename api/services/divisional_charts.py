@@ -138,13 +138,11 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
         return (start + part) % 12
 
     elif division == 11:
-        # D-11: Ekadashamsha (Rudramsha) — 11 parts of 2°43'38" each
-        # BPHS: Odd signs count from same sign, Even signs count from next sign
+        # D-11: Ekadashamsha (Labhamsha) — 11 parts of 2°43'38" each
+        # Standard multiply-by-11 (JHora / Drik): (sign_index * 11 + part) % 12
         part = int(deg_in_rashi / (30.0 / 11))
         part = min(part, 10)
-        is_odd = (rashi_i % 2 == 0)
-        start = rashi_i if is_odd else (rashi_i + 1) % 12
-        return (start + part) % 12
+        return (rashi_i * 11 + part) % 12
 
     elif division == 12:
         # D-12: Dwadashamsha — 12 parts of 2°30'
@@ -247,8 +245,15 @@ def calc_varga_chart(
     """
     Calculate full varga chart for given division.
     grahas = internal dict from calc_kundali with 'longitude', 'retro', etc.
-    Returns: {lagna: {rashi}, houses: [...], grahas: {name: {rashi, house, status, retro}}}
+    Returns: {lagna: {rashi, degree}, houses: [...], grahas: {name: {rashi, house, degree, status, retro}}}
     """
+    def _proj_deg(lon: float) -> float:
+        """Projected degree within varga sign (0–30°). Uses full-precision longitude."""
+        if division == 1:
+            return round(lon % 30, 4)
+        seg = 30.0 / division
+        return round((lon % 30) % seg / seg * 30, 4)
+
     # Varga lagna
     varga_lagna_i = calc_varga_rashi(lagna_lon, division)
 
@@ -283,6 +288,7 @@ def calc_varga_chart(
         varga_grahas[gn] = {
             "rashi": RASHI_NAMES[vr],
             "house": get_house(vr),
+            "degree": _proj_deg(g["longitude"]),
             "status": status,
             "retro": g.get("retro", False),
         }
@@ -294,7 +300,7 @@ def calc_varga_chart(
         "name": info[0],
         "full_name": info[1],
         "signification": info[2],
-        "lagna": {"rashi": RASHI_NAMES[varga_lagna_i]},
+        "lagna": {"rashi": RASHI_NAMES[varga_lagna_i], "degree": _proj_deg(lagna_lon)},
         "houses": houses,
         "grahas": varga_grahas,
     }
