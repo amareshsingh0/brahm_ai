@@ -1752,13 +1752,13 @@ export default function KundliPage() {
                               return `${kundaliData.lagna.rashi} ${deg.toString().padStart(2,"0")}° ${min.toString().padStart(2,"0")}' ${sec.toString().padStart(2,"0")}"`;
                             })()}
                           </td>
-                          <td className="px-2">{kundaliData.lagna.nakshatra} / {kundaliData.lagna.nakshatra?.split(" ")[0]}</td>
+                          <td className="px-2">{kundaliData.lagna.nakshatra} {kundaliData.lagna.pada}, {kundaliData.lagna.nakshatra_lord ?? "—"}</td>
                           <td className="text-center px-1">{kundaliData.lagna.pada ?? "—"}</td>
                           <td className="text-center px-1">{kundaliData.lagna.full_degree?.toFixed(2) ?? "—"}</td>
                           <td className="text-center px-1">0.00</td>
-                          <td className="text-center px-1">—</td>
-                          <td className="text-center px-1">—</td>
-                          <td className="text-center px-1">—</td>
+                          <td className="text-center px-1">{(kundaliData.lagna as any).ra?.toFixed(2) ?? "—"}</td>
+                          <td className="text-center px-1">{(kundaliData.lagna as any).dec?.toFixed(2) ?? "—"}</td>
+                          <td className="text-center px-1">{(kundaliData.lagna as any).speed?.toFixed(2) ?? "—"}</td>
                           <td className="px-2">—</td>
                         </tr>
                         {GRAHA_ORDER.map(gn => {

@@ -647,6 +647,15 @@ def calc_kundali(
     ketu_lon = (rahu_lon + 180) % 360
     ketu_rashi = int(ketu_lon / 30)
     ketu_nak = int(ketu_lon / (360 / 27))
+    # Ketu RA/Dec — convert sidereal longitude back to tropical then to equatorial
+    try:
+        ketu_trop_lon = (ketu_lon + ayanamsha) % 360
+        eps = swe.get_eps(jd)
+        ketu_eq = swe.cotrans((ketu_trop_lon, 0.0, 1.0), eps)
+        ketu_ra = round(ketu_eq[0], 4)
+        ketu_dec = round(ketu_eq[1], 4)
+    except Exception:
+        ketu_ra = ketu_dec = 0.0
     grahas["Ketu"] = {
         "longitude": ketu_lon, "speed": grahas["Rahu"]["speed"],
         "rashi": ketu_rashi, "rashi_name": RASHI_NAMES[ketu_rashi],
@@ -654,7 +663,7 @@ def calc_kundali(
         "nakshatra": NAKSHATRAS[ketu_nak], "nakshatra_idx": ketu_nak,
         "pada": int((ketu_lon % (360 / 27)) / (360 / 108)) + 1,
         "retro": True, "house": 0,
-        "lat_ecl": 0.0, "ra": 0.0, "dec": 0.0,
+        "lat_ecl": 0.0, "ra": ketu_ra, "dec": ketu_dec,
     }
 
     # ── Lagna (Ascendant) ──────────────────────────────────────────
@@ -844,14 +853,30 @@ def calc_kundali(
 
     # Lagna nakshatra
     lagna_nak_i = int(lagna / (360 / 27))
+    # Lagna RA/Dec — convert tropical ecliptic longitude to equatorial coords
+    try:
+        lagna_trop = ascmc_trop[0]  # tropical ascendant longitude
+        eps = swe.get_eps(jd)       # true obliquity of ecliptic
+        # cotrans: ecliptic (lon, lat, dist) → equatorial (RA, Dec, dist)
+        eq = swe.cotrans((lagna_trop, 0.0, 1.0), eps)
+        lagna_ra = eq[0]
+        lagna_dec = eq[1]
+    except Exception:
+        lagna_ra = lagna_dec = 0.0
+    # Lagna speed ≈ 360°/day (ascendant completes full circle in one sidereal day)
+    lagna_speed = 360.9856
     lagna_data = {
         "rashi": RASHI_NAMES[lagna_rashi_i],
         "rashi_en": RASHI_EN.get(RASHI_NAMES[lagna_rashi_i], ""),
         "nakshatra": NAKSHATRAS[lagna_nak_i],
+        "nakshatra_lord": NAKSHATRA_LORDS[lagna_nak_i],
         "nakshatra_hindi": NAKSHATRA_HINDI.get(NAKSHATRAS[lagna_nak_i], ""),
         "pada": int((lagna % (360/27)) / (360/108)) + 1,
         "degree": round(lagna % 30, 4),
         "full_degree": round(lagna, 4),
+        "ra": round(lagna_ra, 2),
+        "dec": round(lagna_dec, 2),
+        "speed": round(lagna_speed, 2),
     }
 
     # Ayanamsha mode name for display
