@@ -1156,6 +1156,11 @@ export default function KundliPage() {
                     const chartPlanets = getVargaPlanets(div);
                     const chartLagna = getVargaLagna(div);
                     const vargaHouses = getVargaHouses(div);
+                    // Projected varga degree: scale position-within-segment to 0–30°
+                    const projectedDeg = (absLon: number, n: number) => {
+                      const seg = 30 / n;
+                      return (absLon % seg) / seg * 30;
+                    };
 
 
                     // Graha detail rows for this chart
@@ -1175,18 +1180,20 @@ export default function KundliPage() {
                         if (!g) return null;
                         const navLagna = kundaliData.navamsha_lagna?.rashi ?? d1Lagna;
                         const rulerOf = getRulerOf(gn, navLagna);
-                        const vRashiIdx9 = RASHI_LIST_IDX.indexOf(g.rashi);
-                        const nak9 = getNakshatraFromLon(vRashiIdx9 * 30 + (d1g?.degree ?? 0));
-                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: d1g?.degree ?? 0, d1Rashi: g.rashi, nakshatra: nak9.nakshatra, nakshatra_lord: nak9.lord, pada: nak9.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                        const d1Lon9 = d1g?.longitude ?? (RASHI_LIST_IDX.indexOf(d1g?.rashi ?? "") * 30 + (d1g?.degree ?? 0));
+                        const projDeg9 = projectedDeg(d1Lon9, 9);
+                        const nak9 = getNakshatraFromLon(RASHI_LIST_IDX.indexOf(g.rashi) * 30 + projDeg9);
+                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: projDeg9, d1Rashi: g.rashi, nakshatra: nak9.nakshatra, nakshatra_lord: nak9.lord, pada: nak9.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                       }
                       const vc = kundaliData.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
                       const g = vc?.grahas?.[gn];
                       if (!g) return null;
                       const vargaLagna = vc?.lagna?.rashi ?? d1Lagna;
                       const rulerOf = getRulerOf(gn, vargaLagna);
-                      const vRashiIdx = RASHI_LIST_IDX.indexOf(g.rashi);
-                      const nak = getNakshatraFromLon(vRashiIdx * 30 + (d1g?.degree ?? 0));
-                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: d1g?.degree ?? 0, d1Rashi: g.rashi, nakshatra: nak.nakshatra, nakshatra_lord: nak.lord, pada: nak.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                      const d1Lon = d1g?.longitude ?? (RASHI_LIST_IDX.indexOf(d1g?.rashi ?? "") * 30 + (d1g?.degree ?? 0));
+                      const projDeg = projectedDeg(d1Lon, div);
+                      const nak = getNakshatraFromLon(RASHI_LIST_IDX.indexOf(g.rashi) * 30 + projDeg);
+                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: projDeg, d1Rashi: g.rashi, nakshatra: nak.nakshatra, nakshatra_lord: nak.lord, pada: nak.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                     }).filter(Boolean) : [];
 
                     return (
@@ -1286,14 +1293,18 @@ export default function KundliPage() {
                                           <td className="px-2 py-1.5 font-mono text-foreground truncate">
                                             {isD1full
                                               ? degToDMS(l.degree, l.rashi)
-                                              : degToDMS(l.degree, chartLagna)}
+                                              : (() => {
+                                                  const lagnaAbsLon = l.full_degree ?? (RASHI_LIST_IDX.indexOf(l.rashi) * 30 + l.degree);
+                                                  return degToDMS(projectedDeg(lagnaAbsLon, div), chartLagna);
+                                                })()}
                                           </td>
                                           <td className="px-2 py-1.5 text-muted-foreground truncate">
                                             {isD1full
                                               ? `${l.nakshatra}${l.pada ? ` P${l.pada}` : ""}`
                                               : (() => {
+                                                  const lagnaAbsLon = l.full_degree ?? (RASHI_LIST_IDX.indexOf(l.rashi) * 30 + l.degree);
                                                   const vLagnaIdx = RASHI_LIST_IDX.indexOf(chartLagna);
-                                                  const lNak = getNakshatraFromLon(vLagnaIdx * 30 + l.degree);
+                                                  const lNak = getNakshatraFromLon(vLagnaIdx * 30 + projectedDeg(lagnaAbsLon, div));
                                                   return `${lNak.nakshatra} P${lNak.pada}`;
                                                 })()}
                                           </td>

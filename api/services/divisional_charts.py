@@ -110,12 +110,13 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 8:
         # D-8: Ashtamsha — 8 parts of 3°45' each
-        # BPHS: Movable signs → Mesha (0), Fixed signs → Vrischika (7), Dual signs → Karka (3)
+        # Element-based (Drik-verified):
+        # Fire (0,4,8) → Mesha(0), Earth (1,5,9) → Simha(4), Air (2,6,10) → Simha(4), Water (3,7,11) → Dhanu(8)
         part = int(deg_in_rashi / 3.75)
         part = min(part, 7)
-        modality = rashi_i % 3  # 0=movable, 1=fixed, 2=dual
-        starts = [0, 7, 3]  # Mesha, Vrischika, Karka
-        return (starts[modality] + part) % 12
+        elem = rashi_i % 4  # 0=Fire, 1=Earth, 2=Air, 3=Water
+        starts = [0, 4, 4, 8]  # Mesha, Simha, Simha, Dhanu
+        return (starts[elem] + part) % 12
 
     elif division == 9:
         # D-9: Navamsha — 9 parts of 3°20'
