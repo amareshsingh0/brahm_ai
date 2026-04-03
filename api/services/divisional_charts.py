@@ -188,22 +188,23 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
         return (starts[elem] + part) % 12
 
     elif division == 30:
-        # D-30: Trimshamsha — 5 unequal parts based on sign gender (Parashari)
-        # Odd signs: 0-5°=Mesha, 5-10°=Kumbha, 10-18°=Dhanu, 18-25°=Mithuna, 25-30°=Tula
-        # Even signs: reverse order
+        # D-30: Trimshamsha — 5 unequal parts (Parashari BPHS)
+        # Each part lord's sign matches the sign gender:
+        # Odd signs:  Mars→Mesha(0), Saturn→Kumbha(10), Jupiter→Dhanu(8), Mercury→Mithuna(2), Venus→Tula(6)
+        # Even signs: Venus→Vrishabha(1), Mercury→Kanya(5), Jupiter→Meena(11), Saturn→Makara(9), Mars→Vrischika(7)
         is_odd = (rashi_i % 2 == 0)
         if is_odd:
-            if deg_in_rashi < 5:    return 0   # Mesha
-            elif deg_in_rashi < 10: return 10  # Kumbha
-            elif deg_in_rashi < 18: return 8   # Dhanu
-            elif deg_in_rashi < 25: return 2   # Mithuna
-            else:                   return 6   # Tula
+            if deg_in_rashi < 5:    return 0   # Mesha    (Mars,    5°)
+            elif deg_in_rashi < 10: return 10  # Kumbha   (Saturn,  5°)
+            elif deg_in_rashi < 18: return 8   # Dhanu    (Jupiter, 8°)
+            elif deg_in_rashi < 25: return 2   # Mithuna  (Mercury, 7°)
+            else:                   return 6   # Tula     (Venus,   5°)
         else:
-            if deg_in_rashi < 5:    return 6   # Tula
-            elif deg_in_rashi < 12: return 2   # Mithuna
-            elif deg_in_rashi < 20: return 8   # Dhanu
-            elif deg_in_rashi < 25: return 10  # Kumbha
-            else:                   return 0   # Mesha
+            if deg_in_rashi < 5:    return 1   # Vrishabha (Venus,   5°)
+            elif deg_in_rashi < 12: return 5   # Kanya     (Mercury, 7°)
+            elif deg_in_rashi < 20: return 11  # Meena     (Jupiter, 8°)
+            elif deg_in_rashi < 25: return 9   # Makara    (Saturn,  5°)
+            else:                   return 7   # Vrischika (Mars,    5°)
 
     elif division == 40:
         # D-40: Khavedamsha — 40 parts of 0°45'
