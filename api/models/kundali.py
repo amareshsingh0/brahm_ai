@@ -81,8 +81,14 @@ class YogaData(BaseModel):
 class VargaGraha(BaseModel):
     rashi: str
     house: int
+    degree: Optional[float] = None
     status: str
     retro: bool
+
+
+class VargaLagna(BaseModel):
+    rashi: str
+    degree: Optional[float] = None
 
 
 class VargaChartData(BaseModel):
@@ -90,7 +96,7 @@ class VargaChartData(BaseModel):
     name: str
     full_name: str
     signification: str
-    lagna: Dict[str, str]
+    lagna: VargaLagna
     houses: List[Dict[str, Any]]
     grahas: Dict[str, VargaGraha]
 
@@ -123,7 +129,7 @@ class KundaliResponse(BaseModel):
     grahas: Dict[str, GrahaData]
     houses: List[HouseData]
     navamsha: Optional[Dict[str, NavamshaGraha]] = None
-    navamsha_lagna: Optional[Dict[str, str]] = None
+    navamsha_lagna: Optional[VargaLagna] = None
     navamsha_houses: Optional[List[HouseData]] = None
     dashas: List[DashaData]
     yogas: List[YogaData]
