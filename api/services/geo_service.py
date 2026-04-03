@@ -55,6 +55,7 @@ def _search_db(query: str, limit: int = 10) -> List[dict]:
                      WHEN lower(name) = ? THEN 0
                      WHEN lower(ascii_name) LIKE ? THEN 1
                      ELSE 2 END,
+                CASE WHEN country_code = 'IN' THEN 0 ELSE 1 END,
                 population DESC
             LIMIT ?
         """, (f"{q}%", f"{q}%", q, q, f"{q}%", limit))

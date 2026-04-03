@@ -628,7 +628,7 @@ def calc_kundali(
         grahas[gname] = {
             "longitude": lon_g, "speed": speed,
             "rashi": rashi_i, "rashi_name": RASHI_NAMES[rashi_i],
-            "degree": round(lon_g % 30, 2),
+            "degree": round(lon_g % 30, 4),
             "nakshatra": NAKSHATRAS[nak_i], "nakshatra_idx": nak_i,
             "pada": int((lon_g % (360 / 27)) / (360 / 108)) + 1,
             "retro": speed < 0, "house": 0,
@@ -645,7 +645,7 @@ def calc_kundali(
     grahas["Ketu"] = {
         "longitude": ketu_lon, "speed": 0,
         "rashi": ketu_rashi, "rashi_name": RASHI_NAMES[ketu_rashi],
-        "degree": round(ketu_lon % 30, 2),
+        "degree": round(ketu_lon % 30, 4),
         "nakshatra": NAKSHATRAS[ketu_nak], "nakshatra_idx": ketu_nak,
         "pada": int((ketu_lon % (360 / 27)) / (360 / 108)) + 1,
         "retro": True, "house": 0,
@@ -845,7 +845,7 @@ def calc_kundali(
         "nakshatra": NAKSHATRAS[lagna_nak_i],
         "nakshatra_hindi": NAKSHATRA_HINDI.get(NAKSHATRAS[lagna_nak_i], ""),
         "pada": int((lagna % (360/27)) / (360/108)) + 1,
-        "degree": round(lagna % 30, 2),
+        "degree": round(lagna % 30, 4),
         "full_degree": round(lagna, 4),
     }
 
