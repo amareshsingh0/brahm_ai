@@ -1749,7 +1749,7 @@ export default function KundliPage() {
                               const minF = (d - deg) * 60;
                               const min = Math.floor(minF);
                               const sec = Math.floor((minF - min) * 60);
-                              return `${deg.toString().padStart(2,"0")}° ${min.toString().padStart(2,"0")}' ${sec.toString().padStart(2,"0")}"`;
+                              return `${kundaliData.lagna.rashi} ${deg.toString().padStart(2,"0")}° ${min.toString().padStart(2,"0")}' ${sec.toString().padStart(2,"0")}"`;
                             })()}
                           </td>
                           <td className="px-2">{kundaliData.lagna.nakshatra} / {kundaliData.lagna.nakshatra?.split(" ")[0]}</td>
