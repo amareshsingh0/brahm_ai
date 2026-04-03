@@ -162,10 +162,10 @@ def calc_varga_rashi(longitude: float, division: int) -> int:
 
     elif division == 20:
         # D-20: Vimshamsha — 20 parts of 1°30'
-        # All signs: count from same sign (multiply-by-20 / same-start rule)
-        part = int(deg_in_rashi / 1.5)
-        part = min(part, 19)
-        return (rashi_i + part) % 12
+        # Formula: int(absolute_longitude / 1.5) % 12
+        # Equivalent to treating all 360° as 240 parts of 1.5° cycling through 12 rashis
+        abs_lon = rashi_i * 30 + deg_in_rashi
+        return int(abs_lon / 1.5) % 12
 
     elif division == 24:
         # D-24: Chaturvimshamsha — 24 parts of 1°15'
