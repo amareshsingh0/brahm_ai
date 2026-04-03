@@ -41,9 +41,8 @@ const NAKSHATRA_LORDS = [
   "Ketu","Shukra","Surya","Chandra","Mangal","Rahu",
   "Guru","Shani","Budh",
 ];
-/** Compute nakshatra, pada, lord from absolute sidereal longitude (0–360°) */
 function getNakshatraFromLon(absLon: number): { nakshatra: string; pada: number; lord: string } {
-  const segSize = 360 / 27; // 13.333...°
+  const segSize = 360 / 27;
   const idx = Math.floor(absLon / segSize) % 27;
   const pada = Math.floor((absLon % segSize) / (segSize / 4)) + 1;
   return { nakshatra: NAKSHATRA_NAMES[idx], pada, lord: NAKSHATRA_LORDS[idx] };
@@ -1158,11 +1157,6 @@ export default function KundliPage() {
                     const chartLagna = getVargaLagna(div);
                     const vargaHouses = getVargaHouses(div);
 
-                    // Projected varga longitude: scale degree-within-segment to 0–30°
-                    const projectedDeg = (lon: number, n: number): number => {
-                      const segSize = 30 / n;
-                      return (lon % segSize) / segSize * 30;
-                    };
 
                     // Graha detail rows for this chart
                     const grahaRows = kundaliData ? GRAHA_ORDER.map(gn => {
@@ -1181,22 +1175,18 @@ export default function KundliPage() {
                         if (!g) return null;
                         const navLagna = kundaliData.navamsha_lagna?.rashi ?? d1Lagna;
                         const rulerOf = getRulerOf(gn, navLagna);
-                        const deg9 = d1g?.degree ?? 0;
                         const vRashiIdx9 = RASHI_LIST_IDX.indexOf(g.rashi);
-                        const absVargaLon9 = vRashiIdx9 * 30 + deg9;
-                        const nak9 = getNakshatraFromLon(absVargaLon9);
-                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg9, d1Rashi: g.rashi, nakshatra: nak9.nakshatra, nakshatra_lord: nak9.lord, pada: nak9.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                        const nak9 = getNakshatraFromLon(vRashiIdx9 * 30 + (d1g?.degree ?? 0));
+                        return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: d1g?.degree ?? 0, d1Rashi: g.rashi, nakshatra: nak9.nakshatra, nakshatra_lord: nak9.lord, pada: nak9.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                       }
                       const vc = kundaliData.varga_charts?.[`D-${div}`] ?? vargaCache?.[div];
                       const g = vc?.grahas?.[gn];
                       if (!g) return null;
                       const vargaLagna = vc?.lagna?.rashi ?? d1Lagna;
                       const rulerOf = getRulerOf(gn, vargaLagna);
-                      const deg = d1g?.degree ?? 0;
                       const vRashiIdx = RASHI_LIST_IDX.indexOf(g.rashi);
-                      const absVargaLon = vRashiIdx * 30 + (d1g?.degree ?? 0);
-                      const nak = getNakshatraFromLon(absVargaLon);
-                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: deg, d1Rashi: g.rashi, nakshatra: nak.nakshatra, nakshatra_lord: nak.lord, pada: nak.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
+                      const nak = getNakshatraFromLon(vRashiIdx * 30 + (d1g?.degree ?? 0));
+                      return { gn, rashi: g.rashi, house: g.house, bcHouse: g.house, degree: d1g?.degree ?? 0, d1Rashi: g.rashi, nakshatra: nak.nakshatra, nakshatra_lord: nak.lord, pada: nak.pada, retro: g.retro, combust: false, status: g.status, ruler_of: rulerOf, isD1: false };
                     }).filter(Boolean) : [];
 
                     return (
@@ -1302,9 +1292,8 @@ export default function KundliPage() {
                                             {isD1full
                                               ? `${l.nakshatra}${l.pada ? ` P${l.pada}` : ""}`
                                               : (() => {
-                                                  const lagnaVRashiIdx = RASHI_LIST_IDX.indexOf(chartLagna);
-                                                  const absVLon = lagnaVRashiIdx * 30 + l.degree;
-                                                  const lNak = getNakshatraFromLon(absVLon);
+                                                  const vLagnaIdx = RASHI_LIST_IDX.indexOf(chartLagna);
+                                                  const lNak = getNakshatraFromLon(vLagnaIdx * 30 + l.degree);
                                                   return `${lNak.nakshatra} P${lNak.pada}`;
                                                 })()}
                                           </td>
