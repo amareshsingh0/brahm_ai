@@ -24,7 +24,7 @@ const NO_BOT_ROUTES = new Set([
 ]);
 
 // Routes where the global header should be hidden (page has its own header/topbar)
-const NO_HEADER_ROUTES = new Set(['/chat']);
+const NO_HEADER_ROUTES = new Set([]);
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { lang } = useLanguageStore();
