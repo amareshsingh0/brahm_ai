@@ -3,7 +3,7 @@ RAG service — lazy-loaded on first /api/chat request.
 FAISS + BM25 + Embedding + Reranker for retrieval.
 Gemini API for answer generation (Qwen removed 2026-03-19).
 """
-import os, json, re
+import os, json, re, time
 from typing import List, Generator
 
 # ── Clean book name from raw source path ──────────────────────────────────────
@@ -83,7 +83,8 @@ from api.config import (
 )
 from api.dependencies import G
 
-GEMINI_MODEL = "models/gemini-2.5-flash"
+GEMINI_MODEL         = "models/gemini-2.5-flash"
+GEMINI_FALLBACK_MODEL = "models/gemini-1.5-flash"
 
 
 def load_all():
@@ -231,6 +232,32 @@ def hybrid_search(query: str, lang_filter: str = "all") -> List[dict]:
     return candidates[:FINAL_K]
 
 
+def _is_retryable_error(e: Exception) -> bool:
+    """Check if the exception is a transient 503/overload error from Gemini."""
+    msg = str(e).lower()
+    return any(x in msg for x in ["503", "service unavailable", "overloaded", "resource exhausted", "429", "too many requests"])
+
+
+# ── Thinking budget per query type ────────────────────────────────────────────
+# Gemini 2.5 Flash is a "thinking" model — it does internal chain-of-thought
+# before generating visible tokens. This causes a long pause before streaming
+# starts. We control this with ThinkingConfig.thinking_budget:
+#   0     = disable thinking → instant streaming (greetings, small talk)
+#   1024  = minimal thinking  (simple facts, general knowledge)
+#   4096  = moderate thinking  (chart analysis, predictions)
+#   -1    = unlimited (default, very slow — we avoid this)
+_THINKING_BUDGET = {
+    "CONVERSATIONAL":     0,
+    "SMALL_TALK":         0,
+    "GENERAL_KNOWLEDGE":  1024,
+    "SIMPLE_FACT":        1024,
+    "REPORT_ANALYSIS":    2048,
+    "DEEP_VEDIC":         4096,
+    "CHART_ANALYSIS":     4096,
+    "RECOMMENDATION":     4096,
+}
+
+
 def generate_stream(
     query: str,
     retrieved: List[dict],
@@ -243,8 +270,14 @@ def generate_stream(
     language: str = "hi",
     memory_section: str = "",
 ) -> Generator[str, None, None]:
-    """Pass 2: Build final prompt from all context and stream from Gemini."""
+    """Pass 2: Build final prompt from all context and stream from Gemini.
+    
+    - Uses ThinkingConfig to control thinking budget per query type
+    - Retries up to 3 times with exponential backoff on 503/overload errors
+    - Falls back to gemini-1.5-flash if gemini-2.5-flash is persistently unavailable
+    """
     from google import genai
+    from google.genai import types
     from api.services.prompt_builder import build_pass2_prompt
 
     prompt = build_pass2_prompt(
@@ -263,19 +296,76 @@ def generate_stream(
     api_key = os.environ.get("GEMINI_API_KEY", "")
     client = genai.Client(api_key=api_key)
 
-    try:
-        for chunk in client.models.generate_content_stream(
-            model=GEMINI_MODEL,
-            contents=prompt,
-        ):
-            if chunk.text:
-                yield json.dumps({"type": "token", "content": chunk.text})
-    except Exception as e:
-        yield json.dumps({"type": "token", "content": f"\n[Error: {str(e)}]"})
+    # Determine thinking budget based on query type
+    query_type = decision.get("query_type", "CHART_ANALYSIS")
+    thinking_budget = _THINKING_BUDGET.get(query_type, 4096)
 
-    sources = [
-        {"book": _clean_source_name(d["source"]), "source": d["source"], "language": d["language"]}
-        for d in retrieved
+    # Build generation config with thinking control
+    try:
+        gen_config = types.GenerateContentConfig(
+            thinking_config=types.ThinkingConfig(
+                thinking_budget=thinking_budget,
+            ),
+        )
+    except Exception:
+        # SDK doesn't support ThinkingConfig — proceed without it
+        gen_config = None
+
+    # Try primary model with retries, then fallback model
+    # Note: fallback model (1.5-flash) doesn't support thinking, so no config
+    models_to_try = [
+        (GEMINI_MODEL, 3, gen_config),            # (model, max_attempts, config)
+        (GEMINI_FALLBACK_MODEL, 1, None),          # fallback — no thinking config
     ]
-    yield json.dumps({"type": "sources", "sources": sources})
+
+    last_error = None
+    for model, max_attempts, config in models_to_try:
+        for attempt in range(1, max_attempts + 1):
+            try:
+                stream_kwargs = {"model": model, "contents": prompt}
+                if config:
+                    stream_kwargs["config"] = config
+
+                for chunk in client.models.generate_content_stream(**stream_kwargs):
+                    # Filter out internal thinking tokens (thought=True)
+                    # Only emit actual response text
+                    if chunk.text:
+                        # Check if this is a thinking chunk (internal reasoning)
+                        is_thought = False
+                        if hasattr(chunk, 'candidates') and chunk.candidates:
+                            for candidate in chunk.candidates:
+                                if hasattr(candidate, 'content') and candidate.content:
+                                    for part in (candidate.content.parts or []):
+                                        if getattr(part, 'thought', False):
+                                            is_thought = True
+                                            break
+                        if not is_thought:
+                            yield json.dumps({"type": "token", "content": chunk.text})
+                # Success — emit sources and done
+                sources = [
+                    {"book": _clean_source_name(d["source"]), "source": d["source"], "language": d["language"]}
+                    for d in retrieved
+                ]
+                yield json.dumps({"type": "sources", "sources": sources})
+                yield json.dumps({"type": "done"})
+                return
+            except Exception as e:
+                last_error = e
+                if _is_retryable_error(e):
+                    if attempt < max_attempts:
+                        wait = 2 ** attempt  # 2s, 4s
+                        time.sleep(wait)
+                        continue  # retry same model
+                    # All attempts on this model exhausted — try fallback
+                    break
+                else:
+                    # Non-retryable error (bad API key, malformed request, etc.)
+                    yield json.dumps({"type": "token", "content": f"\n[Error: {str(e)}]"})
+                    yield json.dumps({"type": "sources", "sources": []})
+                    yield json.dumps({"type": "done"})
+                    return
+
+    # Both models failed — emit friendly error
+    yield json.dumps({"type": "token", "content": "Abhi AI thoda busy hai, thodi der mein dobara try karein. 🙏"})
+    yield json.dumps({"type": "sources", "sources": []})
     yield json.dumps({"type": "done"})

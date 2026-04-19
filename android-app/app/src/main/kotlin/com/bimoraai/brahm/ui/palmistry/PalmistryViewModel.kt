@@ -16,6 +16,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -82,6 +83,8 @@ class PalmistryViewModel @Inject constructor(
                         "AI service not configured on server."
                     else "Analysis failed (${res.code()}). Try a clearer photo."
                 }
+            } catch (e: SocketTimeoutException) {
+                _error.value = "Analysis is taking too long. Please try again with a clearer photo."
             } catch (e: Exception) {
                 _error.value = e.message ?: "Network error"
             } finally {
@@ -101,6 +104,8 @@ class PalmistryViewModel @Inject constructor(
                 val res   = api.analyzePalm(part, "dominant")
                 if (res.isSuccessful) _domResult.value = res.body()
                 else _domError.value = "Dominant hand analysis failed (${res.code()})."
+            } catch (e: SocketTimeoutException) {
+                _domError.value = "Analysis timed out. Please try again."
             } catch (e: Exception) {
                 _domError.value = e.message ?: "Network error"
             } finally {
@@ -127,6 +132,8 @@ class PalmistryViewModel @Inject constructor(
                 } else {
                     _nonDomError.value = "Combined analysis failed (${res.code()})."
                 }
+            } catch (e: SocketTimeoutException) {
+                _nonDomError.value = "Analysis timed out. Please try again with a clearer photo."
             } catch (e: Exception) {
                 _nonDomError.value = e.message ?: "Network error"
             } finally {

@@ -274,9 +274,10 @@ async def execute_tools(
 
                 # Need antardasha-level dashas — re-calc with antardasha if not present
                 has_antars = any(d.get("antardashas") for d in dashas)
+                parsed = _parse_birth_data(user_birth_data)
+                birth_year = parsed[0] if parsed else 0  # year is first element
                 if not has_antars:
                     from api.services.kundali_service import calc_kundali
-                    parsed = _parse_birth_data(user_birth_data)
                     if parsed:
                         yr, mo, dy, hr, mn, lt, ln, tz, nm = parsed
                         raw2, _ = await loop.run_in_executor(
@@ -288,12 +289,12 @@ async def execute_tools(
 
                 timing = await loop.run_in_executor(None, lambda: _score_windows(
                     dashas, seventh_lord, fifth_lord, eleventh_lord, second_lord,
-                    grahas, 7, lagna_i,
+                    grahas, 7, lagna_i, birth_year,  # birth_year was missing — caused TypeError
                 ))
                 delays = await loop.run_in_executor(None, lambda: _evaluate_delay_factors(
                     grahas, 7, seventh_lord, lagna_i,
                 ))
-                timing["estimated_age_range"] = _estimate_age_range(delays, timing, 0)
+                timing["estimated_age_range"] = _estimate_age_range(delays, timing, birth_year)
                 current  = timing.get("current_period")
                 best_prob = current["probability"] if current else (
                     timing["favorable_windows"][0]["probability"] if timing["favorable_windows"] else "Moderate"

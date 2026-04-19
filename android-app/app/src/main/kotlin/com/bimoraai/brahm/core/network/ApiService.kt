@@ -224,7 +224,8 @@ interface ApiService {
         @Query("period") period: String = "daily",
     ): Response<JsonObject>
 
-    // Palmistry (multipart — image upload)
+    // Palmistry (multipart — image upload + Gemini AI analysis, can take 60-90s)
+    @Headers("X-Slow-Call: true")
     @Multipart
     @POST("palmistry/analyze")
     suspend fun analyzePalm(
@@ -232,6 +233,7 @@ interface ApiService {
         @Query("hand_role") handRole: String = "dominant",
     ): Response<JsonObject>
 
+    @Headers("X-Slow-Call: true")
     @Multipart
     @POST("palmistry/analyze-both")
     suspend fun analyzeBothPalms(

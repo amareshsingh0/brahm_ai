@@ -6,6 +6,7 @@ No hardcoded keyword rules — Gemini understands nuance and context.
 import re
 import os
 import json
+import time
 
 OBVIOUS_GREETINGS = [
     r"^(hi+|hello+|hii+|hey+)\s*[!?.]*$",
@@ -140,6 +141,11 @@ def get_pass1_decision(
     return _gemini_pass1(query, page_context, kundali_summary, page_data, history or [])
 
 
+def _is_retryable_error(e: Exception) -> bool:
+    msg = str(e).lower()
+    return any(x in msg for x in ["503", "service unavailable", "overloaded", "resource exhausted", "429", "too many requests"])
+
+
 def _gemini_pass1(
     query: str,
     page_context: str,
@@ -172,25 +178,53 @@ def _gemini_pass1(
     api_key = os.environ.get("GEMINI_API_KEY", "")
     client = genai.Client(api_key=api_key)
 
+    # Pass 1 is structured JSON — minimal thinking needed, prioritize speed
     try:
-        response = client.models.generate_content(
-            model="models/gemini-2.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-            ),
-        )
-        text = response.text.strip()
-        # Strip markdown code blocks if somehow present
-        text = re.sub(r"^```json\s*", "", text)
-        text = re.sub(r"\s*```$", "", text)
-        decision = json.loads(text)
-        # Validate required keys
-        required = ["intent", "query_type", "needs_calculation", "needs_rag"]
-        for key in required:
-            if key not in decision:
-                raise ValueError(f"Missing key: {key}")
-        return decision
+        thinking_config = types.ThinkingConfig(thinking_budget=1024)
     except Exception:
-        # Safe fallback — CONVERSATIONAL so Gemini always gives a helpful response
-        return {**_CONVERSATIONAL_FALLBACK, "intent": query[:80]}
+        thinking_config = None
+
+    # Primary model config: JSON response + limited thinking for speed
+    primary_config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        **({"thinking_config": thinking_config} if thinking_config else {}),
+    )
+    # Fallback model config: JSON response only (1.5-flash doesn't support thinking)
+    fallback_config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+    )
+
+    models_to_try = [
+        ("models/gemini-2.5-flash", 3, primary_config),
+        ("models/gemini-1.5-flash", 1, fallback_config),
+    ]
+
+    for model, max_attempts, config in models_to_try:
+        for attempt in range(1, max_attempts + 1):
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=config,
+                )
+                text = response.text.strip()
+                text = re.sub(r"^```json\s*", "", text)
+                text = re.sub(r"\s*```$", "", text)
+                decision = json.loads(text)
+                required = ["intent", "query_type", "needs_calculation", "needs_rag"]
+                for key in required:
+                    if key not in decision:
+                        raise ValueError(f"Missing key: {key}")
+                return decision
+            except Exception as e:
+                if _is_retryable_error(e):
+                    if attempt < max_attempts:
+                        time.sleep(2 ** attempt)  # 2s, 4s
+                        continue
+                    break  # try fallback model
+                else:
+                    # Non-retryable (JSON parse error, bad key, etc.) — use fallback
+                    break
+
+    # All models failed — safe conversational fallback
+    return {**_CONVERSATIONAL_FALLBACK, "intent": query[:80]}

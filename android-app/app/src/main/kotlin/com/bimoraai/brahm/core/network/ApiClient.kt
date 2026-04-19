@@ -23,6 +23,13 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
+/**
+ * Header tag used to request an extended timeout for slow endpoints.
+ * Set this header in ApiService with @Headers(SLOW_TIMEOUT_HEADER).
+ * The interceptor reads it and applies a 3-minute read timeout for that call.
+ */
+const val SLOW_TIMEOUT_HEADER = "X-Slow-Call: true"
+
 val json = Json {
     ignoreUnknownKeys = true
     isLenient = true
@@ -56,8 +63,22 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .connectionPool(ConnectionPool(20, 5, TimeUnit.MINUTES))
             .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)   // increased from 60s for AI streaming calls
+            .writeTimeout(60, TimeUnit.SECONDS)  // increased from 30s for image uploads
+            // ── Dynamic timeout for slow calls (e.g. palmistry image + Gemini AI) ──────
+            // Endpoints that set X-Slow-Call header get 3 min read + 2 min write timeout.
+            .addInterceptor { chain ->
+                val req = chain.request()
+                if (req.header("X-Slow-Call") == "true") {
+                    // Remove the marker header so it's not sent to server
+                    val cleanReq = req.newBuilder().removeHeader("X-Slow-Call").build()
+                    chain.withReadTimeout(180, TimeUnit.SECONDS)
+                         .withWriteTimeout(120, TimeUnit.SECONDS)
+                         .proceed(cleanReq)
+                } else {
+                    chain.proceed(req)
+                }
+            }
             // Auto-attach JWT token to every request
             .addInterceptor { chain ->
                 val token = runBlocking { tokenDataStore.accessToken.firstOrNull() }

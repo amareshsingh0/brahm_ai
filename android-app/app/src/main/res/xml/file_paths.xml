@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
+    <!-- Root cache dir — used by palm_capture_*.jpg (PalmistryViewModel.createCameraUri) -->
+    <cache-path name="palm_images" path="." />
+    <!-- Subdirectory cache — kept for any future use -->
     <cache-path name="camera_images" path="images/" />
+    <!-- Internal files dir — used for profile photos -->
     <files-path name="profile_photos" path="." />
 </paths>
